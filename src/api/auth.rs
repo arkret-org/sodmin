@@ -289,7 +289,7 @@ pub async fn verify_admin() -> Result<bool, HttpError> {
     let access_token =
         storage::get_item("access_token").ok_or_else(|| make_err("Not authenticated".into()))?;
 
-    let response = Request::get("/_cx/admin/v1/server/info")
+    let response = Request::get("/contrix/admin/v1/server/info")
         .header("Accept", "application/json")
         .header("Authorization", &format!("Bearer {access_token}"))
         .send()

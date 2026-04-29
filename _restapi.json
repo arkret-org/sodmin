@@ -7,13 +7,13 @@
   "servers": [
     {
       "name": "Contrix Principal Server Admin",
-      "basePath": "/_cx/admin/v1",
+      "basePath": "/contrix/admin/v1",
       "description": "Principal Server management endpoints. Requires admin bearer token with urn:cx:admin scope.",
       "auth": "Bearer token (OAuth2 from coauth)"
     },
     {
       "name": "coauth Admin API",
-      "basePath": "/api/admin/v1",
+      "basePath": "/contrix/admin/v1",
       "description": "Authentication/identity management endpoints. Requires admin bearer token with urn:coauth:admin scope.",
       "auth": "Bearer token (OAuth2 from coauth)"
     }
@@ -630,7 +630,7 @@
     },
 
     "coauth.admin.v1": {
-      "_note": "coauth admin API already exists at /api/admin/v1. See coauth project for full OpenAPI spec at /api-doc/admin/openapi.json.",
+      "_note": "coauth admin API already exists at /contrix/admin/v1. See coauth project for full OpenAPI spec at /api-doc/admin/openapi.json.",
       "usedBy": [
         "GET /users - List users",
         "POST /users - Add user",

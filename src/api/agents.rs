@@ -7,7 +7,7 @@ pub async fn list_agents(
     per_page: u64,
 ) -> Result<ListResponse<Agent>, HttpError> {
     let url = build_url(
-        "/_cx/admin/v1/agents",
+        "/contrix/admin/v1/agents",
         &[
             ("page", &page.to_string()),
             ("per_page", &per_page.to_string()),
@@ -17,17 +17,17 @@ pub async fn list_agents(
 }
 
 pub async fn get_agent(id: &str) -> Result<Agent, HttpError> {
-    let url = format!("/_cx/admin/v1/agents/{}", urlencoding::encode(id));
+    let url = format!("/contrix/admin/v1/agents/{}", urlencoding::encode(id));
     api_client(&url, "GET", None).await
 }
 
 pub async fn disable_agent(id: &str) -> Result<(), HttpError> {
-    let url = format!("/_cx/admin/v1/agents/{}/disable", urlencoding::encode(id));
+    let url = format!("/contrix/admin/v1/agents/{}/disable", urlencoding::encode(id));
     api_client(&url, "POST", None).await
 }
 
 pub async fn enable_agent(id: &str) -> Result<(), HttpError> {
-    let url = format!("/_cx/admin/v1/agents/{}/enable", urlencoding::encode(id));
+    let url = format!("/contrix/admin/v1/agents/{}/enable", urlencoding::encode(id));
     api_client(&url, "POST", None).await
 }
 
@@ -38,7 +38,7 @@ pub async fn list_agent_memory(
 ) -> Result<ListResponse<AgentMemoryEntry>, HttpError> {
     let url = build_url(
         &format!(
-            "/_cx/admin/v1/agents/{}/memory",
+            "/contrix/admin/v1/agents/{}/memory",
             urlencoding::encode(agent_id)
         ),
         &[
@@ -51,7 +51,7 @@ pub async fn list_agent_memory(
 
 pub async fn delete_agent_memory(agent_id: &str, memory_id: &str) -> Result<(), HttpError> {
     let url = format!(
-        "/_cx/admin/v1/agents/{}/memory/{}",
+        "/contrix/admin/v1/agents/{}/memory/{}",
         urlencoding::encode(agent_id),
         urlencoding::encode(memory_id)
     );

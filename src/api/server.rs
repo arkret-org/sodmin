@@ -3,13 +3,13 @@ use crate::types::*;
 use crate::utils::error::HttpError;
 
 pub async fn get_server_info() -> Result<ServerInfo, HttpError> {
-    api_client("/_cx/admin/v1/server/info", "GET", None).await
+    api_client("/contrix/admin/v1/server/info", "GET", None).await
 }
 
 pub async fn get_server_stats() -> Result<ServerStats, HttpError> {
-    api_client("/_cx/admin/v1/server/stats", "GET", None).await
+    api_client("/contrix/admin/v1/server/stats", "GET", None).await
 }
 
 pub async fn get_server_status() -> Result<ServerStatusResponse, HttpError> {
-    api_client("/_cx/admin/v1/server/status", "GET", None).await
+    api_client("/contrix/admin/v1/server/status", "GET", None).await
 }

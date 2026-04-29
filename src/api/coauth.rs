@@ -191,7 +191,7 @@ pub async fn list_users(
     search: &str,
 ) -> Result<PaginatedResponse<CoauthUser>, HttpError> {
     let url = build_url(
-        "/api/admin/v1/users",
+        "/contrix/admin/v1/users",
         &[
             ("page", &page.to_string()),
             ("per_page", &per_page.to_string()),
@@ -202,17 +202,17 @@ pub async fn list_users(
 }
 
 pub async fn get_user(id: &str) -> Result<CoauthUser, HttpError> {
-    let url = format!("/api/admin/v1/users/{}", urlencoding::encode(id));
+    let url = format!("/contrix/admin/v1/users/{}", urlencoding::encode(id));
     api_client(&url, "GET", None).await
 }
 
 pub async fn update_user(id: &str, patch: &serde_json::Value) -> Result<CoauthUser, HttpError> {
-    let url = format!("/api/admin/v1/users/{}", urlencoding::encode(id));
+    let url = format!("/contrix/admin/v1/users/{}", urlencoding::encode(id));
     api_client(&url, "PATCH", Some(patch.to_string())).await
 }
 
 pub async fn set_user_password(id: &str, password: &str) -> Result<(), HttpError> {
-    let url = format!("/api/admin/v1/users/{}/set-password", urlencoding::encode(id));
+    let url = format!("/contrix/admin/v1/users/{}/set-password", urlencoding::encode(id));
     let body = serde_json::json!({ "password": password });
     api_client(&url, "POST", Some(body.to_string())).await
 }
@@ -222,7 +222,7 @@ pub async fn list_audit_feed(
     per_page: u64,
 ) -> Result<PaginatedResponse<CoauthAuditEntry>, HttpError> {
     let url = build_url(
-        "/api/admin/v1/audit-feed",
+        "/contrix/admin/v1/audit-feed",
         &[
             ("page", &page.to_string()),
             ("per_page", &per_page.to_string()),
@@ -236,7 +236,7 @@ pub async fn list_oauth2_sessions(
     per_page: u64,
 ) -> Result<PaginatedResponse<CoauthOAuth2Session>, HttpError> {
     let url = build_url(
-        "/api/admin/v1/oauth2-sessions",
+        "/contrix/admin/v1/oauth2-sessions",
         &[
             ("page", &page.to_string()),
             ("per_page", &per_page.to_string()),
@@ -246,7 +246,7 @@ pub async fn list_oauth2_sessions(
 }
 
 pub async fn finish_oauth2_session(id: &str) -> Result<(), HttpError> {
-    let url = format!("/api/admin/v1/oauth2-sessions/{}/finish", urlencoding::encode(id));
+    let url = format!("/contrix/admin/v1/oauth2-sessions/{}/finish", urlencoding::encode(id));
     api_client(&url, "POST", None).await
 }
 
@@ -255,7 +255,7 @@ pub async fn list_personal_sessions(
     per_page: u64,
 ) -> Result<PaginatedResponse<CoauthPersonalSession>, HttpError> {
     let url = build_url(
-        "/api/admin/v1/personal-sessions",
+        "/contrix/admin/v1/personal-sessions",
         &[
             ("page", &page.to_string()),
             ("per_page", &per_page.to_string()),
@@ -266,11 +266,11 @@ pub async fn list_personal_sessions(
 
 pub async fn create_personal_session(name: &str) -> Result<CoauthPersonalSession, HttpError> {
     let body = serde_json::json!({ "name": name });
-    api_client("/api/admin/v1/personal-sessions", "POST", Some(body.to_string())).await
+    api_client("/contrix/admin/v1/personal-sessions", "POST", Some(body.to_string())).await
 }
 
 pub async fn revoke_personal_session(id: &str) -> Result<(), HttpError> {
-    let url = format!("/api/admin/v1/personal-sessions/{}/revoke", urlencoding::encode(id));
+    let url = format!("/contrix/admin/v1/personal-sessions/{}/revoke", urlencoding::encode(id));
     api_client(&url, "POST", None).await
 }
 
@@ -278,7 +278,7 @@ pub async fn regenerate_personal_session(
     id: &str,
 ) -> Result<CoauthPersonalSession, HttpError> {
     let url = format!(
-        "/api/admin/v1/personal-sessions/{}/regenerate",
+        "/contrix/admin/v1/personal-sessions/{}/regenerate",
         urlencoding::encode(id)
     );
     api_client(&url, "POST", None).await
@@ -289,7 +289,7 @@ pub async fn list_upstream_providers(
     per_page: u64,
 ) -> Result<PaginatedResponse<CoauthUpstreamProvider>, HttpError> {
     let url = build_url(
-        "/api/admin/v1/upstream-oauth-providers",
+        "/contrix/admin/v1/upstream-oauth-providers",
         &[
             ("page", &page.to_string()),
             ("per_page", &per_page.to_string()),
@@ -302,7 +302,7 @@ pub async fn create_upstream_provider(
     provider: &serde_json::Value,
 ) -> Result<CoauthUpstreamProvider, HttpError> {
     api_client(
-        "/api/admin/v1/upstream-oauth-providers",
+        "/contrix/admin/v1/upstream-oauth-providers",
         "POST",
         Some(provider.to_string()),
     )
@@ -311,7 +311,7 @@ pub async fn create_upstream_provider(
 
 pub async fn delete_upstream_provider(id: &str) -> Result<(), HttpError> {
     let url = format!(
-        "/api/admin/v1/upstream-oauth-providers/{}",
+        "/contrix/admin/v1/upstream-oauth-providers/{}",
         urlencoding::encode(id)
     );
     api_client(&url, "DELETE", None).await
@@ -320,7 +320,7 @@ pub async fn delete_upstream_provider(id: &str) -> Result<(), HttpError> {
 pub async fn toggle_upstream_provider(id: &str, enable: bool) -> Result<(), HttpError> {
     let action = if enable { "enable" } else { "disable" };
     let url = format!(
-        "/api/admin/v1/upstream-oauth-providers/{}/{}",
+        "/contrix/admin/v1/upstream-oauth-providers/{}/{}",
         urlencoding::encode(id),
         action
     );
@@ -332,7 +332,7 @@ pub async fn list_upstream_links(
     per_page: u64,
 ) -> Result<PaginatedResponse<CoauthUpstreamLink>, HttpError> {
     let url = build_url(
-        "/api/admin/v1/upstream-oauth-links",
+        "/contrix/admin/v1/upstream-oauth-links",
         &[
             ("page", &page.to_string()),
             ("per_page", &per_page.to_string()),
@@ -343,7 +343,7 @@ pub async fn list_upstream_links(
 
 pub async fn delete_upstream_link(id: &str) -> Result<(), HttpError> {
     let url = format!(
-        "/api/admin/v1/upstream-oauth-links/{}",
+        "/contrix/admin/v1/upstream-oauth-links/{}",
         urlencoding::encode(id)
     );
     api_client(&url, "DELETE", None).await
@@ -354,7 +354,7 @@ pub async fn list_registration_tokens(
     per_page: u64,
 ) -> Result<PaginatedResponse<CoauthRegistrationToken>, HttpError> {
     let url = build_url(
-        "/api/admin/v1/user-registration-tokens",
+        "/contrix/admin/v1/user-registration-tokens",
         &[
             ("page", &page.to_string()),
             ("per_page", &per_page.to_string()),
@@ -368,7 +368,7 @@ pub async fn create_registration_token(
 ) -> Result<CoauthRegistrationToken, HttpError> {
     let body = serde_json::json!({ "uses_allowed": uses_allowed });
     api_client(
-        "/api/admin/v1/user-registration-tokens",
+        "/contrix/admin/v1/user-registration-tokens",
         "POST",
         Some(body.to_string()),
     )
@@ -377,7 +377,7 @@ pub async fn create_registration_token(
 
 pub async fn revoke_registration_token(id: &str) -> Result<(), HttpError> {
     let url = format!(
-        "/api/admin/v1/user-registration-tokens/{}/revoke",
+        "/contrix/admin/v1/user-registration-tokens/{}/revoke",
         urlencoding::encode(id)
     );
     api_client(&url, "POST", None).await
@@ -385,13 +385,13 @@ pub async fn revoke_registration_token(id: &str) -> Result<(), HttpError> {
 
 pub async fn get_connector_health() -> Result<Vec<CoauthConnectorHealth>, HttpError> {
     let resp: ConnectorHealthResponse =
-        api_client("/api/admin/v1/connector-health", "GET", None).await?;
+        api_client("/contrix/admin/v1/connector-health", "GET", None).await?;
     Ok(resp.connectors)
 }
 
 pub async fn list_notification_channels() -> Result<Vec<CoauthNotificationChannel>, HttpError> {
     let resp: NotificationChannelsResponse =
-        api_client("/api/admin/v1/notification-channels", "GET", None).await?;
+        api_client("/contrix/admin/v1/notification-channels", "GET", None).await?;
     Ok(resp.channels)
 }
 
@@ -400,7 +400,7 @@ pub async fn list_notification_templates(
     per_page: u64,
 ) -> Result<PaginatedResponse<CoauthNotificationTemplate>, HttpError> {
     let url = build_url(
-        "/api/admin/v1/notification-templates",
+        "/contrix/admin/v1/notification-templates",
         &[
             ("page", &page.to_string()),
             ("per_page", &per_page.to_string()),
@@ -411,7 +411,7 @@ pub async fn list_notification_templates(
 
 pub async fn publish_notification_templates() -> Result<(), HttpError> {
     api_client(
-        "/api/admin/v1/notification-templates/publish",
+        "/contrix/admin/v1/notification-templates/publish",
         "POST",
         None,
     )

@@ -8,7 +8,7 @@ pub async fn list_devices(
     actor_id: &str,
 ) -> Result<ListResponse<Device>, HttpError> {
     let url = build_url(
-        "/_cx/admin/v1/devices",
+        "/contrix/admin/v1/devices",
         &[
             ("page", &page.to_string()),
             ("per_page", &per_page.to_string()),
@@ -19,6 +19,6 @@ pub async fn list_devices(
 }
 
 pub async fn delete_device(id: &str) -> Result<(), HttpError> {
-    let url = format!("/_cx/admin/v1/devices/{}", urlencoding::encode(id));
+    let url = format!("/contrix/admin/v1/devices/{}", urlencoding::encode(id));
     api_client(&url, "DELETE", None).await
 }

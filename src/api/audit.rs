@@ -7,7 +7,7 @@ pub async fn list_audit_entries(
     per_page: u64,
 ) -> Result<ListResponse<AuditEntry>, HttpError> {
     let url = build_url(
-        "/_cx/admin/v1/audit",
+        "/contrix/admin/v1/audit",
         &[
             ("page", &page.to_string()),
             ("per_page", &per_page.to_string()),
