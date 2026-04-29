@@ -7,7 +7,6 @@ use crate::utils::storage;
 
 pub const HEADER_REQUEST_ID: &str = "X-Contrix-Request-Id";
 pub const HEADER_IDEMPOTENCY_KEY: &str = "Idempotency-Key";
-pub const HEADER_WAIT_FOR: &str = "X-Contrix-Wait-For";
 
 const SENSITIVE_QUERY_KEYS: &[&str] = &[
     "access_token",

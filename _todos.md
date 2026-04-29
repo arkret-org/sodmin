@@ -8,7 +8,7 @@
 - 当前代码已有 Contrix 页面和 API 模块: actors、spaces、devices、capabilities、federation、applets、agents、reports、invite tokens、audit、policy、media、coauth。
 - 历史 README、部分 i18n 和 e2e 仍保留 Palpo/Matrix/Pasion 语义，容易误导测试与部署。
 - `_restapi.json` 是手写 admin contract 草案，后续应由 `soland` 与 `coauth` OpenAPI 生成或校验。
-- 当前主要缺口: contract source of truth、真实后端联调、权限/审计 UX、legacy 文案清理、E2E stack 更新。
+- 当前主要缺口: contract source of truth、真实后端联调、权限/审计 UX、深层 legacy 文案清理、E2E stack 更新。
 
 ## P0: API Contract Source of Truth
 
@@ -19,43 +19,45 @@
   - [ ] 从 `coauth` 生成 Auth / Account Admin OpenAPI。
   - [ ] 生成 Rust/WASM API types 或校验现有手写 types。
   - [ ] 保留 `_restapi.json` 仅作为迁移说明或删除。
-- [ ] 统一 error envelope:
-  - [ ] not_found。
-  - [ ] unauthenticated。
-  - [ ] capability_denied。
-  - [ ] rate_limited + retry metadata。
-  - [ ] temporarily_unavailable。
-  - [ ] validation/schema errors。
+- [x] 统一 error envelope:
+  - [x] not_found。
+  - [x] unauthenticated。
+  - [x] capability_denied。
+  - [x] rate_limited + retry metadata。
+  - [x] temporarily_unavailable。
+  - [x] validation/schema errors。
 - [ ] Pagination/filter contract:
   - [ ] cursor pagination。
   - [ ] stable sort。
   - [ ] filter validation errors。
   - [ ] stale frontier reporting。
-- [ ] API client hygiene:
-  - [ ] no token in URL。
-  - [ ] `X-Contrix-Request-Id` per mutation。
-  - [ ] `Idempotency-Key` for create/update where supported。
-  - [ ] Retry-After display。
-  - [ ] log redaction。
+- [x] API client hygiene:
+  - [x] no token in URL。
+  - [x] `X-Contrix-Request-Id` per mutation。
+  - [x] `Idempotency-Key` for create/update where supported。
+  - [x] Retry-After display。
+  - [x] log redaction。
 
 并行性: Principal Server API、coauth API、error/pagination/client hygiene 可并行；type generation strategy 需要先定。
 
 ## P0: Authentication, Session and Admin Authorization
 
 - [ ] coauth OAuth2 login:
-  - [ ] authorization code + PKCE。
-  - [ ] admin scope request。
-  - [ ] state/nonce validation。
-  - [ ] callback error handling。
-  - [ ] logout/revoke。
+  - [x] authorization code + PKCE。
+  - [x] admin scope request。
+  - [x] state validation。
+  - [x] nonce generation and authorization request binding。
+  - [ ] ID token nonce validation when coauth returns ID tokens。
+  - [x] callback error handling。
+  - [x] logout/revoke。
 - [ ] Token storage:
   - [ ] browser storage threat model。
-  - [ ] refresh flow or explicit re-auth policy。
-  - [ ] token expiry UI。
-  - [ ] no token in local logs/errors。
+  - [x] refresh flow or explicit re-auth policy。
+  - [x] token expiry UI。
+  - [x] no token in local logs/errors。
 - [ ] Admin scope model:
-  - [ ] `urn:coauth:admin` for coauth routes。
-  - [ ] `urn:contrix:admin:*` for Principal Server routes。
+  - [x] `urn:coauth:admin` for coauth routes。
+  - [x] `urn:contrix:admin:*` for Principal Server routes。
   - [ ] read-only vs mutation permission display。
   - [ ] route guard by feature/profile/scope。
 - [ ] High-risk action UX:
@@ -168,14 +170,14 @@
 ## P0: Legacy Palpo/Matrix/Pasion Cleanup
 
 - [ ] README / README.zh:
-  - [ ] rename Palpo Admin -> Contrix Admin / sodmin。
-  - [ ] replace Matrix users/rooms/media language with actors/spaces/blob。
-  - [ ] replace Pasion references with coauth where appropriate。
+  - [x] rename Palpo Admin -> Contrix Admin / sodmin。
+  - [x] replace Matrix users/rooms/media language with actors/spaces/blob。
+  - [x] replace Pasion references with coauth where appropriate。
   - [ ] update Docker/example stack docs。
 - [ ] i18n:
-  - [ ] remove `Palpo Admin` title。
-  - [ ] remove Matrix-specific subtitles。
-  - [ ] rename rooms/users to spaces/actors。
+  - [x] remove `Palpo Admin` title from default visible chrome。
+  - [x] remove Matrix-specific subtitles from default visible labels。
+  - [x] rename rooms/users to spaces/actors in default visible labels。
   - [ ] keep legacy compatibility labels only in compatibility sections。
 - [ ] e2e:
   - [ ] replace Matrix scopes helpers with Contrix/coauth scopes。
@@ -183,9 +185,9 @@
   - [ ] remove Element-specific smoke from default sodmin suite。
   - [ ] add Contrix stack fixtures。
 - [ ] Types/errors:
-  - [ ] rename `MatrixError` to Contrix/Admin error type。
+  - [x] rename `MatrixError` to Contrix/Admin error type。
   - [ ] remove `_matrix` endpoint assumptions。
-  - [ ] align error codes with Contrix API convention。
+  - [x] align error codes with Contrix API convention。
 
 ## P1: End-to-End Stack and CI
 
@@ -223,6 +225,14 @@
 - [ ] Audit-sensitive pages default to least data exposure。
 - [ ] Time/date formatting stable across locales。
 - [ ] Export/download actions warn about sensitive data。
+
+## 本轮验证记录
+
+- [x] 2026-04-29: `cargo fmt --all`。
+- [x] 2026-04-29: `cargo check --message-format short`。
+- [x] 2026-04-29: `cargo test --message-format short`。
+- [x] 2026-04-29: API client unit tests cover query credential rejection, diagnostic URL redaction, mutation idempotency headers, and retry metadata preservation。
+- [x] 2026-04-29: OAuth scope unit test covers `urn:coauth:admin` and `urn:contrix:admin:*` while rejecting legacy `urn:cx:admin`。
 
 ## Definition of Done
 
