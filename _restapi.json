@@ -1,0 +1,666 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Contrix Principal Server Admin REST API",
+  "description": "Admin API requirements for the Contrix Principal Server (sodmin admin panel). Two backends: Principal Server Admin API and coauth Admin API.",
+  "version": "1.0.0",
+
+  "servers": [
+    {
+      "name": "Contrix Principal Server Admin",
+      "basePath": "/_cx/admin/v1",
+      "description": "Principal Server management endpoints. Requires admin bearer token with urn:cx:admin scope.",
+      "auth": "Bearer token (OAuth2 from coauth)"
+    },
+    {
+      "name": "coauth Admin API",
+      "basePath": "/api/admin/v1",
+      "description": "Authentication/identity management endpoints. Requires admin bearer token with urn:coauth:admin scope.",
+      "auth": "Bearer token (OAuth2 from coauth)"
+    }
+  ],
+
+  "commonTypes": {
+    "PaginatedResponse": {
+      "type": "object",
+      "description": "All list endpoints return this wrapper",
+      "properties": {
+        "data": { "type": "array", "description": "Array of result items" },
+        "total": { "type": "integer", "description": "Total count for pagination" }
+      }
+    },
+    "ErrorEnvelope": {
+      "type": "object",
+      "properties": {
+        "errcode": { "type": "string", "example": "M_FORBIDDEN" },
+        "error": { "type": "string", "description": "Human-readable error message" },
+        "retry_after_ms": { "type": "integer", "description": "If rate-limited, milliseconds to wait" }
+      }
+    }
+  },
+
+  "paginationParams": {
+    "page": { "type": "integer", "minimum": 1, "default": 1 },
+    "per_page": { "type": "integer", "minimum": 1, "maximum": 100, "default": 20 }
+  },
+
+  "endpoints": {
+    "_cx.admin.v1": {
+      "server": {
+        "GET /server/info": {
+          "description": "Get server version and protocol info",
+          "response": {
+            "server_version": "string",
+            "protocol_version": "string (e.g. '1.0')",
+            "server_name": "string?",
+            "uptime": "integer? (seconds)"
+          }
+        },
+        "GET /server/stats": {
+          "description": "Get server statistics",
+          "response": {
+            "actor_count": "integer",
+            "active_actor_count": "integer",
+            "space_count": "integer",
+            "report_count": "integer",
+            "federation_peer_count": "integer",
+            "applet_count": "integer",
+            "agent_count": "integer",
+            "blob_count": "integer",
+            "blob_total_size": "integer (bytes)"
+          }
+        },
+        "GET /server/status": {
+          "description": "Get server health status with component checks",
+          "response": {
+            "ok": "boolean",
+            "results": [
+              {
+                "ok": "boolean",
+                "label": "string?",
+                "category": "string?",
+                "reason": "string?"
+              }
+            ]
+          }
+        }
+      },
+
+      "actors": {
+        "GET /actors": {
+          "description": "List actors with pagination and search",
+          "params": {
+            "page": "integer",
+            "per_page": "integer",
+            "search": "string (optional, searches handle/display_name)"
+          },
+          "response": "PaginatedResponse<Actor>",
+          "actorFields": {
+            "id": "string (ULID)",
+            "did": "string (did:uuid:...)",
+            "handle": "string?",
+            "display_name": "string?",
+            "avatar_url": "string?",
+            "status": "string?",
+            "is_admin": "boolean",
+            "is_suspended": "boolean",
+            "is_deactivated": "boolean",
+            "created_at": "string (ISO 8601)",
+            "last_active_at": "string? (ISO 8601)",
+            "device_count": "integer",
+            "space_count": "integer"
+          }
+        },
+        "GET /actors/:actor_id": {
+          "description": "Get actor detail",
+          "response": "Actor"
+        },
+        "POST /actors": {
+          "description": "Create a new actor",
+          "body": {
+            "handle": "string?",
+            "display_name": "string?",
+            "password": "string?",
+            "is_admin": "boolean (default: false)"
+          },
+          "response": "Actor"
+        },
+        "PATCH /actors/:actor_id": {
+          "description": "Update actor properties",
+          "body": {
+            "display_name": "string?",
+            "avatar_url": "string?",
+            "handle": "string?",
+            "is_admin": "boolean?",
+            "is_suspended": "boolean?"
+          },
+          "response": "Actor"
+        },
+        "POST /actors/:actor_id/deactivate": {
+          "description": "Deactivate an actor (soft delete)",
+          "response": "204 No Content"
+        },
+        "POST /actors/:actor_id/reactivate": {
+          "description": "Reactivate a deactivated actor",
+          "response": "204 No Content"
+        },
+        "POST /actors/:actor_id/erase": {
+          "description": "Permanently erase an actor's data (GDPR)",
+          "response": "204 No Content"
+        },
+        "GET /actors/handle-availability": {
+          "description": "Check if a handle is available",
+          "params": { "handle": "string" },
+          "response": {
+            "available": "boolean",
+            "error": "string?"
+          }
+        }
+      },
+
+      "spaces": {
+        "GET /spaces": {
+          "description": "List spaces with pagination and search",
+          "params": {
+            "page": "integer",
+            "per_page": "integer",
+            "search": "string?"
+          },
+          "response": "PaginatedResponse<Space>",
+          "spaceFields": {
+            "id": "string (cx:space:...)",
+            "name": "string?",
+            "space_type": "string? (default|channel|thread|kanban|document)",
+            "discoverability": "string? (public|listed|restricted|unlisted|invite_only|secret)",
+            "creator_id": "string? (actor DID)",
+            "member_count": "integer",
+            "is_encrypted": "boolean",
+            "is_blocked": "boolean",
+            "parent_space_id": "string?",
+            "topic": "string?",
+            "avatar_url": "string?",
+            "created_at": "string (ISO 8601)",
+            "join_rule": "string? (open|invite|knock|restricted|closed)",
+            "history_visibility": "string?"
+          }
+        },
+        "GET /spaces/:space_id": {
+          "description": "Get space detail",
+          "response": "Space"
+        },
+        "POST /spaces": {
+          "description": "Create a new space",
+          "body": {
+            "name": "string",
+            "space_type": "string?",
+            "topic": "string?",
+            "discoverability": "string?",
+            "join_rule": "string?",
+            "parent_space_id": "string?",
+            "is_encrypted": "boolean"
+          },
+          "response": "Space"
+        },
+        "DELETE /spaces/:space_id": {
+          "description": "Delete a space",
+          "response": "204 No Content"
+        },
+        "POST /spaces/:space_id/block": {
+          "description": "Block a space (prevent access)",
+          "response": "204 No Content"
+        },
+        "POST /spaces/:space_id/unblock": {
+          "description": "Unblock a previously blocked space",
+          "response": "204 No Content"
+        },
+        "GET /spaces/:space_id/members": {
+          "description": "List space members",
+          "response": [
+            {
+              "actor_id": "string",
+              "display_name": "string?",
+              "role": "string? (owner|admin|moderator|member)",
+              "joined_at": "string? (ISO 8601)"
+            }
+          ]
+        },
+        "POST /spaces/:space_id/members/:actor_id/kick": {
+          "description": "Kick a member from a space",
+          "response": "204 No Content"
+        },
+        "POST /spaces/:space_id/members/:actor_id/ban": {
+          "description": "Ban a member from a space",
+          "response": "204 No Content"
+        }
+      },
+
+      "devices": {
+        "GET /devices": {
+          "description": "List devices with optional actor_id filter",
+          "params": {
+            "page": "integer",
+            "per_page": "integer",
+            "actor_id": "string?"
+          },
+          "response": "PaginatedResponse<Device>",
+          "deviceFields": {
+            "id": "string",
+            "actor_id": "string?",
+            "display_name": "string?",
+            "device_type": "string?",
+            "last_seen_ip": "string?",
+            "last_seen_ts": "integer? (unix ms)",
+            "verification_status": "string? (unverified|verified|cross_signed)",
+            "is_cross_signed": "boolean"
+          }
+        },
+        "DELETE /devices/:device_id": {
+          "description": "Delete/remove a device",
+          "response": "204 No Content"
+        }
+      },
+
+      "capabilities": {
+        "GET /capabilities": {
+          "description": "List capability grants",
+          "params": { "page": "integer", "per_page": "integer" },
+          "response": "PaginatedResponse<CapabilityGrant>",
+          "capabilityGrantFields": {
+            "id": "string",
+            "grantor_id": "string (actor DID)",
+            "grantee_id": "string (actor DID)",
+            "capability": "string (e.g. cx.moderate, cx.space.admin)",
+            "scope": "string? (space ID or * for global)",
+            "constraints": "object? (time/rate/audience constraints per spec)",
+            "granted_at": "string (ISO 8601)",
+            "expires_at": "string? (ISO 8601)",
+            "is_revoked": "boolean",
+            "delegation_depth": "integer"
+          }
+        },
+        "POST /capabilities": {
+          "description": "Grant a capability",
+          "body": {
+            "grantee_id": "string",
+            "capability": "string",
+            "scope": "string?",
+            "constraints": "object?",
+            "expires_at": "string? (ISO 8601)"
+          },
+          "response": "CapabilityGrant"
+        },
+        "POST /capabilities/:grant_id/revoke": {
+          "description": "Revoke a capability grant",
+          "response": "204 No Content"
+        }
+      },
+
+      "federation": {
+        "GET /federation/peers": {
+          "description": "List federation peers",
+          "params": { "page": "integer", "per_page": "integer" },
+          "response": "PaginatedResponse<FederationPeer>",
+          "federationPeerFields": {
+            "domain": "string",
+            "status": "string? (active|error|quarantined)",
+            "trust_level": "string? (full|restricted|quarantined)",
+            "last_successful_txn": "string? (ISO 8601)",
+            "last_error": "string?",
+            "retry_interval": "integer (seconds)",
+            "direction": "string? (bidirectional|outbound|inbound)",
+            "connection_id": "string?"
+          }
+        },
+        "GET /federation/peers/:domain": {
+          "description": "Get federation peer detail",
+          "response": "FederationPeer"
+        },
+        "POST /federation/peers/:domain/reset": {
+          "description": "Reset connection to a federation peer",
+          "response": "204 No Content"
+        },
+        "GET /federation/allow-rules": {
+          "description": "List federation allow/block rules",
+          "params": { "page": "integer", "per_page": "integer" },
+          "response": "PaginatedResponse<FederationAllowRule>",
+          "federationAllowRuleFields": {
+            "id": "string",
+            "domain": "string",
+            "rule_type": "string? (allow|block)",
+            "created_at": "string (ISO 8601)"
+          }
+        },
+        "POST /federation/allow-rules": {
+          "description": "Add a federation allow/block rule",
+          "body": { "domain": "string", "rule_type": "string?" },
+          "response": "FederationAllowRule"
+        },
+        "DELETE /federation/allow-rules/:rule_id": {
+          "description": "Delete a federation allow/block rule",
+          "response": "204 No Content"
+        }
+      },
+
+      "applets": {
+        "GET /applets": {
+          "description": "List registered applets",
+          "params": { "page": "integer", "per_page": "integer" },
+          "response": "PaginatedResponse<Applet>",
+          "appletFields": {
+            "id": "string",
+            "name": "string",
+            "description": "string?",
+            "applet_type": "string? (bridge|bot|service)",
+            "status": "string? (active|error|disabled)",
+            "namespace": "string?",
+            "endpoint_url": "string?",
+            "capabilities": ["string"],
+            "is_enabled": "boolean",
+            "registered_at": "string (ISO 8601)",
+            "last_transaction_at": "string? (ISO 8601)"
+          }
+        },
+        "GET /applets/:applet_id": {
+          "description": "Get applet detail",
+          "response": "Applet"
+        },
+        "POST /applets": {
+          "description": "Register a new applet",
+          "body": {
+            "name": "string",
+            "description": "string?",
+            "applet_type": "string?",
+            "endpoint_url": "string",
+            "capabilities": ["string"],
+            "namespace": "string?"
+          },
+          "response": "Applet"
+        },
+        "DELETE /applets/:applet_id": {
+          "description": "Delete an applet registration",
+          "response": "204 No Content"
+        },
+        "POST /applets/:applet_id/enable": {
+          "description": "Enable an applet",
+          "response": "204 No Content"
+        },
+        "POST /applets/:applet_id/disable": {
+          "description": "Disable an applet",
+          "response": "204 No Content"
+        }
+      },
+
+      "agents": {
+        "GET /agents": {
+          "description": "List AI agents",
+          "params": { "page": "integer", "per_page": "integer" },
+          "response": "PaginatedResponse<Agent>",
+          "agentFields": {
+            "id": "string",
+            "name": "string?",
+            "owner_id": "string (actor DID)",
+            "agent_type": "string? (assistant|bot|worker)",
+            "status": "string? (active|idle|disabled)",
+            "capabilities": ["string"],
+            "memory_count": "integer",
+            "is_enabled": "boolean",
+            "created_at": "string (ISO 8601)",
+            "last_active_at": "string? (ISO 8601)"
+          }
+        },
+        "GET /agents/:agent_id": {
+          "description": "Get agent detail",
+          "response": "Agent"
+        },
+        "POST /agents/:agent_id/disable": {
+          "description": "Disable an agent",
+          "response": "204 No Content"
+        },
+        "POST /agents/:agent_id/enable": {
+          "description": "Enable an agent",
+          "response": "204 No Content"
+        },
+        "GET /agents/:agent_id/memory": {
+          "description": "List agent memory entries",
+          "params": { "page": "integer", "per_page": "integer" },
+          "response": "PaginatedResponse<AgentMemoryEntry>",
+          "agentMemoryEntryFields": {
+            "id": "string",
+            "agent_id": "string",
+            "memory_type": "string? (working|episodic|semantic|task)",
+            "confidence": "number?",
+            "status": "string? (candidate|confirmed|rejected|invalidated|superseded)",
+            "content_summary": "string?",
+            "created_at": "string (ISO 8601)"
+          }
+        },
+        "DELETE /agents/:agent_id/memory/:memory_id": {
+          "description": "Delete an agent memory entry",
+          "response": "204 No Content"
+        }
+      },
+
+      "reports": {
+        "GET /reports": {
+          "description": "List content moderation reports",
+          "params": {
+            "page": "integer",
+            "per_page": "integer",
+            "status": "string? (open|in_review|resolved|dismissed)"
+          },
+          "response": "PaginatedResponse<Report>",
+          "reportFields": {
+            "id": "string",
+            "status": "string?",
+            "space_id": "string?",
+            "event_id": "string?",
+            "reporter_id": "string?",
+            "reported_actor_id": "string?",
+            "reason": "string?",
+            "score": "integer?",
+            "event_content": "object?",
+            "created_at": "string (ISO 8601)",
+            "resolved_at": "string? (ISO 8601)",
+            "resolved_by": "string?"
+          }
+        },
+        "GET /reports/:report_id": {
+          "description": "Get report detail",
+          "response": "Report"
+        },
+        "PATCH /reports/:report_id": {
+          "description": "Update report status",
+          "body": { "status": "string?" },
+          "response": "Report"
+        },
+        "DELETE /reports/:report_id": {
+          "description": "Delete a report",
+          "response": "204 No Content"
+        }
+      },
+
+      "inviteTokens": {
+        "GET /invite-tokens": {
+          "description": "List invite tokens",
+          "params": { "page": "integer", "per_page": "integer" },
+          "response": "PaginatedResponse<InviteToken>",
+          "inviteTokenFields": {
+            "id": "string",
+            "token": "string",
+            "uses_allowed": "integer?",
+            "uses_completed": "integer",
+            "uses_pending": "integer",
+            "expires_at": "string? (ISO 8601)",
+            "space_id": "string?",
+            "created_at": "string (ISO 8601)",
+            "created_by": "string?"
+          }
+        },
+        "POST /invite-tokens": {
+          "description": "Create an invite token",
+          "body": {
+            "uses_allowed": "integer?",
+            "expires_at": "string? (ISO 8601)",
+            "space_id": "string?"
+          },
+          "response": "InviteToken"
+        },
+        "DELETE /invite-tokens/:token_id": {
+          "description": "Delete an invite token",
+          "response": "204 No Content"
+        }
+      },
+
+      "audit": {
+        "GET /audit": {
+          "description": "List audit log entries",
+          "params": { "page": "integer", "per_page": "integer" },
+          "response": "PaginatedResponse<AuditEntry>",
+          "auditEntryFields": {
+            "id": "string",
+            "action": "string",
+            "actor_id": "string?",
+            "target_type": "string?",
+            "target_id": "string?",
+            "details": "object?",
+            "timestamp": "string (ISO 8601)",
+            "source_ip": "string?"
+          }
+        }
+      },
+
+      "policy": {
+        "GET /policies": {
+          "description": "List policies",
+          "params": { "page": "integer", "per_page": "integer" },
+          "response": "PaginatedResponse<Policy>",
+          "policyFields": {
+            "id": "string (cx:policy:...)",
+            "name": "string",
+            "policy_type": "string? (access|moderation|federation|encryption|agent)",
+            "description": "string?",
+            "scope": "string?",
+            "rules": "object?",
+            "is_enabled": "boolean",
+            "priority": "integer",
+            "created_at": "string (ISO 8601)",
+            "updated_at": "string? (ISO 8601)"
+          }
+        },
+        "GET /policies/:policy_id": {
+          "description": "Get policy detail",
+          "response": "Policy"
+        },
+        "POST /policies": {
+          "description": "Create a policy",
+          "body": {
+            "name": "string",
+            "policy_type": "string?",
+            "description": "string?",
+            "scope": "string?",
+            "rules": "object?",
+            "is_enabled": "boolean",
+            "priority": "integer"
+          },
+          "response": "Policy"
+        },
+        "PUT /policies/:policy_id": {
+          "description": "Update a policy",
+          "body": "same as create",
+          "response": "Policy"
+        },
+        "DELETE /policies/:policy_id": {
+          "description": "Delete a policy",
+          "response": "204 No Content"
+        }
+      },
+
+      "media": {
+        "GET /media/statistics": {
+          "description": "Get blob/media statistics",
+          "response": {
+            "total_blobs": "integer",
+            "total_size": "integer (bytes)",
+            "quarantined_count": "integer"
+          }
+        },
+        "GET /media/by-actor": {
+          "description": "List per-actor media statistics",
+          "params": { "page": "integer", "per_page": "integer" },
+          "response": "PaginatedResponse<ActorMediaStatistics>",
+          "actorMediaStatisticsFields": {
+            "actor_id": "string",
+            "display_name": "string?",
+            "blob_count": "integer",
+            "total_size": "integer (bytes)"
+          }
+        },
+        "GET /media/blobs": {
+          "description": "List blobs with optional actor filter",
+          "params": {
+            "page": "integer",
+            "per_page": "integer",
+            "actor_id": "string?"
+          },
+          "response": "PaginatedResponse<BlobInfo>",
+          "blobInfoFields": {
+            "id": "string",
+            "digest": "string? (sha256:...)",
+            "size": "integer",
+            "content_type": "string?",
+            "owner_id": "string?",
+            "space_id": "string?",
+            "is_quarantined": "boolean",
+            "uploaded_at": "string? (ISO 8601)"
+          }
+        },
+        "POST /media/blobs/:blob_id/quarantine": {
+          "description": "Quarantine a blob",
+          "response": "204 No Content"
+        },
+        "DELETE /media/blobs/:blob_id": {
+          "description": "Delete a blob",
+          "response": "204 No Content"
+        },
+        "POST /media/purge-remote": {
+          "description": "Purge remote/cached media",
+          "params": { "before_ts": "integer? (unix ms)" },
+          "response": { "deleted_count": "integer" }
+        }
+      }
+    },
+
+    "coauth.admin.v1": {
+      "_note": "coauth admin API already exists at /api/admin/v1. See coauth project for full OpenAPI spec at /api-doc/admin/openapi.json.",
+      "usedBy": [
+        "GET /users - List users",
+        "POST /users - Add user",
+        "GET /users/:id - Get user",
+        "PATCH /users/:id - Update user",
+        "POST /users/:id/set-password - Set password",
+        "POST /users/:id/risk-action - Risk action",
+        "GET /audit-feed - Audit log",
+        "GET /oauth2-sessions - List OAuth2 sessions",
+        "POST /oauth2-sessions/:id/finish - End session",
+        "GET /personal-sessions - List personal tokens",
+        "POST /personal-sessions - Create token",
+        "POST /personal-sessions/:id/regenerate - Regenerate",
+        "POST /personal-sessions/:id/revoke - Revoke",
+        "GET /user-registration-tokens - List tokens",
+        "POST /user-registration-tokens - Create token",
+        "POST /user-registration-tokens/:id/revoke - Revoke",
+        "GET /upstream-oauth-providers - List providers",
+        "POST /upstream-oauth-providers - Create provider",
+        "DELETE /upstream-oauth-providers/:id - Delete provider",
+        "POST /upstream-oauth-providers/:id/enable - Enable",
+        "POST /upstream-oauth-providers/:id/disable - Disable",
+        "GET /upstream-oauth-links - List links",
+        "DELETE /upstream-oauth-links/:id - Delete link",
+        "GET /connector-health - Connector health",
+        "GET /notification-channels - Notification channels",
+        "GET /notification-templates - Notification templates",
+        "POST /notification-templates/publish - Publish templates",
+        "GET /version - Server version"
+      ]
+    }
+  }
+}

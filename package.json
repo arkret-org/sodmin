@@ -1,0 +1,41 @@
+{
+  "name": "padmin",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "example": "examples"
+  },
+  "scripts": {
+    "test": "npm run test:app",
+    "test:app": "npx playwright test",
+    "test:ui": "npx playwright test --ui",
+    "test:headed": "npx playwright test --headed",
+    "test:debug": "npx playwright test --debug",
+    "test:report": "npx playwright show-report",
+    "test:example-stack": "npx playwright test -c playwright.example-stack.config.ts",
+    "test:example-stack:headed": "npx playwright test -c playwright.example-stack.config.ts --headed",
+    "test:example-stack:debug": "npx playwright test -c playwright.example-stack.config.ts --debug",
+    "test:example-stack:report": "npx playwright show-report playwright-report/example-stack",
+    "test:example-stack:fresh": "npm run stack:reset && npm run test:example-stack",
+    "stack:reset": "node e2e/scripts/reset-example-stack.mjs",
+    "stack:up": "node e2e/scripts/reset-example-stack.mjs up",
+    "stack:down": "node e2e/scripts/reset-example-stack.mjs down"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/taidge/padmin.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "AGPL-3.0-or-later",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/taidge/padmin/issues"
+  },
+  "homepage": "https://github.com/taidge/padmin#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.59.1",
+    "pg": "^8.20.0"
+  }
+}
