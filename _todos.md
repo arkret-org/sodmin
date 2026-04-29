@@ -1,6 +1,6 @@
 # sodmin Active TODO
 
-> 更新日期: 2026-04-29
+> 更新日期: 2026-04-30
 > 范围: Contrix Principal Server + coauth 管理员 Web UI。`sodmin` 只消费稳定 admin/API contract，不在前端重实现协议 reducer 或授权判定。
 
 ## 0. 当前边界
@@ -37,6 +37,11 @@
   - [x] `Idempotency-Key` for create/update where supported。
   - [x] Retry-After display。
   - [x] log redaction。
+- [ ] Latest spec types:
+  - [ ] generated/validated API types include `FacetName`。
+  - [ ] generated/validated API types include `ViewRenderer`。
+  - [ ] capability/grant types include `allowed_entity_facets`。
+  - [ ] index/query admin diagnostics include `renderer` and `facets` in cursor/filter mismatch display。
 
 并行性: Principal Server API、coauth API、error/pagination/client hygiene 可并行；type generation strategy 需要先定。
 
@@ -100,6 +105,7 @@
   - [ ] grants/delegations/revocations。
   - [ ] resource selector display。
   - [ ] constraint display。
+  - [ ] `allowed_entity_facets` display and filter。
   - [ ] effective permission explanation。
   - [ ] stale frontier/conflict records。
 - [ ] Federation:
@@ -219,6 +225,7 @@
 
 - [ ] Loading/error empty states use consistent PageShell。
 - [ ] Route-level feature gates based on server describe profiles。
+- [ ] Entity/view schema editors expose facets and renderer without relying on raw JSON for common cases。
 - [ ] Keyboard navigation and focus management for destructive dialogs。
 - [ ] Screen reader labels for tables/actions。
 - [ ] i18n parity for English/Chinese。
