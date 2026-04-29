@@ -25,9 +25,17 @@ pub fn SpaceCreate() -> Element {
         error.set(String::new());
         let req = CreateSpaceRequest {
             name: name.read().clone(),
-            topic: if topic.read().is_empty() { None } else { Some(topic.read().clone()) },
+            topic: if topic.read().is_empty() {
+                None
+            } else {
+                Some(topic.read().clone())
+            },
             is_encrypted: is_encrypted(),
-            discoverability: if discoverability.read().is_empty() { None } else { Some(discoverability.read().clone()) },
+            discoverability: if discoverability.read().is_empty() {
+                None
+            } else {
+                Some(discoverability.read().clone())
+            },
             ..Default::default()
         };
         spawn(async move {

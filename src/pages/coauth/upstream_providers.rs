@@ -26,9 +26,10 @@ pub fn UpstreamProvidersPage() -> Element {
 
     let page_val = *page.read();
 
-    let mut data = use_resource(move || async move {
-        coauth::list_upstream_providers(page_val, PAGE_SIZE).await
-    });
+    let mut data =
+        use_resource(
+            move || async move { coauth::list_upstream_providers(page_val, PAGE_SIZE).await },
+        );
 
     rsx! {
         div { class: "space-y-6",

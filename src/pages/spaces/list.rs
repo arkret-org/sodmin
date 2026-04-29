@@ -1,13 +1,13 @@
 use dioxus::prelude::*;
 
 use crate::api::spaces;
+use crate::components::ui::error_banner::ErrorBanner;
 use crate::components::ui::icons::Icon;
+use crate::components::ui::input::SearchInput;
 use crate::components::ui::loading::PageSkeleton;
+use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::pagination::Pagination;
 use crate::components::ui::table::*;
-use crate::components::ui::error_banner::ErrorBanner;
-use crate::components::ui::input::SearchInput;
-use crate::components::ui::page_header::PageHeader;
 use crate::router::Route;
 use crate::utils::i18n::t;
 
@@ -17,9 +17,10 @@ pub fn SpaceList() -> Element {
     let mut search = use_signal(String::new);
     let per_page: u64 = 20;
 
-    let mut data = use_resource(move || async move {
-        spaces::list_spaces(page(), per_page, &search.read()).await
-    });
+    let mut data =
+        use_resource(
+            move || async move { spaces::list_spaces(page(), per_page, &search.read()).await },
+        );
 
     rsx! {
         div { class: "space-y-6",

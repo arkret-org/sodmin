@@ -3,11 +3,11 @@ use dioxus::prelude::*;
 use crate::api::spaces;
 use crate::components::ui::button::{Button, ButtonVariant};
 use crate::components::ui::card::*;
+use crate::components::ui::error_banner::ErrorBanner;
 use crate::components::ui::icons::Icon;
 use crate::components::ui::loading::PageSkeleton;
-use crate::components::ui::error_banner::ErrorBanner;
+use crate::components::ui::page_header::{BreadcrumbItem, Breadcrumbs, PageHeader};
 use crate::components::ui::table::*;
-use crate::components::ui::page_header::{Breadcrumbs, PageHeader, BreadcrumbItem};
 use crate::router::Route;
 use crate::utils::i18n::t;
 

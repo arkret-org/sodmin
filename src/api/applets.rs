@@ -2,10 +2,7 @@ use crate::api::client::{api_client, build_url};
 use crate::types::*;
 use crate::utils::error::HttpError;
 
-pub async fn list_applets(
-    page: u64,
-    per_page: u64,
-) -> Result<ListResponse<Applet>, HttpError> {
+pub async fn list_applets(page: u64, per_page: u64) -> Result<ListResponse<Applet>, HttpError> {
     let url = build_url(
         "/contrix/admin/v1/applets",
         &[
@@ -36,11 +33,17 @@ pub async fn delete_applet(id: &str) -> Result<(), HttpError> {
 }
 
 pub async fn enable_applet(id: &str) -> Result<(), HttpError> {
-    let url = format!("/contrix/admin/v1/applets/{}/enable", urlencoding::encode(id));
+    let url = format!(
+        "/contrix/admin/v1/applets/{}/enable",
+        urlencoding::encode(id)
+    );
     api_client(&url, "POST", None).await
 }
 
 pub async fn disable_applet(id: &str) -> Result<(), HttpError> {
-    let url = format!("/contrix/admin/v1/applets/{}/disable", urlencoding::encode(id));
+    let url = format!(
+        "/contrix/admin/v1/applets/{}/disable",
+        urlencoding::encode(id)
+    );
     api_client(&url, "POST", None).await
 }

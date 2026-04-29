@@ -2,10 +2,7 @@ use crate::api::client::{api_client, build_url};
 use crate::types::*;
 use crate::utils::error::HttpError;
 
-pub async fn list_policies(
-    page: u64,
-    per_page: u64,
-) -> Result<ListResponse<Policy>, HttpError> {
+pub async fn list_policies(page: u64, per_page: u64) -> Result<ListResponse<Policy>, HttpError> {
     let url = build_url(
         "/contrix/admin/v1/policies",
         &[

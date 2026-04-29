@@ -23,9 +23,7 @@ pub fn ReportList() -> Element {
 
     let mut reports_data = use_resource(move || {
         let status = status_val.clone();
-        async move {
-            reports::list_reports(page_val, PAGE_SIZE, &status).await
-        }
+        async move { reports::list_reports(page_val, PAGE_SIZE, &status).await }
     });
 
     rsx! {

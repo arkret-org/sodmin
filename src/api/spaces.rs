@@ -43,12 +43,18 @@ pub async fn block_space(id: &str) -> Result<(), HttpError> {
 }
 
 pub async fn unblock_space(id: &str) -> Result<(), HttpError> {
-    let url = format!("/contrix/admin/v1/spaces/{}/unblock", urlencoding::encode(id));
+    let url = format!(
+        "/contrix/admin/v1/spaces/{}/unblock",
+        urlencoding::encode(id)
+    );
     api_client(&url, "POST", None).await
 }
 
 pub async fn list_space_members(id: &str) -> Result<Vec<SpaceMember>, HttpError> {
-    let url = format!("/contrix/admin/v1/spaces/{}/members", urlencoding::encode(id));
+    let url = format!(
+        "/contrix/admin/v1/spaces/{}/members",
+        urlencoding::encode(id)
+    );
     api_client(&url, "GET", None).await
 }
 

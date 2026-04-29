@@ -131,7 +131,13 @@ pub fn Dashboard() -> Element {
     }
 }
 
-fn stat_cell(icon: &'static str, value: &str, title: String, subtitle: String, online: bool) -> Element {
+fn stat_cell(
+    icon: &'static str,
+    value: &str,
+    title: String,
+    subtitle: String,
+    online: bool,
+) -> Element {
     rsx! {
         div { class: "p-3 border-b border-r border-border/50 last:border-r-0",
             div { class: "flex items-center justify-between mb-1.5",

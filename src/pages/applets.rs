@@ -28,9 +28,8 @@ pub fn AppletList() -> Element {
 
     let page_val = *page.read();
 
-    let mut data = use_resource(move || async move {
-        applets::list_applets(page_val, PAGE_SIZE).await
-    });
+    let mut data =
+        use_resource(move || async move { applets::list_applets(page_val, PAGE_SIZE).await });
 
     rsx! {
         div { class: "space-y-6",

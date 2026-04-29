@@ -993,6 +993,7 @@ impl I18n {
         m.insert("language.zh_cn".into(), "\u{4e2d}\u{6587}".into());
         m.insert("language.select".into(), "Language".into());
 
+        apply_contrix_overrides(&mut m, Language::En);
         m
     }
 
@@ -2409,7 +2410,194 @@ impl I18n {
         m.insert("language.zh_cn".into(), "\u{4e2d}\u{6587}".into());
         m.insert("language.select".into(), "\u{8bed}\u{8a00}".into());
 
+        apply_contrix_overrides(&mut m, Language::ZhCn);
         m
+    }
+}
+
+fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
+    let entries: &[(&str, &str)] = match lang {
+        Language::En => &[
+            ("nav.palpo_admin", "Contrix Admin"),
+            ("nav.users", "Actors"),
+            ("nav.rooms", "Spaces"),
+            ("nav.actors", "Actors"),
+            ("nav.spaces", "Spaces"),
+            ("nav.devices", "Devices"),
+            ("nav.capabilities", "Capabilities"),
+            ("nav.invite_tokens", "Invite Tokens"),
+            ("nav.audit", "Audit"),
+            ("nav.applets", "Applets"),
+            ("nav.agents", "Agents"),
+            ("nav.policy", "Policy"),
+            ("nav.section_pasion", "coauth"),
+            ("nav.section_coauth", "coauth"),
+            ("auth.base_url", "Principal Server URL"),
+            ("auth.url_error", "Not a valid Principal Server URL"),
+            ("auth.footer", "sodmin - Contrix Administration"),
+            ("auth.completing_login", "Completing sign-in..."),
+            ("dashboard.welcome", "Welcome to Contrix Admin"),
+            ("dashboard.total_users", "Total Actors"),
+            ("dashboard.total_rooms", "Total Spaces"),
+            (
+                "dashboard.total_registered_users",
+                "Total registered actors",
+            ),
+            ("dashboard.total_rooms_on_server", "Total spaces on server"),
+            ("dashboard.active_users", "Active actors"),
+            (
+                "dashboard.spec_description",
+                "Contrix protocol profiles, features and conformance coverage",
+            ),
+            ("users.title", "Actors"),
+            ("users.subtitle", "Manage Contrix actors"),
+            ("users.create", "Create Actor"),
+            ("users.user_id", "Actor ID"),
+            ("users.no_users", "No actors found"),
+            ("users.search", "Search actors..."),
+            ("users.create_new", "Create New Actor"),
+            (
+                "users.create_subtitle",
+                "Add a new actor to the Principal Server",
+            ),
+            ("users.rooms", "Spaces"),
+            ("users.joined_rooms", "Joined Spaces"),
+            ("users.no_rooms", "Actor has not joined any spaces."),
+            ("rooms.title", "Spaces"),
+            ("rooms.subtitle", "Manage Contrix spaces"),
+            ("rooms.delete", "Delete Space"),
+            ("rooms.block", "Block Space"),
+            ("rooms.unblock", "Unblock Space"),
+            ("rooms.create", "Create Space"),
+            ("rooms.search", "Search spaces..."),
+            ("rooms.no_rooms", "No spaces found"),
+            (
+                "rooms.search_placeholder",
+                "Search spaces by name or alias...",
+            ),
+            (
+                "rooms.no_rooms_description",
+                "There are no spaces matching your search criteria.",
+            ),
+            ("rooms.room_information", "Space Information"),
+            ("rooms.room_settings", "Space Settings"),
+            ("rooms.room_id", "Space ID"),
+            ("rooms.room_type", "Space Type"),
+            ("rooms.no_children", "No child spaces found."),
+            ("rooms.room_name", "Space Name *"),
+            ("rooms.topic_placeholder", "Space topic (optional)"),
+            ("rooms.create_description", "Create a new Contrix space."),
+            ("rooms.purge_title", "Purge Space History"),
+            (
+                "rooms.delete_confirm",
+                "Are you sure you want to delete this space? Events, messages and media references may be permanently removed. This action cannot be undone.",
+            ),
+            (
+                "reports.subtitle",
+                "Moderation and policy reports submitted by actors",
+            ),
+            ("reports.ban_user", "Ban Actor"),
+            ("reports.block_room", "Block Space"),
+            ("reports.room", "Space"),
+            ("reports.reporter_user_id", "Reporter Actor ID"),
+            ("reports.room_id", "Space ID"),
+            ("media.user_id", "Actor ID"),
+            ("media.search", "Search actors..."),
+            ("media.subtitle", "Blob/media usage statistics by actor"),
+            (
+                "auth_status.auth_capabilities_desc",
+                "Login methods exposed by coauth and the Principal Server admin profile",
+            ),
+            (
+                "auth_status.dev_diagnostics_desc",
+                "Probe coauth endpoints for registration, consent and well-known discovery debugging",
+            ),
+        ],
+        Language::ZhCn => &[
+            ("nav.palpo_admin", "Contrix Admin"),
+            ("nav.users", "Actor"),
+            ("nav.rooms", "Space"),
+            ("nav.actors", "Actor"),
+            ("nav.spaces", "Space"),
+            ("nav.devices", "设备"),
+            ("nav.capabilities", "权限能力"),
+            ("nav.invite_tokens", "邀请令牌"),
+            ("nav.audit", "审计"),
+            ("nav.applets", "Applet"),
+            ("nav.agents", "Agent"),
+            ("nav.policy", "策略"),
+            ("nav.section_pasion", "coauth"),
+            ("nav.section_coauth", "coauth"),
+            ("auth.base_url", "Principal Server 地址"),
+            ("auth.url_error", "不是有效的 Principal Server URL"),
+            ("auth.footer", "sodmin - Contrix 管理后台"),
+            ("auth.completing_login", "正在完成登录..."),
+            ("dashboard.welcome", "欢迎使用 Contrix Admin"),
+            ("dashboard.total_users", "Actor 总数"),
+            ("dashboard.total_rooms", "Space 总数"),
+            ("dashboard.total_registered_users", "已注册 Actor 总数"),
+            ("dashboard.total_rooms_on_server", "服务器 Space 总数"),
+            ("dashboard.active_users", "活跃 Actor"),
+            (
+                "dashboard.spec_description",
+                "Contrix 协议 profile、功能和 conformance 覆盖",
+            ),
+            ("users.title", "Actor"),
+            ("users.subtitle", "管理 Contrix Actor"),
+            ("users.create", "创建 Actor"),
+            ("users.user_id", "Actor ID"),
+            ("users.no_users", "未找到 Actor"),
+            ("users.search", "搜索 Actor..."),
+            ("users.create_new", "创建新 Actor"),
+            ("users.create_subtitle", "向 Principal Server 添加新 Actor"),
+            ("users.rooms", "Space"),
+            ("users.joined_rooms", "已加入 Space"),
+            ("users.no_rooms", "该 Actor 尚未加入任何 Space。"),
+            ("rooms.title", "Space"),
+            ("rooms.subtitle", "管理 Contrix Space"),
+            ("rooms.delete", "删除 Space"),
+            ("rooms.block", "封锁 Space"),
+            ("rooms.unblock", "解除封锁 Space"),
+            ("rooms.create", "创建 Space"),
+            ("rooms.search", "搜索 Space..."),
+            ("rooms.no_rooms", "未找到 Space"),
+            ("rooms.search_placeholder", "按名称或别名搜索 Space..."),
+            ("rooms.no_rooms_description", "没有符合搜索条件的 Space。"),
+            ("rooms.room_information", "Space 信息"),
+            ("rooms.room_settings", "Space 设置"),
+            ("rooms.room_id", "Space ID"),
+            ("rooms.room_type", "Space 类型"),
+            ("rooms.no_children", "未找到子 Space。"),
+            ("rooms.room_name", "Space 名称 *"),
+            ("rooms.topic_placeholder", "Space 主题（可选）"),
+            ("rooms.create_description", "创建新的 Contrix Space。"),
+            ("rooms.purge_title", "清理 Space 历史"),
+            (
+                "rooms.delete_confirm",
+                "确定要删除此 Space 吗？事件、消息和媒体引用可能被永久删除，此操作无法撤销。",
+            ),
+            ("reports.subtitle", "Actor 提交的审核和策略报告"),
+            ("reports.ban_user", "封禁 Actor"),
+            ("reports.block_room", "封锁 Space"),
+            ("reports.room", "Space"),
+            ("reports.reporter_user_id", "报告人 Actor ID"),
+            ("reports.room_id", "Space ID"),
+            ("media.user_id", "Actor ID"),
+            ("media.search", "搜索 Actor..."),
+            ("media.subtitle", "按 Actor 统计 Blob/media 使用量"),
+            (
+                "auth_status.auth_capabilities_desc",
+                "coauth 和 Principal Server admin profile 暴露的登录方式",
+            ),
+            (
+                "auth_status.dev_diagnostics_desc",
+                "探测 coauth 端点以调试注册、同意和 well-known 发现",
+            ),
+        ],
+    };
+
+    for (key, value) in entries {
+        m.insert((*key).to_string(), (*value).to_string());
     }
 }
 

@@ -1,81 +1,233 @@
-# Contrix Principal Server Admin - Migration Plan
+# sodmin Active TODO
 
-> 将 Palpo/Matrix admin 面板迁移为 Contrix Principal Server 管理面板
+> 更新日期: 2026-04-29
+> 范围: Contrix Principal Server + coauth 管理员 Web UI。`sodmin` 只消费稳定 admin/API contract，不在前端重实现协议 reducer 或授权判定。
 
-## Phase 1: 移除不必要的页面和功能
+## 0. 当前边界
 
-- [x] 1.1 删除 Matrix 专有页面: `destinations.rs`, `server_actions.rs`, `server_notices.rs`, `server_notifications.rs`, `billing.rs`, `auth_status.rs`, `notification_preferences.rs`, `registration_tokens.rs`, `appservices.rs`
-- [x] 1.2 删除 Pasion 页面: `pasion/` 目录及所有子页面 (8 个)
-- [x] 1.3 删除 Matrix/Pasion 专有 API 模块: `destinations.rs`, `palpo_admin.rs`, `pasion.rs`, `registration_tokens.rs`, `matrix.rs`, `appservices.rs`, `rooms.rs`, `users.rs`, `media.rs`, `reports.rs`, `server_info.rs`
-- [x] 1.4 删除 Matrix 专有类型: `pasion.rs`, 适配 `api.rs`, 删除 `appservices.rs`
-- [x] 1.5 删除 Matrix 专有组件: `media_ops.rs`, `scheduled_commands.rs`, `server_notices.rs`, `experimental_features.rs`, `user_account_data.rs`, `user_import.rs`, `user_rate_limits.rs`
-- [x] 1.6 删除 Matrix 专有工具: `mxid.rs`, `instance_config.rs`
+- 当前代码已有 Contrix 页面和 API 模块: actors、spaces、devices、capabilities、federation、applets、agents、reports、invite tokens、audit、policy、media、coauth。
+- 历史 README、部分 i18n 和 e2e 仍保留 Palpo/Matrix/Pasion 语义，容易误导测试与部署。
+- `_restapi.json` 是手写 admin contract 草案，后续应由 `soland` 与 `coauth` OpenAPI 生成或校验。
+- 当前主要缺口: contract source of truth、真实后端联调、权限/审计 UX、legacy 文案清理、E2E stack 更新。
 
-## Phase 2: 创建 Contrix 类型定义
+## P0: API Contract Source of Truth
 
-- [x] 2.1 重写 `types/api.rs` → Contrix 核心类型 (Actor, Space, Device, Applet, Agent, Report, Capability, Federation, Policy, Blob, Audit, etc.)
-- [x] 2.2 重写 `types/appservices.rs` → `types/applets.rs` (Contrix Applet 类型)
-- [x] 2.3 删除 `types/pasion.rs`
-- [x] 2.4 更新 `types/mod.rs`
+目标: `sodmin` 不维护独立私有 REST 规范，而是消费 `soland` / `coauth` 的 OpenAPI。
 
-## Phase 3: 创建 Contrix API 层
+- [ ] 替换 `_restapi.json` 工作流:
+  - [ ] 从 `soland` 生成 Principal Server Admin OpenAPI。
+  - [ ] 从 `coauth` 生成 Auth / Account Admin OpenAPI。
+  - [ ] 生成 Rust/WASM API types 或校验现有手写 types。
+  - [ ] 保留 `_restapi.json` 仅作为迁移说明或删除。
+- [ ] 统一 error envelope:
+  - [ ] not_found。
+  - [ ] unauthenticated。
+  - [ ] capability_denied。
+  - [ ] rate_limited + retry metadata。
+  - [ ] temporarily_unavailable。
+  - [ ] validation/schema errors。
+- [ ] Pagination/filter contract:
+  - [ ] cursor pagination。
+  - [ ] stable sort。
+  - [ ] filter validation errors。
+  - [ ] stale frontier reporting。
+- [ ] API client hygiene:
+  - [ ] no token in URL。
+  - [ ] `X-Contrix-Request-Id` per mutation。
+  - [ ] `Idempotency-Key` for create/update where supported。
+  - [ ] Retry-After display。
+  - [ ] log redaction。
 
-- [x] 3.1 重写 `api/client.rs` → Contrix admin API client
-- [x] 3.2 重写 `api/auth.rs` → coauth OAuth2 认证
-- [x] 3.3 新建 `api/coauth.rs` → coauth admin API (用户/会话/上游/OAuth2管理)
-- [x] 3.4 新建 `api/server.rs` → Contrix 服务器信息/统计/状态
-- [x] 3.5 新建 `api/actors.rs` → Actor 管理接口
-- [x] 3.6 新建 `api/spaces.rs` → Space 管理接口
-- [x] 3.7 新建 `api/devices.rs` → Device 管理接口
-- [x] 3.8 新建 `api/capabilities.rs` → Capability 管理接口
-- [x] 3.9 新建 `api/federation.rs` → Federation 管理接口
-- [x] 3.10 新建 `api/applets.rs` → Applet 管理接口
-- [x] 3.11 新建 `api/agents.rs` → Agent 管理接口
-- [x] 3.12 新建 `api/reports.rs` → Report 管理接口
-- [x] 3.13 新建 `api/invite_tokens.rs` → Invite token 管理接口
-- [x] 3.14 新建 `api/audit.rs` → Audit log 接口
-- [x] 3.15 新建 `api/policy.rs` → Policy 管理接口
-- [x] 3.16 新建 `api/media.rs` → Blob/Media 管理接口
-- [x] 3.17 更新 `api/mod.rs`
+并行性: Principal Server API、coauth API、error/pagination/client hygiene 可并行；type generation strategy 需要先定。
 
-## Phase 4: 创建/适配 Contrix 页面
+## P0: Authentication, Session and Admin Authorization
 
-- [x] 4.1 重写 Dashboard → Contrix 仪表盘 (server stats/info)
-- [x] 4.2 重写 `users/` → `actors/` (Actor 列表、创建、详情)
-- [x] 4.3 重写 `rooms/` → `spaces/` (Space 列表、创建、详情)
-- [x] 4.4 重写 `media.rs` → Contrix Blob 管理 (统计/按Actor/列表)
-- [x] 4.5 重写 `reports.rs` → `reports/` (Report 列表、详情)
-- [x] 4.6 重写 `server_status.rs` → Contrix 服务器状态
-- [x] 4.7 重写 `appservices.rs` → `applets.rs` (Applet 管理)
-- [x] 4.8 新建 `capabilities.rs` (Capability 管理页)
-- [x] 4.9 新建 `federation/` (联邦管理页, 含详情)
-- [x] 4.10 新建 `devices.rs` (设备管理页)
-- [x] 4.11 新建 `agents/` (Agent 管理页, 含详情/内存)
-- [x] 4.12 新建 `audit.rs` (审计日志页)
-- [x] 4.13 新建 `invite_tokens.rs` (邀请令牌管理)
-- [x] 4.14 新建 `policy.rs` (策略管理页)
-- [x] 4.15 简化 `login.rs` → coauth OAuth2 登录
-- [x] 4.16 重写 `oauth_callback.rs` → 简化认证流程
-- [x] 4.17 新建 `coauth/` 页面 (审计日志/OAuth2会话/个人令牌/上游提供商/上游链接/注册令牌/通知频道/通知模板/连接器健康)
+- [ ] coauth OAuth2 login:
+  - [ ] authorization code + PKCE。
+  - [ ] admin scope request。
+  - [ ] state/nonce validation。
+  - [ ] callback error handling。
+  - [ ] logout/revoke。
+- [ ] Token storage:
+  - [ ] browser storage threat model。
+  - [ ] refresh flow or explicit re-auth policy。
+  - [ ] token expiry UI。
+  - [ ] no token in local logs/errors。
+- [ ] Admin scope model:
+  - [ ] `urn:coauth:admin` for coauth routes。
+  - [ ] `urn:contrix:admin:*` for Principal Server routes。
+  - [ ] read-only vs mutation permission display。
+  - [ ] route guard by feature/profile/scope。
+- [ ] High-risk action UX:
+  - [ ] require confirmation。
+  - [ ] require reason。
+  - [ ] show actor/device/admin identity。
+  - [ ] show audit id after success。
+  - [ ] support approval/proposal state where backend requires it。
 
-## Phase 5: 更新路由和导航
+## P0: Principal Server Management Pages
 
-- [x] 5.1 重写 `router.rs` → Contrix 路由
-- [x] 5.2 重写 `sidebar.rs` → Contrix 导航菜单
-- [x] 5.3 更新 `pages/mod.rs` → Contrix 模块导出
-- [x] 5.4 更新 `api/mod.rs` → Contrix API 模块导出
-- [x] 5.5 更新 `types/mod.rs` → Contrix 类型导出
-- [x] 5.6 更新 `components/mod.rs` → Contrix 组件导出
-- [x] 5.7 更新 `utils/mod.rs` → 工具模块导出
-- [x] 5.8 更新键盘快捷键 (g a → Actors, g s → Spaces)
+目标: 所有页面连接真实 endpoint，显示协议上重要的审计/安全字段。
 
-## Phase 6: 更新辅助模块
+- [ ] Dashboard:
+  - [ ] server describe/profile。
+  - [ ] storage mode。
+  - [ ] sync/index/blob/federation health。
+  - [ ] conformance coverage summary。
+- [ ] Actors:
+  - [ ] list/search。
+  - [ ] detail。
+  - [ ] devices。
+  - [ ] sessions。
+  - [ ] DID/handle info。
+  - [ ] account lifecycle status when coauth linked。
+- [ ] Spaces:
+  - [ ] list/search with discoverability filters。
+  - [ ] detail。
+  - [ ] members。
+  - [ ] invites。
+  - [ ] policy/discoverability/history visibility。
+  - [ ] plaintext_visible_services。
+  - [ ] archive/delete with audit reason。
+- [ ] Devices:
+  - [ ] inventory。
+  - [ ] trust state。
+  - [ ] revoke cascade preview。
+  - [ ] key package status。
+- [ ] Capabilities:
+  - [ ] grants/delegations/revocations。
+  - [ ] resource selector display。
+  - [ ] constraint display。
+  - [ ] effective permission explanation。
+  - [ ] stale frontier/conflict records。
+- [ ] Federation:
+  - [ ] peers/service DIDs。
+  - [ ] transactions。
+  - [ ] replay/fork quarantine。
+  - [ ] pull/push failures。
+  - [ ] verify-actor challenge status。
+- [ ] Blob/media:
+  - [ ] metadata list。
+  - [ ] quota。
+  - [ ] access grants。
+  - [ ] retention/legal hold。
+  - [ ] unsafe media flags。
+  - [ ] authenticated download diagnostics without leaking private blob existence。
+- [ ] Reports/moderation:
+  - [ ] report queue。
+  - [ ] quarantine/review actions。
+  - [ ] appeal state。
+  - [ ] audit trail。
+- [ ] Audit:
+  - [ ] request id。
+  - [ ] actor/device/admin。
+  - [ ] target。
+  - [ ] operation/commit id。
+  - [ ] outcome。
+  - [ ] filter/export。
 
-- [x] 6.1 重写 `utils/config.rs` → Contrix 配置 (coauth_public_url)
-- [x] 6.2 更新 `Cargo.toml` → 添加 contrix-sdk 依赖, 重命名包
-- [x] 6.3 更新 `main.rs` → Contrix 入口
-- [x] 6.4 更新 `components/ui/page_header.rs` → 支持 Route 类型面包屑
+## P0: coauth Management Pages
 
-## Phase 7: 生成 REST API 规格
+- [ ] Accounts:
+  - [ ] search/list/detail。
+  - [ ] lock/disable/erase。
+  - [ ] DID bindings。
+  - [ ] recovery status。
+  - [ ] claim summary。
+- [ ] Sessions/devices:
+  - [ ] browser sessions。
+  - [ ] OAuth2 sessions。
+  - [ ] personal access sessions。
+  - [ ] revoke/regenerate。
+  - [ ] device binding and risk/MFA state。
+- [ ] Upstream providers:
+  - [ ] list/create/update/delete。
+  - [ ] enable/disable。
+  - [ ] discovery/JWKS diagnostics。
+  - [ ] claim mapping preview。
+- [ ] OAuth2 clients:
+  - [ ] client list/detail。
+  - [ ] redirect URI validation。
+  - [ ] localized metadata editor。
+  - [ ] admin scopes review。
+- [ ] Registration tokens:
+  - [ ] create/revoke。
+  - [ ] expiry/max use/pending/completed。
+  - [ ] audit reason。
+- [ ] Notifications:
+  - [ ] channels。
+  - [ ] templates。
+  - [ ] publish/sync status。
+  - [ ] test send with redaction。
+- [ ] Policy/claims:
+  - [ ] policy dry-run。
+  - [ ] issue/revoke claim。
+  - [ ] revocation status display。
+  - [ ] signed decision viewer。
 
-- [x] 7.1 生成 `_restapi.json` → 管理后端 REST API 要求及数据格式
+## P0: Legacy Palpo/Matrix/Pasion Cleanup
+
+- [ ] README / README.zh:
+  - [ ] rename Palpo Admin -> Contrix Admin / sodmin。
+  - [ ] replace Matrix users/rooms/media language with actors/spaces/blob。
+  - [ ] replace Pasion references with coauth where appropriate。
+  - [ ] update Docker/example stack docs。
+- [ ] i18n:
+  - [ ] remove `Palpo Admin` title。
+  - [ ] remove Matrix-specific subtitles。
+  - [ ] rename rooms/users to spaces/actors。
+  - [ ] keep legacy compatibility labels only in compatibility sections。
+- [ ] e2e:
+  - [ ] replace Matrix scopes helpers with Contrix/coauth scopes。
+  - [ ] replace Palpo/Pasion fixture names。
+  - [ ] remove Element-specific smoke from default sodmin suite。
+  - [ ] add Contrix stack fixtures。
+- [ ] Types/errors:
+  - [ ] rename `MatrixError` to Contrix/Admin error type。
+  - [ ] remove `_matrix` endpoint assumptions。
+  - [ ] align error codes with Contrix API convention。
+
+## P1: End-to-End Stack and CI
+
+- [ ] Local compose stack:
+  - [ ] soland。
+  - [ ] coauth。
+  - [ ] starid。
+  - [ ] floria mock mode。
+  - [ ] sodmin。
+  - [ ] PostgreSQL。
+- [ ] Playwright coverage:
+  - [ ] login/logout。
+  - [ ] dashboard loads profile。
+  - [ ] actors list/detail。
+  - [ ] spaces list/detail/member mutation。
+  - [ ] capability explanation。
+  - [ ] federation quarantine page。
+  - [ ] blob anti-enumeration diagnostics。
+  - [ ] coauth account/session/registration token pages。
+  - [ ] audit log after mutation。
+- [ ] CI:
+  - [ ] `cargo fmt -- --check`。
+  - [ ] `cargo check` / Dioxus build。
+  - [ ] Playwright component/smoke。
+  - [ ] generated API type drift check。
+  - [ ] screenshots/artifacts on failure。
+
+## P1: UX, Accessibility and Operations
+
+- [ ] Loading/error empty states use consistent PageShell。
+- [ ] Route-level feature gates based on server describe profiles。
+- [ ] Keyboard navigation and focus management for destructive dialogs。
+- [ ] Screen reader labels for tables/actions。
+- [ ] i18n parity for English/Chinese。
+- [ ] Audit-sensitive pages default to least data exposure。
+- [ ] Time/date formatting stable across locales。
+- [ ] Export/download actions warn about sensitive data。
+
+## Definition of Done
+
+- [ ] Page consumes stable generated or validated API contract。
+- [ ] Mutation has confirmation, reason when needed, request id and audit feedback。
+- [ ] E2E covers happy path and at least one denied/error path。
+- [ ] Legacy Matrix/Palpo/Pasion wording is removed from default Contrix UI/docs。
+- [ ] No token, DID private proof, push key or blob secret appears in URL/log/UI diagnostics。

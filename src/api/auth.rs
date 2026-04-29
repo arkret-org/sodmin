@@ -9,8 +9,11 @@ use crate::utils::storage;
 
 const OAUTH_CLIENT_ID: &str = "sodmin";
 const COAUTH_ADMIN_SCOPE: &str = "urn:coauth:admin";
-const CX_ADMIN_SCOPE: &str = "urn:cx:admin";
+const CX_ADMIN_SCOPE: &str = "urn:contrix:admin:*";
 const OAUTH_DEVICE_ID_STORAGE_KEY: &str = "oauth_device_id";
+const PKCE_VERIFIER_KEY: &str = "pkce_code_verifier";
+const OAUTH_STATE_KEY: &str = "oauth_state";
+const OAUTH_NONCE_KEY: &str = "oauth_nonce";
 
 #[derive(Debug)]
 struct TextResponse {
@@ -49,6 +52,7 @@ fn make_err(msg: String) -> HttpError {
         status: 0,
         body: None,
         request_id: None,
+        retry_after_ms: None,
     }
 }
 
@@ -142,6 +146,8 @@ fn base64url_encode(data: &[u8]) -> String {
 pub async fn start_oauth_login() {
     let verifier = generate_code_verifier();
     let challenge = compute_code_challenge(&verifier).await;
+    let state = generate_code_verifier();
+    let nonce = generate_code_verifier();
     let _device_id = get_or_create_device_id();
     let scope = build_oauth_scope();
 
@@ -151,7 +157,13 @@ pub async fn start_oauth_login() {
         .unwrap()
         .unwrap();
     session
-        .set_item("pkce_code_verifier", &verifier)
+        .set_item(PKCE_VERIFIER_KEY, &verifier)
+        .expect("sessionStorage set failed");
+    session
+        .set_item(OAUTH_STATE_KEY, &state)
+        .expect("sessionStorage set failed");
+    session
+        .set_item(OAUTH_NONCE_KEY, &nonce)
         .expect("sessionStorage set failed");
 
     let redirect_uri = {
@@ -168,9 +180,13 @@ pub async fn start_oauth_login() {
          &redirect_uri={}\
          &code_challenge={challenge}\
          &code_challenge_method=S256\
-         &scope={}",
+         &scope={}\
+         &state={}\
+         &nonce={}",
         urlencoding::encode(&redirect_uri),
         urlencoding::encode(&scope),
+        urlencoding::encode(&state),
+        urlencoding::encode(&nonce),
     );
 
     web_sys::window()
@@ -180,18 +196,31 @@ pub async fn start_oauth_login() {
         .expect("redirect failed");
 }
 
-pub async fn handle_oauth_callback(code: &str) -> Result<(), HttpError> {
+pub async fn handle_oauth_callback(code: &str, state: Option<&str>) -> Result<(), HttpError> {
     let session = web_sys::window()
         .unwrap()
         .session_storage()
         .unwrap()
         .unwrap();
     let verifier = session
-        .get_item("pkce_code_verifier")
+        .get_item(PKCE_VERIFIER_KEY)
         .ok()
         .flatten()
         .ok_or_else(|| make_err("Missing PKCE verifier".into()))?;
-    session.remove_item("pkce_code_verifier").ok();
+    let expected_state = session
+        .get_item(OAUTH_STATE_KEY)
+        .ok()
+        .flatten()
+        .ok_or_else(|| make_err("Missing OAuth state".into()))?;
+    if state != Some(expected_state.as_str()) {
+        session.remove_item(PKCE_VERIFIER_KEY).ok();
+        session.remove_item(OAUTH_STATE_KEY).ok();
+        session.remove_item(OAUTH_NONCE_KEY).ok();
+        return Err(make_err("OAuth state validation failed".into()));
+    }
+    session.remove_item(PKCE_VERIFIER_KEY).ok();
+    session.remove_item(OAUTH_STATE_KEY).ok();
+    session.remove_item(OAUTH_NONCE_KEY).ok();
 
     let redirect_uri = {
         let origin = web_sys::window().unwrap().location().origin().unwrap();
@@ -211,13 +240,17 @@ pub async fn handle_oauth_callback(code: &str) -> Result<(), HttpError> {
 
     let response = send_oauth_form_request("/oauth2/token", &form_body).await?;
     if response.status >= 400 {
-        return Err(make_err(format!("Token exchange failed ({}): {}", response.status, response.text)));
+        return Err(make_err(format!(
+            "Token exchange failed ({}): {}",
+            response.status, response.text
+        )));
     }
 
     let token_resp: TokenResponse =
         serde_json::from_str(&response.text).map_err(|e| make_err(e.to_string()))?;
 
     storage::set_item("access_token", &token_resp.access_token);
+    persist_token_expiry(token_resp.expires_in);
     if let Some(ref rt) = token_resp.refresh_token {
         storage::set_item("refresh_token", rt);
     }
@@ -239,6 +272,8 @@ struct TokenResponse {
     access_token: String,
     #[serde(default)]
     refresh_token: Option<String>,
+    #[serde(default)]
+    expires_in: Option<u64>,
 }
 
 pub async fn handle_unauthorized() -> bool {
@@ -248,6 +283,7 @@ pub async fn handle_unauthorized() -> bool {
     storage::remove_item("access_token");
     storage::remove_item("refresh_token");
     storage::remove_item("is_admin");
+    storage::remove_item("token_expires_at_ms");
     false
 }
 
@@ -279,6 +315,7 @@ pub async fn refresh_oauth_token() -> bool {
     };
 
     storage::set_item("access_token", &token_resp.access_token);
+    persist_token_expiry(token_resp.expires_in);
     if let Some(ref rt) = token_resp.refresh_token {
         storage::set_item("refresh_token", rt);
     }
@@ -313,6 +350,21 @@ pub fn cached_is_admin() -> Option<bool> {
     storage::get_item("is_admin").map(|v| v == "true")
 }
 
+fn persist_token_expiry(expires_in: Option<u64>) {
+    if let Some(expires_in) = expires_in {
+        storage::set_item(
+            "token_expires_at_ms",
+            &((js_sys::Date::now() as u64) + expires_in.saturating_mul(1000)).to_string(),
+        );
+    } else {
+        storage::remove_item("token_expires_at_ms");
+    }
+}
+
+pub fn token_expiry_ms() -> Option<u64> {
+    storage::get_item("token_expires_at_ms").and_then(|value| value.parse().ok())
+}
+
 pub async fn logout() -> Result<(), HttpError> {
     if let Some(token) = storage::get_item("access_token") {
         let body = format!(
@@ -328,6 +380,12 @@ pub async fn logout() -> Result<(), HttpError> {
         .await;
 
     storage::remove_item("is_admin");
+    storage::remove_item("access_token");
+    storage::remove_item("refresh_token");
+    storage::remove_item("token_expires_at_ms");
+    storage::remove_item("user_id");
+    storage::remove_item("user_display_name");
+    storage::remove_item("user_avatar_url");
     crate::utils::config::clear_config();
     Ok(())
 }
@@ -344,6 +402,7 @@ mod tests {
     fn oauth_scope_contains_admin_scopes() {
         let scope = build_oauth_scope();
         assert!(scope.contains("urn:coauth:admin"));
-        assert!(scope.contains("urn:cx:admin"));
+        assert!(scope.contains("urn:contrix:admin:*"));
+        assert!(!scope.contains("urn:cx:admin"));
     }
 }

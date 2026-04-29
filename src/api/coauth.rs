@@ -212,7 +212,10 @@ pub async fn update_user(id: &str, patch: &serde_json::Value) -> Result<CoauthUs
 }
 
 pub async fn set_user_password(id: &str, password: &str) -> Result<(), HttpError> {
-    let url = format!("/contrix/admin/v1/users/{}/set-password", urlencoding::encode(id));
+    let url = format!(
+        "/contrix/admin/v1/users/{}/set-password",
+        urlencoding::encode(id)
+    );
     let body = serde_json::json!({ "password": password });
     api_client(&url, "POST", Some(body.to_string())).await
 }
@@ -246,7 +249,10 @@ pub async fn list_oauth2_sessions(
 }
 
 pub async fn finish_oauth2_session(id: &str) -> Result<(), HttpError> {
-    let url = format!("/contrix/admin/v1/oauth2-sessions/{}/finish", urlencoding::encode(id));
+    let url = format!(
+        "/contrix/admin/v1/oauth2-sessions/{}/finish",
+        urlencoding::encode(id)
+    );
     api_client(&url, "POST", None).await
 }
 
@@ -266,17 +272,23 @@ pub async fn list_personal_sessions(
 
 pub async fn create_personal_session(name: &str) -> Result<CoauthPersonalSession, HttpError> {
     let body = serde_json::json!({ "name": name });
-    api_client("/contrix/admin/v1/personal-sessions", "POST", Some(body.to_string())).await
+    api_client(
+        "/contrix/admin/v1/personal-sessions",
+        "POST",
+        Some(body.to_string()),
+    )
+    .await
 }
 
 pub async fn revoke_personal_session(id: &str) -> Result<(), HttpError> {
-    let url = format!("/contrix/admin/v1/personal-sessions/{}/revoke", urlencoding::encode(id));
+    let url = format!(
+        "/contrix/admin/v1/personal-sessions/{}/revoke",
+        urlencoding::encode(id)
+    );
     api_client(&url, "POST", None).await
 }
 
-pub async fn regenerate_personal_session(
-    id: &str,
-) -> Result<CoauthPersonalSession, HttpError> {
+pub async fn regenerate_personal_session(id: &str) -> Result<CoauthPersonalSession, HttpError> {
     let url = format!(
         "/contrix/admin/v1/personal-sessions/{}/regenerate",
         urlencoding::encode(id)

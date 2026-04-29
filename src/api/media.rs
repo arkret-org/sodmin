@@ -45,17 +45,17 @@ pub async fn quarantine_blob(id: &str) -> Result<(), HttpError> {
 }
 
 pub async fn delete_blob(id: &str) -> Result<(), HttpError> {
-    let url = format!(
-        "/contrix/admin/v1/media/blobs/{}",
-        urlencoding::encode(id)
-    );
+    let url = format!("/contrix/admin/v1/media/blobs/{}", urlencoding::encode(id));
     api_client(&url, "DELETE", None).await
 }
 
 pub async fn purge_remote_media(before_ts: Option<u64>) -> Result<serde_json::Value, HttpError> {
     let url = build_url(
         "/contrix/admin/v1/media/purge-remote",
-        &[("before_ts", &before_ts.map(|t| t.to_string()).unwrap_or_default())],
+        &[(
+            "before_ts",
+            &before_ts.map(|t| t.to_string()).unwrap_or_default(),
+        )],
     )?;
     api_client(&url, "POST", None).await
 }

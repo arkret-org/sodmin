@@ -25,9 +25,7 @@ pub fn MediaList() -> Element {
 
     let mut media_data = use_resource(move || {
         let search = search_val.clone();
-        async move {
-            media::list_actor_media(page_val, PAGE_SIZE).await
-        }
+        async move { media::list_actor_media(page_val, PAGE_SIZE).await }
     });
 
     rsx! {

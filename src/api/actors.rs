@@ -43,12 +43,18 @@ pub async fn update_actor(id: &str, req: &UpdateActorRequest) -> Result<Actor, H
 }
 
 pub async fn deactivate_actor(id: &str) -> Result<(), HttpError> {
-    let url = format!("/contrix/admin/v1/actors/{}/deactivate", urlencoding::encode(id));
+    let url = format!(
+        "/contrix/admin/v1/actors/{}/deactivate",
+        urlencoding::encode(id)
+    );
     api_client(&url, "POST", None).await
 }
 
 pub async fn reactivate_actor(id: &str) -> Result<(), HttpError> {
-    let url = format!("/contrix/admin/v1/actors/{}/reactivate", urlencoding::encode(id));
+    let url = format!(
+        "/contrix/admin/v1/actors/{}/reactivate",
+        urlencoding::encode(id)
+    );
     api_client(&url, "POST", None).await
 }
 
@@ -57,7 +63,9 @@ pub async fn erase_actor(id: &str) -> Result<(), HttpError> {
     api_client(&url, "POST", None).await
 }
 
-pub async fn check_handle_availability(handle: &str) -> Result<HandleAvailabilityResult, HttpError> {
+pub async fn check_handle_availability(
+    handle: &str,
+) -> Result<HandleAvailabilityResult, HttpError> {
     let url = build_url(
         "/contrix/admin/v1/actors/handle-availability",
         &[("handle", handle)],

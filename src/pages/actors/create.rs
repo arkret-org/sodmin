@@ -40,9 +40,21 @@ pub fn ActorCreate() -> Element {
         saving.set(true);
         error.set(String::new());
         let req = CreateActorRequest {
-            handle: if handle.read().is_empty() { None } else { Some(handle.read().clone()) },
-            display_name: if display_name.read().is_empty() { None } else { Some(display_name.read().clone()) },
-            password: if password.read().is_empty() { None } else { Some(password.read().clone()) },
+            handle: if handle.read().is_empty() {
+                None
+            } else {
+                Some(handle.read().clone())
+            },
+            display_name: if display_name.read().is_empty() {
+                None
+            } else {
+                Some(display_name.read().clone())
+            },
+            password: if password.read().is_empty() {
+                None
+            } else {
+                Some(password.read().clone())
+            },
             is_admin: is_admin(),
         };
         spawn(async move {

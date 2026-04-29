@@ -4,6 +4,7 @@ use crate::components::theme::{get_resolved_theme, set_theme};
 use crate::components::ui::icons::Icon;
 use crate::components::ui::notifications::{self, NOTIFICATIONS, NotificationSeverity};
 use crate::router::Route;
+use crate::utils::date::format_timestamp;
 use crate::utils::i18n::{Language, current_language, set_language, t};
 
 #[component]
@@ -145,6 +146,9 @@ pub fn AppHeader(collapsed: Signal<bool>, mobile_sidebar_open: Signal<bool>) -> 
                         .next()
                         .map(|c| c.to_uppercase().to_string())
                         .unwrap_or_default();
+                    let token_expiry = crate::api::auth::token_expiry_ms()
+                        .map(format_timestamp)
+                        .unwrap_or_else(|| "session expiry unknown".to_string());
                     rsx! {
                         div { class: "app-header-session",
                             div { class: "app-header-user flex items-center gap-2", title: "{full}",
@@ -159,7 +163,10 @@ pub fn AppHeader(collapsed: Signal<bool>, mobile_sidebar_open: Signal<bool>) -> 
                                         span { "{initial}" }
                                     }
                                 }
-                                div { class: "min-w-0 truncate text-xs font-mono text-muted-foreground", "{label}" }
+                                div { class: "min-w-0",
+                                    div { class: "truncate text-xs font-mono text-muted-foreground", "{label}" }
+                                    div { class: "truncate text-[10px] text-muted-foreground/70", "token: {token_expiry}" }
+                                }
                             }
                             button {
                                 class: "app-header-logout inline-flex h-9 items-center justify-center rounded-lg border bg-background px-3 text-xs font-medium text-foreground hover:bg-accent hover:text-accent-foreground touch-target",

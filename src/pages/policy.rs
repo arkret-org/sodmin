@@ -31,9 +31,8 @@ pub fn PolicyList() -> Element {
 
     let page_val = *page.read();
 
-    let mut data = use_resource(move || async move {
-        policy::list_policies(page_val, PAGE_SIZE).await
-    });
+    let mut data =
+        use_resource(move || async move { policy::list_policies(page_val, PAGE_SIZE).await });
 
     rsx! {
         div { class: "space-y-6",

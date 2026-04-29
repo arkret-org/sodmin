@@ -7,6 +7,7 @@ use crate::utils::i18n::t;
 #[component]
 pub fn OAuthCallback(
     code: Option<String>,
+    state: Option<String>,
     error: Option<String>,
     error_description: Option<String>,
 ) -> Element {
@@ -14,6 +15,7 @@ pub fn OAuthCallback(
 
     use_effect(move || {
         let code = code.clone();
+        let state = state.clone();
         let error = error.clone();
         let error_description = error_description.clone();
         spawn(async move {
@@ -23,7 +25,7 @@ pub fn OAuthCallback(
                 return;
             }
             if let Some(code) = code.as_ref() {
-                match auth::handle_oauth_callback(code).await {
+                match auth::handle_oauth_callback(code, state.as_deref()).await {
                     Ok(()) => {
                         nav.replace(crate::router::Route::Dashboard {});
                     }

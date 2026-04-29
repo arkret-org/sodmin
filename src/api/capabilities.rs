@@ -26,6 +26,9 @@ pub async fn grant_capability(req: &GrantCapabilityRequest) -> Result<Capability
 }
 
 pub async fn revoke_capability(id: &str) -> Result<(), HttpError> {
-    let url = format!("/contrix/admin/v1/capabilities/{}/revoke", urlencoding::encode(id));
+    let url = format!(
+        "/contrix/admin/v1/capabilities/{}/revoke",
+        urlencoding::encode(id)
+    );
     api_client(&url, "POST", None).await
 }

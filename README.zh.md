@@ -1,116 +1,71 @@
-# Palpo Admin
+# sodmin
 
-基于 [Dioxus](https://dioxuslabs.com/) 构建的 [Palpo](https://github.com/palpo-im/palpo) Matrix 聊天服务器 Web 管理后台，编译为 WebAssembly 运行。
+Contrix Principal Server 和 coauth 部署的管理员 Web UI。项目使用 Dioxus 构建，并编译为 WebAssembly 运行。
 
-## 功能
+## 范围
 
-- **仪表盘** - 服务器概览和统计数据
-- **用户管理** - 查看、搜索和管理 Matrix 用户
-- **房间管理** - 浏览和管理聊天房间
-- **媒体管理** - 查看和管理上传的媒体文件
-- **服务器状态** - 监控服务器健康状况和配置
-- **注册令牌** - 创建和管理注册令牌
-- **举报** - 审查用户/房间举报
-- **服务器通知** - 发送全服务器公告
-- **认证状态** - 查看认证和委托认证状态
-- **联邦目标** - 管理联邦通信目标
+- **Dashboard**：服务器 profile、健康状态、存储状态和 conformance 状态。
+- **Actors**：搜索、详情、设备、会话、DID/handle 和账号生命周期状态。
+- **Spaces**：成员、邀请、可见性、策略，以及带审计上下文的高风险操作。
+- **Devices / Capabilities**：设备信任状态、密钥状态、grant/delegation/revocation 和有效权限解释。
+- **Federation**：peer、service DID、transaction、replay/fork quarantine 和 verify-actor 状态。
+- **Blob/media**：配额、元数据、保留策略和避免私有 blob 枚举的诊断。
+- **coauth**：账号、会话、上游身份提供者、OAuth2 client、注册令牌、通知渠道和审计日志。
 
-## 技术栈
-
-- **[Dioxus](https://dioxuslabs.com/)** - Rust UI 框架，编译为 WebAssembly
-- **[gloo](https://gloo-rs.web.app/)** - Rust/WASM 工具库（网络、存储、定时器）
-- **[wasm-bindgen](https://rustwasm.github.io/docs/wasm-bindgen/)** - Rust/JavaScript 互操作
-- **Nginx** - 静态文件服务器（Docker 中使用）
-
-## 前置要求
-
-- [Rust](https://rustup.rs/)（最新稳定版）
-- [Dioxus CLI](https://dioxuslabs.com/learn/0.7/getting_started)：`cargo install dioxus-cli`
-- `wasm32-unknown-unknown` 编译目标：`rustup target add wasm32-unknown-unknown`
+`sodmin` 不实现 Contrix reducer 或授权判定，只消费 `soland` 和 `coauth` 暴露的稳定管理员 API contract。
 
 ## 开发
 
 ```bash
-# 启动开发服务器（支持热重载）
-dx serve
-
-# 生产环境构建
-dx build --release
+cargo check
+cargo test
+dx serve --platform web
 ```
 
-开发服务器默认运行在 `http://localhost:8080`。
+启动时 UI 会读取 `/config.json`。本地开发配置示例：
 
-## Docker
+```json
+{
+  "coauth_public_url": "http://localhost:7080"
+}
+```
+
+## 构建
 
 ```bash
-# 构建 Docker 镜像
-docker build -t palpo-admin .
-
-# 在 9090 端口运行
-docker run -p 9090:80 palpo-admin
+cargo build --release
+dx build --platform web --release
 ```
 
-镜像采用多阶段构建：Rust/Dioxus 编译 WASM 应用，然后由 nginx 提供静态文件服务。
-Nginx entrypoint 也会暴露 `/healthz`，方便容器与平台进行存活检查。
-
-GitHub Actions 会将 `linux/amd64` 和 `linux/arm64` 多架构镜像发布到 GHCR：
+## 容器
 
 ```bash
-docker pull ghcr.io/meldry-com/padmin:latest
+docker build -t sodmin .
+docker run -p 9090:80 sodmin
 ```
 
-## 完整技术栈示例
+## API Contract
 
-参见 [`examples/`](examples/) 目录，包含完整的 Docker Compose 配置，可同时运行 Palpo Admin、Palpo 服务器、Pasion 认证服务、Element Web 客户端和 PostgreSQL。
+`_restapi.json` 仅作为迁移辅助。目标工作流是从以下来源生成或校验 UI types：
 
-```bash
-cd examples
-docker compose up -d --build
-# 访问 http://localhost:7060
-```
+- `soland` Principal Server Admin OpenAPI。
+- `coauth` Auth / Account Admin OpenAPI。
 
-Compose 示例统一使用 [`examples/README.zh.md`](examples/README.zh.md) 中的本地端口：
+在生成式 contract 接入前，API client 必须保留 Contrix error envelope，拒绝 URL query credential，传递 `X-Contrix-Request-Id`，为 mutation 发送 `Idempotency-Key`，并在诊断中隐藏敏感信息。
 
-- `padmin`：`http://localhost:7060`
-- `pasion`：`http://localhost:7080`
-- `element`：`http://localhost:7070`
+## 目录结构
 
-## 端到端测试
-
-仓库现在只保留一套根目录 `e2e/` Playwright 工作区。
-
-```bash
-# padmin 主回归套件
-npm test
-
-# examples/compose.yml 示例栈 smoke 套件
-npm run test:example-stack:fresh
-```
-
-示例栈 smoke 的运行方式、fixture 和限制见 [`e2e/example-stack/README.md`](e2e/example-stack/README.md)。
-
-## 项目结构
-
-```
-playwright.config.ts               # padmin 主 Playwright 配置
-playwright.example-stack.config.ts # 示例栈 smoke 配置
-e2e/                              # 统一后的 Playwright 工作区
+```text
 src/
-  main.rs          # 应用入口
-  router.rs        # 客户端路由
-  api/             # Palpo 服务器 HTTP API 客户端
-  components/      # 可复用 UI 组件
-  pages/           # 页面组件（仪表盘、用户、房间等）
-  types/           # 数据类型和 API 模型
-  utils/           # 工具函数
-  style.css        # 全局样式
-examples/
-  compose.yml      # 完整技术栈 Docker Compose
-  palpo.toml       # Palpo 服务器配置
-  pasion.yaml      # Pasion 认证配置
-  README.md        # 示例栈部署说明
+  api/          Contrix/coauth admin API client
+  components/   共享 UI 组件
+  pages/        路由页面
+  types/        请求/响应 DTO
+  utils/        i18n、storage、config、error 和诊断工具
+e2e/            Playwright smoke/stack 测试
+examples/       本地部署示例，等待替换为 Contrix stack
 ```
 
-## 许可证
+## 当前缺口
 
-详见 [LICENSE](LICENSE)。
+详见 [`_todos.md`](./_todos.md)。剩余 P0 包括生成式 contract source-of-truth、完整 coauth 账号页面、高风险操作 approval UX，以及替换 legacy fixture 的本地 Contrix compose stack。

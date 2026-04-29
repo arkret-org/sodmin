@@ -25,9 +25,10 @@ pub fn RegistrationTokensPage() -> Element {
 
     let page_val = *page.read();
 
-    let mut data = use_resource(move || async move {
-        coauth::list_registration_tokens(page_val, PAGE_SIZE).await
-    });
+    let mut data =
+        use_resource(
+            move || async move { coauth::list_registration_tokens(page_val, PAGE_SIZE).await },
+        );
 
     rsx! {
         div { class: "space-y-6",
