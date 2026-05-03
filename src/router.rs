@@ -78,6 +78,10 @@ pub enum Route {
 
         #[route("/coauth/audit-log")]
         CoauthAuditLog {},
+        #[route("/coauth/accounts")]
+        CoauthAccountList {},
+        #[route("/coauth/accounts/:account_id")]
+        CoauthAccountShow { account_id: String },
         #[route("/coauth/oauth2-sessions")]
         CoauthOAuth2Sessions {},
         #[route("/coauth/personal-sessions")]
@@ -280,6 +284,16 @@ fn ServerStatus() -> Element {
 #[component]
 fn CoauthAuditLog() -> Element {
     rsx! { pages::coauth::audit_log::AuditLogPage {} }
+}
+
+#[component]
+fn CoauthAccountList() -> Element {
+    rsx! { pages::coauth::accounts::AccountsPage {} }
+}
+
+#[component]
+fn CoauthAccountShow(account_id: String) -> Element {
+    rsx! { pages::coauth::account_detail::AccountDetailPage { account_id } }
 }
 
 #[component]

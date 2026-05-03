@@ -1,3 +1,5 @@
+pub mod account_detail;
+pub mod accounts;
 pub mod audit_log;
 pub mod connector_health;
 pub mod notification_channels;

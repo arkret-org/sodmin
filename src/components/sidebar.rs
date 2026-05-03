@@ -128,6 +128,11 @@ pub fn AppSidebar(collapsed: Signal<bool>, mobile_open: Signal<bool>) -> Element
             label: t("nav.section_coauth"),
             items: vec![
                 NavItem {
+                    title: t("nav.coauth_accounts"),
+                    route: Route::CoauthAccountList {},
+                    icon: "user-round",
+                },
+                NavItem {
                     title: t("nav.audit_log"),
                     route: Route::CoauthAuditLog {},
                     icon: "scroll-text",
@@ -269,6 +274,10 @@ fn is_route_active(current: &Route, target: &Route) -> bool {
             Route::FederationList {} | Route::FederationShow { .. }
         ),
         Route::AgentList {} => matches!(current, Route::AgentList {} | Route::AgentShow { .. }),
+        Route::CoauthAccountList {} => matches!(
+            current,
+            Route::CoauthAccountList {} | Route::CoauthAccountShow { .. }
+        ),
         _ => false,
     }
 }

@@ -179,6 +179,177 @@ pub struct CoauthNotificationTemplate {
     pub updated_at: Option<String>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct CoauthAccountSummary {
+    #[serde(default)]
+    pub id: String,
+    #[serde(default)]
+    pub username: Option<String>,
+    #[serde(default)]
+    pub display_name: Option<String>,
+    #[serde(default)]
+    pub avatar_url: Option<String>,
+    #[serde(default)]
+    pub email: Option<String>,
+    #[serde(default)]
+    pub primary_did: Option<String>,
+    #[serde(default)]
+    pub is_locked: bool,
+    #[serde(default)]
+    pub is_deactivated: bool,
+    #[serde(default)]
+    pub created_at: Option<String>,
+    #[serde(default)]
+    pub updated_at: Option<String>,
+    #[serde(default)]
+    pub bridge_status: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct CoauthManagedDidBinding {
+    #[serde(default)]
+    pub did: String,
+    #[serde(default)]
+    pub method: Option<String>,
+    #[serde(default)]
+    pub state: Option<String>,
+    #[serde(default)]
+    pub last_verified_at: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct CoauthAccountClaim {
+    #[serde(default)]
+    pub claim_type: String,
+    #[serde(default)]
+    pub value: Option<String>,
+    #[serde(default)]
+    pub state: Option<String>,
+    #[serde(default)]
+    pub source: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct CoauthSessionGrantSummary {
+    #[serde(default)]
+    pub grant_id: String,
+    #[serde(default)]
+    pub subject: Option<String>,
+    #[serde(default)]
+    pub scope: Option<String>,
+    #[serde(default)]
+    pub state: Option<String>,
+    #[serde(default)]
+    pub issued_at: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct CoauthRiskActionHook {
+    #[serde(default)]
+    pub endpoint: String,
+    #[serde(default)]
+    pub approval_mode: String,
+    #[serde(default)]
+    pub todo: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct CoauthAccountDetail {
+    #[serde(default)]
+    pub account: CoauthAccountSummary,
+    #[serde(default)]
+    pub managed_dids: Vec<CoauthManagedDidBinding>,
+    #[serde(default)]
+    pub claims: Vec<CoauthAccountClaim>,
+    #[serde(default)]
+    pub session_grants: Vec<CoauthSessionGrantSummary>,
+    #[serde(default)]
+    pub risk_action_hook: CoauthRiskActionHook,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct CoauthAccountRiskActionDraft {
+    #[serde(default)]
+    pub action: String,
+    #[serde(default)]
+    pub reason: Option<String>,
+}
+
+#[derive(Debug, Clone, Deserialize, Default)]
+struct CoauthAdminPaginatedEnvelope<T> {
+    #[serde(default)]
+    data: Option<Vec<CoauthAdminResource<T>>>,
+    #[serde(default)]
+    meta: CoauthAdminPaginationMeta,
+}
+
+#[derive(Debug, Clone, Deserialize, Default)]
+struct CoauthAdminSingleEnvelope<T> {
+    data: CoauthAdminResource<T>,
+}
+
+#[derive(Debug, Clone, Deserialize, Default)]
+struct CoauthAdminResource<T> {
+    #[serde(default)]
+    id: String,
+    #[serde(default)]
+    attributes: T,
+}
+
+#[derive(Debug, Clone, Deserialize, Default)]
+struct CoauthAdminPaginationMeta {
+    #[serde(default)]
+    count: Option<u64>,
+}
+
+#[derive(Debug, Clone, Deserialize, Default)]
+struct CoauthAdminAccountRecord {
+    #[serde(default)]
+    username: String,
+    #[serde(default)]
+    status: String,
+    #[serde(default)]
+    created_at: Option<String>,
+    #[serde(default)]
+    updated_at: Option<String>,
+    #[serde(default)]
+    display_name: Option<String>,
+    #[serde(default)]
+    avatar_url: Option<String>,
+    #[serde(default)]
+    preferred_locale: Option<String>,
+    #[serde(default)]
+    primary_principal_did: Option<String>,
+    #[serde(default)]
+    principal_dids: Vec<String>,
+    #[serde(default)]
+    admin: bool,
+}
+
+#[derive(Debug, Clone, Deserialize, Default)]
+struct CoauthAdminDidBindingsEnvelope {
+    #[serde(default)]
+    data: Vec<CoauthAdminDidBindingRecord>,
+}
+
+#[derive(Debug, Clone, Deserialize, Default)]
+struct CoauthAdminDidBindingRecord {
+    #[serde(default)]
+    did: String,
+    #[serde(default)]
+    kind: String,
+    #[serde(default)]
+    state: String,
+    #[serde(default)]
+    verification_status: String,
+    #[serde(default)]
+    primary: bool,
+    #[serde(default)]
+    active: bool,
+    #[serde(default)]
+    last_verified_at: Option<String>,
+}
+
 // ── API methods ──
 
 pub async fn get_viewer() -> Result<CoauthViewer, HttpError> {
@@ -428,6 +599,233 @@ pub async fn publish_notification_templates() -> Result<(), HttpError> {
         None,
     )
     .await
+}
+
+pub async fn list_accounts(
+    page: u64,
+    per_page: u64,
+    search: &str,
+) -> Result<PaginatedResponse<CoauthAccountSummary>, HttpError> {
+    let requested = page.max(1).saturating_mul(per_page.max(1));
+    let url = build_url(
+        "/contrix/admin/v1/accounts",
+        &[
+            ("filter[search]", search),
+            ("page[first]", &requested.to_string()),
+            ("count", "true"),
+        ],
+    )?;
+    let resp: CoauthAdminPaginatedEnvelope<CoauthAdminAccountRecord> =
+        api_client(&url, "GET", None).await?;
+    let start = page.saturating_sub(1).saturating_mul(per_page) as usize;
+    let end = start.saturating_add(per_page as usize);
+    let summaries: Vec<CoauthAccountSummary> = resp
+        .data
+        .unwrap_or_default()
+        .into_iter()
+        .map(map_admin_account_summary_resource)
+        .collect();
+    let total = resp.meta.count.unwrap_or(summaries.len() as u64);
+    Ok(PaginatedResponse {
+        data: summaries
+            .into_iter()
+            .skip(start)
+            .take(end.saturating_sub(start))
+            .collect(),
+        total,
+    })
+}
+
+pub async fn get_account_detail(id: &str) -> Result<CoauthAccountDetail, HttpError> {
+    let summary_url = format!("/contrix/admin/v1/accounts/{}", urlencoding::encode(id));
+    let dids_url = format!("/contrix/admin/v1/accounts/{}/dids", urlencoding::encode(id));
+    let summary: CoauthAdminSingleEnvelope<CoauthAdminAccountRecord> =
+        api_client(&summary_url, "GET", None).await?;
+    let dids: CoauthAdminDidBindingsEnvelope = api_client(&dids_url, "GET", None).await?;
+    let account = map_admin_account_summary_resource(summary.data);
+    Ok(CoauthAccountDetail {
+        claims: admin_account_claims(&account),
+        session_grants: Vec::new(),
+        managed_dids: dids
+            .data
+            .into_iter()
+            .map(map_admin_did_binding)
+            .collect(),
+        account,
+        risk_action_hook: CoauthRiskActionHook {
+            endpoint: format!("/contrix/admin/v1/accounts/{}", urlencoding::encode(id)),
+            approval_mode: "account_mutation_endpoints".to_string(),
+            todo: "Coauth account admin v1 currently exposes dedicated mutation endpoints such as /lock, /disable, /erase, and /reset-recovery. Session-grant inventory and proposal/approval context are not exposed here yet.".to_string(),
+        },
+    })
+}
+
+// TODO(contract): Replace the loose JSON response with a generated proposal DTO once coauth
+// exposes a stable risk-action approval contract.
+pub async fn submit_account_risk_action(
+    id: &str,
+    draft: &CoauthAccountRiskActionDraft,
+) -> Result<serde_json::Value, HttpError> {
+    let url = format!(
+        "/contrix/admin/v1/users/{}/risk-action",
+        urlencoding::encode(id)
+    );
+    let body = serde_json::json!({
+        "action": draft.action,
+        "reason": draft.reason,
+    });
+    api_client(&url, "POST", Some(body.to_string())).await
+}
+
+fn map_user_to_account_summary(user: CoauthUser) -> CoauthAccountSummary {
+    let primary_did = placeholder_primary_did(&user.id);
+    CoauthAccountSummary {
+        id: user.id,
+        username: user.username,
+        display_name: user.display_name,
+        avatar_url: user.avatar_url,
+        email: user.email,
+        primary_did: Some(primary_did),
+        is_locked: user.is_locked,
+        is_deactivated: user.is_deactivated,
+        created_at: user.created_at,
+        updated_at: user.updated_at,
+        bridge_status: "legacy_user_bridge+placeholder_account_contract".to_string(),
+    }
+}
+
+fn map_admin_account_summary_resource(
+    resource: CoauthAdminResource<CoauthAdminAccountRecord>,
+) -> CoauthAccountSummary {
+    let attributes = resource.attributes;
+    let is_locked = attributes.status == "locked";
+    let is_deactivated = attributes.status == "disabled";
+    CoauthAccountSummary {
+        id: resource.id,
+        username: Some(attributes.username),
+        display_name: attributes.display_name,
+        avatar_url: attributes.avatar_url,
+        email: None,
+        primary_did: attributes.primary_principal_did.or_else(|| attributes.principal_dids.first().cloned()),
+        is_locked,
+        is_deactivated,
+        created_at: attributes.created_at,
+        updated_at: attributes.updated_at,
+        bridge_status: if attributes.admin {
+            "coauth_admin_accounts_v1+admin".to_string()
+        } else {
+            "coauth_admin_accounts_v1".to_string()
+        },
+    }
+}
+
+fn map_admin_did_binding(binding: CoauthAdminDidBindingRecord) -> CoauthManagedDidBinding {
+    CoauthManagedDidBinding {
+        did: binding.did,
+        method: Some(binding.kind),
+        state: Some(format!(
+            "{}:{}:{}",
+            binding.state,
+            binding.verification_status,
+            if binding.primary { "primary" } else { "secondary" }
+        )),
+        last_verified_at: binding.last_verified_at,
+    }
+}
+
+fn admin_account_claims(account: &CoauthAccountSummary) -> Vec<CoauthAccountClaim> {
+    let mut claims = Vec::new();
+    if let Some(handle) = account.username.as_ref().filter(|value| !value.is_empty()) {
+        claims.push(CoauthAccountClaim {
+            claim_type: "handle".to_string(),
+            value: Some(handle.clone()),
+            state: Some("resolved_from_account_admin".to_string()),
+            source: Some("coauth_admin_accounts_v1".to_string()),
+        });
+    }
+    if let Some(primary_did) = account.primary_did.as_ref().filter(|value| !value.is_empty()) {
+        claims.push(CoauthAccountClaim {
+            claim_type: "principal_did".to_string(),
+            value: Some(primary_did.clone()),
+            state: Some("resolved_from_account_admin".to_string()),
+            source: Some("coauth_admin_accounts_v1".to_string()),
+        });
+    }
+    claims
+}
+
+fn bridge_managed_dids(user: &CoauthUser) -> Vec<CoauthManagedDidBinding> {
+    vec![CoauthManagedDidBinding {
+        did: placeholder_primary_did(&user.id),
+        method: Some("did:web".to_string()),
+        state: Some(if user.is_deactivated {
+            "deactivated_placeholder".to_string()
+        } else if user.is_locked {
+            "locked_placeholder".to_string()
+        } else {
+            "bridge_placeholder".to_string()
+        }),
+        last_verified_at: user.updated_at.clone().or_else(|| user.created_at.clone()),
+    }]
+}
+
+fn bridge_account_claims(user: &CoauthUser) -> Vec<CoauthAccountClaim> {
+    let mut claims = Vec::new();
+    if let Some(username) = user.username.as_ref().filter(|value| !value.is_empty()) {
+        claims.push(CoauthAccountClaim {
+            claim_type: "handle".to_string(),
+            value: Some(username.clone()),
+            state: Some("bridge_placeholder".to_string()),
+            source: Some("legacy_user_bridge".to_string()),
+        });
+    }
+    if let Some(email) = user.email.as_ref().filter(|value| !value.is_empty()) {
+        claims.push(CoauthAccountClaim {
+            claim_type: "email".to_string(),
+            value: Some(email.clone()),
+            state: Some("bridge_placeholder".to_string()),
+            source: Some("legacy_user_bridge".to_string()),
+        });
+    }
+    if claims.is_empty() {
+        claims.push(CoauthAccountClaim {
+            claim_type: "account_id".to_string(),
+            value: Some(user.id.clone()),
+            state: Some("bridge_placeholder".to_string()),
+            source: Some("legacy_user_bridge".to_string()),
+        });
+    }
+    claims
+}
+
+fn bridge_session_grants(user: &CoauthUser) -> Vec<CoauthSessionGrantSummary> {
+    vec![CoauthSessionGrantSummary {
+        grant_id: format!("grant-bridge-preview-{}", bridge_slug(&user.id)),
+        subject: Some(user.id.clone()),
+        scope: Some("urn:contrix:principal-server:session.bind".to_string()),
+        state: Some(if user.is_deactivated {
+            "disabled_placeholder".to_string()
+        } else {
+            "scaffold_preview".to_string()
+        }),
+        issued_at: user.updated_at.clone().or_else(|| user.created_at.clone()),
+    }]
+}
+
+fn placeholder_primary_did(account_id: &str) -> String {
+    format!("did:web:coauth.invalid:accounts:{}", bridge_slug(account_id))
+}
+
+fn bridge_slug(value: &str) -> String {
+    let mut out = String::with_capacity(value.len());
+    for ch in value.chars() {
+        if ch.is_ascii_alphanumeric() {
+            out.push(ch.to_ascii_lowercase());
+        } else {
+            out.push('-');
+        }
+    }
+    out.trim_matches('-').to_string()
 }
 
 #[derive(Debug, Clone, Deserialize, Default)]
