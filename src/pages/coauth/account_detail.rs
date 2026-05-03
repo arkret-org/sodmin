@@ -10,6 +10,7 @@ use crate::router::Route;
 #[component]
 pub fn AccountDetailPage(account_id: String) -> Element {
     let account_id_for_resource = account_id.clone();
+    let mut action_status = use_signal(String::new);
     let mut data = use_resource(move || async move {
         coauth::get_account_detail(&account_id_for_resource).await
     });
@@ -23,6 +24,11 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                     to: Route::CoauthAccountList {},
                     class: "inline-flex h-10 items-center rounded-md border px-4 text-sm font-medium transition-colors hover:bg-accent".to_string(),
                     "Back to accounts"
+                }
+            }
+            if !action_status().is_empty() {
+                div { class: "rounded-lg border p-4 text-sm text-muted-foreground",
+                    "{action_status}"
                 }
             }
 
@@ -180,18 +186,75 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                             div { class: "flex flex-wrap gap-2",
                                 Button {
                                     variant: ButtonVariant::Outline,
-                                    disabled: true,
-                                    "Create lock proposal"
+                                    onclick: {
+                                        let account_id = account_id.clone();
+                                        move |_| {
+                                            spawn(async move {
+                                                match coauth::lock_account(&account_id).await {
+                                                    Ok(()) => {
+                                                        action_status.set("Account lock request submitted to coauth.".to_string());
+                                                        data.restart();
+                                                    }
+                                                    Err(error) => action_status.set(format!("Lock request failed: {}", error.message)),
+                                                }
+                                            });
+                                        }
+                                    },
+                                    "Lock account"
                                 }
                                 Button {
                                     variant: ButtonVariant::Outline,
-                                    disabled: true,
-                                    "Create deactivate proposal"
+                                    onclick: {
+                                        let account_id = account_id.clone();
+                                        move |_| {
+                                            spawn(async move {
+                                                match coauth::disable_account(&account_id).await {
+                                                    Ok(()) => {
+                                                        action_status.set("Account disable request submitted to coauth.".to_string());
+                                                        data.restart();
+                                                    }
+                                                    Err(error) => action_status.set(format!("Disable request failed: {}", error.message)),
+                                                }
+                                            });
+                                        }
+                                    },
+                                    "Disable account"
                                 }
                                 Button {
                                     variant: ButtonVariant::Outline,
-                                    disabled: true,
-                                    "Create password reset proposal"
+                                    onclick: {
+                                        let account_id = account_id.clone();
+                                        move |_| {
+                                            spawn(async move {
+                                                match coauth::reset_account_recovery(&account_id).await {
+                                                    Ok(()) => {
+                                                        action_status.set("Recovery reset request submitted to coauth.".to_string());
+                                                        data.restart();
+                                                    }
+                                                    Err(error) => action_status.set(format!("Recovery reset request failed: {}", error.message)),
+                                                }
+                                            });
+                                        }
+                                    },
+                                    "Reset recovery"
+                                }
+                                Button {
+                                    variant: ButtonVariant::Outline,
+                                    onclick: {
+                                        let account_id = account_id.clone();
+                                        move |_| {
+                                            spawn(async move {
+                                                match coauth::erase_account(&account_id).await {
+                                                    Ok(()) => {
+                                                        action_status.set("Account erase request submitted to coauth.".to_string());
+                                                        data.restart();
+                                                    }
+                                                    Err(error) => action_status.set(format!("Erase request failed: {}", error.message)),
+                                                }
+                                            });
+                                        }
+                                    },
+                                    "Erase account"
                                 }
                             }
                         }

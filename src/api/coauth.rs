@@ -677,6 +677,36 @@ pub async fn submit_account_risk_action(
     api_client(&url, "POST", Some(body.to_string())).await
 }
 
+pub async fn lock_account(id: &str) -> Result<(), HttpError> {
+    let url = format!("/contrix/admin/v1/accounts/{}/lock", urlencoding::encode(id));
+    let _: serde_json::Value = api_client(&url, "POST", None).await?;
+    Ok(())
+}
+
+pub async fn disable_account(id: &str) -> Result<(), HttpError> {
+    let url = format!(
+        "/contrix/admin/v1/accounts/{}/disable",
+        urlencoding::encode(id)
+    );
+    let _: serde_json::Value = api_client(&url, "POST", None).await?;
+    Ok(())
+}
+
+pub async fn erase_account(id: &str) -> Result<(), HttpError> {
+    let url = format!("/contrix/admin/v1/accounts/{}/erase", urlencoding::encode(id));
+    let _: serde_json::Value = api_client(&url, "POST", None).await?;
+    Ok(())
+}
+
+pub async fn reset_account_recovery(id: &str) -> Result<(), HttpError> {
+    let url = format!(
+        "/contrix/admin/v1/accounts/{}/reset-recovery",
+        urlencoding::encode(id)
+    );
+    let _: serde_json::Value = api_client(&url, "POST", None).await?;
+    Ok(())
+}
+
 fn map_user_to_account_summary(user: CoauthUser) -> CoauthAccountSummary {
     let primary_did = placeholder_primary_did(&user.id);
     CoauthAccountSummary {
