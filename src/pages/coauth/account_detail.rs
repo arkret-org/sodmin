@@ -281,11 +281,18 @@ fn build_risk_action_draft(
 
 fn format_risk_action_status(proposal: &coauth::CoauthAccountRiskActionProposal) -> String {
     format!(
-        "Queued risk-action proposal.\naction={}\nproposal_state={}\napproval_mode={}\nexecution_endpoint={}\nticket={}\napproved_by={}\n\n{}",
+        "Queued risk-action proposal.\nproposal_id={}\naction={}\nproposal_state={}\napproval_mode={}\nexecution_endpoint={}\nrequested_at={}\nrequested_by={}\nrequested_by_username={}\nticket={}\napproved_by={}\n\n{}",
+        proposal.proposal_id,
         proposal.action,
         proposal.proposal_state,
         proposal.approval_mode,
         proposal.execution_endpoint,
+        proposal.requested_at.as_deref().unwrap_or("missing"),
+        proposal.requested_by.as_deref().unwrap_or("missing"),
+        proposal
+            .requested_by_username
+            .as_deref()
+            .unwrap_or("missing"),
         proposal.ticket.as_deref().unwrap_or("missing"),
         proposal.approved_by.as_deref().unwrap_or("pending"),
         proposal.todo,

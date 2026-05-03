@@ -282,6 +282,8 @@ pub struct CoauthAccountRiskActionDraft {
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct CoauthAccountRiskActionProposal {
     #[serde(default)]
+    pub proposal_id: String,
+    #[serde(default)]
     pub account_id: String,
     #[serde(default)]
     pub action: String,
@@ -291,6 +293,12 @@ pub struct CoauthAccountRiskActionProposal {
     pub ticket: Option<String>,
     #[serde(default)]
     pub approved_by: Option<String>,
+    #[serde(default)]
+    pub requested_at: Option<String>,
+    #[serde(default)]
+    pub requested_by: Option<String>,
+    #[serde(default)]
+    pub requested_by_username: Option<String>,
     #[serde(default)]
     pub proposal_state: String,
     #[serde(default)]
