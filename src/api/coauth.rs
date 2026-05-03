@@ -273,6 +273,32 @@ pub struct CoauthAccountRiskActionDraft {
     pub action: String,
     #[serde(default)]
     pub reason: Option<String>,
+    #[serde(default)]
+    pub ticket: Option<String>,
+    #[serde(default)]
+    pub approved_by: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct CoauthAccountRiskActionProposal {
+    #[serde(default)]
+    pub account_id: String,
+    #[serde(default)]
+    pub action: String,
+    #[serde(default)]
+    pub reason: Option<String>,
+    #[serde(default)]
+    pub ticket: Option<String>,
+    #[serde(default)]
+    pub approved_by: Option<String>,
+    #[serde(default)]
+    pub proposal_state: String,
+    #[serde(default)]
+    pub approval_mode: String,
+    #[serde(default)]
+    pub execution_endpoint: String,
+    #[serde(default)]
+    pub todo: String,
 }
 
 #[derive(Debug, Clone, Deserialize, Default)]
@@ -654,25 +680,25 @@ pub async fn get_account_detail(id: &str) -> Result<CoauthAccountDetail, HttpErr
         account,
         risk_action_hook: CoauthRiskActionHook {
             endpoint: format!("/contrix/admin/v1/accounts/{}", urlencoding::encode(id)),
-            approval_mode: "account_mutation_endpoints".to_string(),
-            todo: "Coauth account admin v1 currently exposes dedicated mutation endpoints such as /lock, /disable, /erase, and /reset-recovery. Session-grant inventory and proposal/approval context are not exposed here yet.".to_string(),
+            approval_mode: "proposal_scaffold_required".to_string(),
+            todo: "Coauth account admin v1 now exposes /accounts/{id}/risk-action as the proposal scaffold. Approved execution still has to flow into the dedicated /lock, /disable, /erase, and /reset-recovery mutation endpoints.".to_string(),
         },
     })
 }
 
-// TODO(contract): Replace the loose JSON response with a generated proposal DTO once coauth
-// exposes a stable risk-action approval contract.
 pub async fn submit_account_risk_action(
     id: &str,
     draft: &CoauthAccountRiskActionDraft,
-) -> Result<serde_json::Value, HttpError> {
+) -> Result<CoauthAccountRiskActionProposal, HttpError> {
     let url = format!(
-        "/contrix/admin/v1/users/{}/risk-action",
+        "/contrix/admin/v1/accounts/{}/risk-action",
         urlencoding::encode(id)
     );
     let body = serde_json::json!({
         "action": draft.action,
         "reason": draft.reason,
+        "ticket": draft.ticket,
+        "approved_by": draft.approved_by,
     });
     api_client(&url, "POST", Some(body.to_string())).await
 }

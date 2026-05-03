@@ -57,7 +57,7 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                                 span { class: "font-mono", "{summary.bridge_status}" }
                             }
                             div { class: "text-sm text-muted-foreground",
-                                "This panel is backed by coauth /accounts and /accounts/{id}/dids. TODO(contract): fill claims, session-grant inventory, and approval metadata from dedicated backend fields once they exist."
+                                "This panel is backed by coauth /accounts and /accounts/{id}/dids. High-risk actions now go through the /accounts/{id}/risk-action proposal scaffold. TODO(contract): fill claims, session-grant inventory, and persisted approval metadata from dedicated backend fields once they exist."
                             }
                         }
 
@@ -190,17 +190,15 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                                         let account_id = account_id.clone();
                                         move |_| {
                                             spawn(async move {
-                                                match coauth::lock_account(&account_id).await {
-                                                    Ok(()) => {
-                                                        action_status.set("Account lock request submitted to coauth.".to_string());
-                                                        data.restart();
-                                                    }
-                                                    Err(error) => action_status.set(format!("Lock request failed: {}", error.message)),
+                                                let draft = build_risk_action_draft("lock", &account_id);
+                                                match coauth::submit_account_risk_action(&account_id, &draft).await {
+                                                    Ok(proposal) => action_status.set(format_risk_action_status(&proposal)),
+                                                    Err(error) => action_status.set(format!("Lock proposal failed: {}", error.message)),
                                                 }
                                             });
                                         }
                                     },
-                                    "Lock account"
+                                    "Queue lock proposal"
                                 }
                                 Button {
                                     variant: ButtonVariant::Outline,
@@ -208,17 +206,15 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                                         let account_id = account_id.clone();
                                         move |_| {
                                             spawn(async move {
-                                                match coauth::disable_account(&account_id).await {
-                                                    Ok(()) => {
-                                                        action_status.set("Account disable request submitted to coauth.".to_string());
-                                                        data.restart();
-                                                    }
-                                                    Err(error) => action_status.set(format!("Disable request failed: {}", error.message)),
+                                                let draft = build_risk_action_draft("disable", &account_id);
+                                                match coauth::submit_account_risk_action(&account_id, &draft).await {
+                                                    Ok(proposal) => action_status.set(format_risk_action_status(&proposal)),
+                                                    Err(error) => action_status.set(format!("Disable proposal failed: {}", error.message)),
                                                 }
                                             });
                                         }
                                     },
-                                    "Disable account"
+                                    "Queue disable proposal"
                                 }
                                 Button {
                                     variant: ButtonVariant::Outline,
@@ -226,17 +222,15 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                                         let account_id = account_id.clone();
                                         move |_| {
                                             spawn(async move {
-                                                match coauth::reset_account_recovery(&account_id).await {
-                                                    Ok(()) => {
-                                                        action_status.set("Recovery reset request submitted to coauth.".to_string());
-                                                        data.restart();
-                                                    }
-                                                    Err(error) => action_status.set(format!("Recovery reset request failed: {}", error.message)),
+                                                let draft = build_risk_action_draft("reset_recovery", &account_id);
+                                                match coauth::submit_account_risk_action(&account_id, &draft).await {
+                                                    Ok(proposal) => action_status.set(format_risk_action_status(&proposal)),
+                                                    Err(error) => action_status.set(format!("Recovery reset proposal failed: {}", error.message)),
                                                 }
                                             });
                                         }
                                     },
-                                    "Reset recovery"
+                                    "Queue recovery reset proposal"
                                 }
                                 Button {
                                     variant: ButtonVariant::Outline,
@@ -244,17 +238,15 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                                         let account_id = account_id.clone();
                                         move |_| {
                                             spawn(async move {
-                                                match coauth::erase_account(&account_id).await {
-                                                    Ok(()) => {
-                                                        action_status.set("Account erase request submitted to coauth.".to_string());
-                                                        data.restart();
-                                                    }
-                                                    Err(error) => action_status.set(format!("Erase request failed: {}", error.message)),
+                                                let draft = build_risk_action_draft("erase", &account_id);
+                                                match coauth::submit_account_risk_action(&account_id, &draft).await {
+                                                    Ok(proposal) => action_status.set(format_risk_action_status(&proposal)),
+                                                    Err(error) => action_status.set(format!("Erase proposal failed: {}", error.message)),
                                                 }
                                             });
                                         }
                                     },
-                                    "Erase account"
+                                    "Queue erase proposal"
                                 }
                             }
                         }
@@ -270,6 +262,34 @@ pub fn AccountDetailPage(account_id: String) -> Element {
             }
         }
     }
+}
+
+fn build_risk_action_draft(
+    action: &str,
+    account_id: &str,
+) -> coauth::CoauthAccountRiskActionDraft {
+    coauth::CoauthAccountRiskActionDraft {
+        action: action.to_string(),
+        reason: Some(format!(
+            "sodmin scaffold proposal for account {} action {}",
+            account_id, action
+        )),
+        ticket: Some(format!("TODO-{}-{}", action, account_id)),
+        approved_by: None,
+    }
+}
+
+fn format_risk_action_status(proposal: &coauth::CoauthAccountRiskActionProposal) -> String {
+    format!(
+        "Queued risk-action proposal.\naction={}\nproposal_state={}\napproval_mode={}\nexecution_endpoint={}\nticket={}\napproved_by={}\n\n{}",
+        proposal.action,
+        proposal.proposal_state,
+        proposal.approval_mode,
+        proposal.execution_endpoint,
+        proposal.ticket.as_deref().unwrap_or("missing"),
+        proposal.approved_by.as_deref().unwrap_or("pending"),
+        proposal.todo,
+    )
 }
 
 fn section_block(title: &'static str, content: Element) -> Element {
