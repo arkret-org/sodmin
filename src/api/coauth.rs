@@ -292,6 +292,16 @@ pub struct CoauthAccountRiskActionApprovalDraft {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct CoauthAccountRiskActionExecuteDraft {
+    #[serde(default)]
+    pub action: String,
+    #[serde(default)]
+    pub ticket: Option<String>,
+    #[serde(default)]
+    pub execution_note: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct CoauthAccountRiskActionProposal {
     #[serde(default)]
     pub proposal_id: String,
@@ -343,6 +353,30 @@ pub struct CoauthAccountRiskActionApproval {
     pub approval_note: Option<String>,
     #[serde(default)]
     pub execution_endpoint: String,
+    #[serde(default)]
+    pub todo: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct CoauthAccountRiskActionExecute {
+    #[serde(default)]
+    pub proposal_id: String,
+    #[serde(default)]
+    pub account_id: String,
+    #[serde(default)]
+    pub action: String,
+    #[serde(default)]
+    pub ticket: Option<String>,
+    #[serde(default)]
+    pub execution_state: String,
+    #[serde(default)]
+    pub executed_at: Option<String>,
+    #[serde(default)]
+    pub execution_mode: String,
+    #[serde(default)]
+    pub execution_note: Option<String>,
+    #[serde(default)]
+    pub mutation_endpoint: String,
     #[serde(default)]
     pub todo: String,
 }
@@ -764,6 +798,24 @@ pub async fn approve_account_risk_action(
         "ticket": draft.ticket,
         "approved_by": draft.approved_by,
         "approval_note": draft.approval_note,
+    });
+    api_client(&url, "POST", Some(body.to_string())).await
+}
+
+pub async fn execute_account_risk_action(
+    id: &str,
+    proposal_id: &str,
+    draft: &CoauthAccountRiskActionExecuteDraft,
+) -> Result<CoauthAccountRiskActionExecute, HttpError> {
+    let url = format!(
+        "/contrix/admin/v1/accounts/{}/risk-action/{}/execute",
+        urlencoding::encode(id),
+        urlencoding::encode(proposal_id)
+    );
+    let body = serde_json::json!({
+        "action": draft.action,
+        "ticket": draft.ticket,
+        "execution_note": draft.execution_note,
     });
     api_client(&url, "POST", Some(body.to_string())).await
 }

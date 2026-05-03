@@ -12,6 +12,7 @@ pub fn AccountDetailPage(account_id: String) -> Element {
     let account_id_for_resource = account_id.clone();
     let mut action_status = use_signal(String::new);
     let mut last_proposal = use_signal(|| Option::<coauth::CoauthAccountRiskActionProposal>::None);
+    let mut last_approval = use_signal(|| Option::<coauth::CoauthAccountRiskActionApproval>::None);
     let mut data = use_resource(move || async move {
         coauth::get_account_detail(&account_id_for_resource).await
     });
@@ -203,6 +204,7 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                                                 match coauth::submit_account_risk_action(&account_id, &draft).await {
                                                     Ok(proposal) => {
                                                         last_proposal.set(Some(proposal.clone()));
+                                                        last_approval.set(None);
                                                         action_status.set(format_risk_action_status(&proposal));
                                                     }
                                                     Err(error) => action_status.set(format!("Lock proposal failed: {}", error.message)),
@@ -222,6 +224,7 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                                                 match coauth::submit_account_risk_action(&account_id, &draft).await {
                                                     Ok(proposal) => {
                                                         last_proposal.set(Some(proposal.clone()));
+                                                        last_approval.set(None);
                                                         action_status.set(format_risk_action_status(&proposal));
                                                     }
                                                     Err(error) => action_status.set(format!("Disable proposal failed: {}", error.message)),
@@ -241,6 +244,7 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                                                 match coauth::submit_account_risk_action(&account_id, &draft).await {
                                                     Ok(proposal) => {
                                                         last_proposal.set(Some(proposal.clone()));
+                                                        last_approval.set(None);
                                                         action_status.set(format_risk_action_status(&proposal));
                                                     }
                                                     Err(error) => action_status.set(format!("Recovery reset proposal failed: {}", error.message)),
@@ -260,6 +264,7 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                                                 match coauth::submit_account_risk_action(&account_id, &draft).await {
                                                     Ok(proposal) => {
                                                         last_proposal.set(Some(proposal.clone()));
+                                                        last_approval.set(None);
                                                         action_status.set(format_risk_action_status(&proposal));
                                                     }
                                                     Err(error) => action_status.set(format!("Erase proposal failed: {}", error.message)),
@@ -285,13 +290,41 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                                                     )
                                                     .await
                                                     {
-                                                        Ok(approval) => action_status.set(format_risk_action_approval_status(&approval)),
+                                                        Ok(approval) => {
+                                                            last_approval.set(Some(approval.clone()));
+                                                            action_status.set(format_risk_action_approval_status(&approval));
+                                                        }
                                                         Err(error) => action_status.set(format!("Approval scaffold failed: {}", error.message)),
                                                     }
                                                 });
                                             }
                                         },
                                         "Approve last proposal"
+                                    }
+                                }
+                                if let Some(approval) = last_approval() {
+                                    Button {
+                                        variant: ButtonVariant::Secondary,
+                                        onclick: {
+                                            let account_id = account_id.clone();
+                                            move |_| {
+                                                let approval = approval.clone();
+                                                spawn(async move {
+                                                    let draft = build_risk_action_execute_draft(&approval);
+                                                    match coauth::execute_account_risk_action(
+                                                        &account_id,
+                                                        &approval.proposal_id,
+                                                        &draft,
+                                                    )
+                                                    .await
+                                                    {
+                                                        Ok(execution) => action_status.set(format_risk_action_execute_status(&execution)),
+                                                        Err(error) => action_status.set(format!("Execute scaffold failed: {}", error.message)),
+                                                    }
+                                                });
+                                            }
+                                        },
+                                        "Execute approved scaffold"
                                     }
                                 }
                             }
@@ -339,6 +372,19 @@ fn build_risk_action_approval_draft(
     }
 }
 
+fn build_risk_action_execute_draft(
+    approval: &coauth::CoauthAccountRiskActionApproval,
+) -> coauth::CoauthAccountRiskActionExecuteDraft {
+    coauth::CoauthAccountRiskActionExecuteDraft {
+        action: approval.action.clone(),
+        ticket: approval.ticket.clone(),
+        execution_note: Some(format!(
+            "sodmin execute scaffold for proposal {} action {}",
+            approval.proposal_id, approval.action
+        )),
+    }
+}
+
 fn format_risk_action_status(proposal: &coauth::CoauthAccountRiskActionProposal) -> String {
     format!(
         "Queued risk-action proposal.\nproposal_id={}\naction={}\nproposal_state={}\napproval_mode={}\nexecution_endpoint={}\nrequested_at={}\nrequested_by={}\nrequested_by_username={}\nticket={}\napproved_by={}\n\n{}",
@@ -376,6 +422,22 @@ fn format_risk_action_approval_status(
         approval.execution_endpoint,
         approval.approval_note.as_deref().unwrap_or("missing"),
         approval.todo,
+    )
+}
+
+fn format_risk_action_execute_status(
+    execution: &coauth::CoauthAccountRiskActionExecute,
+) -> String {
+    format!(
+        "Executed risk-action scaffold.\nproposal_id={}\naction={}\nexecution_state={}\nexecuted_at={}\nexecution_mode={}\nmutation_endpoint={}\nexecution_note={}\n\n{}",
+        execution.proposal_id,
+        execution.action,
+        execution.execution_state,
+        execution.executed_at.as_deref().unwrap_or("missing"),
+        execution.execution_mode,
+        execution.mutation_endpoint,
+        execution.execution_note.as_deref().unwrap_or("missing"),
+        execution.todo,
     )
 }
 
