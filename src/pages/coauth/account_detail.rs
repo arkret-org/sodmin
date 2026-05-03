@@ -21,7 +21,7 @@ pub fn AccountDetailPage(account_id: String) -> Element {
         div { class: "space-y-6",
             PageHeader {
                 title: "coauth Account Detail".to_string(),
-                description: "Account-first admin detail view backed by coauth account and DID-binding endpoints. Claims and grant inventory remain partial until backend coverage expands.".to_string(),
+                description: "Account-first admin detail view backed by coauth account, DID-binding, and risk-action audit endpoints. Claims and grant inventory remain partial until backend coverage expands.".to_string(),
                 Link {
                     to: Route::CoauthAccountList {},
                     class: "inline-flex h-10 items-center rounded-md border px-4 text-sm font-medium transition-colors hover:bg-accent".to_string(),
@@ -59,7 +59,7 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                                 span { class: "font-mono", "{summary.bridge_status}" }
                             }
                             div { class: "text-sm text-muted-foreground",
-                                "This panel is backed by coauth /accounts and /accounts/{id}/dids. High-risk actions now go through the /accounts/{id}/risk-action proposal scaffold. TODO(contract): fill claims, session-grant inventory, and persisted approval metadata from dedicated backend fields once they exist."
+                                "This panel is backed by coauth /accounts, /accounts/{id}/dids, and /accounts/{id}/risk-action/history. High-risk actions now go through the /accounts/{id}/risk-action scaffold chain. TODO(contract): fill claims, session-grant inventory, and replace audit-derived history with persisted proposal-state records once the backend exposes them."
                             }
                         }
 
@@ -167,6 +167,32 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                                                     detail_row("State", &state)
                                                     detail_row("Issued At", &issued_at)
                                                 }
+                                            }
+                                        }
+                                    }
+                                }
+                            },
+                        )
+
+                        section_block(
+                            "Risk Action History",
+                            if detail.risk_action_history.is_empty() {
+                                rsx! {
+                                    p { class: "text-sm text-muted-foreground",
+                                        "No persisted risk-action audit history is currently returned for this account."
+                                    }
+                                }
+                            } else {
+                                rsx! {
+                                    div { class: "space-y-3",
+                                        for entry in &detail.risk_action_history {
+                                            div { class: "rounded-md border p-3 space-y-1 text-sm text-muted-foreground",
+                                                div { "Operation: " span { class: "font-mono", "{entry.operation}" } }
+                                                div { "Recorded At: " span { class: "font-mono", "{entry.created_at.as_deref().unwrap_or(\"missing\")}" } }
+                                                div { "Recorded By: " span { class: "font-mono", "{entry.admin_user_id.as_deref().unwrap_or(\"missing\")}" } }
+                                                div { "Proposal ID: " span { class: "font-mono", "{history_detail_value(&entry.details, \"proposal_id\")}" } }
+                                                div { "Action: " span { class: "font-mono", "{history_detail_value(&entry.details, \"action\")}" } }
+                                                div { "Ticket: " span { class: "font-mono", "{history_detail_value(&entry.details, \"ticket\")}" } }
                                             }
                                         }
                                     }
@@ -439,6 +465,19 @@ fn format_risk_action_execute_status(
         execution.execution_note.as_deref().unwrap_or("missing"),
         execution.todo,
     )
+}
+
+fn history_detail_value(details: &Option<serde_json::Value>, field: &str) -> String {
+    details
+        .as_ref()
+        .and_then(|value| value.get(field))
+        .and_then(|value| {
+            value
+                .as_str()
+                .map(ToOwned::to_owned)
+                .or_else(|| (!value.is_null()).then(|| value.to_string()))
+        })
+        .unwrap_or_else(|| "missing".to_owned())
 }
 
 fn section_block(title: &'static str, content: Element) -> Element {
