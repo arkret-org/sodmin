@@ -59,7 +59,7 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                                 span { class: "font-mono", "{summary.bridge_status}" }
                             }
                             div { class: "text-sm text-muted-foreground",
-                                "This panel is backed by coauth /accounts, /accounts/{id}/dids, and /accounts/{id}/risk-action/history. High-risk actions now go through the /accounts/{id}/risk-action scaffold chain. TODO(contract): fill claims, session-grant inventory, and replace audit-derived history with persisted proposal-state records once the backend exposes them."
+                                "This panel is backed by coauth /accounts, /accounts/{id}/dids, /accounts/{id}/risk-action/current, and /accounts/{id}/risk-action/history. High-risk actions now go through the /accounts/{id}/risk-action scaffold chain. TODO(contract): fill claims, session-grant inventory, and replace audit-derived scaffold state with persisted proposal-state records once the backend exposes them."
                             }
                         }
 
@@ -169,6 +169,43 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                                                 }
                                             }
                                         }
+                                    }
+                                }
+                            },
+                        )
+
+                        section_block(
+                            "Current Risk Action State",
+                            if detail.risk_action_current.lifecycle_state == "idle" {
+                                rsx! {
+                                    p { class: "text-sm text-muted-foreground",
+                                        "{detail.risk_action_current.todo.clone().unwrap_or_else(|| \"No risk-action scaffold state has been recorded for this account yet.\".to_string())}"
+                                    }
+                                }
+                            } else {
+                                let proposal_id = detail.risk_action_current.proposal_id.clone().unwrap_or_else(|| "-".to_string());
+                                let action = detail.risk_action_current.action.clone().unwrap_or_else(|| "-".to_string());
+                                let last_operation = detail.risk_action_current.last_operation.clone().unwrap_or_else(|| "-".to_string());
+                                let ticket = detail.risk_action_current.ticket.clone().unwrap_or_else(|| "-".to_string());
+                                let recorded_at = detail.risk_action_current.recorded_at.clone().unwrap_or_else(|| "-".to_string());
+                                let recorded_by = detail.risk_action_current.recorded_by.clone().unwrap_or_else(|| "-".to_string());
+                                let recorded_by_username = detail.risk_action_current.recorded_by_username.clone().unwrap_or_else(|| "-".to_string());
+                                let execution_endpoint = detail.risk_action_current.execution_endpoint.clone().unwrap_or_else(|| "-".to_string());
+                                let mutation_endpoint = detail.risk_action_current.mutation_endpoint.clone().unwrap_or_else(|| "-".to_string());
+                                let todo = detail.risk_action_current.todo.clone().unwrap_or_else(|| "-".to_string());
+                                rsx! {
+                                    div { class: "grid gap-2 text-sm md:grid-cols-2",
+                                        detail_row("Lifecycle State", &detail.risk_action_current.lifecycle_state)
+                                        detail_row("Proposal ID", &proposal_id)
+                                        detail_row("Action", &action)
+                                        detail_row("Last Operation", &last_operation)
+                                        detail_row("Ticket", &ticket)
+                                        detail_row("Recorded At", &recorded_at)
+                                        detail_row("Recorded By", &recorded_by)
+                                        detail_row("Recorded By Username", &recorded_by_username)
+                                        detail_row("Execution Endpoint", &execution_endpoint)
+                                        detail_row("Mutation Endpoint", &mutation_endpoint)
+                                        detail_row("TODO", &todo)
                                     }
                                 }
                             },

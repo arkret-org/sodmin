@@ -254,6 +254,34 @@ pub struct CoauthRiskActionHook {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct CoauthAccountRiskActionCurrentState {
+    #[serde(default)]
+    pub account_id: String,
+    #[serde(default)]
+    pub proposal_id: Option<String>,
+    #[serde(default)]
+    pub action: Option<String>,
+    #[serde(default)]
+    pub lifecycle_state: String,
+    #[serde(default)]
+    pub last_operation: Option<String>,
+    #[serde(default)]
+    pub ticket: Option<String>,
+    #[serde(default)]
+    pub recorded_at: Option<String>,
+    #[serde(default)]
+    pub recorded_by: Option<String>,
+    #[serde(default)]
+    pub recorded_by_username: Option<String>,
+    #[serde(default)]
+    pub execution_endpoint: Option<String>,
+    #[serde(default)]
+    pub mutation_endpoint: Option<String>,
+    #[serde(default)]
+    pub todo: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct CoauthAccountDetail {
     #[serde(default)]
     pub account: CoauthAccountSummary,
@@ -263,6 +291,8 @@ pub struct CoauthAccountDetail {
     pub claims: Vec<CoauthAccountClaim>,
     #[serde(default)]
     pub session_grants: Vec<CoauthSessionGrantSummary>,
+    #[serde(default)]
+    pub risk_action_current: CoauthAccountRiskActionCurrentState,
     #[serde(default)]
     pub risk_action_history: Vec<CoauthAccountRiskActionHistoryEntry>,
     #[serde(default)]
@@ -771,6 +801,10 @@ pub async fn list_accounts(
 pub async fn get_account_detail(id: &str) -> Result<CoauthAccountDetail, HttpError> {
     let summary_url = format!("/contrix/admin/v1/accounts/{}", urlencoding::encode(id));
     let dids_url = format!("/contrix/admin/v1/accounts/{}/dids", urlencoding::encode(id));
+    let current_url = format!(
+        "/contrix/admin/v1/accounts/{}/risk-action/current",
+        urlencoding::encode(id)
+    );
     let history_url = format!(
         "/contrix/admin/v1/accounts/{}/risk-action/history",
         urlencoding::encode(id)
@@ -778,12 +812,15 @@ pub async fn get_account_detail(id: &str) -> Result<CoauthAccountDetail, HttpErr
     let summary: CoauthAdminSingleEnvelope<CoauthAdminAccountRecord> =
         api_client(&summary_url, "GET", None).await?;
     let dids: CoauthAdminDidBindingsEnvelope = api_client(&dids_url, "GET", None).await?;
+    let current: CoauthAdminSingleEnvelope<CoauthAccountRiskActionCurrentState> =
+        api_client(&current_url, "GET", None).await?;
     let history: CoauthAccountRiskActionHistoryEnvelope =
         api_client(&history_url, "GET", None).await?;
     let account = map_admin_account_summary_resource(summary.data);
     Ok(CoauthAccountDetail {
         claims: admin_account_claims(&account),
         session_grants: Vec::new(),
+        risk_action_current: current.data,
         risk_action_history: history.data,
         managed_dids: dids
             .data
