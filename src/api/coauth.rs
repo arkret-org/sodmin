@@ -280,6 +280,18 @@ pub struct CoauthAccountRiskActionDraft {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct CoauthAccountRiskActionApprovalDraft {
+    #[serde(default)]
+    pub action: String,
+    #[serde(default)]
+    pub ticket: Option<String>,
+    #[serde(default)]
+    pub approved_by: Option<String>,
+    #[serde(default)]
+    pub approval_note: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct CoauthAccountRiskActionProposal {
     #[serde(default)]
     pub proposal_id: String,
@@ -303,6 +315,32 @@ pub struct CoauthAccountRiskActionProposal {
     pub proposal_state: String,
     #[serde(default)]
     pub approval_mode: String,
+    #[serde(default)]
+    pub execution_endpoint: String,
+    #[serde(default)]
+    pub todo: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct CoauthAccountRiskActionApproval {
+    #[serde(default)]
+    pub proposal_id: String,
+    #[serde(default)]
+    pub account_id: String,
+    #[serde(default)]
+    pub action: String,
+    #[serde(default)]
+    pub ticket: Option<String>,
+    #[serde(default)]
+    pub approval_state: String,
+    #[serde(default)]
+    pub approved_at: Option<String>,
+    #[serde(default)]
+    pub approved_by: Option<String>,
+    #[serde(default)]
+    pub approved_by_username: Option<String>,
+    #[serde(default)]
+    pub approval_note: Option<String>,
     #[serde(default)]
     pub execution_endpoint: String,
     #[serde(default)]
@@ -707,6 +745,25 @@ pub async fn submit_account_risk_action(
         "reason": draft.reason,
         "ticket": draft.ticket,
         "approved_by": draft.approved_by,
+    });
+    api_client(&url, "POST", Some(body.to_string())).await
+}
+
+pub async fn approve_account_risk_action(
+    id: &str,
+    proposal_id: &str,
+    draft: &CoauthAccountRiskActionApprovalDraft,
+) -> Result<CoauthAccountRiskActionApproval, HttpError> {
+    let url = format!(
+        "/contrix/admin/v1/accounts/{}/risk-action/{}/approve",
+        urlencoding::encode(id),
+        urlencoding::encode(proposal_id)
+    );
+    let body = serde_json::json!({
+        "action": draft.action,
+        "ticket": draft.ticket,
+        "approved_by": draft.approved_by,
+        "approval_note": draft.approval_note,
     });
     api_client(&url, "POST", Some(body.to_string())).await
 }

@@ -11,6 +11,7 @@ use crate::router::Route;
 pub fn AccountDetailPage(account_id: String) -> Element {
     let account_id_for_resource = account_id.clone();
     let mut action_status = use_signal(String::new);
+    let mut last_proposal = use_signal(|| Option::<coauth::CoauthAccountRiskActionProposal>::None);
     let mut data = use_resource(move || async move {
         coauth::get_account_detail(&account_id_for_resource).await
     });
@@ -183,6 +184,14 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                                 span { class: "font-mono", "{detail.risk_action_hook.endpoint}" }
                             }
                             p { class: "text-sm text-muted-foreground", "{detail.risk_action_hook.todo}" }
+                            if let Some(proposal) = last_proposal() {
+                                div { class: "rounded-md border p-3 space-y-1 text-sm text-muted-foreground",
+                                    div { "Last proposal: " span { class: "font-mono", "{proposal.proposal_id}" } }
+                                    div { "Action: " span { class: "font-mono", "{proposal.action}" } }
+                                    div { "State: " span { class: "font-mono", "{proposal.proposal_state}" } }
+                                    div { "Execution endpoint: " span { class: "font-mono", "{proposal.execution_endpoint}" } }
+                                }
+                            }
                             div { class: "flex flex-wrap gap-2",
                                 Button {
                                     variant: ButtonVariant::Outline,
@@ -192,7 +201,10 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                                             spawn(async move {
                                                 let draft = build_risk_action_draft("lock", &account_id);
                                                 match coauth::submit_account_risk_action(&account_id, &draft).await {
-                                                    Ok(proposal) => action_status.set(format_risk_action_status(&proposal)),
+                                                    Ok(proposal) => {
+                                                        last_proposal.set(Some(proposal.clone()));
+                                                        action_status.set(format_risk_action_status(&proposal));
+                                                    }
                                                     Err(error) => action_status.set(format!("Lock proposal failed: {}", error.message)),
                                                 }
                                             });
@@ -208,7 +220,10 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                                             spawn(async move {
                                                 let draft = build_risk_action_draft("disable", &account_id);
                                                 match coauth::submit_account_risk_action(&account_id, &draft).await {
-                                                    Ok(proposal) => action_status.set(format_risk_action_status(&proposal)),
+                                                    Ok(proposal) => {
+                                                        last_proposal.set(Some(proposal.clone()));
+                                                        action_status.set(format_risk_action_status(&proposal));
+                                                    }
                                                     Err(error) => action_status.set(format!("Disable proposal failed: {}", error.message)),
                                                 }
                                             });
@@ -224,7 +239,10 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                                             spawn(async move {
                                                 let draft = build_risk_action_draft("reset_recovery", &account_id);
                                                 match coauth::submit_account_risk_action(&account_id, &draft).await {
-                                                    Ok(proposal) => action_status.set(format_risk_action_status(&proposal)),
+                                                    Ok(proposal) => {
+                                                        last_proposal.set(Some(proposal.clone()));
+                                                        action_status.set(format_risk_action_status(&proposal));
+                                                    }
                                                     Err(error) => action_status.set(format!("Recovery reset proposal failed: {}", error.message)),
                                                 }
                                             });
@@ -240,13 +258,41 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                                             spawn(async move {
                                                 let draft = build_risk_action_draft("erase", &account_id);
                                                 match coauth::submit_account_risk_action(&account_id, &draft).await {
-                                                    Ok(proposal) => action_status.set(format_risk_action_status(&proposal)),
+                                                    Ok(proposal) => {
+                                                        last_proposal.set(Some(proposal.clone()));
+                                                        action_status.set(format_risk_action_status(&proposal));
+                                                    }
                                                     Err(error) => action_status.set(format!("Erase proposal failed: {}", error.message)),
                                                 }
                                             });
                                         }
                                     },
                                     "Queue erase proposal"
+                                }
+                                if let Some(proposal) = last_proposal() {
+                                    Button {
+                                        variant: ButtonVariant::Secondary,
+                                        onclick: {
+                                            let account_id = account_id.clone();
+                                            move |_| {
+                                                let proposal = proposal.clone();
+                                                spawn(async move {
+                                                    let draft = build_risk_action_approval_draft(&proposal);
+                                                    match coauth::approve_account_risk_action(
+                                                        &account_id,
+                                                        &proposal.proposal_id,
+                                                        &draft,
+                                                    )
+                                                    .await
+                                                    {
+                                                        Ok(approval) => action_status.set(format_risk_action_approval_status(&approval)),
+                                                        Err(error) => action_status.set(format!("Approval scaffold failed: {}", error.message)),
+                                                    }
+                                                });
+                                            }
+                                        },
+                                        "Approve last proposal"
+                                    }
                                 }
                             }
                         }
@@ -279,6 +325,20 @@ fn build_risk_action_draft(
     }
 }
 
+fn build_risk_action_approval_draft(
+    proposal: &coauth::CoauthAccountRiskActionProposal,
+) -> coauth::CoauthAccountRiskActionApprovalDraft {
+    coauth::CoauthAccountRiskActionApprovalDraft {
+        action: proposal.action.clone(),
+        ticket: proposal.ticket.clone(),
+        approved_by: proposal.approved_by.clone(),
+        approval_note: Some(format!(
+            "sodmin scaffold approval for proposal {} action {}",
+            proposal.proposal_id, proposal.action
+        )),
+    }
+}
+
 fn format_risk_action_status(proposal: &coauth::CoauthAccountRiskActionProposal) -> String {
     format!(
         "Queued risk-action proposal.\nproposal_id={}\naction={}\nproposal_state={}\napproval_mode={}\nexecution_endpoint={}\nrequested_at={}\nrequested_by={}\nrequested_by_username={}\nticket={}\napproved_by={}\n\n{}",
@@ -296,6 +356,26 @@ fn format_risk_action_status(proposal: &coauth::CoauthAccountRiskActionProposal)
         proposal.ticket.as_deref().unwrap_or("missing"),
         proposal.approved_by.as_deref().unwrap_or("pending"),
         proposal.todo,
+    )
+}
+
+fn format_risk_action_approval_status(
+    approval: &coauth::CoauthAccountRiskActionApproval,
+) -> String {
+    format!(
+        "Approved risk-action proposal.\nproposal_id={}\naction={}\napproval_state={}\napproved_at={}\napproved_by={}\napproved_by_username={}\nexecution_endpoint={}\napproval_note={}\n\n{}",
+        approval.proposal_id,
+        approval.action,
+        approval.approval_state,
+        approval.approved_at.as_deref().unwrap_or("missing"),
+        approval.approved_by.as_deref().unwrap_or("missing"),
+        approval
+            .approved_by_username
+            .as_deref()
+            .unwrap_or("missing"),
+        approval.execution_endpoint,
+        approval.approval_note.as_deref().unwrap_or("missing"),
+        approval.todo,
     )
 }
 
