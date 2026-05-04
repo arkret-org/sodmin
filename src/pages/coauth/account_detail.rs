@@ -323,6 +323,18 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                                 "State store: "
                                 span { class: "font-mono", "{detail.admin_bridge.risk_action_state_store_kind}" }
                             }
+                            p { class: "text-sm text-muted-foreground",
+                                "Proposal example: "
+                                span { class: "font-mono", "{detail.admin_bridge.risk_action_examples.proposal_request}" }
+                            }
+                            p { class: "text-sm text-muted-foreground",
+                                "Approve example: "
+                                span { class: "font-mono", "{detail.admin_bridge.risk_action_examples.approve_request}" }
+                            }
+                            p { class: "text-sm text-muted-foreground",
+                                "Execute example: "
+                                span { class: "font-mono", "{detail.admin_bridge.risk_action_examples.execute_request}" }
+                            }
                             p { class: "text-sm text-muted-foreground", "{detail.risk_action_hook.todo}" }
                             if let Some(proposal) = last_proposal() {
                                 div { class: "rounded-md border p-3 space-y-1 text-sm text-muted-foreground",

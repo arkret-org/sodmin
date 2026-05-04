@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 
 use crate::api::client::{api_client, build_url};
 use crate::utils::error::HttpError;
@@ -282,7 +283,19 @@ pub struct CoauthAdminBridgeDescribe {
     #[serde(default)]
     pub risk_action_approval_mode: String,
     #[serde(default)]
+    pub risk_action_examples: CoauthAdminBridgeRiskActionExamples,
+    #[serde(default)]
     pub todos: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct CoauthAdminBridgeRiskActionExamples {
+    #[serde(default)]
+    pub proposal_request: Value,
+    #[serde(default)]
+    pub approve_request: Value,
+    #[serde(default)]
+    pub execute_request: Value,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
