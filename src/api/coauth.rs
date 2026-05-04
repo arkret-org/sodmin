@@ -254,6 +254,38 @@ pub struct CoauthRiskActionHook {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct CoauthAdminBridgeDescribe {
+    #[serde(default)]
+    pub contract: String,
+    #[serde(default)]
+    pub version: String,
+    #[serde(default)]
+    pub api_base_path: String,
+    #[serde(default)]
+    pub accounts_path: String,
+    #[serde(default)]
+    pub account_detail_path_template: String,
+    #[serde(default)]
+    pub account_dids_path_template: String,
+    #[serde(default)]
+    pub risk_action_path_template: String,
+    #[serde(default)]
+    pub risk_action_current_path_template: String,
+    #[serde(default)]
+    pub risk_action_history_path_template: String,
+    #[serde(default)]
+    pub risk_action_approve_path_template: String,
+    #[serde(default)]
+    pub risk_action_execute_path_template: String,
+    #[serde(default)]
+    pub risk_action_state_store_kind: String,
+    #[serde(default)]
+    pub risk_action_approval_mode: String,
+    #[serde(default)]
+    pub todos: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct CoauthAccountRiskActionCurrentState {
     #[serde(default)]
     pub account_id: String,
@@ -309,6 +341,8 @@ pub struct CoauthAccountDetail {
     pub risk_action_history: Vec<CoauthAccountRiskActionHistoryEntry>,
     #[serde(default)]
     pub risk_action_hook: CoauthRiskActionHook,
+    #[serde(default)]
+    pub admin_bridge: CoauthAdminBridgeDescribe,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -869,6 +903,7 @@ pub async fn list_accounts(
 }
 
 pub async fn get_account_detail(id: &str) -> Result<CoauthAccountDetail, HttpError> {
+    let bridge_url = "/contrix/admin/v1/bridge/describe";
     let summary_url = format!("/contrix/admin/v1/accounts/{}", urlencoding::encode(id));
     let dids_url = format!("/contrix/admin/v1/accounts/{}/dids", urlencoding::encode(id));
     let current_url = format!(
@@ -882,6 +917,7 @@ pub async fn get_account_detail(id: &str) -> Result<CoauthAccountDetail, HttpErr
     let summary: CoauthAdminSingleEnvelope<CoauthAdminAccountRecord> =
         api_client(&summary_url, "GET", None).await?;
     let dids: CoauthAdminDidBindingsEnvelope = api_client(&dids_url, "GET", None).await?;
+    let bridge: CoauthAdminBridgeDescribe = api_client(bridge_url, "GET", None).await?;
     let current: CoauthAdminSingleEnvelope<CoauthAccountRiskActionCurrentState> =
         api_client(&current_url, "GET", None).await?;
     let history: CoauthAccountRiskActionHistoryEnvelope =
@@ -899,10 +935,17 @@ pub async fn get_account_detail(id: &str) -> Result<CoauthAccountDetail, HttpErr
             .collect(),
         account,
         risk_action_hook: CoauthRiskActionHook {
-            endpoint: format!("/contrix/admin/v1/accounts/{}", urlencoding::encode(id)),
-            approval_mode: "state_machine_scaffold_required".to_string(),
-            todo: "Coauth account admin v1 now exposes an explicit persisted risk-action state-machine scaffold via /accounts/{id}/risk-action, /current, and /history. Final mutation execution still has to flow into dedicated /lock, /disable, /erase, and /reset-recovery endpoints.".to_string(),
+            endpoint: bridge
+                .risk_action_path_template
+                .replace("{account_id}", id),
+            approval_mode: bridge.risk_action_approval_mode.clone(),
+            todo: if bridge.todos.is_empty() {
+                "Coauth account admin bridge does not yet publish scaffold TODO items.".to_string()
+            } else {
+                bridge.todos.join(" ")
+            },
         },
+        admin_bridge: bridge,
     })
 }
 

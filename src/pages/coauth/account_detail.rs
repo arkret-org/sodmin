@@ -59,7 +59,7 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                                 span { class: "font-mono", "{summary.bridge_status}" }
                             }
                             div { class: "text-sm text-muted-foreground",
-                                "This panel is backed by coauth /accounts, /accounts/{id}/dids, /accounts/{id}/risk-action/current, and /accounts/{id}/risk-action/history. High-risk actions now go through an explicit persisted risk-action state-machine scaffold. TODO(contract): fill claims, session-grant inventory, and replace scaffold transitions with controlled mutation executors."
+                                "This panel is now backed by coauth admin bridge discovery plus account, DID-binding, and risk-action endpoints. High-risk actions flow through a discovered persisted state-machine scaffold. TODO(contract): fill claims, session-grant inventory, and replace scaffold transitions with controlled mutation executors."
                             }
                         }
 
@@ -269,6 +269,31 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                         )
 
                         div { class: "rounded-lg border p-4 space-y-4",
+                            h2 { class: "text-base font-semibold", "Admin Bridge Contract" }
+                            p { class: "text-sm text-muted-foreground",
+                                "Contract: "
+                                span { class: "font-mono", "{detail.admin_bridge.contract}" }
+                            }
+                            p { class: "text-sm text-muted-foreground",
+                                "Version: "
+                                span { class: "font-mono", "{detail.admin_bridge.version}" }
+                            }
+                            p { class: "text-sm text-muted-foreground",
+                                "API Base: "
+                                span { class: "font-mono", "{detail.admin_bridge.api_base_path}" }
+                            }
+                            p { class: "text-sm text-muted-foreground",
+                                "Accounts: "
+                                span { class: "font-mono", "{detail.admin_bridge.accounts_path}" }
+                            }
+                            p { class: "text-sm text-muted-foreground",
+                                "Account Detail Template: "
+                                span { class: "font-mono", "{detail.admin_bridge.account_detail_path_template}" }
+                            }
+                            p { class: "text-sm text-muted-foreground",
+                                "DID Bindings Template: "
+                                span { class: "font-mono", "{detail.admin_bridge.account_dids_path_template}" }
+                            }
                             h2 { class: "text-base font-semibold", "High-Risk Action Hook" }
                             p { class: "text-sm text-muted-foreground",
                                 "Approval mode: "
@@ -277,6 +302,26 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                             p { class: "text-sm text-muted-foreground",
                                 "Endpoint: "
                                 span { class: "font-mono", "{detail.risk_action_hook.endpoint}" }
+                            }
+                            p { class: "text-sm text-muted-foreground",
+                                "Current state template: "
+                                span { class: "font-mono", "{detail.admin_bridge.risk_action_current_path_template}" }
+                            }
+                            p { class: "text-sm text-muted-foreground",
+                                "History template: "
+                                span { class: "font-mono", "{detail.admin_bridge.risk_action_history_path_template}" }
+                            }
+                            p { class: "text-sm text-muted-foreground",
+                                "Approve template: "
+                                span { class: "font-mono", "{detail.admin_bridge.risk_action_approve_path_template}" }
+                            }
+                            p { class: "text-sm text-muted-foreground",
+                                "Execute template: "
+                                span { class: "font-mono", "{detail.admin_bridge.risk_action_execute_path_template}" }
+                            }
+                            p { class: "text-sm text-muted-foreground",
+                                "State store: "
+                                span { class: "font-mono", "{detail.admin_bridge.risk_action_state_store_kind}" }
                             }
                             p { class: "text-sm text-muted-foreground", "{detail.risk_action_hook.todo}" }
                             if let Some(proposal) = last_proposal() {
