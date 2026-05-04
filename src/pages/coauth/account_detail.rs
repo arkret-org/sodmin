@@ -405,6 +405,10 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                                 span { class: "font-mono", "{detail.recovery_bridge.device_message_schema}" }
                             }
                             p { class: "text-sm text-muted-foreground",
+                                "Principal Restore Start: "
+                                span { class: "font-mono", "{detail.recovery_bridge.principal_restore_start_path}" }
+                            }
+                            p { class: "text-sm text-muted-foreground",
                                 "Principal Restore Describe: "
                                 span { class: "font-mono", "{detail.recovery_bridge.principal_restore_describe_path}" }
                             }
@@ -439,6 +443,10 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                             p { class: "text-sm text-muted-foreground",
                                 "Backup Example: "
                                 span { class: "font-mono", "{detail.recovery_bridge.example_backup_payload}" }
+                            }
+                            p { class: "text-sm text-muted-foreground",
+                                "Recovery Restore Example: "
+                                span { class: "font-mono", "{detail.recovery_bridge.recovery_restore_examples}" }
                             }
                             p { class: "text-sm text-muted-foreground",
                                 "Recovery Authz Example: "

@@ -373,6 +373,8 @@ pub struct CoauthRecoveryBridgeDescribe {
     #[serde(default)]
     pub device_message_schema: String,
     #[serde(default)]
+    pub principal_restore_start_path: String,
+    #[serde(default)]
     pub principal_restore_describe_path: String,
     #[serde(default)]
     pub principal_restore_ticket_path: String,
@@ -390,6 +392,8 @@ pub struct CoauthRecoveryBridgeDescribe {
     pub recovery_modes: Vec<String>,
     #[serde(default)]
     pub example_backup_payload: Value,
+    #[serde(default)]
+    pub recovery_restore_examples: Value,
     #[serde(default)]
     pub recovery_authz_examples: Value,
     #[serde(default)]
