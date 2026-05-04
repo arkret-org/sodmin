@@ -367,6 +367,8 @@ pub struct CoauthRecoveryBridgeDescribe {
     #[serde(default)]
     pub recovery_resend_path: String,
     #[serde(default)]
+    pub recovery_principal_snapshot_path: String,
+    #[serde(default)]
     pub key_backup_rest_base: String,
     #[serde(default)]
     pub key_backup_schema: String,
