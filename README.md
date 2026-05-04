@@ -53,6 +53,12 @@ docker run -p 9090:80 sodmin
 
 Until generated contracts are wired in, API client code must preserve Contrix error envelopes, reject URL query credentials, propagate `X-Contrix-Request-Id`, send `Idempotency-Key` for mutations, and redact sensitive diagnostics.
 
+## Dashboard Discovery
+
+The dashboard reads native Contrix discovery metadata from `/api/v1/server/describe` when available and keeps `/contrix/admin/v1/server/info` as a legacy fallback. Discovery-backed fields currently rendered include service DID, coauth issuer DID, delegated/public DID resolver endpoint, supported profiles, reducer/schema profiles, event-kind registry version, OpenAPI version, health summary, and conformance declarations.
+
+If discovery is unavailable or an older backend omits a field, the UI renders `-` or `Unknown` and does not treat the profile as implemented.
+
 ## Repository Layout
 
 ```text

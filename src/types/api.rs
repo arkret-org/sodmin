@@ -1,5 +1,4 @@
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 
 // ── Pagination ──
 
@@ -511,6 +510,80 @@ pub struct ServerInfo {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct ServerDescribeResponse {
+    #[serde(default)]
+    pub service_did: String,
+    #[serde(default)]
+    pub service_type: Option<String>,
+    #[serde(default)]
+    pub protocol_version: Option<String>,
+    #[serde(default, alias = "profiles")]
+    pub supported_profiles: Vec<String>,
+    #[serde(default)]
+    pub supported_features: Vec<String>,
+    #[serde(default)]
+    pub supported_operations: Vec<String>,
+    #[serde(default)]
+    pub supported_reducer_profiles: Vec<String>,
+    #[serde(default)]
+    pub supported_schema_profiles: Vec<String>,
+    #[serde(default)]
+    pub supported_bindings: Vec<serde_json::Value>,
+    #[serde(default)]
+    pub auth_metadata: Option<ServerDescribeAuthMetadata>,
+    #[serde(default)]
+    pub identity_registry_resolver: Option<IdentityRegistryResolverDescriptor>,
+    #[serde(default)]
+    pub admin_audience: Option<String>,
+    #[serde(default)]
+    pub openapi_version: Option<String>,
+    #[serde(default)]
+    pub schema_registry_version: Option<String>,
+    #[serde(default)]
+    pub event_kind_registry_version: Option<String>,
+    #[serde(default)]
+    pub registry: serde_json::Value,
+    #[serde(default)]
+    pub limits: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct ServerDescribeAuthMetadata {
+    #[serde(default)]
+    pub issuer_did: Option<String>,
+    #[serde(default)]
+    pub oauth_issuer: Option<String>,
+    #[serde(default)]
+    pub openid_configuration: Option<String>,
+    #[serde(default)]
+    pub required_audience: Option<String>,
+    #[serde(default)]
+    pub admin_audience: Option<String>,
+    #[serde(default)]
+    pub supported_auth_methods: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct IdentityRegistryResolverDescriptor {
+    #[serde(default)]
+    pub mode: Option<String>,
+    #[serde(default)]
+    pub endpoint: Option<String>,
+    #[serde(default)]
+    pub delegated_resolver: Option<IdentityRegistryDescriptor>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct IdentityRegistryDescriptor {
+    #[serde(default)]
+    pub kind: Option<String>,
+    #[serde(default)]
+    pub resolver: Option<String>,
+    #[serde(default)]
+    pub proof_required_for_pairwise: Option<bool>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ServerStats {
     #[serde(default)]
     pub actor_count: u64,
@@ -590,4 +663,96 @@ pub struct HandleAvailabilityResult {
     pub available: bool,
     #[serde(default)]
     pub error: Option<String>,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::ServerDescribeResponse;
+    use serde_json::json;
+
+    #[test]
+    fn server_describe_accepts_soland_profile_status() {
+        let describe: ServerDescribeResponse = serde_json::from_value(json!({
+            "service_did": "did:web:soland.local",
+            "service_type": "principal_server",
+            "protocol_version": "1.0",
+            "supported_profiles": ["cx.profile.soland_limited_server.v1"],
+            "supported_features": ["events.describe", "events.submit"],
+            "supported_operations": ["cx.events.submit"],
+            "supported_reducer_profiles": ["cx.reducer.v1"],
+            "supported_schema_profiles": ["cx.schema.core.v1"],
+            "limits": {
+                "profile_status": {
+                    "conformance": "limited_reference",
+                    "implemented_surfaces": ["principal_server", "events_api_minimal"]
+                }
+            }
+        }))
+        .expect("soland server describe should deserialize");
+
+        assert_eq!(describe.service_did, "did:web:soland.local");
+        assert_eq!(describe.service_type.as_deref(), Some("principal_server"));
+        assert_eq!(describe.protocol_version.as_deref(), Some("1.0"));
+        assert_eq!(
+            describe.supported_reducer_profiles,
+            vec!["cx.reducer.v1".to_string()]
+        );
+        assert_eq!(
+            describe.limits["profile_status"]["conformance"],
+            "limited_reference"
+        );
+    }
+
+    #[test]
+    fn server_describe_accepts_coauth_issuer_and_registry() {
+        let describe: ServerDescribeResponse = serde_json::from_value(json!({
+            "service_did": "did:web:auth.example.com",
+            "service_type": "auth_account_server",
+            "protocol_version": "1.0",
+            "supported_profiles": ["cx.profile.auth_account.v1"],
+            "auth_metadata": {
+                "issuer_did": "did:web:auth.example.com#issuer",
+                "oauth_issuer": "https://auth.example.com"
+            },
+            "identity_registry_resolver": {
+                "mode": "delegated_resolver",
+                "endpoint": "https://auth.example.com/api/v1/identity/resolve",
+                "delegated_resolver": {
+                    "kind": "public_did_resolver",
+                    "resolver": "https://resolver.example.com/"
+                }
+            }
+        }))
+        .expect("coauth server describe should deserialize");
+
+        assert_eq!(
+            describe
+                .auth_metadata
+                .as_ref()
+                .and_then(|metadata| metadata.issuer_did.as_deref()),
+            Some("did:web:auth.example.com#issuer")
+        );
+        assert_eq!(
+            describe
+                .identity_registry_resolver
+                .as_ref()
+                .and_then(|registry| registry.delegated_resolver.as_ref())
+                .and_then(|delegated| delegated.resolver.as_deref()),
+            Some("https://resolver.example.com/")
+        );
+    }
+
+    #[test]
+    fn server_describe_accepts_profiles_alias() {
+        let describe: ServerDescribeResponse = serde_json::from_value(json!({
+            "service_did": "did:web:identity.example",
+            "profiles": ["cx.profile.identity_registry.v1"]
+        }))
+        .expect("profiles alias should deserialize");
+
+        assert_eq!(
+            describe.supported_profiles,
+            vec!["cx.profile.identity_registry.v1".to_string()]
+        );
+    }
 }

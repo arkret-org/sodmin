@@ -78,7 +78,7 @@ cat >> /etc/nginx/conf.d/default.conf <<EOF
 EOF
 }
 
-printf '{"pasion_public_url":"%s"}' "$PASION_PUBLIC_URL" > /usr/share/nginx/html/config.json
+printf '{"coauth_public_url":"%s","pasion_public_url":"%s"}' "$PASION_PUBLIC_URL" "$PASION_PUBLIC_URL" > /usr/share/nginx/html/config.json
 
 cat > /etc/nginx/conf.d/default.conf <<EOF
 server {

@@ -387,11 +387,11 @@ impl I18n {
         m.insert("rooms.delete_selected".into(), "Delete Selected".into());
         m.insert("rooms.block_selected".into(), "Block Selected".into());
         m.insert("rooms.overview".into(), "Overview".into());
-        m.insert("rooms.room_information".into(), "Room Information".into());
-        m.insert("rooms.room_settings".into(), "Room Settings".into());
-        m.insert("rooms.room_id".into(), "Room ID".into());
+        m.insert("rooms.room_information".into(), "Space Information".into());
+        m.insert("rooms.room_settings".into(), "Space Settings".into());
+        m.insert("rooms.room_id".into(), "Space ID".into());
         m.insert("rooms.canonical_alias".into(), "Canonical Alias".into());
-        m.insert("rooms.room_type".into(), "Room Type".into());
+        m.insert("rooms.room_type".into(), "Space Type".into());
         m.insert("rooms.space".into(), "Space".into());
         m.insert("rooms.blocked".into(), "Blocked".into());
         m.insert("rooms.other_aliases".into(), "Other Aliases".into());
@@ -407,8 +407,8 @@ impl I18n {
             "rooms.space_hierarchy_desc".into(),
             "Child rooms and sub-spaces in this space.".into(),
         );
-        m.insert("rooms.no_children".into(), "No child rooms found.".into());
-        m.insert("rooms.room_name".into(), "Room Name *".into());
+        m.insert("rooms.no_children".into(), "No child spaces found.".into());
+        m.insert("rooms.room_name".into(), "Space Name *".into());
         m.insert(
             "rooms.topic_placeholder".into(),
             "Room topic (optional)".into(),
@@ -481,7 +481,7 @@ impl I18n {
         );
         m.insert("reports.redact".into(), "Redact Event".into());
         m.insert("reports.ban_user".into(), "Ban User".into());
-        m.insert("reports.block_room".into(), "Block Room".into());
+        m.insert("reports.block_room".into(), "Block Space".into());
         m.insert("reports.delete_report".into(), "Delete Report".into());
         m.insert(
             "reports.moderation_actions".into(),
@@ -493,14 +493,14 @@ impl I18n {
             "Event reports submitted by users".into(),
         );
         m.insert("reports.id".into(), "ID".into());
-        m.insert("reports.room".into(), "Room".into());
+        m.insert("reports.room".into(), "Space".into());
         m.insert(
             "reports.no_reports_description".into(),
             "There are no event reports to review at this time.".into(),
         );
         m.insert("reports.report_details".into(), "Report Details".into());
-        m.insert("reports.reporter_user_id".into(), "Reporter User ID".into());
-        m.insert("reports.room_id".into(), "Room ID".into());
+        m.insert("reports.reporter_user_id".into(), "Reporter Actor ID".into());
+        m.insert("reports.room_id".into(), "Space ID".into());
         m.insert("reports.event_id".into(), "Event ID".into());
         m.insert("reports.sender".into(), "Sender".into());
         m.insert("reports.score".into(), "Score".into());
@@ -1551,14 +1551,14 @@ impl I18n {
             "rooms.room_settings".into(),
             "\u{623f}\u{95f4}\u{8bbe}\u{7f6e}".into(),
         );
-        m.insert("rooms.room_id".into(), "\u{623f}\u{95f4} ID".into());
+        m.insert("rooms.room_id".into(), "Space ID".into());
         m.insert(
             "rooms.canonical_alias".into(),
             "\u{89c4}\u{8303}\u{522b}\u{540d}".into(),
         );
         m.insert(
             "rooms.room_type".into(),
-            "\u{623f}\u{95f4}\u{7c7b}\u{578b}".into(),
+            "Space \u{7c7b}\u{578b}".into(),
         );
         m.insert("rooms.space".into(), "\u{7a7a}\u{95f4}".into());
         m.insert("rooms.blocked".into(), "\u{5df2}\u{5c01}\u{9501}".into());
@@ -1589,11 +1589,11 @@ impl I18n {
         m.insert("rooms.space_hierarchy_desc".into(), "\u{6b64}\u{7a7a}\u{95f4}\u{4e2d}\u{7684}\u{5b50}\u{623f}\u{95f4}\u{548c}\u{5b50}\u{7a7a}\u{95f4}".into());
         m.insert(
             "rooms.no_children".into(),
-            "\u{672a}\u{627e}\u{5230}\u{5b50}\u{623f}\u{95f4}".into(),
+            "\u{672a}\u{627e}\u{5230}\u{5b50} Space\u{3002}".into(),
         );
         m.insert(
             "rooms.room_name".into(),
-            "\u{623f}\u{95f4}\u{540d}\u{79f0} *".into(),
+            "Space \u{540d}\u{79f0} *".into(),
         );
         m.insert(
             "rooms.topic_placeholder".into(),
@@ -1706,7 +1706,7 @@ impl I18n {
         );
         m.insert(
             "reports.block_room".into(),
-            "\u{5c01}\u{9501}\u{623f}\u{95f4}".into(),
+            "\u{5c01}\u{9501} Space".into(),
         );
         m.insert(
             "reports.moderation_actions".into(),
@@ -1725,7 +1725,7 @@ impl I18n {
             "\u{7528}\u{6237}\u{63d0}\u{4ea4}\u{7684}\u{4e8b}\u{4ef6}\u{4e3e}\u{62a5}".into(),
         );
         m.insert("reports.id".into(), "ID".into());
-        m.insert("reports.room".into(), "\u{623f}\u{95f4}".into());
+        m.insert("reports.room".into(), "Space".into());
         m.insert("reports.no_reports_description".into(), "\u{76ee}\u{524d}\u{6ca1}\u{6709}\u{9700}\u{8981}\u{5ba1}\u{67e5}\u{7684}\u{4e8b}\u{4ef6}\u{4e3e}\u{62a5}".into());
         m.insert(
             "reports.report_details".into(),
@@ -1733,9 +1733,9 @@ impl I18n {
         );
         m.insert(
             "reports.reporter_user_id".into(),
-            "\u{4e3e}\u{62a5}\u{8005}\u{7528}\u{6237} ID".into(),
+            "\u{62a5}\u{544a}\u{4eba} Actor ID".into(),
         );
-        m.insert("reports.room_id".into(), "\u{623f}\u{95f4} ID".into());
+        m.insert("reports.room_id".into(), "Space ID".into());
         m.insert("reports.event_id".into(), "\u{4e8b}\u{4ef6} ID".into());
         m.insert("reports.sender".into(), "\u{53d1}\u{9001}\u{8005}".into());
         m.insert("reports.score".into(), "\u{8bc4}\u{5206}".into());
@@ -2430,6 +2430,7 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("nav.applets", "Applets"),
             ("nav.agents", "Agents"),
             ("nav.policy", "Policy"),
+            ("nav.coauth_accounts", "Accounts"),
             ("nav.section_pasion", "coauth"),
             ("nav.section_coauth", "coauth"),
             ("auth.base_url", "Principal Server URL"),
@@ -2526,6 +2527,7 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("nav.applets", "Applet"),
             ("nav.agents", "Agent"),
             ("nav.policy", "策略"),
+            ("nav.coauth_accounts", "账号"),
             ("nav.section_pasion", "coauth"),
             ("nav.section_coauth", "coauth"),
             ("auth.base_url", "Principal Server 地址"),
