@@ -433,6 +433,14 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                                 span { class: "font-mono", "{detail.recovery_bridge.principal_restore_state_import_path}" }
                             }
                             p { class: "text-sm text-muted-foreground",
+                                "Principal Restore State Durability: "
+                                span { class: "font-mono", "{detail.recovery_bridge.principal_restore_state_durability_path}" }
+                            }
+                            p { class: "text-sm text-muted-foreground",
+                                "Principal Restore State Checkpoints: "
+                                span { class: "font-mono", "{detail.recovery_bridge.principal_restore_state_checkpoint_collection_path}" }
+                            }
+                            p { class: "text-sm text-muted-foreground",
                                 "Principal Restore Start: "
                                 span { class: "font-mono", "{detail.recovery_bridge.principal_restore_start_path}" }
                             }
@@ -507,6 +515,14 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                             p { class: "text-sm text-muted-foreground",
                                 "Principal Restore Activity: "
                                 span { class: "font-mono", "{detail.recovery_bridge.principal_restore_activity_path}" }
+                            }
+                            p { class: "text-sm text-muted-foreground",
+                                "Principal Restore Timeline: "
+                                span { class: "font-mono", "{detail.recovery_bridge.principal_restore_timeline_path}" }
+                            }
+                            p { class: "text-sm text-muted-foreground",
+                                "Principal Restore Audit Feed: "
+                                span { class: "font-mono", "{detail.recovery_bridge.principal_restore_audit_feed_path}" }
                             }
                             p { class: "text-sm text-muted-foreground",
                                 "Principal Recovery Live Snapshot: "

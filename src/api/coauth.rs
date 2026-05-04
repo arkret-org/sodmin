@@ -387,6 +387,10 @@ pub struct CoauthRecoveryBridgeDescribe {
     #[serde(default)]
     pub principal_restore_state_import_path: String,
     #[serde(default)]
+    pub principal_restore_state_durability_path: String,
+    #[serde(default)]
+    pub principal_restore_state_checkpoint_collection_path: String,
+    #[serde(default)]
     pub principal_restore_start_path: String,
     #[serde(default)]
     pub principal_restore_describe_path: String,
@@ -424,6 +428,10 @@ pub struct CoauthRecoveryBridgeDescribe {
     pub principal_restore_bundle_path: String,
     #[serde(default)]
     pub principal_restore_activity_path: String,
+    #[serde(default)]
+    pub principal_restore_timeline_path: String,
+    #[serde(default)]
+    pub principal_restore_audit_feed_path: String,
     #[serde(default)]
     pub principal_recovery_live_snapshot_path: String,
     #[serde(default)]
