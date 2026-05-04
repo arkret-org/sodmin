@@ -371,6 +371,70 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                                 "Session Grants Template: "
                                 span { class: "font-mono", "{detail.admin_bridge.account_session_grants_path_template}" }
                             }
+                            h2 { class: "text-base font-semibold", "Recovery Bridge Contract" }
+                            p { class: "text-sm text-muted-foreground",
+                                "Contract: "
+                                span { class: "font-mono", "{detail.recovery_bridge.contract}" }
+                            }
+                            p { class: "text-sm text-muted-foreground",
+                                "Version: "
+                                span { class: "font-mono", "{detail.recovery_bridge.version}" }
+                            }
+                            p { class: "text-sm text-muted-foreground",
+                                "Recovery Start: "
+                                span { class: "font-mono", "{detail.recovery_bridge.recovery_start_path}" }
+                            }
+                            p { class: "text-sm text-muted-foreground",
+                                "Recovery Status: "
+                                span { class: "font-mono", "{detail.recovery_bridge.recovery_status_path}" }
+                            }
+                            p { class: "text-sm text-muted-foreground",
+                                "Recovery Resend: "
+                                span { class: "font-mono", "{detail.recovery_bridge.recovery_resend_path}" }
+                            }
+                            p { class: "text-sm text-muted-foreground",
+                                "Key Backup Base: "
+                                span { class: "font-mono", "{detail.recovery_bridge.key_backup_rest_base}" }
+                            }
+                            p { class: "text-sm text-muted-foreground",
+                                "Key Backup Schema: "
+                                span { class: "font-mono", "{detail.recovery_bridge.key_backup_schema}" }
+                            }
+                            p { class: "text-sm text-muted-foreground",
+                                "Device Message Schema: "
+                                span { class: "font-mono", "{detail.recovery_bridge.device_message_schema}" }
+                            }
+                            p { class: "text-sm text-muted-foreground",
+                                "Principal Authz Check: "
+                                span { class: "font-mono", "{detail.recovery_bridge.principal_authz_check_path}" }
+                            }
+                            p { class: "text-sm text-muted-foreground",
+                                "Principal Policy Collection: "
+                                span { class: "font-mono", "{detail.recovery_bridge.principal_policy_collection_path}" }
+                            }
+                            p { class: "text-sm text-muted-foreground",
+                                "Principal Policy Item: "
+                                span { class: "font-mono", "{detail.recovery_bridge.principal_policy_item_path}" }
+                            }
+                            p { class: "text-sm text-muted-foreground",
+                                "Verification Kinds: "
+                                span { class: "font-mono", "{detail.recovery_bridge.verification_event_kinds.join(\", \")}" }
+                            }
+                            p { class: "text-sm text-muted-foreground",
+                                "Recovery Modes: "
+                                span { class: "font-mono", "{detail.recovery_bridge.recovery_modes.join(\", \")}" }
+                            }
+                            p { class: "text-sm text-muted-foreground",
+                                "Backup Example: "
+                                span { class: "font-mono", "{detail.recovery_bridge.example_backup_payload}" }
+                            }
+                            p { class: "text-sm text-muted-foreground",
+                                "Recovery Authz Example: "
+                                span { class: "font-mono", "{detail.recovery_bridge.recovery_authz_examples}" }
+                            }
+                            p { class: "text-sm text-muted-foreground",
+                                "{detail.recovery_bridge.todos.join(\" \")}"
+                            }
                             h2 { class: "text-base font-semibold", "High-Risk Action Hook" }
                             p { class: "text-sm text-muted-foreground",
                                 "Approval mode: "

@@ -355,6 +355,42 @@ pub struct CoauthIntegrationSurface {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct CoauthRecoveryBridgeDescribe {
+    #[serde(default)]
+    pub contract: String,
+    #[serde(default)]
+    pub version: String,
+    #[serde(default)]
+    pub recovery_start_path: String,
+    #[serde(default)]
+    pub recovery_status_path: String,
+    #[serde(default)]
+    pub recovery_resend_path: String,
+    #[serde(default)]
+    pub key_backup_rest_base: String,
+    #[serde(default)]
+    pub key_backup_schema: String,
+    #[serde(default)]
+    pub device_message_schema: String,
+    #[serde(default)]
+    pub principal_authz_check_path: String,
+    #[serde(default)]
+    pub principal_policy_collection_path: String,
+    #[serde(default)]
+    pub principal_policy_item_path: String,
+    #[serde(default)]
+    pub verification_event_kinds: Vec<String>,
+    #[serde(default)]
+    pub recovery_modes: Vec<String>,
+    #[serde(default)]
+    pub example_backup_payload: Value,
+    #[serde(default)]
+    pub recovery_authz_examples: Value,
+    #[serde(default)]
+    pub todos: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct CoauthAccountRiskActionCurrentState {
     #[serde(default)]
     pub account_id: String,
@@ -412,6 +448,8 @@ pub struct CoauthAccountDetail {
     pub risk_action_hook: CoauthRiskActionHook,
     #[serde(default)]
     pub admin_bridge: CoauthAdminBridgeDescribe,
+    #[serde(default)]
+    pub recovery_bridge: CoauthRecoveryBridgeDescribe,
     #[serde(default)]
     pub integration_manifest: CoauthIntegrationManifest,
 }
@@ -987,6 +1025,7 @@ pub async fn list_accounts(
 
 pub async fn get_account_detail(id: &str) -> Result<CoauthAccountDetail, HttpError> {
     let bridge_url = "/contrix/admin/v1/bridge/describe";
+    let recovery_url = "/contrix/api/v1/auth/recovery/describe";
     let integration_manifest_url = "/contrix/api/v1/integration/describe";
     let summary_url = format!("/contrix/admin/v1/accounts/{}", urlencoding::encode(id));
     let dids_url = format!("/contrix/admin/v1/accounts/{}/dids", urlencoding::encode(id));
@@ -1010,6 +1049,7 @@ pub async fn get_account_detail(id: &str) -> Result<CoauthAccountDetail, HttpErr
     let session_grants: CoauthAccountSessionGrantsEnvelope =
         api_client(&grants_url, "GET", None).await?;
     let bridge: CoauthAdminBridgeDescribe = api_client(bridge_url, "GET", None).await?;
+    let recovery_bridge: CoauthRecoveryBridgeDescribe = api_client(recovery_url, "GET", None).await?;
     let integration_manifest: CoauthIntegrationManifest =
         api_client(integration_manifest_url, "GET", None).await?;
     let current: CoauthAdminSingleEnvelope<CoauthAccountRiskActionCurrentState> =
@@ -1040,6 +1080,7 @@ pub async fn get_account_detail(id: &str) -> Result<CoauthAccountDetail, HttpErr
             },
         },
         admin_bridge: bridge,
+        recovery_bridge,
         integration_manifest,
     })
 }
