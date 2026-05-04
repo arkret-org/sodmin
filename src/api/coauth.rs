@@ -387,6 +387,8 @@ pub struct CoauthRecoveryBridgeDescribe {
     #[serde(default)]
     pub principal_recovery_contract_stack_path: String,
     #[serde(default)]
+    pub principal_recovery_stack_bundle_path: String,
+    #[serde(default)]
     pub principal_device_messages_describe_path: String,
     #[serde(default)]
     pub principal_key_backups_describe_path: String,

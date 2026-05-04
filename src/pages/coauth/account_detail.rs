@@ -433,6 +433,10 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                                 span { class: "font-mono", "{detail.recovery_bridge.principal_recovery_contract_stack_path}" }
                             }
                             p { class: "text-sm text-muted-foreground",
+                                "Principal Recovery Stack Bundle: "
+                                span { class: "font-mono", "{detail.recovery_bridge.principal_recovery_stack_bundle_path}" }
+                            }
+                            p { class: "text-sm text-muted-foreground",
                                 "Principal Device Messages Describe: "
                                 span { class: "font-mono", "{detail.recovery_bridge.principal_device_messages_describe_path}" }
                             }
