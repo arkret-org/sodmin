@@ -397,6 +397,14 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                                 span { class: "font-mono", "{detail.recovery_bridge.recovery_principal_snapshot_path}" }
                             }
                             p { class: "text-sm text-muted-foreground",
+                                "Coauth Recovery Principal Cache Status: "
+                                span { class: "font-mono", "{detail.recovery_bridge.recovery_principal_cache_status_path}" }
+                            }
+                            p { class: "text-sm text-muted-foreground",
+                                "Coauth Recovery Principal Cache Refresh: "
+                                span { class: "font-mono", "{detail.recovery_bridge.recovery_principal_cache_refresh_path}" }
+                            }
+                            p { class: "text-sm text-muted-foreground",
                                 "Key Backup Base: "
                                 span { class: "font-mono", "{detail.recovery_bridge.key_backup_rest_base}" }
                             }
