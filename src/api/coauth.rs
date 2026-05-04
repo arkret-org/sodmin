@@ -411,6 +411,8 @@ pub struct CoauthRecoveryBridgeDescribe {
     #[serde(default)]
     pub principal_restore_materialized_device_handoff_path: String,
     #[serde(default)]
+    pub principal_restore_bundle_path: String,
+    #[serde(default)]
     pub principal_authz_describe_path: String,
     #[serde(default)]
     pub principal_authz_check_path: String,

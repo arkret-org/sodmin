@@ -481,6 +481,10 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                                 span { class: "font-mono", "{detail.recovery_bridge.principal_restore_materialized_device_handoff_path}" }
                             }
                             p { class: "text-sm text-muted-foreground",
+                                "Principal Restore Bundle: "
+                                span { class: "font-mono", "{detail.recovery_bridge.principal_restore_bundle_path}" }
+                            }
+                            p { class: "text-sm text-muted-foreground",
                                 "Principal Authz Describe: "
                                 span { class: "font-mono", "{detail.recovery_bridge.principal_authz_describe_path}" }
                             }
