@@ -50,6 +50,43 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                     } else {
                         "Active"
                     };
+                    let integration_dependencies = if detail.integration_manifest.dependencies.is_empty() {
+                        "none".to_string()
+                    } else {
+                        detail
+                            .integration_manifest
+                            .dependencies
+                            .iter()
+                            .map(|dependency| {
+                                format!(
+                                    "{}:{}@{}",
+                                    dependency.service, dependency.purpose, dependency.discovery_path
+                                )
+                            })
+                            .collect::<Vec<_>>()
+                            .join(" | ")
+                    };
+                    let integration_surfaces = if detail.integration_manifest.surfaces.is_empty() {
+                        "none".to_string()
+                    } else {
+                        detail
+                            .integration_manifest
+                            .surfaces
+                            .iter()
+                            .map(|surface| {
+                                format!(
+                                    "{} {} {} [{}]",
+                                    surface.method, surface.path, surface.contract, surface.stability
+                                )
+                            })
+                            .collect::<Vec<_>>()
+                            .join(" | ")
+                    };
+                    let integration_todos = if detail.integration_manifest.todos.is_empty() {
+                        "none".to_string()
+                    } else {
+                        detail.integration_manifest.todos.join(" ")
+                    };
 
                     rsx! {
                         div { class: "rounded-lg border p-4 space-y-2",
@@ -269,6 +306,38 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                         )
 
                         div { class: "rounded-lg border p-4 space-y-4",
+                            h2 { class: "text-base font-semibold", "Service Integration Manifest" }
+                            p { class: "text-sm text-muted-foreground",
+                                "Contract: "
+                                span { class: "font-mono", "{detail.integration_manifest.contract}" }
+                            }
+                            p { class: "text-sm text-muted-foreground",
+                                "Version: "
+                                span { class: "font-mono", "{detail.integration_manifest.version}" }
+                            }
+                            p { class: "text-sm text-muted-foreground",
+                                "Service: "
+                                span { class: "font-mono", "{detail.integration_manifest.service}" }
+                            }
+                            p { class: "text-sm text-muted-foreground",
+                                "Kind: "
+                                span { class: "font-mono", "{detail.integration_manifest.service_kind}" }
+                            }
+                            p { class: "text-sm text-muted-foreground",
+                                "Describe Path: "
+                                span { class: "font-mono", "{detail.integration_manifest.describe_path}" }
+                            }
+                            p { class: "text-sm text-muted-foreground",
+                                "Dependencies: "
+                                span { class: "font-mono", "{integration_dependencies}" }
+                            }
+                            p { class: "text-sm text-muted-foreground",
+                                "Surfaces: "
+                                span { class: "font-mono", "{integration_surfaces}" }
+                            }
+                            p { class: "text-sm text-muted-foreground",
+                                "{integration_todos}"
+                            }
                             h2 { class: "text-base font-semibold", "Admin Bridge Contract" }
                             p { class: "text-sm text-muted-foreground",
                                 "Contract: "

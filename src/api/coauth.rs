@@ -303,6 +303,58 @@ pub struct CoauthAdminBridgeRiskActionExamples {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct CoauthIntegrationManifest {
+    #[serde(default)]
+    pub contract: String,
+    #[serde(default)]
+    pub version: String,
+    #[serde(default)]
+    pub service: String,
+    #[serde(default)]
+    pub service_kind: String,
+    #[serde(default)]
+    pub api_base_path: String,
+    #[serde(default)]
+    pub describe_path: String,
+    #[serde(default)]
+    pub dependencies: Vec<CoauthIntegrationDependency>,
+    #[serde(default)]
+    pub surfaces: Vec<CoauthIntegrationSurface>,
+    #[serde(default)]
+    pub todos: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct CoauthIntegrationDependency {
+    #[serde(default)]
+    pub service: String,
+    #[serde(default)]
+    pub purpose: String,
+    #[serde(default)]
+    pub required_contract: String,
+    #[serde(default)]
+    pub discovery_path: String,
+    #[serde(default)]
+    pub mode: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct CoauthIntegrationSurface {
+    #[serde(default)]
+    pub name: String,
+    #[serde(default)]
+    pub method: String,
+    #[serde(default)]
+    pub path: String,
+    #[serde(default)]
+    pub contract: String,
+    #[serde(default)]
+    pub stability: String,
+    #[serde(default)]
+    pub todo: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct CoauthAccountRiskActionCurrentState {
     #[serde(default)]
     pub account_id: String,
@@ -360,6 +412,8 @@ pub struct CoauthAccountDetail {
     pub risk_action_hook: CoauthRiskActionHook,
     #[serde(default)]
     pub admin_bridge: CoauthAdminBridgeDescribe,
+    #[serde(default)]
+    pub integration_manifest: CoauthIntegrationManifest,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -933,6 +987,7 @@ pub async fn list_accounts(
 
 pub async fn get_account_detail(id: &str) -> Result<CoauthAccountDetail, HttpError> {
     let bridge_url = "/contrix/admin/v1/bridge/describe";
+    let integration_manifest_url = "/contrix/api/v1/integration/describe";
     let summary_url = format!("/contrix/admin/v1/accounts/{}", urlencoding::encode(id));
     let dids_url = format!("/contrix/admin/v1/accounts/{}/dids", urlencoding::encode(id));
     let claims_url = format!("/contrix/admin/v1/accounts/{}/claims", urlencoding::encode(id));
@@ -955,6 +1010,8 @@ pub async fn get_account_detail(id: &str) -> Result<CoauthAccountDetail, HttpErr
     let session_grants: CoauthAccountSessionGrantsEnvelope =
         api_client(&grants_url, "GET", None).await?;
     let bridge: CoauthAdminBridgeDescribe = api_client(bridge_url, "GET", None).await?;
+    let integration_manifest: CoauthIntegrationManifest =
+        api_client(integration_manifest_url, "GET", None).await?;
     let current: CoauthAdminSingleEnvelope<CoauthAccountRiskActionCurrentState> =
         api_client(&current_url, "GET", None).await?;
     let history: CoauthAccountRiskActionHistoryEnvelope =
@@ -983,6 +1040,7 @@ pub async fn get_account_detail(id: &str) -> Result<CoauthAccountDetail, HttpErr
             },
         },
         admin_bridge: bridge,
+        integration_manifest,
     })
 }
 
