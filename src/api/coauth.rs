@@ -405,6 +405,12 @@ pub struct CoauthRecoveryBridgeDescribe {
     #[serde(default)]
     pub principal_restore_executor_complete_path: String,
     #[serde(default)]
+    pub principal_restore_result_path: String,
+    #[serde(default)]
+    pub principal_restore_receipt_path: String,
+    #[serde(default)]
+    pub principal_restore_materialized_device_handoff_path: String,
+    #[serde(default)]
     pub principal_authz_describe_path: String,
     #[serde(default)]
     pub principal_authz_check_path: String,
