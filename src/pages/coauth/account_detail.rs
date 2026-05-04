@@ -501,6 +501,14 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                                 span { class: "font-mono", "{detail.recovery_bridge.principal_restore_bundle_path}" }
                             }
                             p { class: "text-sm text-muted-foreground",
+                                "Principal Restore Activity: "
+                                span { class: "font-mono", "{detail.recovery_bridge.principal_restore_activity_path}" }
+                            }
+                            p { class: "text-sm text-muted-foreground",
+                                "Principal Recovery Live Snapshot: "
+                                span { class: "font-mono", "{detail.recovery_bridge.principal_recovery_live_snapshot_path}" }
+                            }
+                            p { class: "text-sm text-muted-foreground",
                                 "Principal Authz Describe: "
                                 span { class: "font-mono", "{detail.recovery_bridge.principal_authz_describe_path}" }
                             }
