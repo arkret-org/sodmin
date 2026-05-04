@@ -373,6 +373,8 @@ pub struct CoauthRecoveryBridgeDescribe {
     #[serde(default)]
     pub device_message_schema: String,
     #[serde(default)]
+    pub principal_restore_describe_path: String,
+    #[serde(default)]
     pub principal_authz_check_path: String,
     #[serde(default)]
     pub principal_policy_collection_path: String,

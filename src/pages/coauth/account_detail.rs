@@ -405,6 +405,10 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                                 span { class: "font-mono", "{detail.recovery_bridge.device_message_schema}" }
                             }
                             p { class: "text-sm text-muted-foreground",
+                                "Principal Restore Describe: "
+                                span { class: "font-mono", "{detail.recovery_bridge.principal_restore_describe_path}" }
+                            }
+                            p { class: "text-sm text-muted-foreground",
                                 "Principal Authz Check: "
                                 span { class: "font-mono", "{detail.recovery_bridge.principal_authz_check_path}" }
                             }
