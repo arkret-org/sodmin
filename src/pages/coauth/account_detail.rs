@@ -437,6 +437,10 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                                 span { class: "font-mono", "{detail.recovery_bridge.principal_restore_describe_path}" }
                             }
                             p { class: "text-sm text-muted-foreground",
+                                "Principal Restore Ticket Collection: "
+                                span { class: "font-mono", "{detail.recovery_bridge.principal_restore_ticket_collection_path}" }
+                            }
+                            p { class: "text-sm text-muted-foreground",
                                 "Principal Restore Ticket: "
                                 span { class: "font-mono", "{detail.recovery_bridge.principal_restore_ticket_path}" }
                             }
