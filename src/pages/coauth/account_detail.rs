@@ -461,6 +461,14 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                                 span { class: "font-mono", "{detail.recovery_bridge.principal_restore_executor_enqueue_path}" }
                             }
                             p { class: "text-sm text-muted-foreground",
+                                "Principal Restore Executor Start: "
+                                span { class: "font-mono", "{detail.recovery_bridge.principal_restore_executor_start_path}" }
+                            }
+                            p { class: "text-sm text-muted-foreground",
+                                "Principal Restore Executor Complete: "
+                                span { class: "font-mono", "{detail.recovery_bridge.principal_restore_executor_complete_path}" }
+                            }
+                            p { class: "text-sm text-muted-foreground",
                                 "Principal Authz Describe: "
                                 span { class: "font-mono", "{detail.recovery_bridge.principal_authz_describe_path}" }
                             }

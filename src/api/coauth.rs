@@ -401,6 +401,10 @@ pub struct CoauthRecoveryBridgeDescribe {
     #[serde(default)]
     pub principal_restore_executor_enqueue_path: String,
     #[serde(default)]
+    pub principal_restore_executor_start_path: String,
+    #[serde(default)]
+    pub principal_restore_executor_complete_path: String,
+    #[serde(default)]
     pub principal_authz_describe_path: String,
     #[serde(default)]
     pub principal_authz_check_path: String,
