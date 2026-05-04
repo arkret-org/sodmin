@@ -417,6 +417,18 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                                 span { class: "font-mono", "{detail.recovery_bridge.principal_key_backups_describe_path}" }
                             }
                             p { class: "text-sm text-muted-foreground",
+                                "Principal Restore State Describe: "
+                                span { class: "font-mono", "{detail.recovery_bridge.principal_restore_state_describe_path}" }
+                            }
+                            p { class: "text-sm text-muted-foreground",
+                                "Principal Restore State Export: "
+                                span { class: "font-mono", "{detail.recovery_bridge.principal_restore_state_export_path}" }
+                            }
+                            p { class: "text-sm text-muted-foreground",
+                                "Principal Restore State Import: "
+                                span { class: "font-mono", "{detail.recovery_bridge.principal_restore_state_import_path}" }
+                            }
+                            p { class: "text-sm text-muted-foreground",
                                 "Principal Restore Start: "
                                 span { class: "font-mono", "{detail.recovery_bridge.principal_restore_start_path}" }
                             }
