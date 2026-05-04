@@ -59,7 +59,7 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                                 span { class: "font-mono", "{summary.bridge_status}" }
                             }
                             div { class: "text-sm text-muted-foreground",
-                                "This panel is now backed by coauth admin bridge discovery plus account, DID-binding, and risk-action endpoints. High-risk actions flow through a discovered persisted state-machine scaffold. TODO(contract): fill claims, session-grant inventory, and replace scaffold transitions with controlled mutation executors."
+                                "This panel is now backed by coauth admin bridge discovery plus account, DID-binding, claims, session-grant, and risk-action endpoints. High-risk actions flow through a discovered persisted state-machine scaffold. TODO(contract): replace scaffold transitions with controlled mutation executors."
                             }
                         }
 
@@ -293,6 +293,14 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                             p { class: "text-sm text-muted-foreground",
                                 "DID Bindings Template: "
                                 span { class: "font-mono", "{detail.admin_bridge.account_dids_path_template}" }
+                            }
+                            p { class: "text-sm text-muted-foreground",
+                                "Claims Template: "
+                                span { class: "font-mono", "{detail.admin_bridge.account_claims_path_template}" }
+                            }
+                            p { class: "text-sm text-muted-foreground",
+                                "Session Grants Template: "
+                                span { class: "font-mono", "{detail.admin_bridge.account_session_grants_path_template}" }
                             }
                             h2 { class: "text-base font-semibold", "High-Risk Action Hook" }
                             p { class: "text-sm text-muted-foreground",

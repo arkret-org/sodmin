@@ -269,6 +269,10 @@ pub struct CoauthAdminBridgeDescribe {
     #[serde(default)]
     pub account_dids_path_template: String,
     #[serde(default)]
+    pub account_claims_path_template: String,
+    #[serde(default)]
+    pub account_session_grants_path_template: String,
+    #[serde(default)]
     pub risk_action_path_template: String,
     #[serde(default)]
     pub risk_action_current_path_template: String,
@@ -552,6 +556,18 @@ pub struct CoauthAccountRiskActionHistoryEntry {
 struct CoauthAccountRiskActionHistoryEnvelope {
     #[serde(default)]
     pub data: Vec<CoauthAccountRiskActionHistoryEntry>,
+}
+
+#[derive(Debug, Clone, Deserialize, Default)]
+struct CoauthAccountClaimsEnvelope {
+    #[serde(default)]
+    data: Vec<CoauthAccountClaim>,
+}
+
+#[derive(Debug, Clone, Deserialize, Default)]
+struct CoauthAccountSessionGrantsEnvelope {
+    #[serde(default)]
+    data: Vec<CoauthSessionGrantSummary>,
 }
 
 #[derive(Debug, Clone, Deserialize, Default)]
@@ -919,6 +935,11 @@ pub async fn get_account_detail(id: &str) -> Result<CoauthAccountDetail, HttpErr
     let bridge_url = "/contrix/admin/v1/bridge/describe";
     let summary_url = format!("/contrix/admin/v1/accounts/{}", urlencoding::encode(id));
     let dids_url = format!("/contrix/admin/v1/accounts/{}/dids", urlencoding::encode(id));
+    let claims_url = format!("/contrix/admin/v1/accounts/{}/claims", urlencoding::encode(id));
+    let grants_url = format!(
+        "/contrix/admin/v1/accounts/{}/session-grants",
+        urlencoding::encode(id)
+    );
     let current_url = format!(
         "/contrix/admin/v1/accounts/{}/risk-action/current",
         urlencoding::encode(id)
@@ -930,6 +951,9 @@ pub async fn get_account_detail(id: &str) -> Result<CoauthAccountDetail, HttpErr
     let summary: CoauthAdminSingleEnvelope<CoauthAdminAccountRecord> =
         api_client(&summary_url, "GET", None).await?;
     let dids: CoauthAdminDidBindingsEnvelope = api_client(&dids_url, "GET", None).await?;
+    let claims: CoauthAccountClaimsEnvelope = api_client(&claims_url, "GET", None).await?;
+    let session_grants: CoauthAccountSessionGrantsEnvelope =
+        api_client(&grants_url, "GET", None).await?;
     let bridge: CoauthAdminBridgeDescribe = api_client(bridge_url, "GET", None).await?;
     let current: CoauthAdminSingleEnvelope<CoauthAccountRiskActionCurrentState> =
         api_client(&current_url, "GET", None).await?;
@@ -937,8 +961,8 @@ pub async fn get_account_detail(id: &str) -> Result<CoauthAccountDetail, HttpErr
         api_client(&history_url, "GET", None).await?;
     let account = map_admin_account_summary_resource(summary.data);
     Ok(CoauthAccountDetail {
-        claims: admin_account_claims(&account),
-        session_grants: Vec::new(),
+        claims: claims.data,
+        session_grants: session_grants.data,
         risk_action_current: current.data.attributes,
         risk_action_history: history.data,
         managed_dids: dids
