@@ -449,6 +449,18 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                                 span { class: "font-mono", "{detail.recovery_bridge.principal_restore_ticket_advance_path}" }
                             }
                             p { class: "text-sm text-muted-foreground",
+                                "Principal Restore Ticket Resume: "
+                                span { class: "font-mono", "{detail.recovery_bridge.principal_restore_ticket_resume_path}" }
+                            }
+                            p { class: "text-sm text-muted-foreground",
+                                "Principal Restore Ticket Cancel: "
+                                span { class: "font-mono", "{detail.recovery_bridge.principal_restore_ticket_cancel_path}" }
+                            }
+                            p { class: "text-sm text-muted-foreground",
+                                "Principal Restore Ticket Retry: "
+                                span { class: "font-mono", "{detail.recovery_bridge.principal_restore_ticket_retry_path}" }
+                            }
+                            p { class: "text-sm text-muted-foreground",
                                 "Principal Restore Approval Status: "
                                 span { class: "font-mono", "{detail.recovery_bridge.principal_restore_approval_status_path}" }
                             }

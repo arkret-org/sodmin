@@ -395,6 +395,12 @@ pub struct CoauthRecoveryBridgeDescribe {
     #[serde(default)]
     pub principal_restore_ticket_advance_path: String,
     #[serde(default)]
+    pub principal_restore_ticket_resume_path: String,
+    #[serde(default)]
+    pub principal_restore_ticket_cancel_path: String,
+    #[serde(default)]
+    pub principal_restore_ticket_retry_path: String,
+    #[serde(default)]
     pub principal_restore_approval_status_path: String,
     #[serde(default)]
     pub principal_restore_approval_submit_path: String,
