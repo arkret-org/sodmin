@@ -21,7 +21,7 @@ pub fn AccountDetailPage(account_id: String) -> Element {
         div { class: "space-y-6",
             PageHeader {
                 title: "coauth Account Detail".to_string(),
-                description: "Account-first admin detail view backed by coauth account, DID-binding, and risk-action audit endpoints. Claims and grant inventory remain partial until backend coverage expands.".to_string(),
+                description: "Account-first admin detail view backed by coauth account, DID-binding, and explicit risk-action state-machine endpoints. Claims and grant inventory remain partial until backend coverage expands.".to_string(),
                 Link {
                     to: Route::CoauthAccountList {},
                     class: "inline-flex h-10 items-center rounded-md border px-4 text-sm font-medium transition-colors hover:bg-accent".to_string(),
@@ -59,7 +59,7 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                                 span { class: "font-mono", "{summary.bridge_status}" }
                             }
                             div { class: "text-sm text-muted-foreground",
-                                "This panel is backed by coauth /accounts, /accounts/{id}/dids, /accounts/{id}/risk-action/current, and /accounts/{id}/risk-action/history. High-risk actions now go through the /accounts/{id}/risk-action scaffold chain. TODO(contract): fill claims, session-grant inventory, and replace audit-derived scaffold state with persisted proposal-state records once the backend exposes them."
+                                "This panel is backed by coauth /accounts, /accounts/{id}/dids, /accounts/{id}/risk-action/current, and /accounts/{id}/risk-action/history. High-risk actions now go through an explicit persisted risk-action state-machine scaffold. TODO(contract): fill claims, session-grant inventory, and replace scaffold transitions with controlled mutation executors."
                             }
                         }
 
@@ -184,27 +184,43 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                                 }
                             } else {
                                 let proposal_id = detail.risk_action_current.proposal_id.clone().unwrap_or_else(|| "-".to_string());
+                                let state_record_id = detail.risk_action_current.state_record_id.clone().unwrap_or_else(|| "-".to_string());
                                 let action = detail.risk_action_current.action.clone().unwrap_or_else(|| "-".to_string());
                                 let last_operation = detail.risk_action_current.last_operation.clone().unwrap_or_else(|| "-".to_string());
+                                let transition_kind = detail.risk_action_current.transition_kind.clone().unwrap_or_else(|| "-".to_string());
+                                let previous_state = detail.risk_action_current.previous_state.clone().unwrap_or_else(|| "-".to_string());
+                                let state_revision = detail.risk_action_current.state_revision.map(|value| value.to_string()).unwrap_or_else(|| "-".to_string());
+                                let allowed_next = if detail.risk_action_current.allowed_next_transitions.is_empty() {
+                                    "-".to_string()
+                                } else {
+                                    detail.risk_action_current.allowed_next_transitions.join(", ")
+                                };
                                 let ticket = detail.risk_action_current.ticket.clone().unwrap_or_else(|| "-".to_string());
                                 let recorded_at = detail.risk_action_current.recorded_at.clone().unwrap_or_else(|| "-".to_string());
                                 let recorded_by = detail.risk_action_current.recorded_by.clone().unwrap_or_else(|| "-".to_string());
                                 let recorded_by_username = detail.risk_action_current.recorded_by_username.clone().unwrap_or_else(|| "-".to_string());
                                 let execution_endpoint = detail.risk_action_current.execution_endpoint.clone().unwrap_or_else(|| "-".to_string());
                                 let mutation_endpoint = detail.risk_action_current.mutation_endpoint.clone().unwrap_or_else(|| "-".to_string());
+                                let state_store_kind = detail.risk_action_current.state_store_kind.clone();
                                 let todo = detail.risk_action_current.todo.clone().unwrap_or_else(|| "-".to_string());
                                 rsx! {
                                     div { class: "grid gap-2 text-sm md:grid-cols-2",
                                         detail_row("Lifecycle State", &detail.risk_action_current.lifecycle_state)
+                                        detail_row("State Record ID", &state_record_id)
                                         detail_row("Proposal ID", &proposal_id)
                                         detail_row("Action", &action)
                                         detail_row("Last Operation", &last_operation)
+                                        detail_row("Transition Kind", &transition_kind)
+                                        detail_row("Previous State", &previous_state)
+                                        detail_row("State Revision", &state_revision)
+                                        detail_row("Allowed Next", &allowed_next)
                                         detail_row("Ticket", &ticket)
                                         detail_row("Recorded At", &recorded_at)
                                         detail_row("Recorded By", &recorded_by)
                                         detail_row("Recorded By Username", &recorded_by_username)
                                         detail_row("Execution Endpoint", &execution_endpoint)
                                         detail_row("Mutation Endpoint", &mutation_endpoint)
+                                        detail_row("State Store", &state_store_kind)
                                         detail_row("TODO", &todo)
                                     }
                                 }
@@ -212,24 +228,39 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                         )
 
                         section_block(
-                            "Risk Action History",
+                            "Risk Action Transition History",
                             if detail.risk_action_history.is_empty() {
                                 rsx! {
                                     p { class: "text-sm text-muted-foreground",
-                                        "No persisted risk-action audit history is currently returned for this account."
+                                        "No persisted risk-action transition records are currently returned for this account."
                                     }
                                 }
                             } else {
                                 rsx! {
                                     div { class: "space-y-3",
                                         for entry in &detail.risk_action_history {
+                                            let state_record_id = entry.state_record_id.clone().unwrap_or_else(|| "missing".to_string());
+                                            let proposal_id = entry.proposal_id.clone().unwrap_or_else(|| "missing".to_string());
+                                            let action = entry.action.clone().unwrap_or_else(|| "missing".to_string());
+                                            let previous_state = entry.previous_state.clone().unwrap_or_else(|| "missing".to_string());
+                                            let state_revision = entry.state_revision.map(|value| value.to_string()).unwrap_or_else(|| "missing".to_string());
                                             div { class: "rounded-md border p-3 space-y-1 text-sm text-muted-foreground",
-                                                div { "Operation: " span { class: "font-mono", "{entry.operation}" } }
-                                                div { "Recorded At: " span { class: "font-mono", "{entry.created_at.as_deref().unwrap_or(\"missing\")}" } }
-                                                div { "Recorded By: " span { class: "font-mono", "{entry.admin_user_id.as_deref().unwrap_or(\"missing\")}" } }
-                                                div { "Proposal ID: " span { class: "font-mono", "{history_detail_value(&entry.details, \"proposal_id\")}" } }
-                                                div { "Action: " span { class: "font-mono", "{history_detail_value(&entry.details, \"action\")}" } }
-                                                div { "Ticket: " span { class: "font-mono", "{history_detail_value(&entry.details, \"ticket\")}" } }
+                                                div { "State Record ID: " span { class: "font-mono", "{state_record_id}" } }
+                                                div { "Proposal ID: " span { class: "font-mono", "{proposal_id}" } }
+                                                div { "Action: " span { class: "font-mono", "{action}" } }
+                                                div { "Transition: " span { class: "font-mono", "{entry.transition_kind}" } }
+                                                div { "Previous State: " span { class: "font-mono", "{previous_state}" } }
+                                                div { "Next State: " span { class: "font-mono", "{entry.next_state}" } }
+                                                div { "State Revision: " span { class: "font-mono", "{state_revision}" } }
+                                                div { "Ticket: " span { class: "font-mono", "{entry.ticket.as_deref().unwrap_or(\"missing\")}" } }
+                                                div { "Recorded At: " span { class: "font-mono", "{entry.recorded_at.as_deref().unwrap_or(\"missing\")}" } }
+                                                div { "Recorded By: " span { class: "font-mono", "{entry.recorded_by.as_deref().unwrap_or(\"missing\")}" } }
+                                                div { "Recorded By Username: " span { class: "font-mono", "{entry.recorded_by_username.as_deref().unwrap_or(\"missing\")}" } }
+                                                div { "Execution Endpoint: " span { class: "font-mono", "{entry.execution_endpoint.as_deref().unwrap_or(\"missing\")}" } }
+                                                div { "Mutation Endpoint: " span { class: "font-mono", "{entry.mutation_endpoint.as_deref().unwrap_or(\"missing\")}" } }
+                                                div { "Approval Note: " span { class: "font-mono", "{entry.approval_note.as_deref().unwrap_or(\"missing\")}" } }
+                                                div { "Execution Note: " span { class: "font-mono", "{entry.execution_note.as_deref().unwrap_or(\"missing\")}" } }
+                                                div { "State Store: " span { class: "font-mono", "{entry.state_store_kind}" } }
                                             }
                                         }
                                     }
@@ -251,8 +282,10 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                             if let Some(proposal) = last_proposal() {
                                 div { class: "rounded-md border p-3 space-y-1 text-sm text-muted-foreground",
                                     div { "Last proposal: " span { class: "font-mono", "{proposal.proposal_id}" } }
+                                    div { "State record: " span { class: "font-mono", "{proposal.state_record_id}" } }
                                     div { "Action: " span { class: "font-mono", "{proposal.action}" } }
                                     div { "State: " span { class: "font-mono", "{proposal.proposal_state}" } }
+                                    div { "Revision: " span { class: "font-mono", "{proposal.state_revision}" } }
                                     div { "Execution endpoint: " span { class: "font-mono", "{proposal.execution_endpoint}" } }
                                 }
                             }
@@ -450,10 +483,13 @@ fn build_risk_action_execute_draft(
 
 fn format_risk_action_status(proposal: &coauth::CoauthAccountRiskActionProposal) -> String {
     format!(
-        "Queued risk-action proposal.\nproposal_id={}\naction={}\nproposal_state={}\napproval_mode={}\nexecution_endpoint={}\nrequested_at={}\nrequested_by={}\nrequested_by_username={}\nticket={}\napproved_by={}\n\n{}",
+        "Queued risk-action proposal.\nstate_record_id={}\nproposal_id={}\naction={}\nproposal_state={}\nstate_revision={}\ntransition_kind={}\napproval_mode={}\nexecution_endpoint={}\nrequested_at={}\nrequested_by={}\nrequested_by_username={}\nticket={}\napproved_by={}\n\n{}",
+        proposal.state_record_id,
         proposal.proposal_id,
         proposal.action,
         proposal.proposal_state,
+        proposal.state_revision,
+        proposal.transition_kind,
         proposal.approval_mode,
         proposal.execution_endpoint,
         proposal.requested_at.as_deref().unwrap_or("missing"),
@@ -472,10 +508,13 @@ fn format_risk_action_approval_status(
     approval: &coauth::CoauthAccountRiskActionApproval,
 ) -> String {
     format!(
-        "Approved risk-action proposal.\nproposal_id={}\naction={}\napproval_state={}\napproved_at={}\napproved_by={}\napproved_by_username={}\nexecution_endpoint={}\napproval_note={}\n\n{}",
+        "Approved risk-action proposal.\nstate_record_id={}\nproposal_id={}\naction={}\napproval_state={}\nstate_revision={}\ntransition_kind={}\napproved_at={}\napproved_by={}\napproved_by_username={}\nexecution_endpoint={}\napproval_note={}\n\n{}",
+        approval.state_record_id,
         approval.proposal_id,
         approval.action,
         approval.approval_state,
+        approval.state_revision,
+        approval.transition_kind,
         approval.approved_at.as_deref().unwrap_or("missing"),
         approval.approved_by.as_deref().unwrap_or("missing"),
         approval
@@ -492,29 +531,19 @@ fn format_risk_action_execute_status(
     execution: &coauth::CoauthAccountRiskActionExecute,
 ) -> String {
     format!(
-        "Executed risk-action scaffold.\nproposal_id={}\naction={}\nexecution_state={}\nexecuted_at={}\nexecution_mode={}\nmutation_endpoint={}\nexecution_note={}\n\n{}",
+        "Executed risk-action scaffold.\nstate_record_id={}\nproposal_id={}\naction={}\nexecution_state={}\nstate_revision={}\ntransition_kind={}\nexecuted_at={}\nexecution_mode={}\nmutation_endpoint={}\nexecution_note={}\n\n{}",
+        execution.state_record_id,
         execution.proposal_id,
         execution.action,
         execution.execution_state,
+        execution.state_revision,
+        execution.transition_kind,
         execution.executed_at.as_deref().unwrap_or("missing"),
         execution.execution_mode,
         execution.mutation_endpoint,
         execution.execution_note.as_deref().unwrap_or("missing"),
         execution.todo,
     )
-}
-
-fn history_detail_value(details: &Option<serde_json::Value>, field: &str) -> String {
-    details
-        .as_ref()
-        .and_then(|value| value.get(field))
-        .and_then(|value| {
-            value
-                .as_str()
-                .map(ToOwned::to_owned)
-                .or_else(|| (!value.is_null()).then(|| value.to_string()))
-        })
-        .unwrap_or_else(|| "missing".to_owned())
 }
 
 fn section_block(title: &'static str, content: Element) -> Element {

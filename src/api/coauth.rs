@@ -258,6 +258,8 @@ pub struct CoauthAccountRiskActionCurrentState {
     #[serde(default)]
     pub account_id: String,
     #[serde(default)]
+    pub state_record_id: Option<String>,
+    #[serde(default)]
     pub proposal_id: Option<String>,
     #[serde(default)]
     pub action: Option<String>,
@@ -265,6 +267,14 @@ pub struct CoauthAccountRiskActionCurrentState {
     pub lifecycle_state: String,
     #[serde(default)]
     pub last_operation: Option<String>,
+    #[serde(default)]
+    pub transition_kind: Option<String>,
+    #[serde(default)]
+    pub previous_state: Option<String>,
+    #[serde(default)]
+    pub state_revision: Option<u64>,
+    #[serde(default)]
+    pub allowed_next_transitions: Vec<String>,
     #[serde(default)]
     pub ticket: Option<String>,
     #[serde(default)]
@@ -277,6 +287,8 @@ pub struct CoauthAccountRiskActionCurrentState {
     pub execution_endpoint: Option<String>,
     #[serde(default)]
     pub mutation_endpoint: Option<String>,
+    #[serde(default)]
+    pub state_store_kind: String,
     #[serde(default)]
     pub todo: Option<String>,
 }
@@ -336,6 +348,8 @@ pub struct CoauthAccountRiskActionExecuteDraft {
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct CoauthAccountRiskActionProposal {
     #[serde(default)]
+    pub state_record_id: String,
+    #[serde(default)]
     pub proposal_id: String,
     #[serde(default)]
     pub account_id: String,
@@ -354,17 +368,29 @@ pub struct CoauthAccountRiskActionProposal {
     #[serde(default)]
     pub requested_by_username: Option<String>,
     #[serde(default)]
+    pub previous_state: String,
+    #[serde(default)]
     pub proposal_state: String,
+    #[serde(default)]
+    pub state_revision: u64,
+    #[serde(default)]
+    pub transition_kind: String,
     #[serde(default)]
     pub approval_mode: String,
     #[serde(default)]
+    pub allowed_next_transitions: Vec<String>,
+    #[serde(default)]
     pub execution_endpoint: String,
+    #[serde(default)]
+    pub state_store_kind: String,
     #[serde(default)]
     pub todo: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct CoauthAccountRiskActionApproval {
+    #[serde(default)]
+    pub state_record_id: String,
     #[serde(default)]
     pub proposal_id: String,
     #[serde(default)]
@@ -374,7 +400,13 @@ pub struct CoauthAccountRiskActionApproval {
     #[serde(default)]
     pub ticket: Option<String>,
     #[serde(default)]
+    pub previous_state: String,
+    #[serde(default)]
     pub approval_state: String,
+    #[serde(default)]
+    pub state_revision: u64,
+    #[serde(default)]
+    pub transition_kind: String,
     #[serde(default)]
     pub approved_at: Option<String>,
     #[serde(default)]
@@ -386,11 +418,17 @@ pub struct CoauthAccountRiskActionApproval {
     #[serde(default)]
     pub execution_endpoint: String,
     #[serde(default)]
+    pub allowed_next_transitions: Vec<String>,
+    #[serde(default)]
+    pub state_store_kind: String,
+    #[serde(default)]
     pub todo: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct CoauthAccountRiskActionExecute {
+    #[serde(default)]
+    pub state_record_id: String,
     #[serde(default)]
     pub proposal_id: String,
     #[serde(default)]
@@ -400,7 +438,13 @@ pub struct CoauthAccountRiskActionExecute {
     #[serde(default)]
     pub ticket: Option<String>,
     #[serde(default)]
+    pub previous_state: String,
+    #[serde(default)]
     pub execution_state: String,
+    #[serde(default)]
+    pub state_revision: u64,
+    #[serde(default)]
+    pub transition_kind: String,
     #[serde(default)]
     pub executed_at: Option<String>,
     #[serde(default)]
@@ -410,25 +454,51 @@ pub struct CoauthAccountRiskActionExecute {
     #[serde(default)]
     pub mutation_endpoint: String,
     #[serde(default)]
+    pub allowed_next_transitions: Vec<String>,
+    #[serde(default)]
+    pub state_store_kind: String,
+    #[serde(default)]
     pub todo: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct CoauthAccountRiskActionHistoryEntry {
     #[serde(default)]
-    pub id: String,
+    pub account_id: String,
     #[serde(default)]
-    pub admin_user_id: Option<String>,
+    pub state_record_id: Option<String>,
     #[serde(default)]
-    pub operation: String,
+    pub proposal_id: Option<String>,
     #[serde(default)]
-    pub resource_type: String,
+    pub action: Option<String>,
     #[serde(default)]
-    pub resource_id: String,
+    pub transition_kind: String,
     #[serde(default)]
-    pub details: Option<serde_json::Value>,
+    pub previous_state: Option<String>,
     #[serde(default)]
-    pub created_at: Option<String>,
+    pub next_state: String,
+    #[serde(default)]
+    pub state_revision: Option<u64>,
+    #[serde(default)]
+    pub ticket: Option<String>,
+    #[serde(default)]
+    pub recorded_at: Option<String>,
+    #[serde(default)]
+    pub recorded_by: Option<String>,
+    #[serde(default)]
+    pub recorded_by_username: Option<String>,
+    #[serde(default)]
+    pub execution_endpoint: Option<String>,
+    #[serde(default)]
+    pub mutation_endpoint: Option<String>,
+    #[serde(default)]
+    pub approval_note: Option<String>,
+    #[serde(default)]
+    pub execution_note: Option<String>,
+    #[serde(default)]
+    pub state_store_kind: String,
+    #[serde(default)]
+    pub todo: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -820,7 +890,7 @@ pub async fn get_account_detail(id: &str) -> Result<CoauthAccountDetail, HttpErr
     Ok(CoauthAccountDetail {
         claims: admin_account_claims(&account),
         session_grants: Vec::new(),
-        risk_action_current: current.data,
+        risk_action_current: current.data.attributes,
         risk_action_history: history.data,
         managed_dids: dids
             .data
@@ -830,8 +900,8 @@ pub async fn get_account_detail(id: &str) -> Result<CoauthAccountDetail, HttpErr
         account,
         risk_action_hook: CoauthRiskActionHook {
             endpoint: format!("/contrix/admin/v1/accounts/{}", urlencoding::encode(id)),
-            approval_mode: "proposal_scaffold_required".to_string(),
-            todo: "Coauth account admin v1 now exposes /accounts/{id}/risk-action as the proposal scaffold. Approved execution still has to flow into the dedicated /lock, /disable, /erase, and /reset-recovery mutation endpoints.".to_string(),
+            approval_mode: "state_machine_scaffold_required".to_string(),
+            todo: "Coauth account admin v1 now exposes an explicit persisted risk-action state-machine scaffold via /accounts/{id}/risk-action, /current, and /history. Final mutation execution still has to flow into dedicated /lock, /disable, /erase, and /reset-recovery endpoints.".to_string(),
         },
     })
 }
