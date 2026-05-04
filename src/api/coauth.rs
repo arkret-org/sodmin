@@ -373,6 +373,12 @@ pub struct CoauthRecoveryBridgeDescribe {
     #[serde(default)]
     pub recovery_principal_cache_refresh_path: String,
     #[serde(default)]
+    pub recovery_principal_cache_queue_path: String,
+    #[serde(default)]
+    pub recovery_principal_cache_complete_path: String,
+    #[serde(default)]
+    pub recovery_principal_cache_fail_path: String,
+    #[serde(default)]
     pub key_backup_rest_base: String,
     #[serde(default)]
     pub key_backup_schema: String,
