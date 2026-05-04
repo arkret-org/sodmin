@@ -433,6 +433,14 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                                 span { class: "font-mono", "{detail.recovery_bridge.principal_restore_ticket_advance_path}" }
                             }
                             p { class: "text-sm text-muted-foreground",
+                                "Principal Restore Approval Status: "
+                                span { class: "font-mono", "{detail.recovery_bridge.principal_restore_approval_status_path}" }
+                            }
+                            p { class: "text-sm text-muted-foreground",
+                                "Principal Restore Approval Submit: "
+                                span { class: "font-mono", "{detail.recovery_bridge.principal_restore_approval_submit_path}" }
+                            }
+                            p { class: "text-sm text-muted-foreground",
                                 "Principal Restore Executor Status: "
                                 span { class: "font-mono", "{detail.recovery_bridge.principal_restore_executor_status_path}" }
                             }
