@@ -421,8 +421,16 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                                 span { class: "font-mono", "{detail.recovery_bridge.principal_restore_ticket_advance_path}" }
                             }
                             p { class: "text-sm text-muted-foreground",
+                                "Principal Authz Describe: "
+                                span { class: "font-mono", "{detail.recovery_bridge.principal_authz_describe_path}" }
+                            }
+                            p { class: "text-sm text-muted-foreground",
                                 "Principal Authz Check: "
                                 span { class: "font-mono", "{detail.recovery_bridge.principal_authz_check_path}" }
+                            }
+                            p { class: "text-sm text-muted-foreground",
+                                "Principal Policy Describe: "
+                                span { class: "font-mono", "{detail.recovery_bridge.principal_policy_describe_path}" }
                             }
                             p { class: "text-sm text-muted-foreground",
                                 "Principal Policy Collection: "
