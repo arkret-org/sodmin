@@ -14,3 +14,6 @@ tmp*
 *.log
 .vscode
 .claude
+
+# local working notes / todo lists (not tracked)
+_*.md
