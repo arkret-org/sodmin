@@ -769,6 +769,7 @@ struct CoauthAdminPaginatedEnvelope<T> {
 }
 
 #[derive(Debug, Clone, Deserialize, Default)]
+#[serde(bound(deserialize = "T: Default + Deserialize<'de>"))]
 struct CoauthAdminSingleEnvelope<T> {
     data: CoauthAdminResource<T>,
 }

@@ -14,8 +14,9 @@ pub fn AccountDetailPage(account_id: String) -> Element {
     let mut action_status = use_signal(String::new);
     let mut last_proposal = use_signal(|| Option::<coauth::CoauthAccountRiskActionProposal>::None);
     let mut last_approval = use_signal(|| Option::<coauth::CoauthAccountRiskActionApproval>::None);
-    let mut data = use_resource(move || async move {
-        coauth::get_account_detail(&account_id_for_resource).await
+    let mut data = use_resource(move || {
+        let account_id_for_resource = account_id_for_resource.clone();
+        async move { coauth::get_account_detail(&account_id_for_resource).await }
     });
 
     rsx! {
@@ -102,28 +103,28 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                         }
 
                         div { class: "grid gap-4 md:grid-cols-2",
-                            section_block(
+                            {section_block(
                                 "Account Summary",
                                 rsx! {
-                                    detail_row("Account ID", &summary.id)
-                                    detail_row("Handle", &handle)
-                                    detail_row("Email", &email)
-                                    detail_row("Primary DID", &primary_did)
+                                    {detail_row("Account ID", &summary.id)}
+                                    {detail_row("Handle", &handle)}
+                                    {detail_row("Email", &email)}
+                                    {detail_row("Primary DID", &primary_did)}
                                 },
-                            )
-                            section_block(
+                            )}
+                            {section_block(
                                 "Lifecycle",
                                 rsx! {
-                                    detail_row("Status", lifecycle)
-                                    detail_row("Locked", bool_label(summary.is_locked))
-                                    detail_row("Deactivated", bool_label(summary.is_deactivated))
-                                    detail_row("Created At", &created_at)
-                                    detail_row("Updated At", &updated_at)
+                                    {detail_row("Status", lifecycle)}
+                                    {detail_row("Locked", bool_label(summary.is_locked))}
+                                    {detail_row("Deactivated", bool_label(summary.is_deactivated))}
+                                    {detail_row("Created At", &created_at)}
+                                    {detail_row("Updated At", &updated_at)}
                                 },
-                            )
+                            )}
                         }
 
-                        section_block(
+                        {section_block(
                             "Managed DID Bindings",
                             if detail.managed_dids.is_empty() {
                                 rsx! {
@@ -135,24 +136,28 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                                 rsx! {
                                     ul { class: "space-y-2",
                                         for binding in detail.managed_dids.iter() {
-                                            let method = binding.method.clone().unwrap_or_else(|| "-".to_string());
-                                            let state = binding.state.clone().unwrap_or_else(|| "-".to_string());
-                                            let verified_at = binding.last_verified_at.clone().unwrap_or_else(|| "-".to_string());
-                                            li { class: "rounded-md border p-3",
-                                                div { class: "font-mono text-sm", "{binding.did}" }
-                                                div { class: "mt-2 grid gap-2 text-sm md:grid-cols-3",
-                                                    detail_row("Method", &method)
-                                                    detail_row("State", &state)
-                                                    detail_row("Last Verified", &verified_at)
+                                            {
+                                                let method = binding.method.clone().unwrap_or_else(|| "-".to_string());
+                                                let state = binding.state.clone().unwrap_or_else(|| "-".to_string());
+                                                let verified_at = binding.last_verified_at.clone().unwrap_or_else(|| "-".to_string());
+                                                rsx! {
+                                                    li { class: "rounded-md border p-3",
+                                                        div { class: "font-mono text-sm", "{binding.did}" }
+                                                        div { class: "mt-2 grid gap-2 text-sm md:grid-cols-3",
+                                                            {detail_row("Method", &method)}
+                                                            {detail_row("State", &state)}
+                                                            {detail_row("Last Verified", &verified_at)}
+                                                        }
+                                                    }
                                                 }
                                             }
                                         }
                                     }
                                 }
                             },
-                        )
+                        )}
 
-                        section_block(
+                        {section_block(
                             "Claims",
                             if detail.claims.is_empty() {
                                 rsx! {
@@ -164,24 +169,28 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                                 rsx! {
                                     ul { class: "space-y-2",
                                         for claim in detail.claims.iter() {
-                                            let value = claim.value.clone().unwrap_or_else(|| "-".to_string());
-                                            let state = claim.state.clone().unwrap_or_else(|| "-".to_string());
-                                            let source = claim.source.clone().unwrap_or_else(|| "-".to_string());
-                                            li { class: "rounded-md border p-3",
-                                                div { class: "font-medium", "{claim.claim_type}" }
-                                                div { class: "mt-2 grid gap-2 text-sm md:grid-cols-3",
-                                                    detail_row("Value", &value)
-                                                    detail_row("State", &state)
-                                                    detail_row("Source", &source)
+                                            {
+                                                let value = claim.value.clone().unwrap_or_else(|| "-".to_string());
+                                                let state = claim.state.clone().unwrap_or_else(|| "-".to_string());
+                                                let source = claim.source.clone().unwrap_or_else(|| "-".to_string());
+                                                rsx! {
+                                                    li { class: "rounded-md border p-3",
+                                                        div { class: "font-medium", "{claim.claim_type}" }
+                                                        div { class: "mt-2 grid gap-2 text-sm md:grid-cols-3",
+                                                            {detail_row("Value", &value)}
+                                                            {detail_row("State", &state)}
+                                                            {detail_row("Source", &source)}
+                                                        }
+                                                    }
                                                 }
                                             }
                                         }
                                     }
                                 }
                             },
-                        )
+                        )}
 
-                        section_block(
+                        {section_block(
                             "Session Grants",
                             if detail.session_grants.is_empty() {
                                 rsx! {
@@ -193,26 +202,30 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                                 rsx! {
                                     ul { class: "space-y-2",
                                         for grant in detail.session_grants.iter() {
-                                            let subject = grant.subject.clone().unwrap_or_else(|| "-".to_string());
-                                            let scope = grant.scope.clone().unwrap_or_else(|| "-".to_string());
-                                            let state = grant.state.clone().unwrap_or_else(|| "-".to_string());
-                                            let issued_at = grant.issued_at.clone().unwrap_or_else(|| "-".to_string());
-                                            li { class: "rounded-md border p-3",
-                                                div { class: "font-mono text-sm", "{grant.grant_id}" }
-                                                div { class: "mt-2 grid gap-2 text-sm md:grid-cols-2",
-                                                    detail_row("Subject", &subject)
-                                                    detail_row("Scope", &scope)
-                                                    detail_row("State", &state)
-                                                    detail_row("Issued At", &issued_at)
+                                            {
+                                                let subject = grant.subject.clone().unwrap_or_else(|| "-".to_string());
+                                                let scope = grant.scope.clone().unwrap_or_else(|| "-".to_string());
+                                                let state = grant.state.clone().unwrap_or_else(|| "-".to_string());
+                                                let issued_at = grant.issued_at.clone().unwrap_or_else(|| "-".to_string());
+                                                rsx! {
+                                                    li { class: "rounded-md border p-3",
+                                                        div { class: "font-mono text-sm", "{grant.grant_id}" }
+                                                        div { class: "mt-2 grid gap-2 text-sm md:grid-cols-2",
+                                                            {detail_row("Subject", &subject)}
+                                                            {detail_row("Scope", &scope)}
+                                                            {detail_row("State", &state)}
+                                                            {detail_row("Issued At", &issued_at)}
+                                                        }
+                                                    }
                                                 }
                                             }
                                         }
                                     }
                                 }
                             },
-                        )
+                        )}
 
-                        section_block(
+                        {section_block(
                             "Current Risk Action State",
                             if detail.risk_action_current.lifecycle_state == "idle" {
                                 rsx! {
@@ -243,29 +256,29 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                                 let todo = detail.risk_action_current.todo.clone().unwrap_or_else(|| "-".to_string());
                                 rsx! {
                                     div { class: "grid gap-2 text-sm md:grid-cols-2",
-                                        detail_row("Lifecycle State", &detail.risk_action_current.lifecycle_state)
-                                        detail_row("State Record ID", &state_record_id)
-                                        detail_row("Proposal ID", &proposal_id)
-                                        detail_row("Action", &action)
-                                        detail_row("Last Operation", &last_operation)
-                                        detail_row("Transition Kind", &transition_kind)
-                                        detail_row("Previous State", &previous_state)
-                                        detail_row("State Revision", &state_revision)
-                                        detail_row("Allowed Next", &allowed_next)
-                                        detail_row("Ticket", &ticket)
-                                        detail_row("Recorded At", &recorded_at)
-                                        detail_row("Recorded By", &recorded_by)
-                                        detail_row("Recorded By Username", &recorded_by_username)
-                                        detail_row("Execution Endpoint", &execution_endpoint)
-                                        detail_row("Mutation Endpoint", &mutation_endpoint)
-                                        detail_row("State Store", &state_store_kind)
-                                        detail_row("TODO", &todo)
+                                        {detail_row("Lifecycle State", &detail.risk_action_current.lifecycle_state)}
+                                        {detail_row("State Record ID", &state_record_id)}
+                                        {detail_row("Proposal ID", &proposal_id)}
+                                        {detail_row("Action", &action)}
+                                        {detail_row("Last Operation", &last_operation)}
+                                        {detail_row("Transition Kind", &transition_kind)}
+                                        {detail_row("Previous State", &previous_state)}
+                                        {detail_row("State Revision", &state_revision)}
+                                        {detail_row("Allowed Next", &allowed_next)}
+                                        {detail_row("Ticket", &ticket)}
+                                        {detail_row("Recorded At", &recorded_at)}
+                                        {detail_row("Recorded By", &recorded_by)}
+                                        {detail_row("Recorded By Username", &recorded_by_username)}
+                                        {detail_row("Execution Endpoint", &execution_endpoint)}
+                                        {detail_row("Mutation Endpoint", &mutation_endpoint)}
+                                        {detail_row("State Store", &state_store_kind)}
+                                        {detail_row("TODO", &todo)}
                                     }
                                 }
                             },
-                        )
+                        )}
 
-                        section_block(
+                        {section_block(
                             "Risk Action Transition History",
                             if detail.risk_action_history.is_empty() {
                                 rsx! {
@@ -277,34 +290,38 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                                 rsx! {
                                     div { class: "space-y-3",
                                         for entry in &detail.risk_action_history {
-                                            let state_record_id = entry.state_record_id.clone().unwrap_or_else(|| "missing".to_string());
-                                            let proposal_id = entry.proposal_id.clone().unwrap_or_else(|| "missing".to_string());
-                                            let action = entry.action.clone().unwrap_or_else(|| "missing".to_string());
-                                            let previous_state = entry.previous_state.clone().unwrap_or_else(|| "missing".to_string());
-                                            let state_revision = entry.state_revision.map(|value| value.to_string()).unwrap_or_else(|| "missing".to_string());
-                                            div { class: "rounded-md border p-3 space-y-1 text-sm text-muted-foreground",
-                                                div { "State Record ID: " span { class: "font-mono", "{state_record_id}" } }
-                                                div { "Proposal ID: " span { class: "font-mono", "{proposal_id}" } }
-                                                div { "Action: " span { class: "font-mono", "{action}" } }
-                                                div { "Transition: " span { class: "font-mono", "{entry.transition_kind}" } }
-                                                div { "Previous State: " span { class: "font-mono", "{previous_state}" } }
-                                                div { "Next State: " span { class: "font-mono", "{entry.next_state}" } }
-                                                div { "State Revision: " span { class: "font-mono", "{state_revision}" } }
-                                                div { "Ticket: " span { class: "font-mono", "{entry.ticket.as_deref().unwrap_or(\"missing\")}" } }
-                                                div { "Recorded At: " span { class: "font-mono", "{entry.recorded_at.as_deref().unwrap_or(\"missing\")}" } }
-                                                div { "Recorded By: " span { class: "font-mono", "{entry.recorded_by.as_deref().unwrap_or(\"missing\")}" } }
-                                                div { "Recorded By Username: " span { class: "font-mono", "{entry.recorded_by_username.as_deref().unwrap_or(\"missing\")}" } }
-                                                div { "Execution Endpoint: " span { class: "font-mono", "{entry.execution_endpoint.as_deref().unwrap_or(\"missing\")}" } }
-                                                div { "Mutation Endpoint: " span { class: "font-mono", "{entry.mutation_endpoint.as_deref().unwrap_or(\"missing\")}" } }
-                                                div { "Approval Note: " span { class: "font-mono", "{entry.approval_note.as_deref().unwrap_or(\"missing\")}" } }
-                                                div { "Execution Note: " span { class: "font-mono", "{entry.execution_note.as_deref().unwrap_or(\"missing\")}" } }
-                                                div { "State Store: " span { class: "font-mono", "{entry.state_store_kind}" } }
+                                            {
+                                                let state_record_id = entry.state_record_id.clone().unwrap_or_else(|| "missing".to_string());
+                                                let proposal_id = entry.proposal_id.clone().unwrap_or_else(|| "missing".to_string());
+                                                let action = entry.action.clone().unwrap_or_else(|| "missing".to_string());
+                                                let previous_state = entry.previous_state.clone().unwrap_or_else(|| "missing".to_string());
+                                                let state_revision = entry.state_revision.map(|value| value.to_string()).unwrap_or_else(|| "missing".to_string());
+                                                rsx! {
+                                                    div { class: "rounded-md border p-3 space-y-1 text-sm text-muted-foreground",
+                                                        div { "State Record ID: " span { class: "font-mono", "{state_record_id}" } }
+                                                        div { "Proposal ID: " span { class: "font-mono", "{proposal_id}" } }
+                                                        div { "Action: " span { class: "font-mono", "{action}" } }
+                                                        div { "Transition: " span { class: "font-mono", "{entry.transition_kind}" } }
+                                                        div { "Previous State: " span { class: "font-mono", "{previous_state}" } }
+                                                        div { "Next State: " span { class: "font-mono", "{entry.next_state}" } }
+                                                        div { "State Revision: " span { class: "font-mono", "{state_revision}" } }
+                                                        div { "Ticket: " span { class: "font-mono", "{entry.ticket.as_deref().unwrap_or(\"missing\")}" } }
+                                                        div { "Recorded At: " span { class: "font-mono", "{entry.recorded_at.as_deref().unwrap_or(\"missing\")}" } }
+                                                        div { "Recorded By: " span { class: "font-mono", "{entry.recorded_by.as_deref().unwrap_or(\"missing\")}" } }
+                                                        div { "Recorded By Username: " span { class: "font-mono", "{entry.recorded_by_username.as_deref().unwrap_or(\"missing\")}" } }
+                                                        div { "Execution Endpoint: " span { class: "font-mono", "{entry.execution_endpoint.as_deref().unwrap_or(\"missing\")}" } }
+                                                        div { "Mutation Endpoint: " span { class: "font-mono", "{entry.mutation_endpoint.as_deref().unwrap_or(\"missing\")}" } }
+                                                        div { "Approval Note: " span { class: "font-mono", "{entry.approval_note.as_deref().unwrap_or(\"missing\")}" } }
+                                                        div { "Execution Note: " span { class: "font-mono", "{entry.execution_note.as_deref().unwrap_or(\"missing\")}" } }
+                                                        div { "State Store: " span { class: "font-mono", "{entry.state_store_kind}" } }
+                                                    }
+                                                }
                                             }
                                         }
                                     }
                                 }
                             },
-                        )
+                        )}
 
                         div { class: "rounded-lg border p-4 space-y-4",
                             h2 { class: "text-base font-semibold", "Service Integration Manifest" }
@@ -431,6 +448,7 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                                     onclick: {
                                         let account_id = account_id.clone();
                                         move |_| {
+                                            let account_id = account_id.clone();
                                             spawn(async move {
                                                 let draft = build_risk_action_draft("lock", &account_id);
                                                 match coauth::submit_account_risk_action(&account_id, &draft).await {
@@ -451,6 +469,7 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                                     onclick: {
                                         let account_id = account_id.clone();
                                         move |_| {
+                                            let account_id = account_id.clone();
                                             spawn(async move {
                                                 let draft = build_risk_action_draft("disable", &account_id);
                                                 match coauth::submit_account_risk_action(&account_id, &draft).await {
@@ -471,6 +490,7 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                                     onclick: {
                                         let account_id = account_id.clone();
                                         move |_| {
+                                            let account_id = account_id.clone();
                                             spawn(async move {
                                                 let draft = build_risk_action_draft("reset_recovery", &account_id);
                                                 match coauth::submit_account_risk_action(&account_id, &draft).await {
@@ -491,6 +511,7 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                                     onclick: {
                                         let account_id = account_id.clone();
                                         move |_| {
+                                            let account_id = account_id.clone();
                                             spawn(async move {
                                                 let draft = build_risk_action_draft("erase", &account_id);
                                                 match coauth::submit_account_risk_action(&account_id, &draft).await {
@@ -512,6 +533,7 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                                         onclick: {
                                             let account_id = account_id.clone();
                                             move |_| {
+                                                let account_id = account_id.clone();
                                                 let proposal = proposal.clone();
                                                 spawn(async move {
                                                     let draft = build_risk_action_approval_draft(&proposal);
@@ -540,6 +562,7 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                                         onclick: {
                                             let account_id = account_id.clone();
                                             move |_| {
+                                                let account_id = account_id.clone();
                                                 let approval = approval.clone();
                                                 spawn(async move {
                                                     let draft = build_risk_action_execute_draft(&approval);

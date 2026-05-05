@@ -17,10 +17,10 @@ pub fn AccountsPage() -> Element {
     let mut page = use_signal(|| 1u64);
     let mut search = use_signal(String::new);
     let page_val = *page.read();
-    let search_val = search.read().clone();
 
-    let mut data = use_resource(move || async move {
-        coauth::list_accounts(page_val, PAGE_SIZE, &search_val).await
+    let mut data = use_resource(move || {
+        let search_val = search.read().clone();
+        async move { coauth::list_accounts(page_val, PAGE_SIZE, &search_val).await }
     });
 
     rsx! {
