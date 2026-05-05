@@ -90,6 +90,32 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                         detail.integration_manifest.todos.join(" ")
                     };
 
+                    // Risk-action state machine gating: each high-risk action
+                    // button is enabled only when the corresponding transition
+                    // is exposed by the backend's `allowed_next_transitions`.
+                    // We treat an empty / "idle" lifecycle as "submit-ready"
+                    // so a fresh account (no persisted scaffold yet) still
+                    // lets the operator queue the first proposal.
+                    let allowed_transitions = &detail.risk_action_current.allowed_next_transitions;
+                    let lifecycle_state = detail.risk_action_current.lifecycle_state.as_str();
+                    let is_idle = lifecycle_state.is_empty() || lifecycle_state == "idle";
+                    let allowed_contains = |needle: &str| -> bool {
+                        allowed_transitions
+                            .iter()
+                            .any(|candidate| candidate.eq_ignore_ascii_case(needle))
+                    };
+                    let can_submit = is_idle
+                        || allowed_contains("submit")
+                        || allowed_contains("propose")
+                        || allowed_contains("queue");
+                    let can_approve = allowed_contains("approve");
+                    let can_execute = allowed_contains("execute");
+                    let allowed_summary = if allowed_transitions.is_empty() {
+                        "(none — backend has not exposed any next transition)".to_string()
+                    } else {
+                        allowed_transitions.join(", ")
+                    };
+
                     rsx! {
                         div { class: "rounded-lg border p-4 space-y-2",
                             div { class: "text-lg font-semibold", "{display_name}" }
@@ -442,9 +468,24 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                                     div { "Execution endpoint: " span { class: "font-mono", "{proposal.execution_endpoint}" } }
                                 }
                             }
+                            div { class: "rounded-md border p-3 text-xs text-muted-foreground",
+                                div { class: "font-medium text-foreground", "Risk-action state machine" }
+                                div {
+                                    "Lifecycle: "
+                                    span { class: "font-mono", "{lifecycle_state}" }
+                                }
+                                div {
+                                    "Allowed next: "
+                                    span { class: "font-mono", "{allowed_summary}" }
+                                }
+                                div { class: "mt-1",
+                                    "Buttons that map to a transition not in the allowed list are disabled. Recovery / device / federation surfaces share the same proposal → approval → execute discipline (TODO: extract into a reusable RiskActionPanel)."
+                                }
+                            }
                             div { class: "flex flex-wrap gap-2",
                                 Button {
                                     variant: ButtonVariant::Outline,
+                                    disabled: !can_submit,
                                     onclick: {
                                         let account_id = account_id.clone();
                                         move |_| {
@@ -466,6 +507,7 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                                 }
                                 Button {
                                     variant: ButtonVariant::Outline,
+                                    disabled: !can_submit,
                                     onclick: {
                                         let account_id = account_id.clone();
                                         move |_| {
@@ -487,6 +529,7 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                                 }
                                 Button {
                                     variant: ButtonVariant::Outline,
+                                    disabled: !can_submit,
                                     onclick: {
                                         let account_id = account_id.clone();
                                         move |_| {
@@ -508,6 +551,7 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                                 }
                                 Button {
                                     variant: ButtonVariant::Outline,
+                                    disabled: !can_submit,
                                     onclick: {
                                         let account_id = account_id.clone();
                                         move |_| {
@@ -530,6 +574,7 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                                 if let Some(proposal) = last_proposal() {
                                     Button {
                                         variant: ButtonVariant::Secondary,
+                                        disabled: !can_approve,
                                         onclick: {
                                             let account_id = account_id.clone();
                                             move |_| {
@@ -559,6 +604,7 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                                 if let Some(approval) = last_approval() {
                                     Button {
                                         variant: ButtonVariant::Secondary,
+                                        disabled: !can_execute,
                                         onclick: {
                                             let account_id = account_id.clone();
                                             move |_| {
