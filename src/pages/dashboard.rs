@@ -59,7 +59,7 @@ pub fn Dashboard() -> Element {
     });
 
     let coauth_describe = use_resource(|| async {
-        if crate::utils::config::get_coauth_public_url().is_none() {
+        if !crate::utils::session::has_coauth() {
             return None;
         }
         if let Some(cached) = get_cached("dashboard_coauth_describe", CACHE_TTL_MS) {

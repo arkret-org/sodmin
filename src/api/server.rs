@@ -11,7 +11,7 @@ pub async fn get_server_describe() -> Result<ServerDescribeResponse, HttpError> 
 }
 
 pub async fn get_coauth_server_describe() -> Result<ServerDescribeResponse, HttpError> {
-    let url = crate::utils::config::get_coauth_public_url()
+    let url = crate::utils::session::coauth_public_url()
         .map(|base| format!("{}/api/v1/server/describe", base.trim_end_matches('/')))
         .unwrap_or_else(|| "/api/v1/server/describe".to_string());
     api_client(&url, "GET", None).await

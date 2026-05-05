@@ -37,7 +37,7 @@ fn get_or_create_device_id() -> String {
 }
 
 fn coauth_public_base() -> Option<String> {
-    crate::utils::config::get_coauth_public_url()
+    crate::utils::session::coauth_public_url()
         .map(|v| v.trim().trim_end_matches('/').to_string())
         .filter(|v| !v.is_empty())
 }

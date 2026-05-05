@@ -33,6 +33,10 @@ pub fn set_external_auth_provider(value: bool) {
     config_mutex().lock().unwrap().external_auth_provider = value;
 }
 
+/// Shape of `/config.json` served by the deployment. Only the coauth
+/// public URL is currently consumed; `pages::login` writes it into
+/// storage on app boot so `utils::session::coauth_public_url` can read
+/// it back from any layer.
 #[derive(Debug, Clone, Default, serde::Deserialize)]
 pub struct RuntimeConfig {
     #[serde(default, alias = "pasion_public_url")]
@@ -44,8 +48,4 @@ pub async fn load_runtime_config() -> RuntimeConfig {
         Ok(resp) => resp.json::<RuntimeConfig>().await.unwrap_or_default(),
         Err(_) => RuntimeConfig::default(),
     }
-}
-
-pub fn get_coauth_public_url() -> Option<String> {
-    storage::get_item("coauth_public_url")
 }
