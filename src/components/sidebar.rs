@@ -21,7 +21,7 @@ pub fn AppSidebar(collapsed: Signal<bool>, mobile_open: Signal<bool>) -> Element
     let nav = use_navigator();
     let current_path = use_route::<Route>();
 
-    let has_coauth = crate::utils::storage::get_item("coauth_public_url").is_some();
+    let has_coauth = crate::utils::session::has_coauth();
 
     let mut sections: Vec<NavSection> = Vec::new();
 

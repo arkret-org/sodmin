@@ -3,7 +3,7 @@ use serde::de::DeserializeOwned;
 
 use crate::utils::error::{AdminErrorEnvelope, HttpError, display_error};
 use crate::utils::perf;
-use crate::utils::storage;
+use crate::utils::session;
 
 pub const HEADER_REQUEST_ID: &str = "X-Contrix-Request-Id";
 pub const HEADER_IDEMPOTENCY_KEY: &str = "Idempotency-Key";
@@ -43,7 +43,7 @@ where
 
     let rid_value = generate_request_id();
     let rid = Some(rid_value.clone());
-    let token = storage::get_item("access_token");
+    let token = session::access_token();
 
     let mut builder: RequestBuilder = match method {
         "POST" => Request::post(url),

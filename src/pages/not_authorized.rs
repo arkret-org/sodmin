@@ -4,7 +4,7 @@ use crate::api::auth;
 use crate::components::ui::button::{Button, ButtonVariant};
 use crate::router::Route;
 use crate::utils::i18n::t;
-use crate::utils::storage;
+use crate::utils::session;
 
 /// Rendered by `AuthenticatedLayout` when the current user is
 /// authenticated but does **not** have homeserver admin privileges.
@@ -14,8 +14,9 @@ use crate::utils::storage;
 #[component]
 pub fn NotAuthorizedPage() -> Element {
     let nav = use_navigator();
-    let display_name = storage::get_item("user_display_name").unwrap_or_default();
-    let user_id = storage::get_item("user_id").unwrap_or_default();
+    let user = session::current_user();
+    let display_name = user.display_name.clone().unwrap_or_default();
+    let user_id = user.id.clone().unwrap_or_default();
 
     let handle_logout = move |_evt: MouseEvent| {
         spawn(async move {
@@ -39,7 +40,7 @@ pub fn NotAuthorizedPage() -> Element {
                         "Your account does not have server administrator privileges, so the admin dashboard cannot be shown. Sign out and log in as an administrator, or ask an existing admin to grant you access."
                     }
                 }
-                if !display_name.is_empty() || !user_id.is_empty() {
+                if user.has_identity() {
                     div { class: "rounded-lg border glass-panel p-4 text-left space-y-1",
                         p { class: "text-xs uppercase tracking-wide text-muted-foreground",
                             "Signed in as"

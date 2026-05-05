@@ -5,4 +5,5 @@ pub mod error;
 pub mod i18n;
 pub mod password;
 pub mod perf;
+pub mod session;
 pub mod storage;

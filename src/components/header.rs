@@ -6,6 +6,7 @@ use crate::components::ui::notifications::{self, NOTIFICATIONS, NotificationSeve
 use crate::router::Route;
 use crate::utils::date::format_timestamp;
 use crate::utils::i18n::{Language, current_language, set_language, t};
+use crate::utils::session;
 
 #[component]
 pub fn AppHeader(collapsed: Signal<bool>, mobile_sidebar_open: Signal<bool>) -> Element {
@@ -121,11 +122,10 @@ pub fn AppHeader(collapsed: Signal<bool>, mobile_sidebar_open: Signal<bool>) -> 
                 }
 
                 {
-                    let display_name_opt = crate::utils::storage::get_item("user_display_name");
-                    let user_id_opt = crate::utils::storage::get_item("user_id");
-                    let avatar_url = crate::utils::storage::get_item("user_avatar_url");
-                    let display_name = display_name_opt.filter(|name| !name.is_empty());
-                    let user_id = user_id_opt.filter(|id| !id.is_empty());
+                    let user = session::current_user();
+                    let display_name = user.display_name.clone();
+                    let user_id = user.id.clone();
+                    let avatar_url = user.avatar_url.clone();
                     let label = user_id
                         .clone()
                         .or_else(|| display_name.clone())

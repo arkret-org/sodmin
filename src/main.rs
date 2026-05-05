@@ -12,10 +12,6 @@ fn main() {
 
     components::theme::apply_theme();
 
-    if let Some(origin) = web_sys::window().and_then(|w| w.location().origin().ok()) {
-        utils::storage::set_item("coauth_url", &origin);
-    }
-
     dioxus::launch(App);
 }
 
