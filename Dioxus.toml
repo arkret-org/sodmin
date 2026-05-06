@@ -1,6 +1,6 @@
 [application]
-name = "palpo-admin"
+name = "sodmin"
 default_platform = "web"
 
 [web.app]
-title = "Palpo Admin"
+title = "Contrix Admin"

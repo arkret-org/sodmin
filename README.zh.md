@@ -41,8 +41,47 @@ dx build --platform web --release
 
 ```bash
 docker build -t sodmin .
-docker run -p 9090:80 sodmin
+docker run -p 9090:80 \
+  -e SOLAND_URL=http://soland:8008 \
+  -e COAUTH_URL=http://coauth:7080 \
+  -e COAUTH_PUBLIC_URL=https://auth.example.com \
+  sodmin
 ```
+
+## 部署
+
+发布的镜像把 Dioxus/WASM 静态产物放在 nginx 后。容器启动时
+`docker-entrypoint.sh` 读取运行时环境，写出
+`/usr/share/nginx/html/config.json` 以及一份带默认安全头的 nginx vhost。
+
+环境变量：
+
+| 变量 | 必填 | 用途 | 兼容旧名 |
+| --- | --- | --- | --- |
+| `SOLAND_URL` | 是 | soland Principal Server 内网 URL，用于 `/_palpo/`、`/_matrix/`、`/_synapse/` 兼容代理。 | `PALPO_URL`、`MATRIX_URL` |
+| `COAUTH_URL` | 推荐 | coauth admin 服务的内网 URL，开启 `/auth/`、`/api/v1/auth/`、`/api/admin/`、`/authorize`、`/oauth2/`、`/.well-known/` 代理。 | `PASION_URL` |
+| `COAUTH_PUBLIC_URL` | 推荐 | 浏览器侧能访问的 coauth origin，写入 `/config.json`，OAuth2 PKCE 重定向需要。 | `PASION_PUBLIC_URL` |
+| `SODMIN_PORT` | 否 | nginx 监听端口（默认 `80`）。 | `PADMIN_PORT` |
+
+旧名变量保留一个 release 周期。
+
+生成的 nginx 配置默认下发紧的 Content-Security-Policy
+（`default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; ...`）、
+`X-Frame-Options: DENY`、`Referrer-Policy: no-referrer`，以及禁用
+camera / microphone / geolocation / payment 的 `Permissions-Policy`。
+若部署在 sodmin 之外还要连接其他域，请修改
+`docker-entrypoint.sh` 中的 `connect-src`。
+
+`/config.json` schema：
+
+```json
+{
+  "coauth_public_url": "https://auth.example.com"
+}
+```
+
+为兼容老构建，运行时同时接受 `pasion_public_url` 字段。新部署应使用
+`coauth_public_url`。
 
 ## API Contract
 

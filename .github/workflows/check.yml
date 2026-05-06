@@ -1,0 +1,111 @@
+name: Check
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: check-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: 0
+  RUSTFLAGS: "-D warnings"
+
+jobs:
+  rust:
+    name: cargo fmt + check + test
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+          targets: wasm32-unknown-unknown
+
+      - name: Cache cargo registry, git, and target
+        uses: Swatinem/rust-cache@v2
+
+      - name: cargo fmt --check
+        run: cargo fmt --all -- --check
+
+      - name: cargo check (host)
+        run: cargo check --workspace --all-targets --locked
+
+      - name: cargo test (host)
+        run: cargo test --workspace --locked --no-fail-fast
+
+      - name: cargo clippy (host)
+        run: cargo clippy --workspace --all-targets --locked -- -D warnings
+
+  wasm-build:
+    name: dx build (release)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - name: Install binaryen
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y binaryen
+
+      - name: Cache cargo registry, git, and target
+        uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: wasm
+
+      - name: Install dioxus-cli
+        run: cargo install dioxus-cli@0.7.5 --locked
+
+      - name: dx build --release
+        run: dx build --release
+
+      - name: Verify build artifact
+        run: |
+          set -euo pipefail
+          dist_dir="$(find target/dx -type d -path '*/release/web/public' | head -n 1)"
+          test -n "$dist_dir"
+          test -f "$dist_dir/index.html"
+          echo "build artifact at: $dist_dir"
+
+  e2e:
+    name: Playwright (smoke)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: wasm-build
+    if: false  # gated until e2e/ has been migrated off the legacy stack (see _todos Q8)
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Install npm deps
+        run: npm ci
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+      - name: Run Playwright smoke
+        run: npm run test:app -- --reporter=line

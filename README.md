@@ -41,8 +41,49 @@ dx build --platform web --release
 
 ```bash
 docker build -t sodmin .
-docker run -p 9090:80 sodmin
+docker run -p 9090:80 \
+  -e SOLAND_URL=http://soland:8008 \
+  -e COAUTH_URL=http://coauth:7080 \
+  -e COAUTH_PUBLIC_URL=https://auth.example.com \
+  sodmin
 ```
+
+## Deployment
+
+The published image bundles a static Dioxus/WASM build behind nginx. At
+container start, `docker-entrypoint.sh` reads the runtime environment
+and emits `/usr/share/nginx/html/config.json` plus an nginx vhost
+configured with sane security headers.
+
+Required and optional environment variables:
+
+| Variable | Required | Purpose | Legacy alias |
+| --- | --- | --- | --- |
+| `SOLAND_URL` | yes | Internal URL of the soland Principal Server reached by the proxy. Used for `/_palpo/`, `/_matrix/`, `/_synapse/` legacy compatibility. | `PALPO_URL`, `MATRIX_URL` |
+| `COAUTH_URL` | recommended | Internal URL of the coauth admin service. Enables the `/auth/`, `/api/v1/auth/`, `/api/admin/`, `/authorize`, `/oauth2/`, `/.well-known/` proxy locations. | `PASION_URL` |
+| `COAUTH_PUBLIC_URL` | recommended | Browser-facing coauth origin. Written to `/config.json` for the OAuth2 PKCE redirect. | `PASION_PUBLIC_URL` |
+| `SODMIN_PORT` | no | nginx listen port (default `80`). | `PADMIN_PORT` |
+
+Legacy aliases continue to work for one release cycle.
+
+The rendered nginx config sets a tight default Content-Security-Policy
+(`default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; ...`),
+`X-Frame-Options: DENY`, `Referrer-Policy: no-referrer`, and a
+`Permissions-Policy` that denies camera/microphone/geolocation/payment.
+If the deployment fronts additional origins (e.g. external CDN, third
+party auth), edit `connect-src` in `docker-entrypoint.sh` accordingly.
+
+`/config.json` schema:
+
+```json
+{
+  "coauth_public_url": "https://auth.example.com"
+}
+```
+
+The Dioxus runtime currently also accepts `pasion_public_url` as an
+alias for backwards compatibility. New deployments should use
+`coauth_public_url`.
 
 ## API Contract
 

@@ -1,13 +1,17 @@
 #!/bin/sh
 set -eu
 
-BACKEND_MATRIX="${PALPO_URL:-$MATRIX_URL}"
-PADMIN_PORT="${PADMIN_PORT:-80}"
+# Resolve canonical env vars with backward-compatible legacy aliases.
+SOLAND_URL="${SOLAND_URL:-${PALPO_URL:-${MATRIX_URL:-}}}"
+COAUTH_URL="${COAUTH_URL:-${PASION_URL:-}}"
+COAUTH_PUBLIC_URL="${COAUTH_PUBLIC_URL:-${PASION_PUBLIC_URL:-}}"
+SODMIN_PORT="${SODMIN_PORT:-${PADMIN_PORT:-80}}"
+
 RESOLVERS="$(awk '/^nameserver / { print $2 }' /etc/resolv.conf | paste -sd ' ' -)"
 LOOKUP_UNAVAILABLE=0
 
-if [ -z "$BACKEND_MATRIX" ]; then
-    echo "PALPO_URL or MATRIX_URL must be set" >&2
+if [ -z "$SOLAND_URL" ]; then
+    echo "SOLAND_URL (or legacy PALPO_URL / MATRIX_URL) must be set" >&2
     exit 1
 fi
 
@@ -27,7 +31,6 @@ can_resolve_url_host() {
         return 0
     fi
 
-    status=$?
     LOOKUP_UNAVAILABLE=1
     return 1
 }
@@ -78,14 +81,29 @@ cat >> /etc/nginx/conf.d/default.conf <<EOF
 EOF
 }
 
-printf '{"coauth_public_url":"%s","pasion_public_url":"%s"}' "$PASION_PUBLIC_URL" "$PASION_PUBLIC_URL" > /usr/share/nginx/html/config.json
+# Emit /config.json consumed by the Dioxus runtime. `pasion_public_url` is
+# kept as an alias so older app builds with the legacy field name still
+# pick up the URL.
+printf '{"coauth_public_url":"%s","pasion_public_url":"%s"}' \
+    "$COAUTH_PUBLIC_URL" "$COAUTH_PUBLIC_URL" \
+    > /usr/share/nginx/html/config.json
 
 cat > /etc/nginx/conf.d/default.conf <<EOF
 server {
-    listen ${PADMIN_PORT};
+    listen ${SODMIN_PORT};
     server_name _;
     root /usr/share/nginx/html;
     index index.html;
+
+    # Hardening headers. CSP intentionally omits 'unsafe-inline' on
+    # script-src; 'wasm-unsafe-eval' is required for the Dioxus WASM
+    # bundle. Adjust connect-src if the deployment fronts additional
+    # services beyond the same-origin proxy paths below.
+    add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "DENY" always;
+    add_header Referrer-Policy "no-referrer" always;
+    add_header Permissions-Policy "geolocation=(), microphone=(), camera=(), payment=()" always;
 
     location = /healthz {
         access_log off;
@@ -94,33 +112,33 @@ server {
     }
 EOF
 
-if [ -n "$PASION_URL" ]; then
-    if can_resolve_url_host "$PASION_URL"; then
-        write_proxy_location "/auth/" "$PASION_URL"
-        write_proxy_location "/api/v1/auth/" "$PASION_URL"
-        write_proxy_location "/api/admin/" "$PASION_URL" "\$http_authorization"
-        write_proxy_location "/authorize" "$PASION_URL"
-        write_proxy_location "/oauth2/" "$PASION_URL"
-        write_proxy_location "/.well-known/" "$PASION_URL"
+if [ -n "$COAUTH_URL" ]; then
+    if can_resolve_url_host "$COAUTH_URL"; then
+        write_proxy_location "/auth/" "$COAUTH_URL"
+        write_proxy_location "/api/v1/auth/" "$COAUTH_URL"
+        write_proxy_location "/api/admin/" "$COAUTH_URL" "\$http_authorization"
+        write_proxy_location "/authorize" "$COAUTH_URL"
+        write_proxy_location "/oauth2/" "$COAUTH_URL"
+        write_proxy_location "/.well-known/" "$COAUTH_URL"
     else
         [ -n "$RESOLVERS" ] || RESOLVERS="127.0.0.11"
         cat >> /etc/nginx/conf.d/default.conf <<EOF
     resolver ${RESOLVERS} valid=30s ipv6=off;
-    set \$pasion_backend ${PASION_URL};
+    set \$coauth_backend ${COAUTH_URL};
 EOF
-        write_dynamic_proxy_location "/auth/" "pasion_backend"
-        write_dynamic_proxy_location "/api/v1/auth/" "pasion_backend"
-        write_dynamic_proxy_location "/api/admin/" "pasion_backend" "\$http_authorization"
-        write_dynamic_proxy_location "/authorize" "pasion_backend"
-        write_dynamic_proxy_location "/oauth2/" "pasion_backend"
-        write_dynamic_proxy_location "/.well-known/" "pasion_backend"
+        write_dynamic_proxy_location "/auth/" "coauth_backend"
+        write_dynamic_proxy_location "/api/v1/auth/" "coauth_backend"
+        write_dynamic_proxy_location "/api/admin/" "coauth_backend" "\$http_authorization"
+        write_dynamic_proxy_location "/authorize" "coauth_backend"
+        write_dynamic_proxy_location "/oauth2/" "coauth_backend"
+        write_dynamic_proxy_location "/.well-known/" "coauth_backend"
     fi
 fi
 
-if can_resolve_url_host "$BACKEND_MATRIX"; then
-    write_proxy_location "/_palpo/" "$BACKEND_MATRIX"
-    write_proxy_location "/_matrix/" "$BACKEND_MATRIX"
-    write_proxy_location "/_synapse/" "$BACKEND_MATRIX"
+if can_resolve_url_host "$SOLAND_URL"; then
+    write_proxy_location "/_palpo/" "$SOLAND_URL"
+    write_proxy_location "/_matrix/" "$SOLAND_URL"
+    write_proxy_location "/_synapse/" "$SOLAND_URL"
 else
     if ! grep -q "resolver " /etc/nginx/conf.d/default.conf; then
         [ -n "$RESOLVERS" ] || RESOLVERS="127.0.0.11"
@@ -129,11 +147,11 @@ else
 EOF
     fi
     cat >> /etc/nginx/conf.d/default.conf <<EOF
-    set \$matrix_backend ${BACKEND_MATRIX};
+    set \$soland_backend ${SOLAND_URL};
 EOF
-    write_dynamic_proxy_location "/_palpo/" "matrix_backend"
-    write_dynamic_proxy_location "/_matrix/" "matrix_backend"
-    write_dynamic_proxy_location "/_synapse/" "matrix_backend"
+    write_dynamic_proxy_location "/_palpo/" "soland_backend"
+    write_dynamic_proxy_location "/_matrix/" "soland_backend"
+    write_dynamic_proxy_location "/_synapse/" "soland_backend"
 fi
 
 cat >> /etc/nginx/conf.d/default.conf <<EOF
