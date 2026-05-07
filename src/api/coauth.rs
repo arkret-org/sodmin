@@ -612,19 +612,12 @@ struct CoauthAdminPaginatedEnvelope<T> {
     meta: CoauthAdminPaginationMeta,
 }
 
-#[derive(Debug, Clone, Deserialize, Default)]
-#[serde(bound(deserialize = "T: Default + Deserialize<'de>"))]
-struct CoauthAdminSingleEnvelope<T> {
-    data: CoauthAdminResource<T>,
-}
-
-#[derive(Debug, Clone, Deserialize, Default)]
-struct CoauthAdminResource<T> {
-    #[serde(default)]
-    id: String,
-    #[serde(default)]
-    attributes: T,
-}
+// Single-resource envelope is now sourced from `coauth-admin-types` so
+// the wire shape matches what the backend actually emits (the previous
+// hand-written shape was a strict subset). The aliases keep sodmin's
+// callers using the local names while sharing the typed wrapper.
+type CoauthAdminSingleEnvelope<T> = coauth_admin_types::SingleResponse<T>;
+type CoauthAdminResource<T> = coauth_admin_types::SingleResource<T>;
 
 #[derive(Debug, Clone, Deserialize, Default)]
 struct CoauthAdminPaginationMeta {
