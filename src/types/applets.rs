@@ -1,5 +1,8 @@
 use serde::{Deserialize, Serialize};
 
+// TODO(A0): these types should be replaced by re-exports from
+// soland-admin-types once the shared-crate approach lands. See _todos.md A0 checklist.
+
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AppletRegistration {
     #[serde(default)]

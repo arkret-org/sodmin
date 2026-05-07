@@ -1,0 +1,76 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: 0
+  RUSTFLAGS: "-D warnings"
+
+jobs:
+  build:
+    name: Build WASM artifact
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - name: Install binaryen
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y binaryen
+
+      - name: Cache cargo registry, git, and target
+        uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: wasm
+
+      - name: Install dioxus-cli
+        run: cargo install dioxus-cli@0.7.5 --locked
+
+      - name: dx build --release
+        run: dx build --release
+
+      - name: Locate build artifact
+        id: artifact
+        run: |
+          set -euo pipefail
+          dist_dir="$(find target/dx -type d -path '*/release/web/public' | head -n 1)"
+          test -n "$dist_dir"
+          test -f "$dist_dir/index.html"
+          echo "dir=$dist_dir" >> "$GITHUB_OUTPUT"
+          tag="${GITHUB_REF_NAME}"
+          archive="sodmin-${tag}-web-public.tar.gz"
+          tar -czf "$archive" -C "$dist_dir" .
+          echo "archive=$archive" >> "$GITHUB_OUTPUT"
+
+      - name: Compute sha256
+        run: |
+          set -euo pipefail
+          sha256sum "${{ steps.artifact.outputs.archive }}" > "${{ steps.artifact.outputs.archive }}.sha256"
+
+      - name: Upload release artifact
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            ${{ steps.artifact.outputs.archive }}
+            ${{ steps.artifact.outputs.archive }}.sha256
+          generate_release_notes: true

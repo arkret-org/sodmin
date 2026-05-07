@@ -202,6 +202,11 @@ pub async fn handle_oauth_callback(code: &str, state: Option<&str>) -> Result<()
         session.remove_item(OAUTH_NONCE_KEY).ok();
         return Err(make_err("OAuth state validation failed".into()));
     }
+    // Capture nonce before cleanup — verified against id_token after token exchange.
+    let expected_nonce = session
+        .get_item(OAUTH_NONCE_KEY)
+        .ok()
+        .flatten();
     session.remove_item(PKCE_VERIFIER_KEY).ok();
     session.remove_item(OAUTH_STATE_KEY).ok();
     session.remove_item(OAUTH_NONCE_KEY).ok();
@@ -233,6 +238,15 @@ pub async fn handle_oauth_callback(code: &str, state: Option<&str>) -> Result<()
     let token_resp: TokenResponse =
         serde_json::from_str(&response.text).map_err(|e| make_err(e.to_string()))?;
 
+    // Verify OIDC nonce if the server returned an id_token.
+    if let (Some(id_token), Some(expected)) = (&token_resp.id_token, &expected_nonce) {
+        if let Some(nonce_in_token) = extract_id_token_nonce(id_token) {
+            if nonce_in_token != *expected {
+                return Err(make_err("OIDC nonce mismatch — possible replay".into()));
+            }
+        }
+    }
+
     storage::set_item("access_token", &token_resp.access_token);
     persist_token_expiry(token_resp.expires_in);
     if let Some(ref rt) = token_resp.refresh_token {
@@ -258,6 +272,20 @@ struct TokenResponse {
     refresh_token: Option<String>,
     #[serde(default)]
     expires_in: Option<u64>,
+    #[serde(default)]
+    id_token: Option<String>,
+}
+
+/// Extract the `nonce` claim from a JWT id_token (base64url-decoded payload only).
+/// Returns `None` if the token is malformed or has no nonce claim.
+fn extract_id_token_nonce(id_token: &str) -> Option<String> {
+    let parts: Vec<&str> = id_token.split('.').collect();
+    if parts.len() < 2 {
+        return None;
+    }
+    let payload_bytes = crate::utils::crypto::base64url_decode(parts[1])?;
+    let payload: serde_json::Value = serde_json::from_slice(&payload_bytes).ok()?;
+    payload.get("nonce")?.as_str().map(String::from)
 }
 
 pub async fn handle_unauthorized() -> bool {

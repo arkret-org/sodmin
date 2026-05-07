@@ -210,6 +210,9 @@ jobs:
 
             docker exec "$cid" nginx -t
 
+            # Verify healthz endpoint returns 200 (index.html present).
+            docker exec "$cid" wget --spider -q http://localhost:${SODMIN_PORT:-80}/healthz
+
             case "$name" in
               sodmin-no-coauth)
                 docker exec "$cid" sh -c "! grep -q 'location /auth/' /etc/nginx/conf.d/default.conf"

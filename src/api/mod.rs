@@ -2,6 +2,9 @@ pub mod actors;
 pub mod api_client {
     pub use crate::api::client::*;
 }
+// TODO(A0): populated by codegen once coauth-admin-types / soland-admin-types land.
+// See _todos.md A0 checklist.
+pub mod generated;
 pub mod agents;
 pub mod applets;
 pub mod audit;

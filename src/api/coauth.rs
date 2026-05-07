@@ -5,6 +5,7 @@ use crate::api::client::{api_client, build_url};
 use crate::utils::error::HttpError;
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[non_exhaustive]
 pub struct CoauthViewer {
     #[serde(default)]
     pub sub: String,
@@ -21,6 +22,7 @@ pub struct CoauthViewer {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[non_exhaustive]
 pub struct CoauthUser {
     #[serde(default)]
     pub id: String,
@@ -43,6 +45,7 @@ pub struct CoauthUser {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[non_exhaustive]
 pub struct CoauthAuditEntry {
     #[serde(default)]
     pub id: String,
@@ -63,6 +66,7 @@ pub struct CoauthAuditEntry {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[non_exhaustive]
 pub struct CoauthOAuth2Session {
     #[serde(default)]
     pub id: String,
@@ -81,6 +85,7 @@ pub struct CoauthOAuth2Session {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[non_exhaustive]
 pub struct CoauthPersonalSession {
     #[serde(default)]
     pub id: String,
@@ -97,6 +102,7 @@ pub struct CoauthPersonalSession {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[non_exhaustive]
 pub struct CoauthUpstreamProvider {
     #[serde(default)]
     pub id: String,
@@ -111,6 +117,7 @@ pub struct CoauthUpstreamProvider {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[non_exhaustive]
 pub struct CoauthUpstreamLink {
     #[serde(default)]
     pub id: String,
@@ -125,6 +132,7 @@ pub struct CoauthUpstreamLink {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[non_exhaustive]
 pub struct CoauthRegistrationToken {
     #[serde(default)]
     pub id: String,
@@ -145,6 +153,7 @@ pub struct CoauthRegistrationToken {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[non_exhaustive]
 pub struct CoauthConnectorHealth {
     #[serde(default)]
     pub name: String,
@@ -155,6 +164,7 @@ pub struct CoauthConnectorHealth {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[non_exhaustive]
 pub struct CoauthNotificationChannel {
     #[serde(default)]
     pub id: String,
@@ -167,6 +177,7 @@ pub struct CoauthNotificationChannel {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[non_exhaustive]
 pub struct CoauthNotificationTemplate {
     #[serde(default)]
     pub id: String,
@@ -181,6 +192,7 @@ pub struct CoauthNotificationTemplate {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[non_exhaustive]
 pub struct CoauthAccountSummary {
     #[serde(default)]
     pub id: String,
@@ -207,6 +219,7 @@ pub struct CoauthAccountSummary {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[non_exhaustive]
 pub struct CoauthManagedDidBinding {
     #[serde(default)]
     pub did: String,
@@ -219,6 +232,7 @@ pub struct CoauthManagedDidBinding {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[non_exhaustive]
 pub struct CoauthAccountClaim {
     #[serde(default)]
     pub claim_type: String,
@@ -231,6 +245,7 @@ pub struct CoauthAccountClaim {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[non_exhaustive]
 pub struct CoauthSessionGrantSummary {
     #[serde(default)]
     pub grant_id: String,
@@ -245,6 +260,7 @@ pub struct CoauthSessionGrantSummary {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[non_exhaustive]
 pub struct CoauthRiskActionHook {
     #[serde(default)]
     pub endpoint: String,
@@ -255,6 +271,7 @@ pub struct CoauthRiskActionHook {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[non_exhaustive]
 pub struct CoauthAdminBridgeDescribe {
     #[serde(default)]
     pub contract: String,
@@ -293,6 +310,7 @@ pub struct CoauthAdminBridgeDescribe {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[non_exhaustive]
 pub struct CoauthAdminBridgeRiskActionExamples {
     #[serde(default)]
     pub proposal_request: Value,
@@ -303,6 +321,7 @@ pub struct CoauthAdminBridgeRiskActionExamples {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[non_exhaustive]
 pub struct CoauthIntegrationManifest {
     #[serde(default)]
     pub contract: String,
@@ -325,6 +344,7 @@ pub struct CoauthIntegrationManifest {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[non_exhaustive]
 pub struct CoauthIntegrationDependency {
     #[serde(default)]
     pub service: String,
@@ -339,6 +359,7 @@ pub struct CoauthIntegrationDependency {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[non_exhaustive]
 pub struct CoauthIntegrationSurface {
     #[serde(default)]
     pub name: String,
@@ -355,6 +376,7 @@ pub struct CoauthIntegrationSurface {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[non_exhaustive]
 pub struct CoauthRecoveryBridgeDescribe {
     #[serde(default)]
     pub contract: String,
@@ -489,6 +511,7 @@ pub struct CoauthRecoveryBridgeDescribe {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[non_exhaustive]
 pub struct CoauthAccountRiskActionCurrentState {
     #[serde(default)]
     pub account_id: String,
@@ -529,6 +552,7 @@ pub struct CoauthAccountRiskActionCurrentState {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[non_exhaustive]
 pub struct CoauthAccountDetail {
     #[serde(default)]
     pub account: CoauthAccountSummary,
@@ -553,6 +577,7 @@ pub struct CoauthAccountDetail {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[non_exhaustive]
 pub struct CoauthAccountRiskActionDraft {
     #[serde(default)]
     pub action: String,
@@ -565,6 +590,7 @@ pub struct CoauthAccountRiskActionDraft {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[non_exhaustive]
 pub struct CoauthAccountRiskActionApprovalDraft {
     #[serde(default)]
     pub action: String,
@@ -577,6 +603,7 @@ pub struct CoauthAccountRiskActionApprovalDraft {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[non_exhaustive]
 pub struct CoauthAccountRiskActionExecuteDraft {
     #[serde(default)]
     pub action: String,
@@ -587,6 +614,7 @@ pub struct CoauthAccountRiskActionExecuteDraft {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[non_exhaustive]
 pub struct CoauthAccountRiskActionProposal {
     #[serde(default)]
     pub state_record_id: String,
@@ -629,6 +657,7 @@ pub struct CoauthAccountRiskActionProposal {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[non_exhaustive]
 pub struct CoauthAccountRiskActionApproval {
     #[serde(default)]
     pub state_record_id: String,
@@ -667,6 +696,7 @@ pub struct CoauthAccountRiskActionApproval {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[non_exhaustive]
 pub struct CoauthAccountRiskActionExecute {
     #[serde(default)]
     pub state_record_id: String,
@@ -703,6 +733,7 @@ pub struct CoauthAccountRiskActionExecute {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[non_exhaustive]
 pub struct CoauthAccountRiskActionHistoryEntry {
     #[serde(default)]
     pub account_id: String,

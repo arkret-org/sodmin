@@ -77,6 +77,38 @@ pub fn KeyboardShortcuts() -> Element {
                         nav.push(Route::SpaceList {});
                         return;
                     }
+                    "f" => {
+                        nav.push(Route::FederationList {});
+                        return;
+                    }
+                    "v" => {
+                        nav.push(Route::DeviceList {});
+                        return;
+                    }
+                    "c" => {
+                        nav.push(Route::CoauthAccountList {});
+                        return;
+                    }
+                    "l" => {
+                        nav.push(Route::AuditLog {});
+                        return;
+                    }
+                    "p" => {
+                        nav.push(Route::PolicyList {});
+                        return;
+                    }
+                    "t" => {
+                        nav.push(Route::ServerStatus {});
+                        return;
+                    }
+                    "e" => {
+                        nav.push(Route::CapabilityList {});
+                        return;
+                    }
+                    "r" => {
+                        nav.push(Route::ReportList {});
+                        return;
+                    }
                     _ => {}
                 }
             }
@@ -151,29 +183,20 @@ fn ShortcutHelpModal() -> Element {
                             }
                             td { class: "py-2", "Toggle this help dialog" }
                         }
-                        tr { class: "border-b",
-                            td { class: "py-2",
-                                kbd { class: "rounded bg-muted px-1.5 py-0.5 font-mono text-xs", "g" }
-                                span { class: "mx-1 text-muted-foreground", "then" }
-                                kbd { class: "rounded bg-muted px-1.5 py-0.5 font-mono text-xs", "d" }
+                        for (key, label) in [
+                            ("d", "Dashboard"), ("a", "Actors"), ("s", "Spaces"),
+                            ("f", "Federation"), ("v", "Devices"), ("c", "Coauth Accounts"),
+                            ("l", "Audit Log"), ("p", "Policy"), ("t", "Server Status"),
+                            ("e", "Capabilities"), ("r", "Reports"),
+                        ] {
+                            tr { class: "border-b",
+                                td { class: "py-2",
+                                    kbd { class: "rounded bg-muted px-1.5 py-0.5 font-mono text-xs", "g" }
+                                    span { class: "mx-1 text-muted-foreground", "then" }
+                                    kbd { class: "rounded bg-muted px-1.5 py-0.5 font-mono text-xs", "{key}" }
+                                }
+                                td { class: "py-2", "Go to {label}" }
                             }
-                            td { class: "py-2", "Go to Dashboard" }
-                        }
-                        tr { class: "border-b",
-                            td { class: "py-2",
-                                kbd { class: "rounded bg-muted px-1.5 py-0.5 font-mono text-xs", "g" }
-                                span { class: "mx-1 text-muted-foreground", "then" }
-                                kbd { class: "rounded bg-muted px-1.5 py-0.5 font-mono text-xs", "a" }
-                            }
-                            td { class: "py-2", "Go to Actors" }
-                        }
-                        tr {
-                            td { class: "py-2",
-                                kbd { class: "rounded bg-muted px-1.5 py-0.5 font-mono text-xs", "g" }
-                                span { class: "mx-1 text-muted-foreground", "then" }
-                                kbd { class: "rounded bg-muted px-1.5 py-0.5 font-mono text-xs", "s" }
-                            }
-                            td { class: "py-2", "Go to Spaces" }
                         }
                     }
                 }
