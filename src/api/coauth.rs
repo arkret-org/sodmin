@@ -714,17 +714,55 @@ pub async fn set_user_password(id: &str, password: &str) -> Result<(), HttpError
     api_client(&url, "POST", Some(body.to_string())).await
 }
 
+/// Multi-dimensional filter for `/admin/v1/audit-feed` queries. Empty
+/// fields are dropped before encoding so the wire form only carries
+/// what the operator actually filtered on.
+#[derive(Debug, Clone, Default)]
+pub struct AuditFeedFilter {
+    pub operation: Option<String>,
+    pub actor_user_id: Option<String>,
+    pub target_type: Option<String>,
+    pub target_id: Option<String>,
+    pub since: Option<String>,
+    pub until: Option<String>,
+}
+
+impl AuditFeedFilter {
+    fn into_query(self) -> Vec<(&'static str, String)> {
+        [
+            ("operation", self.operation),
+            ("actor_user_id", self.actor_user_id),
+            ("target_type", self.target_type),
+            ("target_id", self.target_id),
+            ("since", self.since),
+            ("until", self.until),
+        ]
+        .into_iter()
+        .filter_map(|(k, v)| {
+            v.map(|s| s.trim().to_string())
+                .filter(|s| !s.is_empty())
+                .map(|s| (k, s))
+        })
+        .collect()
+    }
+}
+
 pub async fn list_audit_feed(
     page: u64,
     per_page: u64,
+    filter: AuditFeedFilter,
 ) -> Result<PaginatedResponse<CoauthAuditEntry>, HttpError> {
-    let url = build_url(
-        "/contrix/admin/v1/audit-feed",
-        &[
-            ("page", &page.to_string()),
-            ("per_page", &per_page.to_string()),
-        ],
-    )?;
+    let page_str = page.to_string();
+    let per_page_str = per_page.to_string();
+    let mut params: Vec<(&str, &str)> = vec![
+        ("page", page_str.as_str()),
+        ("per_page", per_page_str.as_str()),
+    ];
+    let owned = filter.into_query();
+    for (k, v) in owned.iter() {
+        params.push((k, v.as_str()));
+    }
+    let url = build_url("/contrix/admin/v1/audit-feed", &params)?;
     api_client(&url, "GET", None).await
 }
 
