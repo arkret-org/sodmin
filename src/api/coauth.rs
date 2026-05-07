@@ -512,47 +512,6 @@ pub struct CoauthRecoveryBridgeDescribe {
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 #[non_exhaustive]
-pub struct CoauthAccountRiskActionCurrentState {
-    #[serde(default)]
-    pub account_id: String,
-    #[serde(default)]
-    pub state_record_id: Option<String>,
-    #[serde(default)]
-    pub proposal_id: Option<String>,
-    #[serde(default)]
-    pub action: Option<String>,
-    #[serde(default)]
-    pub lifecycle_state: String,
-    #[serde(default)]
-    pub last_operation: Option<String>,
-    #[serde(default)]
-    pub transition_kind: Option<String>,
-    #[serde(default)]
-    pub previous_state: Option<String>,
-    #[serde(default)]
-    pub state_revision: Option<u64>,
-    #[serde(default)]
-    pub allowed_next_transitions: Vec<String>,
-    #[serde(default)]
-    pub ticket: Option<String>,
-    #[serde(default)]
-    pub recorded_at: Option<String>,
-    #[serde(default)]
-    pub recorded_by: Option<String>,
-    #[serde(default)]
-    pub recorded_by_username: Option<String>,
-    #[serde(default)]
-    pub execution_endpoint: Option<String>,
-    #[serde(default)]
-    pub mutation_endpoint: Option<String>,
-    #[serde(default)]
-    pub state_store_kind: String,
-    #[serde(default)]
-    pub todo: Option<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-#[non_exhaustive]
 pub struct CoauthAccountDetail {
     #[serde(default)]
     pub account: CoauthAccountSummary,
@@ -576,95 +535,21 @@ pub struct CoauthAccountDetail {
     pub integration_manifest: CoauthIntegrationManifest,
 }
 
-// Risk-action request shapes are sourced from `coauth-admin-types` so that
-// drift between sodmin's POST body and coauth's parsed body is caught at
-// compile time. The aliases below preserve the `Coauth*Draft` names that
-// sodmin's UI components have been using.
+// Risk-action wire shapes are sourced from `coauth-admin-types` so drift
+// between sodmin's request bodies / response decoders and coauth's typed
+// handlers is caught at compile time. The aliases below preserve the
+// `Coauth*` names that sodmin's UI components have been using.
 pub use coauth_admin_types::AccountRiskActionApprovalRequest as CoauthAccountRiskActionApprovalDraft;
+pub use coauth_admin_types::AccountRiskActionApprovalResponse as CoauthAccountRiskActionApproval;
+pub use coauth_admin_types::AccountRiskActionCurrentResponse as CoauthAccountRiskActionCurrentState;
 pub use coauth_admin_types::AccountRiskActionExecuteRequest as CoauthAccountRiskActionExecuteDraft;
+pub use coauth_admin_types::AccountRiskActionHistoryResponse as CoauthAccountRiskActionHistoryEnvelopeShared;
 pub use coauth_admin_types::AccountRiskActionProposalRequest as CoauthAccountRiskActionDraft;
+pub use coauth_admin_types::AccountRiskActionProposalResponse as CoauthAccountRiskActionProposal;
+pub use coauth_admin_types::AccountRiskActionTransitionRecord as CoauthAccountRiskActionHistoryEntry;
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-#[non_exhaustive]
-pub struct CoauthAccountRiskActionProposal {
-    #[serde(default)]
-    pub state_record_id: String,
-    #[serde(default)]
-    pub proposal_id: String,
-    #[serde(default)]
-    pub account_id: String,
-    #[serde(default)]
-    pub action: String,
-    #[serde(default)]
-    pub reason: Option<String>,
-    #[serde(default)]
-    pub ticket: Option<String>,
-    #[serde(default)]
-    pub approved_by: Option<String>,
-    #[serde(default)]
-    pub requested_at: Option<String>,
-    #[serde(default)]
-    pub requested_by: Option<String>,
-    #[serde(default)]
-    pub requested_by_username: Option<String>,
-    #[serde(default)]
-    pub previous_state: String,
-    #[serde(default)]
-    pub proposal_state: String,
-    #[serde(default)]
-    pub state_revision: u64,
-    #[serde(default)]
-    pub transition_kind: String,
-    #[serde(default)]
-    pub approval_mode: String,
-    #[serde(default)]
-    pub allowed_next_transitions: Vec<String>,
-    #[serde(default)]
-    pub execution_endpoint: String,
-    #[serde(default)]
-    pub state_store_kind: String,
-    #[serde(default)]
-    pub todo: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-#[non_exhaustive]
-pub struct CoauthAccountRiskActionApproval {
-    #[serde(default)]
-    pub state_record_id: String,
-    #[serde(default)]
-    pub proposal_id: String,
-    #[serde(default)]
-    pub account_id: String,
-    #[serde(default)]
-    pub action: String,
-    #[serde(default)]
-    pub ticket: Option<String>,
-    #[serde(default)]
-    pub previous_state: String,
-    #[serde(default)]
-    pub approval_state: String,
-    #[serde(default)]
-    pub state_revision: u64,
-    #[serde(default)]
-    pub transition_kind: String,
-    #[serde(default)]
-    pub approved_at: Option<String>,
-    #[serde(default)]
-    pub approved_by: Option<String>,
-    #[serde(default)]
-    pub approved_by_username: Option<String>,
-    #[serde(default)]
-    pub approval_note: Option<String>,
-    #[serde(default)]
-    pub execution_endpoint: String,
-    #[serde(default)]
-    pub allowed_next_transitions: Vec<String>,
-    #[serde(default)]
-    pub state_store_kind: String,
-    #[serde(default)]
-    pub todo: String,
-}
+// `CoauthAccountRiskActionProposal` and `CoauthAccountRiskActionApproval`
+// are now sourced from `coauth_admin_types` via the re-exports above.
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 #[non_exhaustive]
@@ -703,52 +588,9 @@ pub struct CoauthAccountRiskActionExecute {
     pub todo: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-#[non_exhaustive]
-pub struct CoauthAccountRiskActionHistoryEntry {
-    #[serde(default)]
-    pub account_id: String,
-    #[serde(default)]
-    pub state_record_id: Option<String>,
-    #[serde(default)]
-    pub proposal_id: Option<String>,
-    #[serde(default)]
-    pub action: Option<String>,
-    #[serde(default)]
-    pub transition_kind: String,
-    #[serde(default)]
-    pub previous_state: Option<String>,
-    #[serde(default)]
-    pub next_state: String,
-    #[serde(default)]
-    pub state_revision: Option<u64>,
-    #[serde(default)]
-    pub ticket: Option<String>,
-    #[serde(default)]
-    pub recorded_at: Option<String>,
-    #[serde(default)]
-    pub recorded_by: Option<String>,
-    #[serde(default)]
-    pub recorded_by_username: Option<String>,
-    #[serde(default)]
-    pub execution_endpoint: Option<String>,
-    #[serde(default)]
-    pub mutation_endpoint: Option<String>,
-    #[serde(default)]
-    pub approval_note: Option<String>,
-    #[serde(default)]
-    pub execution_note: Option<String>,
-    #[serde(default)]
-    pub state_store_kind: String,
-    #[serde(default)]
-    pub todo: Option<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-struct CoauthAccountRiskActionHistoryEnvelope {
-    #[serde(default)]
-    pub data: Vec<CoauthAccountRiskActionHistoryEntry>,
-}
+// `CoauthAccountRiskActionHistoryEntry` and the `{data: [...]}` envelope
+// shape are now sourced from `coauth_admin_types` via the re-exports
+// above; the local definitions used to live here.
 
 #[derive(Debug, Clone, Deserialize, Default)]
 struct CoauthAccountClaimsEnvelope {
@@ -1155,7 +997,7 @@ pub async fn get_account_detail(id: &str) -> Result<CoauthAccountDetail, HttpErr
         api_client(integration_manifest_url, "GET", None).await?;
     let current: CoauthAdminSingleEnvelope<CoauthAccountRiskActionCurrentState> =
         api_client(&current_url, "GET", None).await?;
-    let history: CoauthAccountRiskActionHistoryEnvelope =
+    let history: CoauthAccountRiskActionHistoryEnvelopeShared =
         api_client(&history_url, "GET", None).await?;
     let account = map_admin_account_summary_resource(summary.data);
     Ok(CoauthAccountDetail {

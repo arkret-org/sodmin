@@ -230,7 +230,10 @@ fn current_state_grid(current: &coauth::CoauthAccountRiskActionCurrentState) -> 
         current.allowed_next_transitions.join(", ")
     };
     let ticket = current.ticket.clone().unwrap_or_else(|| "-".to_string());
-    let recorded_at = current.recorded_at.clone().unwrap_or_else(|| "-".to_string());
+    let recorded_at = current
+        .recorded_at
+        .map(|dt| dt.to_rfc3339())
+        .unwrap_or_else(|| "-".to_string());
     let recorded_by = current.recorded_by.clone().unwrap_or_else(|| "-".to_string());
     let recorded_by_username = current
         .recorded_by_username
@@ -291,6 +294,10 @@ fn history_entry_card(entry: &coauth::CoauthAccountRiskActionHistoryEntry) -> El
         .state_revision
         .map(|v| v.to_string())
         .unwrap_or_else(|| "missing".to_string());
+    let recorded_at = entry
+        .recorded_at
+        .map(|dt| dt.to_rfc3339())
+        .unwrap_or_else(|| "missing".to_string());
 
     rsx! {
         div { class: "rounded-md border p-3 space-y-1 text-sm text-muted-foreground",
@@ -302,7 +309,7 @@ fn history_entry_card(entry: &coauth::CoauthAccountRiskActionHistoryEntry) -> El
             div { "Next State: " span { class: "font-mono", "{entry.next_state}" } }
             div { "State Revision: " span { class: "font-mono", "{state_revision}" } }
             div { "Ticket: " span { class: "font-mono", "{entry.ticket.as_deref().unwrap_or(\"missing\")}" } }
-            div { "Recorded At: " span { class: "font-mono", "{entry.recorded_at.as_deref().unwrap_or(\"missing\")}" } }
+            div { "Recorded At: " span { class: "font-mono", "{recorded_at}" } }
             div { "Recorded By: " span { class: "font-mono", "{entry.recorded_by.as_deref().unwrap_or(\"missing\")}" } }
             div { "Recorded By Username: " span { class: "font-mono", "{entry.recorded_by_username.as_deref().unwrap_or(\"missing\")}" } }
             div { "Execution Endpoint: " span { class: "font-mono", "{entry.execution_endpoint.as_deref().unwrap_or(\"missing\")}" } }
@@ -373,7 +380,11 @@ fn format_risk_action_status(proposal: &coauth::CoauthAccountRiskActionProposal)
         proposal.transition_kind,
         proposal.approval_mode,
         proposal.execution_endpoint,
-        proposal.requested_at.as_deref().unwrap_or("missing"),
+        proposal
+            .requested_at
+            .map(|dt| dt.to_rfc3339())
+            .as_deref()
+            .unwrap_or("missing"),
         proposal.requested_by.as_deref().unwrap_or("missing"),
         proposal.requested_by_username.as_deref().unwrap_or("missing"),
         proposal.ticket.as_deref().unwrap_or("missing"),
@@ -393,7 +404,11 @@ fn format_risk_action_approval_status(
         approval.approval_state,
         approval.state_revision,
         approval.transition_kind,
-        approval.approved_at.as_deref().unwrap_or("missing"),
+        approval
+            .approved_at
+            .map(|dt| dt.to_rfc3339())
+            .as_deref()
+            .unwrap_or("missing"),
         approval.approved_by.as_deref().unwrap_or("missing"),
         approval.approved_by_username.as_deref().unwrap_or("missing"),
         approval.execution_endpoint,
