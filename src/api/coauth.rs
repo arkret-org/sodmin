@@ -576,42 +576,13 @@ pub struct CoauthAccountDetail {
     pub integration_manifest: CoauthIntegrationManifest,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-#[non_exhaustive]
-pub struct CoauthAccountRiskActionDraft {
-    #[serde(default)]
-    pub action: String,
-    #[serde(default)]
-    pub reason: Option<String>,
-    #[serde(default)]
-    pub ticket: Option<String>,
-    #[serde(default)]
-    pub approved_by: Option<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-#[non_exhaustive]
-pub struct CoauthAccountRiskActionApprovalDraft {
-    #[serde(default)]
-    pub action: String,
-    #[serde(default)]
-    pub ticket: Option<String>,
-    #[serde(default)]
-    pub approved_by: Option<String>,
-    #[serde(default)]
-    pub approval_note: Option<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-#[non_exhaustive]
-pub struct CoauthAccountRiskActionExecuteDraft {
-    #[serde(default)]
-    pub action: String,
-    #[serde(default)]
-    pub ticket: Option<String>,
-    #[serde(default)]
-    pub execution_note: Option<String>,
-}
+// Risk-action request shapes are sourced from `coauth-admin-types` so that
+// drift between sodmin's POST body and coauth's parsed body is caught at
+// compile time. The aliases below preserve the `Coauth*Draft` names that
+// sodmin's UI components have been using.
+pub use coauth_admin_types::AccountRiskActionApprovalRequest as CoauthAccountRiskActionApprovalDraft;
+pub use coauth_admin_types::AccountRiskActionExecuteRequest as CoauthAccountRiskActionExecuteDraft;
+pub use coauth_admin_types::AccountRiskActionProposalRequest as CoauthAccountRiskActionDraft;
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 #[non_exhaustive]
