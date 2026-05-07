@@ -1,12 +1,16 @@
 use gloo_net::http::{Headers, Request, RequestBuilder};
 use serde::de::DeserializeOwned;
 
+use crate::utils::crypto::random_token;
 use crate::utils::error::{AdminErrorEnvelope, HttpError, display_error};
 use crate::utils::perf;
 use crate::utils::session;
 
 pub const HEADER_REQUEST_ID: &str = "X-Contrix-Request-Id";
 pub const HEADER_IDEMPOTENCY_KEY: &str = "Idempotency-Key";
+
+const LEGACY_ADMIN_PREFIX: &str = "/contrix/admin/v1";
+const CANONICAL_ADMIN_PREFIX: &str = "/api/admin/v1";
 
 const SENSITIVE_QUERY_KEYS: &[&str] = &[
     "access_token",
@@ -20,11 +24,29 @@ const SENSITIVE_QUERY_KEYS: &[&str] = &[
     "token",
 ];
 
+/// Per-request correlation id (12 bytes / ~16 chars base64url) used in the
+/// `X-Contrix-Request-Id` header so admin actions can be traced across
+/// proxy + coauth + soland logs.
 pub fn generate_request_id() -> String {
-    let now = js_sys::Date::now() as u64;
-    let rand = (js_sys::Math::random() * 0xFFFF as f64) as u64;
-    let combined = now.wrapping_mul(31).wrapping_add(rand);
-    format!("{:08x}", combined & 0xFFFF_FFFF)
+    random_token(12)
+}
+
+/// Idempotency key for mutating admin operations. The protocol requires
+/// strong uniqueness so retries collapse on the server side; 16 random
+/// bytes (~22 base64url chars) gives ~128 bits of entropy.
+pub fn generate_idempotency_key() -> String {
+    format!("sodmin-{}", random_token(16))
+}
+
+/// Temporary discovery boundary for the A0 codegen migration.
+///
+/// TODO(sodmin.codegen): replace this compatibility rewrite with endpoint
+/// bindings generated from each service's `bridge/describe` and OpenAPI
+/// documents. Keeping the rewrite in one place prevents new callers from
+/// hard-coding the removed `/contrix/admin/v1/*` prefix while the generated
+/// client lands incrementally.
+pub fn canonical_api_path(path: &str) -> String {
+    path.replace(LEGACY_ADMIN_PREFIX, CANONICAL_ADMIN_PREFIX)
 }
 
 pub async fn raw_fetch<T, F>(
@@ -38,19 +60,20 @@ where
     F: Fn(u16, &str, Option<u64>) -> (String, Option<AdminErrorEnvelope>),
 {
     let start_time = js_sys::Date::now();
+    let url = canonical_api_path(url);
 
-    reject_query_credentials(url)?;
+    reject_query_credentials(&url)?;
 
     let rid_value = generate_request_id();
     let rid = Some(rid_value.clone());
     let token = session::access_token();
 
     let mut builder: RequestBuilder = match method {
-        "POST" => Request::post(url),
-        "PUT" => Request::put(url),
-        "PATCH" => Request::patch(url),
-        "DELETE" => Request::delete(url),
-        _ => Request::get(url),
+        "POST" => Request::post(&url),
+        "PUT" => Request::put(&url),
+        "PATCH" => Request::patch(&url),
+        "DELETE" => Request::delete(&url),
+        _ => Request::get(&url),
     }
     .header("Accept", "application/json")
     .header(HEADER_REQUEST_ID, &rid_value);
@@ -60,7 +83,7 @@ where
     }
 
     if is_mutation_method(method) {
-        builder = builder.header(HEADER_IDEMPOTENCY_KEY, &format!("sodmin-{rid_value}"));
+        builder = builder.header(HEADER_IDEMPOTENCY_KEY, &generate_idempotency_key());
     }
 
     if body.is_some() {
@@ -99,7 +122,7 @@ where
     let retry_after_ms = retry_after_ms(response.headers());
     let duration_ms = js_sys::Date::now() - start_time;
     perf::record_api_call(
-        &redact_url_for_diagnostics(url),
+        &redact_url_for_diagnostics(&url),
         method,
         duration_ms,
         status,
@@ -175,6 +198,11 @@ pub async fn api_client<T: DeserializeOwned>(
     method: &str,
     body: Option<String>,
 ) -> Result<T, HttpError> {
+    // Spend a refresh round-trip ahead of the request when the cached
+    // access token is within ~60s of expiry, so the happy path stays a
+    // single call instead of failing with 401 and replaying.
+    crate::api::auth::refresh_if_expiring_soon().await;
+
     let result = raw_fetch::<T, _>(url, method, body.clone(), format_admin_error).await;
 
     if let Err(ref err) = result {
@@ -192,7 +220,7 @@ pub fn build_url(path: &str, params: &[(&str, &str)]) -> Result<String, HttpErro
         reject_query_key(key)?;
     }
 
-    let mut url = path.to_string();
+    let mut url = canonical_api_path(path);
 
     let query_params: Vec<String> = params
         .iter()
@@ -286,12 +314,27 @@ fn redact_url_for_diagnostics(url: &str) -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::{build_url, format_admin_error, is_mutation_method, redact_url_for_diagnostics};
+    use super::{
+        build_url, canonical_api_path, format_admin_error, is_mutation_method,
+        redact_url_for_diagnostics,
+    };
 
     #[test]
     fn build_url_rejects_query_credentials() {
         assert!(build_url("/contrix/admin/v1/actors", &[("access_token", "secret")]).is_err());
         assert!(build_url("/contrix/admin/v1/actors?token=secret", &[]).is_err());
+    }
+
+    #[test]
+    fn build_url_rewrites_legacy_admin_prefix() {
+        assert_eq!(
+            build_url("/contrix/admin/v1/actors", &[("cursor", "c1")]).unwrap(),
+            "/api/admin/v1/actors?cursor=c1"
+        );
+        assert_eq!(
+            canonical_api_path("https://admin.example/contrix/admin/v1/accounts"),
+            "https://admin.example/api/admin/v1/accounts"
+        );
     }
 
     #[test]

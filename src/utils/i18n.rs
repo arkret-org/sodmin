@@ -84,39 +84,11 @@ impl I18n {
         m.insert("auth.server_version".into(), "Server version:".into());
         m.insert("auth.supports_specs".into(), "Supports specs:".into());
         m.insert(
-            "auth.fields_required".into(),
-            "Please enter your username and password.".into(),
-        );
-        m.insert(
-            "auth.invalid_credentials".into(),
-            "Invalid username or password.".into(),
-        );
-        m.insert(
-            "auth.rate_limited".into(),
-            "Too many attempts. Please try again later.".into(),
-        );
-        m.insert(
-            "auth.account_deactivated".into(),
-            "This account has been deactivated.".into(),
-        );
-        m.insert(
-            "auth.account_locked".into(),
-            "This account has been locked.".into(),
-        );
-        m.insert(
-            "auth.username_placeholder".into(),
-            "Username or email".into(),
-        );
-        m.insert(
             "auth.oauth_hint".into(),
             "Sign in with your account to access the admin dashboard.".into(),
         );
         m.insert("auth.processing".into(), "Signing in...".into());
         m.insert("auth.try_again".into(), "Try again".into());
-        m.insert(
-            "auth.protocol_error".into(),
-            "URL must start with http:// or https://".into(),
-        );
         m.insert("auth.url_error".into(), "Not a valid homeserver URL".into());
 
         // Navigation
@@ -155,56 +127,16 @@ impl I18n {
             "nav.notification_channels".into(),
             "Notification Channels".into(),
         );
-        m.insert(
-            "nav.notification_prefs".into(),
-            "Notification Preferences".into(),
-        );
         m.insert("nav.auth_status".into(), "Auth Status".into());
         m.insert("nav.appservices".into(), "Appservices".into());
         m.insert("nav.logout".into(), "Logout".into());
 
         // Auth Status page
         m.insert("auth_status.title".into(), "Authentication Status".into());
-        m.insert(
-            "auth_status.subtitle".into(),
-            "Delegated authentication capabilities and login flow status".into(),
-        );
         m.insert("auth_status.server_info".into(), "Server Connection".into());
         m.insert("auth_status.base_url".into(), "Base URL".into());
         m.insert("auth_status.server_version".into(), "Server Version".into());
-        m.insert(
-            "auth_status.auth_capabilities".into(),
-            "Authentication Capabilities".into(),
-        );
-        m.insert(
-            "auth_status.auth_capabilities_desc".into(),
-            "Login methods supported by this homeserver based on /_matrix/client/v3/login".into(),
-        );
         m.insert("auth_status.login_flows".into(), "Login Flows".into());
-        m.insert(
-            "auth_status.no_password_warning".into(),
-            "Password login is not available on this server. Users must authenticate via SSO or access token.".into(),
-        );
-        m.insert(
-            "auth_status.sso_only_hint".into(),
-            "This server is configured for SSO-only authentication. Admin access requires an access token or SSO session.".into(),
-        );
-        m.insert(
-            "auth_status.diagnostics_title".into(),
-            "Delegated Auth Diagnostics".into(),
-        );
-        m.insert(
-            "auth_status.diagnostics_desc".into(),
-            "Checks for OIDC/MAS issuer discovery, endpoint availability, DCR support, and scope configuration".into(),
-        );
-        m.insert(
-            "auth_status.dev_diagnostics_title".into(),
-            "Dev Diagnostics".into(),
-        );
-        m.insert(
-            "auth_status.dev_diagnostics_desc".into(),
-            "Probe MAS/Pasion endpoints for registration, consent, and well-known discovery debugging".into(),
-        );
         m.insert("nav.palpo_admin".into(), "Palpo Admin".into());
         m.insert("nav.server".into(), "Server".into());
 
@@ -219,26 +151,10 @@ impl I18n {
 
         // Dashboard descriptions
         m.insert("dashboard.server_online".into(), "Server Online".into());
-        m.insert(
-            "dashboard.total_registered_users".into(),
-            "Total registered users".into(),
-        );
-        m.insert(
-            "dashboard.total_rooms_on_server".into(),
-            "Total rooms on server".into(),
-        );
         m.insert("dashboard.pending_reports".into(), "Pending reports".into());
-        m.insert(
-            "dashboard.non_guest_non_deactivated".into(),
-            "Non-guest, non-deactivated".into(),
-        );
         m.insert(
             "dashboard.avg_api_response".into(),
             "Avg API response time".into(),
-        );
-        m.insert(
-            "dashboard.spec_description".into(),
-            "Supported Matrix specification versions and unstable features".into(),
         );
 
         // Auth extra
@@ -253,10 +169,6 @@ impl I18n {
         m.insert(
             "auth.not_admin".into(),
             "This account is not a server administrator".into(),
-        );
-        m.insert(
-            "auth.admin_check_failed".into(),
-            "Failed to verify admin status".into(),
         );
 
         // Users
@@ -289,10 +201,6 @@ impl I18n {
         m.insert("users.export_csv".into(), "Export CSV".into());
         m.insert("users.import_csv".into(), "Import CSV".into());
         m.insert("users.create_new".into(), "Create New User".into());
-        m.insert(
-            "users.create_subtitle".into(),
-            "Add a new user to the Matrix server".into(),
-        );
         m.insert("users.password_confirm".into(), "Confirm Password".into());
         m.insert("users.admin_privileges".into(), "Admin Privileges".into());
         m.insert("users.user_type".into(), "User Type".into());
@@ -303,10 +211,6 @@ impl I18n {
         m.insert("users.password".into(), "Password".into());
         m.insert("users.email_optional".into(), "Email (optional)".into());
         m.insert("users.phone_optional".into(), "Phone (optional)".into());
-        m.insert(
-            "users.deactivate_selected".into(),
-            "Deactivate Selected".into(),
-        );
         m.insert("users.set_admin".into(), "Set Admin".into());
         m.insert("users.exporting".into(), "Exporting...".into());
         m.insert("users.import_users".into(), "Import Users from CSV".into());
@@ -326,19 +230,7 @@ impl I18n {
         m.insert("users.shadow_banned".into(), "Shadow Banned".into());
         m.insert("users.deactivate_user".into(), "Deactivate User".into());
         m.insert("users.new_password".into(), "New Password".into());
-        m.insert(
-            "users.no_rooms".into(),
-            "User has not joined any rooms.".into(),
-        );
         m.insert("users.no_devices".into(), "No devices found.".into());
-        m.insert(
-            "users.no_sessions".into(),
-            "No active sessions found.".into(),
-        );
-        m.insert(
-            "users.revoke_all_sessions".into(),
-            "Revoke All Sessions".into(),
-        );
         m.insert("users.remove_threepid".into(), "Remove".into());
         m.insert("users.verified".into(), "Verified".into());
         m.insert("users.unverified".into(), "Unverified".into());
@@ -356,10 +248,6 @@ impl I18n {
         m.insert("rooms.public".into(), "Public".into());
         m.insert("rooms.private".into(), "Private".into());
         m.insert("rooms.join_rules".into(), "Join Rules".into());
-        m.insert(
-            "rooms.history_visibility".into(),
-            "History Visibility".into(),
-        );
         m.insert("rooms.encrypted".into(), "Encrypted".into());
         m.insert("rooms.topic".into(), "Topic".into());
         m.insert("rooms.delete".into(), "Delete Room".into());
@@ -374,16 +262,8 @@ impl I18n {
         m.insert("rooms.hierarchy".into(), "Hierarchy".into());
         m.insert("rooms.aliases".into(), "Aliases".into());
         m.insert("rooms.subtitle".into(), "Manage Matrix rooms".into());
-        m.insert(
-            "rooms.search_placeholder".into(),
-            "Search rooms by name or alias...".into(),
-        );
         m.insert("rooms.sort".into(), "Sort:".into());
         m.insert("rooms.all".into(), "All".into());
-        m.insert(
-            "rooms.no_rooms_description".into(),
-            "There are no rooms matching your search criteria.".into(),
-        );
         m.insert("rooms.delete_selected".into(), "Delete Selected".into());
         m.insert("rooms.block_selected".into(), "Block Selected".into());
         m.insert("rooms.overview".into(), "Overview".into());
@@ -395,43 +275,15 @@ impl I18n {
         m.insert("rooms.space".into(), "Space".into());
         m.insert("rooms.blocked".into(), "Blocked".into());
         m.insert("rooms.other_aliases".into(), "Other Aliases".into());
-        m.insert(
-            "rooms.no_aliases".into(),
-            "No additional aliases found.".into(),
-        );
         m.insert("rooms.no_members".into(), "No members found.".into());
         m.insert("rooms.no_messages".into(), "No messages found.".into());
         m.insert("rooms.no_state_events".into(), "No state events.".into());
         m.insert("rooms.space_hierarchy".into(), "Space Hierarchy".into());
-        m.insert(
-            "rooms.space_hierarchy_desc".into(),
-            "Child rooms and sub-spaces in this space.".into(),
-        );
         m.insert("rooms.no_children".into(), "No child spaces found.".into());
         m.insert("rooms.room_name".into(), "Space Name *".into());
-        m.insert(
-            "rooms.topic_placeholder".into(),
-            "Room topic (optional)".into(),
-        );
-        m.insert(
-            "rooms.create_description".into(),
-            "Create a new Matrix room.".into(),
-        );
         m.insert("rooms.create_button".into(), "Create".into());
         m.insert("rooms.purge_title".into(), "Purge Room History".into());
-        m.insert(
-            "rooms.purge_description".into(),
-            "Delete all messages before the specified date. This action cannot be undone.".into(),
-        );
         m.insert("rooms.purge_before".into(), "Delete messages before".into());
-        m.insert(
-            "rooms.purge_warning".into(),
-            "Warning: This will permanently delete all messages before the selected date.".into(),
-        );
-        m.insert(
-            "rooms.delete_confirm".into(),
-            "Are you sure you want to delete this room? All messages and media will be permanently removed. This action cannot be undone.".into(),
-        );
         m.insert("rooms.created".into(), "Created".into());
         m.insert("rooms.kick".into(), "Kick".into());
         m.insert("rooms.unban".into(), "Unban".into());
@@ -443,15 +295,7 @@ impl I18n {
         m.insert("rooms.add_alias".into(), "Add Alias".into());
         m.insert("rooms.delete_alias".into(), "Delete".into());
         m.insert("rooms.new_alias".into(), "New alias".into());
-        m.insert(
-            "rooms.forward_extremities".into(),
-            "Forward Extremities".into(),
-        );
         m.insert("rooms.forward_extremities_desc".into(), "Forward extremities are the leaf events in the room DAG. Multiple extremities may indicate fragmentation.".into());
-        m.insert(
-            "rooms.no_forward_extremities".into(),
-            "No forward extremities found.".into(),
-        );
         m.insert("rooms.forward_extremities_warning".into(), "Warning: Multiple forward extremities detected. This may indicate DAG fragmentation and could impact performance.".into());
         m.insert("rooms.count".into(), "Count".into());
         m.insert("rooms.directory_listing".into(), "Directory Listing".into());
@@ -460,10 +304,6 @@ impl I18n {
         m.insert("rooms.publish".into(), "Publish".into());
         m.insert("rooms.unpublish".into(), "Unpublish".into());
         m.insert("rooms.event_lookup".into(), "Event Lookup".into());
-        m.insert(
-            "rooms.event_lookup_desc".into(),
-            "Look up any event by its event ID.".into(),
-        );
         m.insert("rooms.lookup".into(), "Lookup".into());
 
         // Reports
@@ -475,18 +315,10 @@ impl I18n {
         m.insert("reports.new".into(), "New".into());
         m.insert("reports.in_review".into(), "In Review".into());
         m.insert("reports.resolved".into(), "Resolved".into());
-        m.insert(
-            "reports.status_local_only".into(),
-            "Stored only in this browser.".into(),
-        );
         m.insert("reports.redact".into(), "Redact Event".into());
         m.insert("reports.ban_user".into(), "Ban User".into());
         m.insert("reports.block_room".into(), "Block Space".into());
         m.insert("reports.delete_report".into(), "Delete Report".into());
-        m.insert(
-            "reports.moderation_actions".into(),
-            "Moderation Actions".into(),
-        );
         m.insert("reports.no_reports".into(), "No reports".into());
         m.insert(
             "reports.subtitle".into(),
@@ -494,24 +326,12 @@ impl I18n {
         );
         m.insert("reports.id".into(), "ID".into());
         m.insert("reports.room".into(), "Space".into());
-        m.insert(
-            "reports.no_reports_description".into(),
-            "There are no event reports to review at this time.".into(),
-        );
         m.insert("reports.report_details".into(), "Report Details".into());
         m.insert("reports.reporter_user_id".into(), "Reporter Actor ID".into());
         m.insert("reports.room_id".into(), "Space ID".into());
         m.insert("reports.event_id".into(), "Event ID".into());
         m.insert("reports.sender".into(), "Sender".into());
         m.insert("reports.score".into(), "Score".into());
-        m.insert(
-            "reports.event_content".into(),
-            "Reported Event Content".into(),
-        );
-        m.insert(
-            "reports.no_event_content".into(),
-            "No event content available.".into(),
-        );
 
         // Media
         m.insert("media.title".into(), "Media".into());
@@ -542,10 +362,6 @@ impl I18n {
         m.insert("server.notifications".into(), "Notifications".into());
         m.insert("server.clear_all".into(), "Clear All".into());
         m.insert("server.no_notifications".into(), "No notifications".into());
-        m.insert(
-            "server.command_running".into(),
-            "A command is currently running".into(),
-        );
 
         // Common
         m.insert("common.save".into(), "Save".into());
@@ -590,22 +406,6 @@ impl I18n {
 
         // Pasion audit log
         m.insert("pasion.audit_log.title".into(), "Audit Log".into());
-        m.insert(
-            "pasion.audit_log.description".into(),
-            "Track administrative actions and changes".into(),
-        );
-        m.insert(
-            "pasion.audit_log.filter_placeholder".into(),
-            "Filter by operation...".into(),
-        );
-        m.insert(
-            "pasion.audit_log.empty".into(),
-            "No audit entries found".into(),
-        );
-        m.insert(
-            "pasion.audit_log.load_more_failed".into(),
-            "Failed to load more:".into(),
-        );
         m.insert("pasion.audit_log.col_timestamp".into(), "Timestamp".into());
         m.insert("pasion.audit_log.col_operation".into(), "Operation".into());
         m.insert("pasion.audit_log.col_admin".into(), "Admin".into());
@@ -614,107 +414,11 @@ impl I18n {
         m.insert("pasion.audit_log.col_detail".into(), "Detail".into());
 
         // Pasion connector health
-        m.insert(
-            "pasion.connector_health.title".into(),
-            "Connector Health".into(),
-        );
-        m.insert(
-            "pasion.connector_health.description".into(),
-            "Status of all backend service connectors".into(),
-        );
-        m.insert(
-            "pasion.connector_health.empty".into(),
-            "No connector health data available".into(),
-        );
-        m.insert(
-            "pasion.connector_health.homeserver".into(),
-            "Homeserver".into(),
-        );
 
         // Pasion personal sessions
-        m.insert(
-            "pasion.personal_sessions.title".into(),
-            "Personal Access Tokens".into(),
-        );
-        m.insert(
-            "pasion.personal_sessions.description".into(),
-            "Manage API tokens for personal access".into(),
-        );
-        m.insert(
-            "pasion.personal_sessions.create".into(),
-            "Create Token".into(),
-        );
-        m.insert(
-            "pasion.personal_sessions.empty".into(),
-            "No personal access tokens found".into(),
-        );
-        m.insert(
-            "pasion.personal_sessions.new_token_warning".into(),
-            "New token generated — copy it now, it will not be shown again!".into(),
-        );
-        m.insert(
-            "pasion.personal_sessions.copy_success".into(),
-            "Token copied to clipboard".into(),
-        );
-        m.insert(
-            "pasion.personal_sessions.created_success".into(),
-            "Personal access token created".into(),
-        );
-        m.insert(
-            "pasion.personal_sessions.regenerated_success".into(),
-            "Token regenerated".into(),
-        );
-        m.insert(
-            "pasion.personal_sessions.revoked_success".into(),
-            "Token revoked".into(),
-        );
-        m.insert(
-            "pasion.personal_sessions.regenerate".into(),
-            "Regenerate".into(),
-        );
         m.insert("pasion.personal_sessions.revoke".into(), "Revoke".into());
-        m.insert(
-            "pasion.personal_sessions.create_title".into(),
-            "Create Personal Access Token".into(),
-        );
-        m.insert(
-            "pasion.personal_sessions.name_placeholder".into(),
-            "Token name (optional)".into(),
-        );
-        m.insert(
-            "pasion.personal_sessions.scope_label".into(),
-            "Scope".into(),
-        );
-        m.insert(
-            "pasion.personal_sessions.scope_placeholder".into(),
-            "e.g. read write".into(),
-        );
-        m.insert(
-            "pasion.personal_sessions.owner_label".into(),
-            "Owner User ID (optional)".into(),
-        );
-        m.insert(
-            "pasion.personal_sessions.owner_placeholder".into(),
-            "User ID".into(),
-        );
-        m.insert(
-            "pasion.personal_sessions.revoke_title".into(),
-            "Revoke Token".into(),
-        );
-        m.insert(
-            "pasion.personal_sessions.revoke_description".into(),
-            "Are you sure you want to revoke this access token? This cannot be undone.".into(),
-        );
         m.insert("pasion.personal_sessions.col_scope".into(), "Scope".into());
         m.insert("pasion.personal_sessions.col_owner".into(), "Owner".into());
-        m.insert(
-            "pasion.personal_sessions.col_created".into(),
-            "Created".into(),
-        );
-        m.insert(
-            "pasion.personal_sessions.col_last_active".into(),
-            "Last Active".into(),
-        );
 
         // Pasion OAuth2 sessions
         m.insert(
@@ -745,60 +449,12 @@ impl I18n {
         );
 
         // Pasion upstream providers
-        m.insert(
-            "pasion.upstream_providers.title".into(),
-            "Upstream Providers".into(),
-        );
-        m.insert(
-            "pasion.upstream_providers.description".into(),
-            "OIDC identity providers that Pasion federates with".into(),
-        );
-        m.insert(
-            "pasion.upstream_providers.empty".into(),
-            "No upstream providers configured".into(),
-        );
 
         // Pasion upstream links
-        m.insert(
-            "pasion.upstream_links.title".into(),
-            "Upstream Links".into(),
-        );
-        m.insert(
-            "pasion.upstream_links.description".into(),
-            "User-to-provider bindings for federated OAuth2 accounts".into(),
-        );
-        m.insert(
-            "pasion.upstream_links.empty".into(),
-            "No upstream links found".into(),
-        );
 
         // Pasion notification channels
-        m.insert(
-            "pasion.notification_channels.title".into(),
-            "Notification Channels".into(),
-        );
-        m.insert(
-            "pasion.notification_channels.description".into(),
-            "Status of configured notification delivery channels".into(),
-        );
-        m.insert(
-            "pasion.notification_channels.empty".into(),
-            "No notification channels configured".into(),
-        );
 
         // Pasion notification templates
-        m.insert(
-            "pasion.notification_templates.title".into(),
-            "Notification Templates".into(),
-        );
-        m.insert(
-            "pasion.notification_templates.description".into(),
-            "Email and SMS templates used for outgoing notifications".into(),
-        );
-        m.insert(
-            "pasion.notification_templates.empty".into(),
-            "No notification templates found".into(),
-        );
 
         // Dashboard
         m.insert("dashboard.title".into(), "Dashboard".into());
@@ -808,120 +464,32 @@ impl I18n {
         m.insert("dashboard.total_reports".into(), "Pending Reports".into());
         m.insert("dashboard.active_users".into(), "Active Users".into());
         m.insert("dashboard.api_latency".into(), "API Latency".into());
-        m.insert(
-            "dashboard.supported_versions".into(),
-            "Supported Versions".into(),
-        );
-        m.insert(
-            "dashboard.unstable_features".into(),
-            "Unstable Features".into(),
-        );
 
         // Registration tokens
-        m.insert(
-            "registration_tokens.title".into(),
-            "Registration Tokens".into(),
-        );
         m.insert("registration_tokens.token".into(), "Token".into());
-        m.insert(
-            "registration_tokens.uses_allowed".into(),
-            "Uses Allowed".into(),
-        );
         m.insert("registration_tokens.pending".into(), "Pending".into());
         m.insert("registration_tokens.completed".into(), "Completed".into());
         m.insert("registration_tokens.expiry".into(), "Expiry".into());
         m.insert("registration_tokens.unlimited".into(), "Unlimited".into());
         m.insert("registration_tokens.never".into(), "Never".into());
         m.insert("registration_tokens.create".into(), "Create Token".into());
-        m.insert(
-            "registration_tokens.no_tokens".into(),
-            "No registration tokens".into(),
-        );
-        m.insert(
-            "registration_tokens.subtitle".into(),
-            "Manage registration tokens for user sign-up".into(),
-        );
         m.insert("registration_tokens.actions".into(), "Actions".into());
-        m.insert(
-            "registration_tokens.no_tokens_description".into(),
-            "Create a token to allow new user registrations.".into(),
-        );
         m.insert("registration_tokens.delete".into(), "Delete".into());
-        m.insert(
-            "registration_tokens.delete_token".into(),
-            "Delete Token".into(),
-        );
-        m.insert(
-            "registration_tokens.search_placeholder".into(),
-            "Search tokens...".into(),
-        );
         m.insert("registration_tokens.filter_all".into(), "All".into());
         m.insert("registration_tokens.filter_active".into(), "Active".into());
-        m.insert(
-            "registration_tokens.filter_expired".into(),
-            "Expired".into(),
-        );
-        m.insert(
-            "registration_tokens.create_description".into(),
-            "Create a new registration token with optional constraints.".into(),
-        );
-        m.insert(
-            "registration_tokens.custom_token".into(),
-            "Custom Token Value".into(),
-        );
-        m.insert(
-            "registration_tokens.custom_token_placeholder".into(),
-            "Leave empty for auto-generated".into(),
-        );
-        m.insert(
-            "registration_tokens.custom_token_hint".into(),
-            "Leave empty to auto-generate a 16-character token.".into(),
-        );
 
         // Destinations
         m.insert("destinations.title".into(), "Federation".into());
         m.insert("destinations.destination".into(), "Destination".into());
-        m.insert(
-            "destinations.retry_interval".into(),
-            "Retry Interval".into(),
-        );
         m.insert("destinations.last_failure".into(), "Last Failure".into());
         m.insert("destinations.reset".into(), "Reset Connection".into());
-        m.insert(
-            "destinations.search".into(),
-            "Search destinations...".into(),
-        );
-        m.insert(
-            "destinations.no_destinations".into(),
-            "No federation destinations".into(),
-        );
-        m.insert(
-            "destinations.subtitle".into(),
-            "Remote server destinations".into(),
-        );
         m.insert("destinations.status".into(), "Status".into());
         m.insert("destinations.last_retry".into(), "Last Retry".into());
         m.insert("destinations.actions".into(), "Actions".into());
-        m.insert(
-            "destinations.no_destinations_found".into(),
-            "No destinations found".into(),
-        );
         m.insert("destinations.reset_button".into(), "Reset".into());
         m.insert("destinations.failed".into(), "Failed".into());
         m.insert("destinations.ok".into(), "OK".into());
-        m.insert(
-            "destinations.detail_description".into(),
-            "Federation destination details and retry status".into(),
-        );
-        m.insert(
-            "destinations.connection_info".into(),
-            "Connection Info".into(),
-        );
         m.insert("destinations.retry_info".into(), "Retry Info".into());
-        m.insert(
-            "destinations.last_successful_stream".into(),
-            "Last Successful Stream".into(),
-        );
         m.insert("destinations.status".into(), "Status".into());
 
         // Billing
@@ -934,51 +502,11 @@ impl I18n {
 
         // Server Notices
         m.insert("server_notices.title".into(), "Server Notices".into());
-        m.insert(
-            "server_notices.subtitle".into(),
-            "Send server notices to users.".into(),
-        );
-        m.insert(
-            "server_notices.send_title".into(),
-            "Send Server Notice".into(),
-        );
-        m.insert(
-            "server_notices.broadcast_desc".into(),
-            "Broadcast an administrative notice to all users.".into(),
-        );
-        m.insert(
-            "server_notices.single_desc".into(),
-            "Send an administrative notice to a specific user.".into(),
-        );
         m.insert("server_notices.single_user".into(), "Single User".into());
         m.insert("server_notices.broadcast".into(), "Broadcast to All".into());
         m.insert("server_notices.user_id".into(), "User ID".into());
         m.insert("server_notices.message".into(), "Message".into());
-        m.insert(
-            "server_notices.message_placeholder".into(),
-            "Type your notice message...".into(),
-        );
-        m.insert(
-            "server_notices.broadcast_notice".into(),
-            "Broadcast Notice".into(),
-        );
         m.insert("server_notices.send_notice".into(), "Send Notice".into());
-        m.insert(
-            "server_notices.history_title".into(),
-            "Notice History".into(),
-        );
-        m.insert(
-            "server_notices.history_desc".into(),
-            "Previously sent server notices (stored locally).".into(),
-        );
-        m.insert(
-            "server_notices.clear_history".into(),
-            "Clear History".into(),
-        );
-        m.insert(
-            "server_notices.no_notices".into(),
-            "No notices sent yet.".into(),
-        );
         m.insert("server_notices.user".into(), "User".into());
         m.insert("server_notices.timestamp".into(), "Timestamp".into());
         m.insert("server_notices.event_id".into(), "Event ID".into());
@@ -1001,73 +529,12 @@ impl I18n {
         let mut m = HashMap::new();
 
         // Auth
-        m.insert(
-            "auth.welcome".into(),
-            "\u{6b22}\u{8fce}\u{4f7f}\u{7528} {name}".into(),
-        );
-        m.insert(
-            "auth.base_url".into(),
-            "\u{670d}\u{52a1}\u{5668}\u{5730}\u{5740}".into(),
-        );
-        m.insert(
-            "auth.credentials".into(),
-            "\u{8d26}\u{53f7}\u{5bc6}\u{7801}".into(),
-        );
-        m.insert(
-            "auth.access_token".into(),
-            "\u{8bbf}\u{95ee}\u{4ee4}\u{724c}".into(),
-        );
         m.insert("auth.username".into(), "\u{7528}\u{6237}\u{540d}".into());
         m.insert("auth.password".into(), "\u{5bc6}\u{7801}".into());
         m.insert("auth.sign_in".into(), "\u{767b}\u{5f55}".into());
         m.insert("auth.sign_out".into(), "\u{9000}\u{51fa}".into());
-        m.insert(
-            "auth.sso_sign_in".into(),
-            "\u{4f7f}\u{7528} SSO \u{767b}\u{5f55}".into(),
-        );
-        m.insert(
-            "auth.server_version".into(),
-            "\u{670d}\u{52a1}\u{5668}\u{7248}\u{672c}\u{ff1a}".into(),
-        );
-        m.insert(
-            "auth.supports_specs".into(),
-            "\u{652f}\u{6301}\u{89c4}\u{8303}\u{ff1a}".into(),
-        );
-        m.insert(
-            "auth.protocol_error".into(),
-            "URL \u{5fc5}\u{987b}\u{4ee5} http:// \u{6216} https:// \u{5f00}\u{5934}".into(),
-        );
-        m.insert(
-            "auth.url_error".into(),
-            "\u{4e0d}\u{662f}\u{6709}\u{6548}\u{7684}\u{670d}\u{52a1}\u{5668}\u{5730}\u{5740}"
-                .into(),
-        );
-        m.insert(
-            "auth.fields_required".into(),
-            "\u{8bf7}\u{8f93}\u{5165}\u{7528}\u{6237}\u{540d}\u{548c}\u{5bc6}\u{7801}".into(),
-        );
-        m.insert(
-            "auth.invalid_credentials".into(),
-            "\u{7528}\u{6237}\u{540d}\u{6216}\u{5bc6}\u{7801}\u{9519}\u{8bef}".into(),
-        );
         m.insert("auth.rate_limited".into(), "\u{5c1d}\u{8bd5}\u{6b21}\u{6570}\u{8fc7}\u{591a}\u{ff0c}\u{8bf7}\u{7a0d}\u{540e}\u{518d}\u{8bd5}".into());
-        m.insert(
-            "auth.account_deactivated".into(),
-            "\u{8be5}\u{8d26}\u{6237}\u{5df2}\u{88ab}\u{505c}\u{7528}".into(),
-        );
-        m.insert(
-            "auth.account_locked".into(),
-            "\u{8be5}\u{8d26}\u{6237}\u{5df2}\u{88ab}\u{9501}\u{5b9a}".into(),
-        );
-        m.insert(
-            "auth.username_placeholder".into(),
-            "\u{7528}\u{6237}\u{540d}\u{6216}\u{90ae}\u{7bb1}".into(),
-        );
         m.insert("auth.oauth_hint".into(), "\u{767b}\u{5f55}\u{60a8}\u{7684}\u{8d26}\u{6237}\u{4ee5}\u{8bbf}\u{95ee}\u{7ba1}\u{7406}\u{540e}\u{53f0}".into());
-        m.insert(
-            "auth.processing".into(),
-            "\u{6b63}\u{5728}\u{767b}\u{5f55}...".into(),
-        );
         m.insert("auth.try_again".into(), "\u{91cd}\u{8bd5}".into());
 
         // Navigation
@@ -1085,16 +552,8 @@ impl I18n {
             "nav.server_status".into(),
             "\u{670d}\u{52a1}\u{5668}\u{72b6}\u{6001}".into(),
         );
-        m.insert(
-            "nav.server_actions".into(),
-            "\u{670d}\u{52a1}\u{5668}\u{64cd}\u{4f5c}".into(),
-        );
         m.insert("nav.notifications".into(), "\u{901a}\u{77e5}".into());
         m.insert("nav.billing".into(), "\u{8d26}\u{5355}".into());
-        m.insert(
-            "nav.server_notices".into(),
-            "\u{670d}\u{52a1}\u{5668}\u{901a}\u{77e5}".into(),
-        );
         m.insert("nav.management".into(), "\u{7ba1}\u{7406}".into());
         m.insert("nav.section_identity".into(), "\u{8eab}\u{4efd}".into());
         m.insert("nav.section_moderation".into(), "\u{5ba1}\u{6838}".into());
@@ -1105,10 +564,6 @@ impl I18n {
         m.insert(
             "nav.section_server_ops".into(),
             "\u{670d}\u{52a1}\u{5668}\u{64cd}\u{4f5c}".into(),
-        );
-        m.insert(
-            "nav.section_pasion".into(),
-            "\u{8eab}\u{4efd}\u{63d0}\u{4f9b}\u{8005}".into(),
         );
         m.insert(
             "nav.audit_log".into(),
@@ -1142,56 +597,16 @@ impl I18n {
             "nav.notification_channels".into(),
             "\u{901a}\u{77e5}\u{6e20}\u{9053}".into(),
         );
-        m.insert(
-            "nav.notification_prefs".into(),
-            "\u{901a}\u{77e5}\u{8bbe}\u{7f6e}".into(),
-        );
-        m.insert(
-            "nav.auth_status".into(),
-            "\u{8ba4}\u{8bc1}\u{72b6}\u{6001}".into(),
-        );
         // 应用服务
-        m.insert(
-            "nav.appservices".into(),
-            "\u{5e94}\u{7528}\u{670d}\u{52a1}".into(),
-        );
         m.insert("nav.logout".into(), "\u{9000}\u{51fa}".into());
 
         // Auth Status page
-        m.insert(
-            "auth_status.title".into(),
-            "\u{8ba4}\u{8bc1}\u{72b6}\u{6001}".into(),
-        );
         m.insert("auth_status.subtitle".into(), "\u{59d4}\u{6258}\u{8ba4}\u{8bc1}\u{80fd}\u{529b}\u{548c}\u{767b}\u{5f55}\u{6d41}\u{72b6}\u{6001}".into());
-        m.insert(
-            "auth_status.server_info".into(),
-            "\u{670d}\u{52a1}\u{5668}\u{8fde}\u{63a5}".into(),
-        );
         m.insert("auth_status.base_url".into(), "\u{57fa}\u{7840} URL".into());
-        m.insert(
-            "auth_status.server_version".into(),
-            "\u{670d}\u{52a1}\u{5668}\u{7248}\u{672c}".into(),
-        );
-        m.insert(
-            "auth_status.auth_capabilities".into(),
-            "\u{8ba4}\u{8bc1}\u{80fd}\u{529b}".into(),
-        );
         m.insert("auth_status.auth_capabilities_desc".into(), "\u{6b64}\u{670d}\u{52a1}\u{5668}\u{652f}\u{6301}\u{7684}\u{767b}\u{5f55}\u{65b9}\u{5f0f}".into());
-        m.insert(
-            "auth_status.login_flows".into(),
-            "\u{767b}\u{5f55}\u{6d41}".into(),
-        );
         m.insert("auth_status.no_password_warning".into(), "\u{6b64}\u{670d}\u{52a1}\u{5668}\u{4e0d}\u{652f}\u{6301}\u{5bc6}\u{7801}\u{767b}\u{5f55}\u{3002}\u{7528}\u{6237}\u{5fc5}\u{987b}\u{901a}\u{8fc7} SSO \u{6216}\u{8bbf}\u{95ee}\u{4ee4}\u{724c}\u{8fdb}\u{884c}\u{8eab}\u{4efd}\u{9a8c}\u{8bc1}\u{3002}".into());
         m.insert("auth_status.sso_only_hint".into(), "\u{6b64}\u{670d}\u{52a1}\u{5668}\u{914d}\u{7f6e}\u{4e3a}\u{4ec5} SSO \u{8ba4}\u{8bc1}\u{3002}\u{7ba1}\u{7406}\u{5458}\u{8bbf}\u{95ee}\u{9700}\u{8981}\u{8bbf}\u{95ee}\u{4ee4}\u{724c}\u{6216} SSO \u{4f1a}\u{8bdd}\u{3002}".into());
-        m.insert(
-            "auth_status.diagnostics_title".into(),
-            "\u{59d4}\u{6258}\u{8ba4}\u{8bc1}\u{8bca}\u{65ad}".into(),
-        );
         m.insert("auth_status.diagnostics_desc".into(), "\u{68c0}\u{67e5} OIDC/MAS \u{53d1}\u{884c}\u{8005}\u{53d1}\u{73b0}\u{3001}\u{7aef}\u{70b9}\u{53ef}\u{7528}\u{6027}\u{3001}DCR \u{652f}\u{6301}\u{548c}\u{4f5c}\u{7528}\u{57df}\u{914d}\u{7f6e}".into());
-        m.insert(
-            "auth_status.dev_diagnostics_title".into(),
-            "\u{5f00}\u{53d1}\u{8bca}\u{65ad}".into(),
-        );
         m.insert("auth_status.dev_diagnostics_desc".into(), "\u{63a2}\u{6d4b} MAS/Pasion \u{7aef}\u{70b9}\u{4ee5}\u{8c03}\u{8bd5}\u{6ce8}\u{518c}\u{3001}\u{540c}\u{610f}\u{548c} well-known \u{53d1}\u{73b0}".into());
         m.insert("nav.palpo_admin".into(), "Palpo Admin".into());
         m.insert("nav.server".into(), "\u{670d}\u{52a1}\u{5668}".into());
@@ -1226,20 +641,8 @@ impl I18n {
             "\u{670d}\u{52a1}\u{5668}\u{5728}\u{7ebf}".into(),
         );
         m.insert(
-            "dashboard.total_registered_users".into(),
-            "\u{6ce8}\u{518c}\u{7528}\u{6237}\u{603b}\u{6570}".into(),
-        );
-        m.insert(
-            "dashboard.total_rooms_on_server".into(),
-            "\u{670d}\u{52a1}\u{5668}\u{623f}\u{95f4}\u{603b}\u{6570}".into(),
-        );
-        m.insert(
             "dashboard.pending_reports".into(),
             "\u{5f85}\u{5904}\u{7406}\u{4e3e}\u{62a5}".into(),
-        );
-        m.insert(
-            "dashboard.non_guest_non_deactivated".into(),
-            "\u{975e}\u{8bbf}\u{5ba2}\u{3001}\u{975e}\u{505c}\u{7528}".into(),
         );
         m.insert(
             "dashboard.avg_api_response".into(),
@@ -1261,197 +664,32 @@ impl I18n {
             "auth.not_admin".into(),
             "\u{8be5}\u{8d26}\u{6237}\u{4e0d}\u{662f}\u{670d}\u{52a1}\u{5668}\u{7ba1}\u{7406}\u{5458}".into(),
         );
-        m.insert(
-            "auth.admin_check_failed".into(),
-            "\u{9a8c}\u{8bc1}\u{7ba1}\u{7406}\u{5458}\u{72b6}\u{6001}\u{5931}\u{8d25}".into(),
-        );
 
         // Users
-        m.insert(
-            "users.title".into(),
-            "\u{7528}\u{6237}\u{7ba1}\u{7406}".into(),
-        );
-        m.insert(
-            "users.subtitle".into(),
-            "\u{7ba1}\u{7406} Matrix \u{7528}\u{6237}".into(),
-        );
-        m.insert(
-            "users.create".into(),
-            "\u{521b}\u{5efa}\u{7528}\u{6237}".into(),
-        );
         m.insert("users.user_id".into(), "\u{7528}\u{6237} ID".into());
-        m.insert(
-            "users.display_name".into(),
-            "\u{663e}\u{793a}\u{540d}\u{79f0}".into(),
-        );
         m.insert("users.admin".into(), "\u{7ba1}\u{7406}\u{5458}".into());
         m.insert("users.status".into(), "\u{72b6}\u{6001}".into());
         m.insert("users.active".into(), "\u{6d3b}\u{8dc3}".into());
-        m.insert(
-            "users.deactivated".into(),
-            "\u{5df2}\u{505c}\u{7528}".into(),
-        );
         m.insert("users.guest".into(), "\u{8bbf}\u{5ba2}".into());
-        m.insert(
-            "users.created".into(),
-            "\u{521b}\u{5efa}\u{65f6}\u{95f4}".into(),
-        );
         m.insert("users.actions".into(), "\u{64cd}\u{4f5c}".into());
-        m.insert(
-            "users.view_details".into(),
-            "\u{67e5}\u{770b}\u{8be6}\u{60c5}".into(),
-        );
         m.insert("users.deactivate".into(), "\u{505c}\u{7528}".into());
-        m.insert(
-            "users.reactivate".into(),
-            "\u{91cd}\u{65b0}\u{6fc0}\u{6d3b}".into(),
-        );
         m.insert("users.delete".into(), "\u{5220}\u{9664}".into());
         m.insert("users.suspend".into(), "\u{6682}\u{505c}".into());
         m.insert("users.erase".into(), "\u{64e6}\u{9664} (GDPR)".into());
-        m.insert(
-            "users.send_notice".into(),
-            "\u{53d1}\u{9001}\u{670d}\u{52a1}\u{5668}\u{901a}\u{77e5}".into(),
-        );
-        m.insert(
-            "users.search".into(),
-            "\u{641c}\u{7d22}\u{7528}\u{6237}...".into(),
-        );
-        m.insert(
-            "users.edit".into(),
-            "\u{7f16}\u{8f91}\u{7528}\u{6237}".into(),
-        );
-        m.insert(
-            "users.reset_password".into(),
-            "\u{91cd}\u{7f6e}\u{5bc6}\u{7801}".into(),
-        );
-        m.insert(
-            "users.shadow_ban".into(),
-            "\u{5f71}\u{5b50}\u{5c01}\u{7981}".into(),
-        );
         m.insert("users.locked".into(), "\u{5df2}\u{9501}\u{5b9a}".into());
         m.insert("users.suspended".into(), "\u{5df2}\u{6682}\u{505c}".into());
-        m.insert(
-            "users.no_users".into(),
-            "\u{672a}\u{627e}\u{5230}\u{7528}\u{6237}".into(),
-        );
         m.insert("users.export_csv".into(), "\u{5bfc}\u{51fa} CSV".into());
         m.insert("users.import_csv".into(), "\u{5bfc}\u{5165} CSV".into());
-        m.insert(
-            "users.create_new".into(),
-            "\u{521b}\u{5efa}\u{65b0}\u{7528}\u{6237}".into(),
-        );
-        m.insert(
-            "users.create_subtitle".into(),
-            "\u{5411} Matrix \u{670d}\u{52a1}\u{5668}\u{6dfb}\u{52a0}\u{65b0}\u{7528}\u{6237}"
-                .into(),
-        );
-        m.insert(
-            "users.password_confirm".into(),
-            "\u{786e}\u{8ba4}\u{5bc6}\u{7801}".into(),
-        );
-        m.insert(
-            "users.admin_privileges".into(),
-            "\u{7ba1}\u{7406}\u{5458}\u{6743}\u{9650}".into(),
-        );
-        m.insert(
-            "users.user_type".into(),
-            "\u{7528}\u{6237}\u{7c7b}\u{578b}".into(),
-        );
         m.insert("users.regular".into(), "\u{666e}\u{901a}".into());
         m.insert("users.bot".into(), "\u{673a}\u{5668}\u{4eba}".into());
         m.insert("users.support".into(), "\u{5ba2}\u{670d}".into());
         m.insert("users.username".into(), "\u{7528}\u{6237}\u{540d}".into());
         m.insert("users.password".into(), "\u{5bc6}\u{7801}".into());
-        m.insert(
-            "users.email_optional".into(),
-            "\u{90ae}\u{7bb1}\u{ff08}\u{53ef}\u{9009}\u{ff09}".into(),
-        );
-        m.insert(
-            "users.phone_optional".into(),
-            "\u{7535}\u{8bdd}\u{ff08}\u{53ef}\u{9009}\u{ff09}".into(),
-        );
-        m.insert(
-            "users.deactivate_selected".into(),
-            "\u{505c}\u{7528}\u{6240}\u{9009}".into(),
-        );
-        m.insert(
-            "users.set_admin".into(),
-            "\u{8bbe}\u{4e3a}\u{7ba1}\u{7406}\u{5458}".into(),
-        );
-        m.insert(
-            "users.exporting".into(),
-            "\u{5bfc}\u{51fa}\u{4e2d}...".into(),
-        );
-        m.insert(
-            "users.import_users".into(),
-            "\u{4ece} CSV \u{5bfc}\u{5165}\u{7528}\u{6237}".into(),
-        );
-        m.insert(
-            "users.cancel_edit".into(),
-            "\u{53d6}\u{6d88}\u{7f16}\u{8f91}".into(),
-        );
-        m.insert(
-            "users.save_changes".into(),
-            "\u{4fdd}\u{5b58}\u{66f4}\u{6539}".into(),
-        );
-        m.insert(
-            "users.user_info".into(),
-            "\u{7528}\u{6237}\u{4fe1}\u{606f}".into(),
-        );
-        m.insert(
-            "users.account_details".into(),
-            "\u{8d26}\u{6237}\u{8be6}\u{60c5}".into(),
-        );
-        m.insert(
-            "users.third_party_ids".into(),
-            "\u{7b2c}\u{4e09}\u{65b9} ID".into(),
-        );
         m.insert("users.overview".into(), "\u{6982}\u{89c8}".into());
         m.insert("users.rooms".into(), "\u{623f}\u{95f4}".into());
         m.insert("users.devices".into(), "\u{8bbe}\u{5907}".into());
         m.insert("users.sessions".into(), "\u{4f1a}\u{8bdd}".into());
-        m.insert(
-            "users.account_data".into(),
-            "\u{8d26}\u{6237}\u{6570}\u{636e}".into(),
-        );
-        m.insert(
-            "users.rate_limits".into(),
-            "\u{901f}\u{7387}\u{9650}\u{5236}".into(),
-        );
         m.insert("users.features".into(), "\u{529f}\u{80fd}".into());
-        m.insert(
-            "users.joined_rooms".into(),
-            "\u{5df2}\u{52a0}\u{5165}\u{7684}\u{623f}\u{95f4}".into(),
-        );
-        m.insert(
-            "users.shadow_banned".into(),
-            "\u{5f71}\u{5b50}\u{5c01}\u{7981}".into(),
-        );
-        m.insert(
-            "users.deactivate_user".into(),
-            "\u{505c}\u{7528}\u{7528}\u{6237}".into(),
-        );
-        m.insert(
-            "users.new_password".into(),
-            "\u{65b0}\u{5bc6}\u{7801}".into(),
-        );
-        m.insert(
-            "users.no_rooms".into(),
-            "\u{7528}\u{6237}\u{672a}\u{52a0}\u{5165}\u{4efb}\u{4f55}\u{623f}\u{95f4}".into(),
-        );
-        m.insert(
-            "users.no_devices".into(),
-            "\u{672a}\u{627e}\u{5230}\u{8bbe}\u{5907}".into(),
-        );
-        m.insert(
-            "users.no_sessions".into(),
-            "\u{672a}\u{627e}\u{5230}\u{6d3b}\u{8dc3}\u{4f1a}\u{8bdd}".into(),
-        );
-        m.insert(
-            "users.revoke_all_sessions".into(),
-            "\u{64a4}\u{9500}\u{6240}\u{6709}\u{4f1a}\u{8bdd}".into(),
-        );
         m.insert("users.remove_threepid".into(), "\u{79fb}\u{9664}".into());
         m.insert("users.verified".into(), "\u{5df2}\u{9a8c}\u{8bc1}".into());
         m.insert("users.unverified".into(), "\u{672a}\u{9a8c}\u{8bc1}".into());
@@ -1461,206 +699,32 @@ impl I18n {
         m.insert("common.rows".into(), "\u{884c}\u{6570}\u{ff1a}".into());
 
         // Rooms
-        m.insert(
-            "rooms.title".into(),
-            "\u{623f}\u{95f4}\u{7ba1}\u{7406}".into(),
-        );
         m.insert("rooms.name".into(), "\u{540d}\u{79f0}".into());
         m.insert("rooms.alias".into(), "\u{522b}\u{540d}".into());
         m.insert("rooms.members".into(), "\u{6210}\u{5458}".into());
         m.insert("rooms.visibility".into(), "\u{53ef}\u{89c1}\u{6027}".into());
         m.insert("rooms.public".into(), "\u{516c}\u{5f00}".into());
         m.insert("rooms.private".into(), "\u{79c1}\u{5bc6}".into());
-        m.insert(
-            "rooms.join_rules".into(),
-            "\u{52a0}\u{5165}\u{89c4}\u{5219}".into(),
-        );
-        m.insert(
-            "rooms.history_visibility".into(),
-            "\u{5386}\u{53f2}\u{53ef}\u{89c1}\u{6027}".into(),
-        );
         m.insert("rooms.encrypted".into(), "\u{5df2}\u{52a0}\u{5bc6}".into());
         m.insert("rooms.topic".into(), "\u{8bdd}\u{9898}".into());
-        m.insert(
-            "rooms.delete".into(),
-            "\u{5220}\u{9664}\u{623f}\u{95f4}".into(),
-        );
-        m.insert(
-            "rooms.block".into(),
-            "\u{5c01}\u{9501}\u{623f}\u{95f4}".into(),
-        );
-        m.insert(
-            "rooms.unblock".into(),
-            "\u{89e3}\u{9664}\u{5c01}\u{9501}".into(),
-        );
-        m.insert(
-            "rooms.purge_history".into(),
-            "\u{6e05}\u{9664}\u{5386}\u{53f2}".into(),
-        );
-        m.insert(
-            "rooms.create".into(),
-            "\u{521b}\u{5efa}\u{623f}\u{95f4}".into(),
-        );
-        m.insert(
-            "rooms.search".into(),
-            "\u{641c}\u{7d22}\u{623f}\u{95f4}...".into(),
-        );
-        m.insert(
-            "rooms.no_rooms".into(),
-            "\u{672a}\u{627e}\u{5230}\u{623f}\u{95f4}".into(),
-        );
         m.insert("rooms.messages".into(), "\u{6d88}\u{606f}".into());
-        m.insert(
-            "rooms.state_events".into(),
-            "\u{72b6}\u{6001}\u{4e8b}\u{4ef6}".into(),
-        );
-        m.insert(
-            "rooms.hierarchy".into(),
-            "\u{5c42}\u{7ea7}\u{7ed3}\u{6784}".into(),
-        );
-        m.insert(
-            "rooms.aliases".into(),
-            "\u{522b}\u{540d}\u{5217}\u{8868}".into(),
-        );
-        m.insert(
-            "rooms.subtitle".into(),
-            "\u{7ba1}\u{7406} Matrix \u{623f}\u{95f4}".into(),
-        );
-        m.insert(
-            "rooms.search_placeholder".into(),
-            "\u{6309}\u{540d}\u{79f0}\u{6216}\u{522b}\u{540d}\u{641c}\u{7d22}\u{623f}\u{95f4}..."
-                .into(),
-        );
         m.insert("rooms.sort".into(), "\u{6392}\u{5e8f}\u{ff1a}".into());
         m.insert("rooms.all".into(), "\u{5168}\u{90e8}".into());
         m.insert("rooms.no_rooms_description".into(), "\u{6ca1}\u{6709}\u{7b26}\u{5408}\u{641c}\u{7d22}\u{6761}\u{4ef6}\u{7684}\u{623f}\u{95f4}".into());
-        m.insert(
-            "rooms.delete_selected".into(),
-            "\u{5220}\u{9664}\u{6240}\u{9009}".into(),
-        );
-        m.insert(
-            "rooms.block_selected".into(),
-            "\u{5c01}\u{9501}\u{6240}\u{9009}".into(),
-        );
         m.insert("rooms.overview".into(), "\u{6982}\u{89c8}".into());
-        m.insert(
-            "rooms.room_information".into(),
-            "\u{623f}\u{95f4}\u{4fe1}\u{606f}".into(),
-        );
-        m.insert(
-            "rooms.room_settings".into(),
-            "\u{623f}\u{95f4}\u{8bbe}\u{7f6e}".into(),
-        );
         m.insert("rooms.room_id".into(), "Space ID".into());
-        m.insert(
-            "rooms.canonical_alias".into(),
-            "\u{89c4}\u{8303}\u{522b}\u{540d}".into(),
-        );
-        m.insert(
-            "rooms.room_type".into(),
-            "Space \u{7c7b}\u{578b}".into(),
-        );
         m.insert("rooms.space".into(), "\u{7a7a}\u{95f4}".into());
         m.insert("rooms.blocked".into(), "\u{5df2}\u{5c01}\u{9501}".into());
-        m.insert(
-            "rooms.other_aliases".into(),
-            "\u{5176}\u{4ed6}\u{522b}\u{540d}".into(),
-        );
-        m.insert(
-            "rooms.no_aliases".into(),
-            "\u{672a}\u{627e}\u{5230}\u{5176}\u{4ed6}\u{522b}\u{540d}".into(),
-        );
-        m.insert(
-            "rooms.no_members".into(),
-            "\u{672a}\u{627e}\u{5230}\u{6210}\u{5458}".into(),
-        );
-        m.insert(
-            "rooms.no_messages".into(),
-            "\u{672a}\u{627e}\u{5230}\u{6d88}\u{606f}".into(),
-        );
-        m.insert(
-            "rooms.no_state_events".into(),
-            "\u{6ca1}\u{6709}\u{72b6}\u{6001}\u{4e8b}\u{4ef6}".into(),
-        );
-        m.insert(
-            "rooms.space_hierarchy".into(),
-            "\u{7a7a}\u{95f4}\u{5c42}\u{7ea7}".into(),
-        );
         m.insert("rooms.space_hierarchy_desc".into(), "\u{6b64}\u{7a7a}\u{95f4}\u{4e2d}\u{7684}\u{5b50}\u{623f}\u{95f4}\u{548c}\u{5b50}\u{7a7a}\u{95f4}".into());
-        m.insert(
-            "rooms.no_children".into(),
-            "\u{672a}\u{627e}\u{5230}\u{5b50} Space\u{3002}".into(),
-        );
-        m.insert(
-            "rooms.room_name".into(),
-            "Space \u{540d}\u{79f0} *".into(),
-        );
-        m.insert(
-            "rooms.topic_placeholder".into(),
-            "\u{623f}\u{95f4}\u{8bdd}\u{9898}\u{ff08}\u{53ef}\u{9009}\u{ff09}".into(),
-        );
-        m.insert(
-            "rooms.create_description".into(),
-            "\u{521b}\u{5efa}\u{65b0}\u{7684} Matrix \u{623f}\u{95f4}".into(),
-        );
         m.insert("rooms.create_button".into(), "\u{521b}\u{5efa}".into());
-        m.insert(
-            "rooms.purge_title".into(),
-            "\u{6e05}\u{9664}\u{623f}\u{95f4}\u{5386}\u{53f2}".into(),
-        );
         m.insert("rooms.purge_description".into(), "\u{5220}\u{9664}\u{6307}\u{5b9a}\u{65e5}\u{671f}\u{4e4b}\u{524d}\u{7684}\u{6240}\u{6709}\u{6d88}\u{606f}\u{3002}\u{6b64}\u{64cd}\u{4f5c}\u{4e0d}\u{53ef}\u{64a4}\u{9500}\u{3002}".into());
-        m.insert(
-            "rooms.purge_before".into(),
-            "\u{5220}\u{9664}\u{6b64}\u{65e5}\u{671f}\u{4e4b}\u{524d}\u{7684}\u{6d88}\u{606f}"
-                .into(),
-        );
         m.insert("rooms.purge_warning".into(), "\u{8b66}\u{544a}\u{ff1a}\u{8fd9}\u{5c06}\u{6c38}\u{4e45}\u{5220}\u{9664}\u{6240}\u{9009}\u{65e5}\u{671f}\u{4e4b}\u{524d}\u{7684}\u{6240}\u{6709}\u{6d88}\u{606f}\u{3002}".into());
         m.insert("rooms.delete_confirm".into(), "\u{786e}\u{5b9a}\u{8981}\u{5220}\u{9664}\u{6b64}\u{623f}\u{95f4}\u{5417}\u{ff1f}\u{6240}\u{6709}\u{6d88}\u{606f}\u{548c}\u{5a92}\u{4f53}\u{5c06}\u{88ab}\u{6c38}\u{4e45}\u{5220}\u{9664}\u{3002}\u{6b64}\u{64cd}\u{4f5c}\u{4e0d}\u{53ef}\u{64a4}\u{9500}\u{3002}".into());
-        m.insert(
-            "rooms.created".into(),
-            "\u{521b}\u{5efa}\u{65f6}\u{95f4}".into(),
-        );
         m.insert("rooms.kick".into(), "\u{8e22}\u{51fa}".into());
-        m.insert(
-            "rooms.unban".into(),
-            "\u{89e3}\u{9664}\u{5c01}\u{7981}".into(),
-        );
         m.insert("rooms.invite".into(), "\u{9080}\u{8bf7}".into());
-        m.insert(
-            "rooms.promote".into(),
-            "\u{8bbe}\u{4e3a}\u{7ba1}\u{7406}\u{5458}".into(),
-        );
-        m.insert(
-            "rooms.invite_user_id".into(),
-            "\u{8981}\u{9080}\u{8bf7}\u{7684}\u{7528}\u{6237} ID".into(),
-        );
-        m.insert(
-            "rooms.edit_room".into(),
-            "\u{7f16}\u{8f91}\u{623f}\u{95f4}".into(),
-        );
-        m.insert(
-            "rooms.save_changes".into(),
-            "\u{4fdd}\u{5b58}\u{66f4}\u{6539}".into(),
-        );
-        m.insert(
-            "rooms.add_alias".into(),
-            "\u{6dfb}\u{52a0}\u{522b}\u{540d}".into(),
-        );
         m.insert("rooms.delete_alias".into(), "\u{5220}\u{9664}".into());
         m.insert("rooms.new_alias".into(), "\u{65b0}\u{522b}\u{540d}".into());
         m.insert("rooms.forward_extremities".into(), "前向极端事件".into());
-        m.insert(
-            "rooms.forward_extremities_desc".into(),
-            "前向极端事件是房间 DAG 中的叶子事件。多个极端事件可能表示碎片化。".into(),
-        );
-        m.insert(
-            "rooms.no_forward_extremities".into(),
-            "没有找到前向极端事件。".into(),
-        );
-        m.insert(
-            "rooms.forward_extremities_warning".into(),
-            "警告：检测到多个前向极端事件。这可能表示 DAG 碎片化，可能影响性能。".into(),
-        );
         m.insert("rooms.count".into(), "数量".into());
         m.insert("rooms.directory_listing".into(), "目录列表".into());
         m.insert("rooms.published".into(), "已发布".into());
@@ -1668,10 +732,6 @@ impl I18n {
         m.insert("rooms.publish".into(), "发布".into());
         m.insert("rooms.unpublish".into(), "取消发布".into());
         m.insert("rooms.event_lookup".into(), "事件查找".into());
-        m.insert(
-            "rooms.event_lookup_desc".into(),
-            "通过事件 ID 查找任意事件。".into(),
-        );
         m.insert("rooms.lookup".into(), "查找".into());
 
         // Reports
@@ -1681,37 +741,9 @@ impl I18n {
         );
         m.insert("reports.reporter".into(), "\u{4e3e}\u{62a5}\u{8005}".into());
         m.insert("reports.reason".into(), "\u{539f}\u{56e0}".into());
-        m.insert(
-            "reports.received".into(),
-            "\u{63a5}\u{6536}\u{65f6}\u{95f4}".into(),
-        );
         m.insert("reports.status".into(), "\u{72b6}\u{6001}".into());
         m.insert("reports.new".into(), "\u{65b0}\u{4e3e}\u{62a5}".into());
-        m.insert(
-            "reports.in_review".into(),
-            "\u{5ba1}\u{6838}\u{4e2d}".into(),
-        );
         m.insert("reports.resolved".into(), "\u{5df2}\u{89e3}\u{51b3}".into());
-        m.insert(
-            "reports.status_local_only".into(),
-            "\u{4ec5}\u{4fdd}\u{5b58}\u{5728}\u{5f53}\u{524d}\u{6d4f}\u{89c8}\u{5668}".into(),
-        );
-        m.insert(
-            "reports.redact".into(),
-            "\u{64a4}\u{56de}\u{4e8b}\u{4ef6}".into(),
-        );
-        m.insert(
-            "reports.ban_user".into(),
-            "\u{5c01}\u{7981}\u{7528}\u{6237}".into(),
-        );
-        m.insert(
-            "reports.block_room".into(),
-            "\u{5c01}\u{9501} Space".into(),
-        );
-        m.insert(
-            "reports.moderation_actions".into(),
-            "\u{5ba1}\u{6838}\u{64cd}\u{4f5c}".into(),
-        );
         m.insert(
             "reports.delete_report".into(),
             "\u{5220}\u{9664}\u{4e3e}\u{62a5}".into(),
@@ -1731,22 +763,10 @@ impl I18n {
             "reports.report_details".into(),
             "\u{4e3e}\u{62a5}\u{8be6}\u{60c5}".into(),
         );
-        m.insert(
-            "reports.reporter_user_id".into(),
-            "\u{62a5}\u{544a}\u{4eba} Actor ID".into(),
-        );
         m.insert("reports.room_id".into(), "Space ID".into());
         m.insert("reports.event_id".into(), "\u{4e8b}\u{4ef6} ID".into());
         m.insert("reports.sender".into(), "\u{53d1}\u{9001}\u{8005}".into());
         m.insert("reports.score".into(), "\u{8bc4}\u{5206}".into());
-        m.insert(
-            "reports.event_content".into(),
-            "\u{88ab}\u{4e3e}\u{62a5}\u{7684}\u{4e8b}\u{4ef6}\u{5185}\u{5bb9}".into(),
-        );
-        m.insert(
-            "reports.no_event_content".into(),
-            "\u{6ca1}\u{6709}\u{53ef}\u{7528}\u{7684}\u{4e8b}\u{4ef6}\u{5185}\u{5bb9}".into(),
-        );
 
         // Media
         m.insert(
@@ -1754,21 +774,9 @@ impl I18n {
             "\u{5a92}\u{4f53}\u{7ba1}\u{7406}".into(),
         );
         m.insert("media.user_id".into(), "\u{7528}\u{6237} ID".into());
-        m.insert(
-            "media.media_count".into(),
-            "\u{5a92}\u{4f53}\u{6570}\u{91cf}".into(),
-        );
         m.insert("media.total_size".into(), "\u{603b}\u{5927}\u{5c0f}".into());
         m.insert("media.actions".into(), "\u{64cd}\u{4f5c}".into());
         m.insert("media.quarantine".into(), "\u{9694}\u{79bb}".into());
-        m.insert(
-            "media.delete_local".into(),
-            "\u{5220}\u{9664}\u{672c}\u{5730}\u{5a92}\u{4f53}".into(),
-        );
-        m.insert(
-            "media.purge_remote".into(),
-            "\u{6e05}\u{9664}\u{8fdc}\u{7a0b}\u{5a92}\u{4f53}".into(),
-        );
         m.insert(
             "media.search".into(),
             "\u{641c}\u{7d22}\u{7528}\u{6237}...".into(),
@@ -1792,37 +800,9 @@ impl I18n {
             "server.features".into(),
             "\u{670d}\u{52a1}\u{5668}\u{529f}\u{80fd}".into(),
         );
-        m.insert(
-            "server.status".into(),
-            "\u{670d}\u{52a1}\u{5668}\u{72b6}\u{6001}".into(),
-        );
         m.insert("server.online".into(), "\u{5728}\u{7ebf}".into());
         m.insert("server.healthy".into(), "\u{5065}\u{5eb7}".into());
-        m.insert(
-            "server.issues_detected".into(),
-            "\u{68c0}\u{6d4b}\u{5230}\u{95ee}\u{9898}".into(),
-        );
-        m.insert(
-            "server.maintenance_mode".into(),
-            "\u{7ef4}\u{62a4}\u{6a21}\u{5f0f}".into(),
-        );
-        m.insert(
-            "server.actions".into(),
-            "\u{670d}\u{52a1}\u{5668}\u{64cd}\u{4f5c}".into(),
-        );
         m.insert("server.notifications".into(), "\u{901a}\u{77e5}".into());
-        m.insert(
-            "server.clear_all".into(),
-            "\u{6e05}\u{9664}\u{5168}\u{90e8}".into(),
-        );
-        m.insert(
-            "server.no_notifications".into(),
-            "\u{6682}\u{65e0}\u{901a}\u{77e5}".into(),
-        );
-        m.insert(
-            "server.command_running".into(),
-            "\u{6b63}\u{5728}\u{6267}\u{884c}\u{547d}\u{4ee4}".into(),
-        );
 
         // Common
         m.insert("common.save".into(), "\u{4fdd}\u{5b58}".into());
@@ -1836,10 +816,6 @@ impl I18n {
         );
         m.insert("common.error".into(), "\u{9519}\u{8bef}".into());
         m.insert("common.success".into(), "\u{6210}\u{529f}".into());
-        m.insert(
-            "common.no_results".into(),
-            "\u{672a}\u{627e}\u{5230}\u{7ed3}\u{679c}".into(),
-        );
         m.insert("common.yes".into(), "\u{662f}".into());
         m.insert("common.no".into(), "\u{5426}".into());
         m.insert("common.previous".into(), "\u{4e0a}\u{4e00}\u{9875}".into());
@@ -1849,17 +825,9 @@ impl I18n {
         m.insert("common.edit".into(), "\u{7f16}\u{8f91}".into());
         m.insert("common.view".into(), "\u{67e5}\u{770b}".into());
         m.insert("common.selected".into(), "\u{5df2}\u{9009}\u{62e9}".into());
-        m.insert(
-            "common.clear_selection".into(),
-            "\u{6e05}\u{9664}\u{9009}\u{62e9}".into(),
-        );
         m.insert("common.columns".into(), "\u{5217}".into());
         // 刷新 / 加载更多 / 显示 / 隐藏 / 关闭提示 / 复制 / 创建 / 状态 / 名称 / 操作 / 失败
         m.insert("common.refresh".into(), "\u{5237}\u{65b0}".into());
-        m.insert(
-            "common.load_more".into(),
-            "\u{52a0}\u{8f7d}\u{66f4}\u{591a}".into(),
-        );
         m.insert("common.show".into(), "\u{663e}\u{793a}".into());
         m.insert("common.hide".into(), "\u{9690}\u{85cf}".into());
         m.insert("common.dismiss".into(), "\u{5173}\u{95ed}".into());
@@ -1872,178 +840,14 @@ impl I18n {
 
         // Pasion 共享 —— 状态标签
         m.insert("pasion.status_active".into(), "\u{6d3b}\u{8dc3}".into());
-        m.insert(
-            "pasion.status_revoked".into(),
-            "\u{5df2}\u{64a4}\u{9500}".into(),
-        );
         m.insert("pasion.status_healthy".into(), "\u{5065}\u{5eb7}".into());
         m.insert("pasion.status_degraded".into(), "\u{964d}\u{7ea7}".into());
-        m.insert(
-            "pasion.status_unhealthy".into(),
-            "\u{4e0d}\u{5065}\u{5eb7}".into(),
-        );
-        m.insert(
-            "pasion.status_down".into(),
-            "\u{5df2}\u{5173}\u{95ed}".into(),
-        );
 
         // Pasion 审计日志
-        m.insert(
-            "pasion.audit_log.title".into(),
-            "\u{5ba1}\u{8ba1}\u{65e5}\u{5fd7}".into(),
-        );
-        m.insert(
-            "pasion.audit_log.description".into(),
-            "\u{8ffd}\u{8e2a}\u{7ba1}\u{7406}\u{64cd}\u{4f5c}\u{4e0e}\u{53d8}\u{66f4}".into(),
-        );
-        m.insert(
-            "pasion.audit_log.filter_placeholder".into(),
-            "\u{6309}\u{64cd}\u{4f5c}\u{7b5b}\u{9009}...".into(),
-        );
-        m.insert(
-            "pasion.audit_log.empty".into(),
-            "\u{6682}\u{65e0}\u{5ba1}\u{8ba1}\u{8bb0}\u{5f55}".into(),
-        );
-        m.insert(
-            "pasion.audit_log.load_more_failed".into(),
-            "\u{52a0}\u{8f7d}\u{66f4}\u{591a}\u{5931}\u{8d25}\u{ff1a}".into(),
-        );
-        m.insert(
-            "pasion.audit_log.col_timestamp".into(),
-            "\u{65f6}\u{95f4}".into(),
-        );
-        m.insert(
-            "pasion.audit_log.col_operation".into(),
-            "\u{64cd}\u{4f5c}".into(),
-        );
-        m.insert(
-            "pasion.audit_log.col_admin".into(),
-            "\u{7ba1}\u{7406}\u{5458}".into(),
-        );
-        m.insert(
-            "pasion.audit_log.col_resource".into(),
-            "\u{8d44}\u{6e90}".into(),
-        );
-        m.insert(
-            "pasion.audit_log.col_ip".into(),
-            "IP \u{5730}\u{5740}".into(),
-        );
-        m.insert(
-            "pasion.audit_log.col_detail".into(),
-            "\u{8be6}\u{60c5}".into(),
-        );
 
         // Pasion 连接器健康
-        m.insert(
-            "pasion.connector_health.title".into(),
-            "\u{8fde}\u{63a5}\u{5668}\u{5065}\u{5eb7}".into(),
-        );
-        m.insert(
-            "pasion.connector_health.description".into(),
-            "\u{540e}\u{7aef}\u{670d}\u{52a1}\u{8fde}\u{63a5}\u{5668}\u{72b6}\u{6001}".into(),
-        );
-        m.insert(
-            "pasion.connector_health.empty".into(),
-            "\u{6682}\u{65e0}\u{8fde}\u{63a5}\u{5668}\u{5065}\u{5eb7}\u{6570}\u{636e}".into(),
-        );
-        m.insert(
-            "pasion.connector_health.homeserver".into(),
-            "\u{4e3b}\u{670d}\u{52a1}\u{5668}".into(),
-        );
 
         // Pasion 个人访问令牌
-        m.insert(
-            "pasion.personal_sessions.title".into(),
-            "\u{4e2a}\u{4eba}\u{8bbf}\u{95ee}\u{4ee4}\u{724c}".into(),
-        );
-        m.insert(
-            "pasion.personal_sessions.description".into(),
-            "\u{7ba1}\u{7406}\u{4e2a}\u{4eba}\u{8bbf}\u{95ee}\u{4f7f}\u{7528}\u{7684} API \u{4ee4}\u{724c}".into(),
-        );
-        m.insert(
-            "pasion.personal_sessions.create".into(),
-            "\u{521b}\u{5efa}\u{4ee4}\u{724c}".into(),
-        );
-        m.insert(
-            "pasion.personal_sessions.empty".into(),
-            "\u{6682}\u{65e0}\u{4e2a}\u{4eba}\u{8bbf}\u{95ee}\u{4ee4}\u{724c}".into(),
-        );
-        m.insert(
-            "pasion.personal_sessions.new_token_warning".into(),
-            "\u{65b0}\u{4ee4}\u{724c}\u{5df2}\u{751f}\u{6210} —— \u{8bf7}\u{7acb}\u{523b}\u{590d}\u{5236}\u{ff0c}\u{7a0d}\u{540e}\u{5c06}\u{4e0d}\u{4f1a}\u{518d}\u{663e}\u{793a}\u{ff01}".into(),
-        );
-        m.insert(
-            "pasion.personal_sessions.copy_success".into(),
-            "\u{4ee4}\u{724c}\u{5df2}\u{590d}\u{5236}\u{5230}\u{526a}\u{8d34}\u{677f}".into(),
-        );
-        m.insert(
-            "pasion.personal_sessions.created_success".into(),
-            "\u{4e2a}\u{4eba}\u{8bbf}\u{95ee}\u{4ee4}\u{724c}\u{5df2}\u{521b}\u{5efa}".into(),
-        );
-        m.insert(
-            "pasion.personal_sessions.regenerated_success".into(),
-            "\u{4ee4}\u{724c}\u{5df2}\u{91cd}\u{65b0}\u{751f}\u{6210}".into(),
-        );
-        m.insert(
-            "pasion.personal_sessions.revoked_success".into(),
-            "\u{4ee4}\u{724c}\u{5df2}\u{64a4}\u{9500}".into(),
-        );
-        m.insert(
-            "pasion.personal_sessions.regenerate".into(),
-            "\u{91cd}\u{65b0}\u{751f}\u{6210}".into(),
-        );
-        m.insert(
-            "pasion.personal_sessions.revoke".into(),
-            "\u{64a4}\u{9500}".into(),
-        );
-        m.insert(
-            "pasion.personal_sessions.create_title".into(),
-            "\u{521b}\u{5efa}\u{4e2a}\u{4eba}\u{8bbf}\u{95ee}\u{4ee4}\u{724c}".into(),
-        );
-        m.insert(
-            "pasion.personal_sessions.name_placeholder".into(),
-            "\u{4ee4}\u{724c}\u{540d}\u{79f0}\u{ff08}\u{53ef}\u{9009}\u{ff09}".into(),
-        );
-        m.insert(
-            "pasion.personal_sessions.scope_label".into(),
-            "\u{4f5c}\u{7528}\u{57df}".into(),
-        );
-        m.insert(
-            "pasion.personal_sessions.scope_placeholder".into(),
-            "\u{4f8b}\u{5982} read write".into(),
-        );
-        m.insert(
-            "pasion.personal_sessions.owner_label".into(),
-            "\u{6240}\u{6709}\u{8005}\u{7528}\u{6237} ID\u{ff08}\u{53ef}\u{9009}\u{ff09}".into(),
-        );
-        m.insert(
-            "pasion.personal_sessions.owner_placeholder".into(),
-            "\u{7528}\u{6237} ID".into(),
-        );
-        m.insert(
-            "pasion.personal_sessions.revoke_title".into(),
-            "\u{64a4}\u{9500}\u{4ee4}\u{724c}".into(),
-        );
-        m.insert(
-            "pasion.personal_sessions.revoke_description".into(),
-            "\u{786e}\u{8ba4}\u{8981}\u{64a4}\u{9500}\u{6b64}\u{8bbf}\u{95ee}\u{4ee4}\u{724c}\u{5417}\u{ff1f}\u{6b64}\u{64cd}\u{4f5c}\u{65e0}\u{6cd5}\u{64a4}\u{9500}\u{3002}".into(),
-        );
-        m.insert(
-            "pasion.personal_sessions.col_scope".into(),
-            "\u{4f5c}\u{7528}\u{57df}".into(),
-        );
-        m.insert(
-            "pasion.personal_sessions.col_owner".into(),
-            "\u{6240}\u{6709}\u{8005}".into(),
-        );
-        m.insert(
-            "pasion.personal_sessions.col_created".into(),
-            "\u{521b}\u{5efa}\u{65f6}\u{95f4}".into(),
-        );
-        m.insert(
-            "pasion.personal_sessions.col_last_active".into(),
-            "\u{6700}\u{8fd1}\u{6d3b}\u{52a8}".into(),
-        );
 
         // Pasion OAuth2 会话
         m.insert(
@@ -2076,78 +880,18 @@ impl I18n {
         );
 
         // Pasion 上游提供者
-        m.insert(
-            "pasion.upstream_providers.title".into(),
-            "\u{4e0a}\u{6e38}\u{63d0}\u{4f9b}\u{8005}".into(),
-        );
-        m.insert(
-            "pasion.upstream_providers.description".into(),
-            "Pasion \u{5bf9}\u{63a5}\u{7684} OIDC \u{8eab}\u{4efd}\u{63d0}\u{4f9b}\u{8005}".into(),
-        );
-        m.insert(
-            "pasion.upstream_providers.empty".into(),
-            "\u{6682}\u{672a}\u{914d}\u{7f6e}\u{4e0a}\u{6e38}\u{63d0}\u{4f9b}\u{8005}".into(),
-        );
 
         // Pasion 上游绑定
-        m.insert(
-            "pasion.upstream_links.title".into(),
-            "\u{4e0a}\u{6e38}\u{7ed1}\u{5b9a}".into(),
-        );
-        m.insert(
-            "pasion.upstream_links.description".into(),
-            "\u{7528}\u{6237}\u{4e0e}\u{4e0a}\u{6e38}\u{63d0}\u{4f9b}\u{8005}\u{7684}\u{8054}\u{5408}\u{767b}\u{5f55}\u{7ed1}\u{5b9a}".into(),
-        );
-        m.insert(
-            "pasion.upstream_links.empty".into(),
-            "\u{6682}\u{65e0}\u{4e0a}\u{6e38}\u{7ed1}\u{5b9a}".into(),
-        );
 
         // Pasion 通知渠道
-        m.insert(
-            "pasion.notification_channels.title".into(),
-            "\u{901a}\u{77e5}\u{6e20}\u{9053}".into(),
-        );
-        m.insert(
-            "pasion.notification_channels.description".into(),
-            "\u{5df2}\u{914d}\u{7f6e}\u{7684}\u{901a}\u{77e5}\u{6295}\u{9012}\u{6e20}\u{9053}\u{72b6}\u{6001}".into(),
-        );
-        m.insert(
-            "pasion.notification_channels.empty".into(),
-            "\u{6682}\u{672a}\u{914d}\u{7f6e}\u{901a}\u{77e5}\u{6e20}\u{9053}".into(),
-        );
 
         // Pasion 通知模板
-        m.insert(
-            "pasion.notification_templates.title".into(),
-            "\u{901a}\u{77e5}\u{6a21}\u{677f}".into(),
-        );
-        m.insert(
-            "pasion.notification_templates.description".into(),
-            "\u{7528}\u{4e8e}\u{53d1}\u{9001}\u{901a}\u{77e5}\u{7684}\u{90ae}\u{4ef6}\u{548c}\u{77ed}\u{4fe1}\u{6a21}\u{677f}".into(),
-        );
-        m.insert(
-            "pasion.notification_templates.empty".into(),
-            "\u{6682}\u{65e0}\u{901a}\u{77e5}\u{6a21}\u{677f}".into(),
-        );
 
         // Dashboard
         m.insert("dashboard.title".into(), "\u{4eea}\u{8868}\u{76d8}".into());
         m.insert(
             "dashboard.welcome".into(),
             "\u{6b22}\u{8fce}\u{4f7f}\u{7528} Palpo Admin".into(),
-        );
-        m.insert(
-            "dashboard.total_users".into(),
-            "\u{7528}\u{6237}\u{603b}\u{6570}".into(),
-        );
-        m.insert(
-            "dashboard.total_rooms".into(),
-            "\u{623f}\u{95f4}\u{603b}\u{6570}".into(),
-        );
-        m.insert(
-            "dashboard.total_reports".into(),
-            "\u{5f85}\u{5904}\u{7406}\u{4e3e}\u{62a5}".into(),
         );
         m.insert(
             "dashboard.active_users".into(),
@@ -2157,242 +901,32 @@ impl I18n {
             "dashboard.api_latency".into(),
             "API \u{5ef6}\u{8fdf}".into(),
         );
-        m.insert(
-            "dashboard.supported_versions".into(),
-            "\u{652f}\u{6301}\u{7684}\u{7248}\u{672c}".into(),
-        );
-        m.insert(
-            "dashboard.unstable_features".into(),
-            "\u{5b9e}\u{9a8c}\u{6027}\u{529f}\u{80fd}".into(),
-        );
 
         // Registration tokens
-        m.insert(
-            "registration_tokens.title".into(),
-            "\u{6ce8}\u{518c}\u{4ee4}\u{724c}".into(),
-        );
-        m.insert(
-            "registration_tokens.token".into(),
-            "\u{4ee4}\u{724c}".into(),
-        );
-        m.insert(
-            "registration_tokens.uses_allowed".into(),
-            "\u{5141}\u{8bb8}\u{4f7f}\u{7528}\u{6b21}\u{6570}".into(),
-        );
-        m.insert(
-            "registration_tokens.pending".into(),
-            "\u{5f85}\u{4f7f}\u{7528}".into(),
-        );
-        m.insert(
-            "registration_tokens.completed".into(),
-            "\u{5df2}\u{4f7f}\u{7528}".into(),
-        );
-        m.insert(
-            "registration_tokens.expiry".into(),
-            "\u{8fc7}\u{671f}\u{65f6}\u{95f4}".into(),
-        );
-        m.insert(
-            "registration_tokens.unlimited".into(),
-            "\u{65e0}\u{9650}\u{5236}".into(),
-        );
-        m.insert(
-            "registration_tokens.never".into(),
-            "\u{6c38}\u{4e0d}".into(),
-        );
-        m.insert(
-            "registration_tokens.create".into(),
-            "\u{521b}\u{5efa}\u{4ee4}\u{724c}".into(),
-        );
-        m.insert(
-            "registration_tokens.no_tokens".into(),
-            "\u{6682}\u{65e0}\u{6ce8}\u{518c}\u{4ee4}\u{724c}".into(),
-        );
-        m.insert(
-            "registration_tokens.subtitle".into(),
-            "\u{7ba1}\u{7406}\u{7528}\u{6237}\u{6ce8}\u{518c}\u{4ee4}\u{724c}".into(),
-        );
-        m.insert(
-            "registration_tokens.actions".into(),
-            "\u{64cd}\u{4f5c}".into(),
-        );
         m.insert("registration_tokens.no_tokens_description".into(), "\u{521b}\u{5efa}\u{4ee4}\u{724c}\u{4ee5}\u{5141}\u{8bb8}\u{65b0}\u{7528}\u{6237}\u{6ce8}\u{518c}".into());
-        m.insert(
-            "registration_tokens.delete".into(),
-            "\u{5220}\u{9664}".into(),
-        );
-        m.insert(
-            "registration_tokens.delete_token".into(),
-            "\u{5220}\u{9664}\u{4ee4}\u{724c}".into(),
-        );
-        m.insert(
-            "registration_tokens.search_placeholder".into(),
-            "\u{641c}\u{7d22}\u{4ee4}\u{724c}...".into(),
-        );
-        m.insert(
-            "registration_tokens.filter_all".into(),
-            "\u{5168}\u{90e8}".into(),
-        );
-        m.insert(
-            "registration_tokens.filter_active".into(),
-            "\u{6d3b}\u{8dc3}".into(),
-        );
-        m.insert(
-            "registration_tokens.filter_expired".into(),
-            "\u{5df2}\u{8fc7}\u{671f}".into(),
-        );
         m.insert("registration_tokens.create_description".into(), "\u{521b}\u{5efa}\u{5e26}\u{53ef}\u{9009}\u{7ea6}\u{675f}\u{7684}\u{65b0}\u{6ce8}\u{518c}\u{4ee4}\u{724c}".into());
-        m.insert(
-            "registration_tokens.custom_token".into(),
-            "\u{81ea}\u{5b9a}\u{4e49}\u{4ee4}\u{724c}\u{503c}".into(),
-        );
-        m.insert(
-            "registration_tokens.custom_token_placeholder".into(),
-            "\u{7559}\u{7a7a}\u{81ea}\u{52a8}\u{751f}\u{6210}".into(),
-        );
-        m.insert(
-            "registration_tokens.custom_token_hint".into(),
-            "\u{7559}\u{7a7a}\u{5c06}\u{81ea}\u{52a8}\u{751f}\u{6210}16\u{4f4d}\u{4ee4}\u{724c}"
-                .into(),
-        );
 
         // Destinations
-        m.insert(
-            "destinations.title".into(),
-            "\u{8054}\u{90a6}\u{8282}\u{70b9}".into(),
-        );
-        m.insert(
-            "destinations.destination".into(),
-            "\u{76ee}\u{6807}\u{670d}\u{52a1}\u{5668}".into(),
-        );
-        m.insert(
-            "destinations.retry_interval".into(),
-            "\u{91cd}\u{8bd5}\u{95f4}\u{9694}".into(),
-        );
-        m.insert(
-            "destinations.last_failure".into(),
-            "\u{6700}\u{540e}\u{5931}\u{8d25}".into(),
-        );
-        m.insert(
-            "destinations.reset".into(),
-            "\u{91cd}\u{7f6e}\u{8fde}\u{63a5}".into(),
-        );
-        m.insert(
-            "destinations.search".into(),
-            "\u{641c}\u{7d22}\u{8282}\u{70b9}...".into(),
-        );
-        m.insert(
-            "destinations.no_destinations".into(),
-            "\u{6682}\u{65e0}\u{8054}\u{90a6}\u{8282}\u{70b9}".into(),
-        );
-        m.insert(
-            "destinations.subtitle".into(),
-            "\u{8fdc}\u{7a0b}\u{670d}\u{52a1}\u{5668}\u{76ee}\u{6807}".into(),
-        );
         m.insert("destinations.status".into(), "\u{72b6}\u{6001}".into());
-        m.insert(
-            "destinations.last_retry".into(),
-            "\u{6700}\u{540e}\u{91cd}\u{8bd5}".into(),
-        );
         m.insert("destinations.actions".into(), "\u{64cd}\u{4f5c}".into());
-        m.insert(
-            "destinations.no_destinations_found".into(),
-            "\u{672a}\u{627e}\u{5230}\u{76ee}\u{6807}\u{670d}\u{52a1}\u{5668}".into(),
-        );
-        m.insert(
-            "destinations.reset_button".into(),
-            "\u{91cd}\u{7f6e}".into(),
-        );
         m.insert("destinations.failed".into(), "\u{5931}\u{8d25}".into());
         m.insert("destinations.ok".into(), "\u{6b63}\u{5e38}".into());
         m.insert("destinations.detail_description".into(), "\u{8054}\u{90a6}\u{76ee}\u{6807}\u{8be6}\u{60c5}\u{548c}\u{91cd}\u{8bd5}\u{72b6}\u{6001}".into());
-        m.insert(
-            "destinations.connection_info".into(),
-            "\u{8fde}\u{63a5}\u{4fe1}\u{606f}".into(),
-        );
-        m.insert(
-            "destinations.retry_info".into(),
-            "\u{91cd}\u{8bd5}\u{4fe1}\u{606f}".into(),
-        );
-        m.insert(
-            "destinations.last_successful_stream".into(),
-            "\u{6700}\u{540e}\u{6210}\u{529f}\u{6d41}".into(),
-        );
         m.insert("destinations.status".into(), "\u{72b6}\u{6001}".into());
 
         // Billing
         m.insert("billing.title".into(), "\u{8d26}\u{5355}".into());
         m.insert("billing.subscription".into(), "\u{8ba2}\u{9605}".into());
-        m.insert(
-            "billing.payment_history".into(),
-            "\u{652f}\u{4ed8}\u{5386}\u{53f2}".into(),
-        );
         m.insert("billing.amount".into(), "\u{91d1}\u{989d}".into());
         m.insert("billing.date".into(), "\u{65e5}\u{671f}".into());
         m.insert("billing.invoice".into(), "\u{53d1}\u{7968}".into());
 
         // Server Notices
-        m.insert(
-            "server_notices.title".into(),
-            "\u{670d}\u{52a1}\u{5668}\u{901a}\u{77e5}".into(),
-        );
-        m.insert(
-            "server_notices.subtitle".into(),
-            "\u{5411}\u{7528}\u{6237}\u{53d1}\u{9001}\u{670d}\u{52a1}\u{5668}\u{901a}\u{77e5}"
-                .into(),
-        );
-        m.insert(
-            "server_notices.send_title".into(),
-            "\u{53d1}\u{9001}\u{670d}\u{52a1}\u{5668}\u{901a}\u{77e5}".into(),
-        );
         m.insert("server_notices.broadcast_desc".into(), "\u{5411}\u{6240}\u{6709}\u{7528}\u{6237}\u{5e7f}\u{64ad}\u{7ba1}\u{7406}\u{901a}\u{77e5}".into());
         m.insert("server_notices.single_desc".into(), "\u{5411}\u{7279}\u{5b9a}\u{7528}\u{6237}\u{53d1}\u{9001}\u{7ba1}\u{7406}\u{901a}\u{77e5}".into());
-        m.insert(
-            "server_notices.single_user".into(),
-            "\u{5355}\u{4e2a}\u{7528}\u{6237}".into(),
-        );
-        m.insert(
-            "server_notices.broadcast".into(),
-            "\u{5e7f}\u{64ad}\u{5168}\u{90e8}".into(),
-        );
-        m.insert(
-            "server_notices.user_id".into(),
-            "\u{7528}\u{6237} ID".into(),
-        );
         m.insert("server_notices.message".into(), "\u{6d88}\u{606f}".into());
-        m.insert(
-            "server_notices.message_placeholder".into(),
-            "\u{8f93}\u{5165}\u{901a}\u{77e5}\u{6d88}\u{606f}...".into(),
-        );
-        m.insert(
-            "server_notices.broadcast_notice".into(),
-            "\u{5e7f}\u{64ad}\u{901a}\u{77e5}".into(),
-        );
-        m.insert(
-            "server_notices.send_notice".into(),
-            "\u{53d1}\u{9001}\u{901a}\u{77e5}".into(),
-        );
-        m.insert(
-            "server_notices.history_title".into(),
-            "\u{901a}\u{77e5}\u{5386}\u{53f2}".into(),
-        );
         m.insert("server_notices.history_desc".into(), "\u{4e4b}\u{524d}\u{53d1}\u{9001}\u{7684}\u{670d}\u{52a1}\u{5668}\u{901a}\u{77e5}\u{ff08}\u{672c}\u{5730}\u{5b58}\u{50a8}\u{ff09}".into());
-        m.insert(
-            "server_notices.clear_history".into(),
-            "\u{6e05}\u{9664}\u{5386}\u{53f2}".into(),
-        );
-        m.insert(
-            "server_notices.no_notices".into(),
-            "\u{5c1a}\u{672a}\u{53d1}\u{9001}\u{901a}\u{77e5}".into(),
-        );
         m.insert("server_notices.user".into(), "\u{7528}\u{6237}".into());
-        m.insert(
-            "server_notices.timestamp".into(),
-            "\u{65f6}\u{95f4}\u{6233}".into(),
-        );
-        m.insert(
-            "server_notices.event_id".into(),
-            "\u{4e8b}\u{4ef6} ID".into(),
-        );
 
         // Not Found
         m.insert("not_found.title".into(), "404".into());
@@ -2418,9 +952,6 @@ impl I18n {
 fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
     let entries: &[(&str, &str)] = match lang {
         Language::En => &[
-            ("nav.palpo_admin", "Contrix Admin"),
-            ("nav.users", "Actors"),
-            ("nav.rooms", "Spaces"),
             ("nav.actors", "Actors"),
             ("nav.spaces", "Spaces"),
             ("nav.devices", "Devices"),
@@ -2431,47 +962,23 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("nav.agents", "Agents"),
             ("nav.policy", "Policy"),
             ("nav.coauth_accounts", "Accounts"),
-            ("nav.section_pasion", "coauth"),
             ("nav.section_coauth", "coauth"),
-            ("auth.base_url", "Principal Server URL"),
-            ("auth.url_error", "Not a valid Principal Server URL"),
             ("auth.footer", "sodmin - Contrix Administration"),
             ("auth.completing_login", "Completing sign-in..."),
             ("dashboard.welcome", "Welcome to Contrix Admin"),
-            ("dashboard.total_users", "Total Actors"),
-            ("dashboard.total_rooms", "Total Spaces"),
             (
                 "dashboard.total_registered_users",
                 "Total registered actors",
             ),
-            ("dashboard.total_rooms_on_server", "Total spaces on server"),
             ("dashboard.active_users", "Active actors"),
             (
                 "dashboard.spec_description",
                 "Contrix protocol profiles, features and conformance coverage",
             ),
-            ("users.title", "Actors"),
-            ("users.subtitle", "Manage Contrix actors"),
-            ("users.create", "Create Actor"),
-            ("users.user_id", "Actor ID"),
-            ("users.no_users", "No actors found"),
-            ("users.search", "Search actors..."),
-            ("users.create_new", "Create New Actor"),
             (
                 "users.create_subtitle",
                 "Add a new actor to the Principal Server",
             ),
-            ("users.rooms", "Spaces"),
-            ("users.joined_rooms", "Joined Spaces"),
-            ("users.no_rooms", "Actor has not joined any spaces."),
-            ("rooms.title", "Spaces"),
-            ("rooms.subtitle", "Manage Contrix spaces"),
-            ("rooms.delete", "Delete Space"),
-            ("rooms.block", "Block Space"),
-            ("rooms.unblock", "Unblock Space"),
-            ("rooms.create", "Create Space"),
-            ("rooms.search", "Search spaces..."),
-            ("rooms.no_rooms", "No spaces found"),
             (
                 "rooms.search_placeholder",
                 "Search spaces by name or alias...",
@@ -2480,15 +987,6 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "rooms.no_rooms_description",
                 "There are no spaces matching your search criteria.",
             ),
-            ("rooms.room_information", "Space Information"),
-            ("rooms.room_settings", "Space Settings"),
-            ("rooms.room_id", "Space ID"),
-            ("rooms.room_type", "Space Type"),
-            ("rooms.no_children", "No child spaces found."),
-            ("rooms.room_name", "Space Name *"),
-            ("rooms.topic_placeholder", "Space topic (optional)"),
-            ("rooms.create_description", "Create a new Contrix space."),
-            ("rooms.purge_title", "Purge Space History"),
             (
                 "rooms.delete_confirm",
                 "Are you sure you want to delete this space? Events, messages and media references may be permanently removed. This action cannot be undone.",
@@ -2497,12 +995,6 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "reports.subtitle",
                 "Moderation and policy reports submitted by actors",
             ),
-            ("reports.ban_user", "Ban Actor"),
-            ("reports.block_room", "Block Space"),
-            ("reports.room", "Space"),
-            ("reports.reporter_user_id", "Reporter Actor ID"),
-            ("reports.room_id", "Space ID"),
-            ("media.user_id", "Actor ID"),
             ("media.search", "Search actors..."),
             ("media.subtitle", "Blob/media usage statistics by actor"),
             (
@@ -2513,11 +1005,26 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "auth_status.dev_diagnostics_desc",
                 "Probe coauth endpoints for registration, consent and well-known discovery debugging",
             ),
+            ("config.error.title", "Runtime configuration unavailable"),
+            (
+                "config.error.subtitle",
+                "Sign-in cannot proceed until /config.json is reachable.",
+            ),
+            ("config.error.hint_title", "Deployment checklist"),
+            (
+                "config.error.hint_serve_path",
+                "Serve config.json from the same origin as the admin SPA.",
+            ),
+            (
+                "config.error.hint_required_fields",
+                "Ensure coauth_public_url is set to the public coauth origin.",
+            ),
+            (
+                "config.error.hint_check_proxy",
+                "Verify the reverse proxy does not strip /config.json.",
+            ),
         ],
         Language::ZhCn => &[
-            ("nav.palpo_admin", "Contrix Admin"),
-            ("nav.users", "Actor"),
-            ("nav.rooms", "Space"),
             ("nav.actors", "Actor"),
             ("nav.spaces", "Space"),
             ("nav.devices", "设备"),
@@ -2528,63 +1035,20 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("nav.agents", "Agent"),
             ("nav.policy", "策略"),
             ("nav.coauth_accounts", "账号"),
-            ("nav.section_pasion", "coauth"),
             ("nav.section_coauth", "coauth"),
-            ("auth.base_url", "Principal Server 地址"),
-            ("auth.url_error", "不是有效的 Principal Server URL"),
             ("auth.footer", "sodmin - Contrix 管理后台"),
             ("auth.completing_login", "正在完成登录..."),
             ("dashboard.welcome", "欢迎使用 Contrix Admin"),
-            ("dashboard.total_users", "Actor 总数"),
-            ("dashboard.total_rooms", "Space 总数"),
-            ("dashboard.total_registered_users", "已注册 Actor 总数"),
-            ("dashboard.total_rooms_on_server", "服务器 Space 总数"),
             ("dashboard.active_users", "活跃 Actor"),
             (
                 "dashboard.spec_description",
                 "Contrix 协议 profile、功能和 conformance 覆盖",
             ),
-            ("users.title", "Actor"),
-            ("users.subtitle", "管理 Contrix Actor"),
-            ("users.create", "创建 Actor"),
-            ("users.user_id", "Actor ID"),
-            ("users.no_users", "未找到 Actor"),
-            ("users.search", "搜索 Actor..."),
-            ("users.create_new", "创建新 Actor"),
-            ("users.create_subtitle", "向 Principal Server 添加新 Actor"),
-            ("users.rooms", "Space"),
-            ("users.joined_rooms", "已加入 Space"),
-            ("users.no_rooms", "该 Actor 尚未加入任何 Space。"),
-            ("rooms.title", "Space"),
-            ("rooms.subtitle", "管理 Contrix Space"),
-            ("rooms.delete", "删除 Space"),
-            ("rooms.block", "封锁 Space"),
-            ("rooms.unblock", "解除封锁 Space"),
-            ("rooms.create", "创建 Space"),
-            ("rooms.search", "搜索 Space..."),
-            ("rooms.no_rooms", "未找到 Space"),
-            ("rooms.search_placeholder", "按名称或别名搜索 Space..."),
-            ("rooms.no_rooms_description", "没有符合搜索条件的 Space。"),
-            ("rooms.room_information", "Space 信息"),
-            ("rooms.room_settings", "Space 设置"),
-            ("rooms.room_id", "Space ID"),
-            ("rooms.room_type", "Space 类型"),
-            ("rooms.no_children", "未找到子 Space。"),
-            ("rooms.room_name", "Space 名称 *"),
-            ("rooms.topic_placeholder", "Space 主题（可选）"),
-            ("rooms.create_description", "创建新的 Contrix Space。"),
-            ("rooms.purge_title", "清理 Space 历史"),
             (
                 "rooms.delete_confirm",
                 "确定要删除此 Space 吗？事件、消息和媒体引用可能被永久删除，此操作无法撤销。",
             ),
             ("reports.subtitle", "Actor 提交的审核和策略报告"),
-            ("reports.ban_user", "封禁 Actor"),
-            ("reports.block_room", "封锁 Space"),
-            ("reports.room", "Space"),
-            ("reports.reporter_user_id", "报告人 Actor ID"),
-            ("reports.room_id", "Space ID"),
-            ("media.user_id", "Actor ID"),
             ("media.search", "搜索 Actor..."),
             ("media.subtitle", "按 Actor 统计 Blob/media 使用量"),
             (
@@ -2594,6 +1058,24 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             (
                 "auth_status.dev_diagnostics_desc",
                 "探测 coauth 端点以调试注册、同意和 well-known 发现",
+            ),
+            ("config.error.title", "运行时配置不可用"),
+            (
+                "config.error.subtitle",
+                "在 /config.json 可访问之前无法继续登录。",
+            ),
+            ("config.error.hint_title", "部署排查清单"),
+            (
+                "config.error.hint_serve_path",
+                "将 config.json 与管理 SPA 部署在同一 origin。",
+            ),
+            (
+                "config.error.hint_required_fields",
+                "确保 coauth_public_url 指向公开的 coauth origin。",
+            ),
+            (
+                "config.error.hint_check_proxy",
+                "确认反向代理没有屏蔽 /config.json。",
             ),
         ],
     };

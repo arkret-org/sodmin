@@ -4,6 +4,7 @@ use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::JsFuture;
 use web_sys::RequestMode;
 
+use crate::utils::crypto::{base64url_encode, random_token};
 use crate::utils::error::HttpError;
 use crate::utils::storage;
 
@@ -110,12 +111,7 @@ async fn send_oauth_form_request(path: &str, body: &str) -> Result<TextResponse,
 }
 
 fn generate_code_verifier() -> String {
-    let crypto = web_sys::window().unwrap().crypto().unwrap();
-    let mut buf = [0u8; 32];
-    crypto
-        .get_random_values_with_u8_array(&mut buf)
-        .expect("get_random_values failed");
-    base64url_encode(&buf)
+    random_token(32)
 }
 
 async fn compute_code_challenge(verifier: &str) -> String {
@@ -129,18 +125,6 @@ async fn compute_code_challenge(verifier: &str) -> String {
     let buffer = result.dyn_into::<js_sys::ArrayBuffer>().unwrap();
     let bytes = js_sys::Uint8Array::new(&buffer).to_vec();
     base64url_encode(&bytes)
-}
-
-fn base64url_encode(data: &[u8]) -> String {
-    let binary: String = data.iter().map(|&b| b as char).collect();
-    let b64 = web_sys::window()
-        .unwrap()
-        .btoa(&binary)
-        .expect("btoa failed");
-    b64.replace('+', "-")
-        .replace('/', "_")
-        .trim_end_matches('=')
-        .to_string()
 }
 
 pub async fn start_oauth_login() {
@@ -326,7 +310,11 @@ pub async fn verify_admin() -> Result<bool, HttpError> {
     let access_token =
         storage::get_item("access_token").ok_or_else(|| make_err("Not authenticated".into()))?;
 
-    let response = Request::get("/contrix/admin/v1/server/info")
+    // TODO(sodmin.codegen): replace this probe with generated admin discovery
+    // from `/api/v1/server/describe` + admin OpenAPI scopes. The path is
+    // centralized through `canonical_api_path` during the migration.
+    let admin_probe = crate::api::client::canonical_api_path("/contrix/admin/v1/server/info");
+    let response = Request::get(&admin_probe)
         .header("Accept", "application/json")
         .header("Authorization", &format!("Bearer {access_token}"))
         .send()
@@ -365,6 +353,36 @@ pub fn token_expiry_ms() -> Option<u64> {
     storage::get_item("token_expires_at_ms").and_then(|value| value.parse().ok())
 }
 
+/// Window before access-token expiry where we proactively spend a
+/// refresh round-trip rather than gambling that the next admin call will
+/// land before the server starts rejecting with 401.
+const TOKEN_REFRESH_LEEWAY_MS: u64 = 60_000;
+
+/// True if the cached access token is within `TOKEN_REFRESH_LEEWAY_MS`
+/// of expiry (or has no recorded expiry — treat as eager refresh).
+pub fn token_expires_soon() -> bool {
+    match token_expiry_ms() {
+        Some(expiry) => {
+            let now = js_sys::Date::now() as u64;
+            expiry.saturating_sub(now) <= TOKEN_REFRESH_LEEWAY_MS
+        }
+        None => false,
+    }
+}
+
+/// Issue a refresh round-trip if we're inside the leeway window. Called
+/// from `api::client::api_client` ahead of every admin call so the
+/// happy-path stays a single request and we don't rely on the 401 retry.
+pub async fn refresh_if_expiring_soon() {
+    if !is_authenticated() {
+        return;
+    }
+    if !token_expires_soon() {
+        return;
+    }
+    let _ = refresh_oauth_token().await;
+}
+
 pub async fn logout() -> Result<(), HttpError> {
     if let Some(token) = storage::get_item("access_token") {
         let body = format!(
@@ -379,13 +397,27 @@ pub async fn logout() -> Result<(), HttpError> {
         .send()
         .await;
 
-    storage::remove_item("is_admin");
-    storage::remove_item("access_token");
-    storage::remove_item("refresh_token");
-    storage::remove_item("token_expires_at_ms");
-    storage::remove_item("user_id");
-    storage::remove_item("user_display_name");
-    storage::remove_item("user_avatar_url");
+    // Auth/session keys: must be cleared on logout so the next user on
+    // the same browser doesn't inherit the previous session. The
+    // `oauth_device_id` is a sticky pairing for OAuth device flow — also
+    // an auth-derived secret, so it goes in this set.
+    //
+    // User preferences (`language`, `theme`) and deployment-derived
+    // values (`coauth_public_url`, set from `/config.json`) intentionally
+    // survive logout.
+    const KEYS_TO_CLEAR: &[&str] = &[
+        "access_token",
+        "refresh_token",
+        "is_admin",
+        "token_expires_at_ms",
+        "user_id",
+        "user_display_name",
+        "user_avatar_url",
+        OAUTH_DEVICE_ID_STORAGE_KEY,
+    ];
+    for key in KEYS_TO_CLEAR {
+        storage::remove_item(key);
+    }
     crate::utils::config::clear_config();
     Ok(())
 }

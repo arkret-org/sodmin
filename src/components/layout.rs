@@ -1,4 +1,7 @@
 use dioxus::prelude::*;
+use wasm_bindgen::JsCast;
+use wasm_bindgen::closure::Closure;
+use web_sys::StorageEvent;
 
 use crate::api::auth;
 use crate::components::header::AppHeader;
@@ -7,20 +10,54 @@ use crate::components::sidebar::AppSidebar;
 use crate::components::ui::toast::Toaster;
 use crate::router::Route;
 
+/// Owns a `storage` event listener for the lifetime of the component.
+/// `add_event_listener_with_callback` requires the function pointer to
+/// stay alive until removal, hence keeping the `Closure` boxed; the
+/// `Drop` impl detaches it cleanly when the layout unmounts.
+struct StorageListenerGuard {
+    closure: Option<Closure<dyn FnMut(StorageEvent)>>,
+}
+
+impl Drop for StorageListenerGuard {
+    fn drop(&mut self) {
+        if let (Some(window), Some(closure)) = (web_sys::window(), self.closure.as_ref()) {
+            let _ = window
+                .remove_event_listener_with_callback("storage", closure.as_ref().unchecked_ref());
+        }
+    }
+}
+
 #[component]
 pub fn AppLayout(children: Element) -> Element {
     let collapsed = use_signal(|| false);
     let mut mobile_sidebar_open = use_signal(|| false);
     let nav = use_navigator();
 
-    // Multi-tab session sync: periodically check if auth state changed in another tab.
-    // use_hook keeps the Interval alive for the component's lifetime and drops it on unmount.
+    // Multi-tab session sync via the `storage` event: it fires in this
+    // tab when *another* tab mutates localStorage, so we react to logout
+    // immediately instead of polling.
     use_hook(move || {
-        std::rc::Rc::new(gloo_timers::callback::Interval::new(2_000, move || {
-            if !auth::is_authenticated() {
+        let closure = Closure::<dyn FnMut(StorageEvent)>::new(move |event: StorageEvent| {
+            // Only care about auth-bearing keys; ignore unrelated writes
+            // (i18n.lang, sidebar collapsed, etc.).
+            let key = event.key();
+            let is_auth_key = matches!(
+                key.as_deref(),
+                Some("access_token") | Some("refresh_token") | None
+            );
+            if is_auth_key && !auth::is_authenticated() {
                 nav.replace(Route::LoginPage {});
             }
-        }))
+        });
+
+        if let Some(window) = web_sys::window() {
+            let _ = window
+                .add_event_listener_with_callback("storage", closure.as_ref().unchecked_ref());
+        }
+
+        std::rc::Rc::new(StorageListenerGuard {
+            closure: Some(closure),
+        })
     });
 
     let mobile_sidebar_state = *mobile_sidebar_open.read();

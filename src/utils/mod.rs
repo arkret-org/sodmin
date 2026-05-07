@@ -1,5 +1,6 @@
 pub mod cache;
 pub mod config;
+pub mod crypto;
 pub mod date;
 pub mod error;
 pub mod i18n;

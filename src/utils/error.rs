@@ -1,6 +1,8 @@
+use regex_lite::Regex;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::fmt;
+use std::sync::OnceLock;
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AdminErrorEnvelope {
@@ -49,16 +51,116 @@ pub fn display_error(errcode: &str, status: u16, message: &str) -> String {
         "cx.error.validation" | "cx.error.schema" | "validation" | "schema" => {
             "Request validation failed"
         }
+        "cx.error.recovery_required" | "recovery_required" => {
+            "Recovery flow must complete before this action is allowed"
+        }
+        "cx.error.policy_required" | "policy_required" => {
+            "Required policy approval is missing"
+        }
+        "cx.error.session_expired" | "session_expired" => {
+            "Session expired — sign in again"
+        }
+        "cx.error.idempotency_conflict" | "idempotency_conflict" => {
+            "Idempotency key conflicted with a previous request"
+        }
+        "cx.error.precondition_failed" | "precondition_failed" => {
+            "Precondition failed — refresh and retry"
+        }
         _ => message,
     };
-    if message.is_empty() || fallback == message {
+    let safe_message = redact_pii(message);
+    if safe_message.is_empty() || fallback == safe_message {
         format!("{errcode} ({status}): {fallback}")
     } else {
-        format!("{errcode} ({status}): {fallback}: {message}")
+        format!("{errcode} ({status}): {fallback}: {safe_message}")
     }
+}
+
+/// Strip obvious PII (emails, IP addresses, bearer tokens) from server
+/// error text before it lands in a toast. Server messages are best-effort
+/// human-readable and routinely include the offending input — emitting
+/// the user's email or IP into the admin UI is a leak.
+pub fn redact_pii(message: &str) -> String {
+    static PATTERNS: OnceLock<[(Regex, &'static str); 4]> = OnceLock::new();
+    let patterns = PATTERNS.get_or_init(|| {
+        [
+            (
+                // Email: covers most RFC 5322 atoms used in practice.
+                Regex::new(r"[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}").unwrap(),
+                "[email]",
+            ),
+            (
+                // IPv4 literal.
+                Regex::new(r"\b(?:\d{1,3}\.){3}\d{1,3}\b").unwrap(),
+                "[ip]",
+            ),
+            (
+                // Bearer / authorization tokens that occasionally leak
+                // through server-side validation errors.
+                Regex::new(r"(?i)bearer\s+[A-Za-z0-9._\-]+").unwrap(),
+                "[token]",
+            ),
+            (
+                // JWT-shaped triple (header.payload.signature). Distinct
+                // from plain UUIDs/IDs which lack the dot structure, so
+                // diagnostic identifiers stay readable.
+                Regex::new(r"\b[A-Za-z0-9_\-]{8,}\.[A-Za-z0-9_\-]{8,}\.[A-Za-z0-9_\-]{4,}\b")
+                    .unwrap(),
+                "[jwt]",
+            ),
+        ]
+    });
+
+    let mut out = message.to_string();
+    for (re, replacement) in patterns {
+        out = re.replace_all(&out, *replacement).into_owned();
+    }
+    out
 }
 
 /// Format an error message for display in toasts, including the request ID if available.
 pub fn format_error_with_ref(error: &HttpError) -> String {
     error.to_string()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{display_error, redact_pii};
+
+    #[test]
+    fn redact_pii_strips_email_ip_token() {
+        let raw = "denied for alice@example.com from 10.0.0.7 with Bearer abc.def-123";
+        let safe = redact_pii(raw);
+        assert!(!safe.contains("alice@example.com"));
+        assert!(!safe.contains("10.0.0.7"));
+        assert!(!safe.contains("abc.def-123"));
+        assert!(safe.contains("[email]"));
+        assert!(safe.contains("[ip]"));
+        assert!(safe.contains("[token]"));
+    }
+
+    #[test]
+    fn redact_pii_preserves_diagnostic_ids() {
+        // UUIDs and short cursor tokens stay readable so admins can grep
+        // logs.
+        let raw = "actor=urn:cx:actor:01HQX cursor=eyAB12";
+        assert_eq!(redact_pii(raw), raw);
+    }
+
+    #[test]
+    fn display_error_handles_protocol_codes() {
+        let s = display_error("cx.error.recovery_required", 412, "");
+        assert!(s.contains("Recovery flow"));
+        let s = display_error("cx.error.policy_required", 412, "");
+        assert!(s.contains("policy approval"));
+        let s = display_error("cx.error.session_expired", 401, "");
+        assert!(s.contains("Session expired"));
+    }
+
+    #[test]
+    fn display_error_redacts_raw_message() {
+        let s = display_error("cx.error.validation", 400, "user bob@example.org rejected");
+        assert!(!s.contains("bob@example.org"));
+        assert!(s.contains("[email]"));
+    }
 }

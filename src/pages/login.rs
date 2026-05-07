@@ -9,14 +9,21 @@ use crate::utils::i18n::t;
 pub fn LoginPage() -> Element {
     let mut loading = use_signal(|| false);
     let mut ready = use_signal(|| false);
+    let mut config_error = use_signal::<Option<String>>(|| None);
 
     use_effect(move || {
         spawn(async move {
-            let cfg = crate::utils::config::load_runtime_config().await;
-            if !cfg.coauth_public_url.is_empty() {
-                crate::utils::storage::set_item("coauth_public_url", &cfg.coauth_public_url);
+            match crate::utils::config::load_runtime_config().await {
+                Ok(cfg) => {
+                    crate::utils::storage::set_item("coauth_public_url", &cfg.coauth_public_url);
+                    config_error.set(None);
+                    ready.set(true);
+                }
+                Err(err) => {
+                    config_error.set(Some(err.to_string()));
+                    ready.set(true);
+                }
             }
-            ready.set(true);
         });
     });
 
@@ -30,6 +37,11 @@ pub fn LoginPage() -> Element {
 
     let is_ready = *ready.read();
     let is_loading = *loading.read();
+    let error_message = config_error.read().clone();
+
+    if let Some(message) = error_message {
+        return rsx! { ConfigErrorPanel { message } };
+    }
 
     rsx! {
         div { class: "flex min-h-screen items-center justify-center bg-background p-4",
@@ -63,6 +75,48 @@ pub fn LoginPage() -> Element {
 
                 p { class: "text-center text-xs text-muted-foreground",
                     {t("auth.footer")}
+                }
+            }
+        }
+    }
+}
+
+/// Hard error surface shown when `/config.json` is unreachable or missing
+/// `coauth_public_url`. Sign-in is impossible without this URL — the
+/// OAuth redirect would point to a relative path and fail — so we
+/// short-circuit with a deployment-ops-facing message instead of a dead
+/// sign-in button.
+#[component]
+fn ConfigErrorPanel(message: String) -> Element {
+    rsx! {
+        div { class: "flex min-h-screen items-center justify-center bg-background p-4",
+            div { class: "w-full max-w-lg space-y-6",
+                div { class: "text-center space-y-2",
+                    div { class: "mx-auto h-16 w-16 rounded-full bg-destructive/10 flex items-center justify-center",
+                        crate::components::ui::icons::Icon {
+                            name: "alert-triangle".to_string(),
+                            class: "h-8 w-8 text-destructive".to_string(),
+                        }
+                    }
+                    h1 { class: "text-2xl font-bold tracking-tight",
+                        {t("config.error.title")}
+                    }
+                    p { class: "text-muted-foreground",
+                        {t("config.error.subtitle")}
+                    }
+                }
+
+                div { class: "rounded-lg border border-destructive/40 bg-destructive/5 p-4 text-sm",
+                    p { class: "font-mono whitespace-pre-wrap break-all", "{message}" }
+                }
+
+                div { class: "rounded-lg border glass-panel p-4 text-sm space-y-2",
+                    p { class: "font-medium", {t("config.error.hint_title")} }
+                    ul { class: "list-disc list-inside text-muted-foreground space-y-1",
+                        li { {t("config.error.hint_serve_path")} }
+                        li { {t("config.error.hint_required_fields")} }
+                        li { {t("config.error.hint_check_proxy")} }
+                    }
                 }
             }
         }

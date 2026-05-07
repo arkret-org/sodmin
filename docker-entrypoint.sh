@@ -105,10 +105,13 @@ server {
     add_header Referrer-Policy "no-referrer" always;
     add_header Permissions-Policy "geolocation=(), microphone=(), camera=(), payment=()" always;
 
+    # Healthz actually serves index.html so liveness fails (503) when the
+    # wasm bundle disappears from disk, instead of nginx happily returning
+    # a static 'ok' over an empty document root. wget --spider only checks
+    # the status line so the response body is not transferred.
     location = /healthz {
         access_log off;
-        default_type text/plain;
-        return 200 'ok';
+        try_files /index.html =503;
     }
 EOF
 
