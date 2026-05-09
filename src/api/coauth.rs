@@ -1,3 +1,20 @@
+//! coauth admin API client surface.
+//!
+//! Wire shapes that already live in the shared `coauth-admin-types`
+//! crate are imported / re-exported from there (see the `pub use
+//! coauth_admin_types::…` block below the local types). Anything still
+//! defined inline here is on the migration list — when the corresponding
+//! coauth admin handler graduates from `serde_json::json!` literals to
+//! a typed response, lift the struct into `coauth-admin-types` and turn
+//! the local copy into a re-export, in lock-step with this client.
+//!
+//! TODO(a0-shared-crate): finish migrating the remaining inline DTOs
+//! (account summary / DID binding / claim / session grant / bridge
+//! describe / recovery describe / integration manifest / connector
+//! health / notification channels / notification templates) into
+//! `coauth-admin-types` so this file is reduced to API verb wrappers
+//! plus a re-export block.
+
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
@@ -218,7 +235,7 @@ pub struct CoauthAccountSummary {
     pub bridge_status: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 #[non_exhaustive]
 pub struct CoauthManagedDidBinding {
     #[serde(default)]
@@ -231,7 +248,7 @@ pub struct CoauthManagedDidBinding {
     pub last_verified_at: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 #[non_exhaustive]
 pub struct CoauthAccountClaim {
     #[serde(default)]
@@ -610,6 +627,8 @@ struct CoauthAdminPaginatedEnvelope<T> {
     data: Option<Vec<CoauthAdminResource<T>>>,
     #[serde(default)]
     meta: CoauthAdminPaginationMeta,
+    #[serde(default)]
+    links: coauth_admin_types::PaginationLinks,
 }
 
 // Single-resource envelope is now sourced from `coauth-admin-types` so
@@ -997,6 +1016,60 @@ pub async fn list_accounts(
     })
 }
 
+/// Cursor-paginated account list. Differs from `list_accounts` in that
+/// the caller passes back the opaque `cursor` it received from the prior
+/// page's `links.next` instead of converting to / from a 1-based page
+/// number. Use this for any new UI; `list_accounts` is preserved for the
+/// legacy index-page surface.
+///
+/// Wire shape: `?filter[search]=…&filter[handle]=…&filter[display_name]=…
+/// &cursor={base64url}&limit=N&count=true`. The base64url cursor is the
+/// raw value coauth published; decoding/encoding on the wire is the
+/// server's responsibility.
+pub async fn list_accounts_cursor(
+    cursor: Option<&str>,
+    limit: u64,
+    search: &str,
+    filter: &AccountListFilter,
+) -> Result<CursorPage<CoauthAccountSummary>, HttpError> {
+    let limit_str = limit.max(1).to_string();
+    let mut params: Vec<(&str, &str)> = vec![
+        ("filter[search]", search),
+        ("filter[handle]", filter.handle.trim()),
+        ("filter[display_name]", filter.display_name.trim()),
+        ("limit", limit_str.as_str()),
+        ("count", "true"),
+    ];
+    if let Some(cursor) = cursor.filter(|c| !c.is_empty()) {
+        params.push(("cursor", cursor));
+    }
+    let url = build_url("/contrix/admin/v1/accounts", &params)?;
+    let resp: CoauthAdminPaginatedEnvelope<CoauthAdminAccountRecord> =
+        api_client(&url, "GET", None).await?;
+    let summaries: Vec<CoauthAccountSummary> = resp
+        .data
+        .unwrap_or_default()
+        .into_iter()
+        .map(map_admin_account_summary_resource)
+        .collect();
+    let next_cursor = resp
+        .links
+        .next
+        .as_deref()
+        .and_then(extract_cursor_param);
+    let prev_cursor = resp
+        .links
+        .prev
+        .as_deref()
+        .and_then(extract_cursor_param);
+    Ok(CursorPage {
+        data: summaries,
+        next_cursor,
+        prev_cursor,
+        total: resp.meta.count,
+    })
+}
+
 pub async fn get_account_detail(id: &str) -> Result<CoauthAccountDetail, HttpError> {
     let bridge_url = "/contrix/admin/v1/bridge/describe";
     let recovery_url = "/contrix/api/v1/auth/recovery/describe";
@@ -1057,6 +1130,57 @@ pub async fn get_account_detail(id: &str) -> Result<CoauthAccountDetail, HttpErr
         recovery_bridge,
         integration_manifest,
     })
+}
+
+/// Add a managed DID binding to an account. The `control_proof` is an
+/// opaque blob (typically a signed challenge) the backend forwards to
+/// the DID resolver — sodmin does not interpret it client-side.
+pub async fn add_account_did_binding(
+    account_id: &str,
+    did: &str,
+    control_proof: &str,
+) -> Result<(), HttpError> {
+    let url = format!(
+        "/contrix/admin/v1/accounts/{}/dids",
+        urlencoding::encode(account_id)
+    );
+    let body = serde_json::json!({
+        "did": did,
+        "control_proof": control_proof,
+    });
+    let _: serde_json::Value = api_client(&url, "POST", Some(body.to_string())).await?;
+    Ok(())
+}
+
+/// Remove a managed DID binding from an account. The DID is part of the
+/// path so the request body is empty.
+pub async fn remove_account_did_binding(
+    account_id: &str,
+    did: &str,
+) -> Result<(), HttpError> {
+    let url = format!(
+        "/contrix/admin/v1/accounts/{}/dids/{}",
+        urlencoding::encode(account_id),
+        urlencoding::encode(did),
+    );
+    let _: serde_json::Value = api_client(&url, "DELETE", None).await?;
+    Ok(())
+}
+
+/// Revoke a single claim attached to the account. The claim is keyed by
+/// its `claim_type` (e.g. `email`, `principal_did`); coauth's claims
+/// admin routes accept the type as a path segment.
+pub async fn revoke_account_claim(
+    account_id: &str,
+    claim_type: &str,
+) -> Result<(), HttpError> {
+    let url = format!(
+        "/contrix/admin/v1/accounts/{}/claims/{}/revoke",
+        urlencoding::encode(account_id),
+        urlencoding::encode(claim_type),
+    );
+    let _: serde_json::Value = api_client(&url, "POST", None).await?;
+    Ok(())
 }
 
 pub async fn submit_account_risk_action(
@@ -1300,6 +1424,56 @@ pub struct PaginatedResponse<T> {
     pub total: u64,
 }
 
+/// Cursor-shaped pagination result. `next_cursor` is `Some` when the
+/// server links another page; `prev_cursor` mirrors it for backward
+/// navigation. Both are opaque base64url strings produced by coauth and
+/// fed back unchanged on the next request.
+#[derive(Debug, Clone, Default)]
+pub struct CursorPage<T> {
+    pub data: Vec<T>,
+    pub next_cursor: Option<String>,
+    pub prev_cursor: Option<String>,
+    /// Total when the server populated `meta.count` (best-effort).
+    pub total: Option<u64>,
+}
+
+/// Filter inputs accepted by `list_accounts_cursor`. Empty strings are
+/// dropped before encoding so the wire form only carries what the
+/// operator actually filtered on.
+#[derive(Debug, Clone, Default)]
+pub struct AccountListFilter {
+    pub handle: String,
+    pub display_name: String,
+}
+
+impl AccountListFilter {
+    pub fn is_empty(&self) -> bool {
+        self.handle.trim().is_empty() && self.display_name.trim().is_empty()
+    }
+}
+
+/// Parse the `cursor=…` query parameter out of a JSON:API `links.next` /
+/// `links.prev` URL. Returns `None` when the link is absent or has no
+/// cursor.
+fn extract_cursor_param(link: &str) -> Option<String> {
+    if link.is_empty() {
+        return None;
+    }
+    let query = link.split_once('?').map(|(_, rest)| rest)?;
+    let bare = query.split('#').next().unwrap_or(query);
+    for pair in bare.split('&') {
+        if let Some((key, value)) = pair.split_once('=') {
+            if key == "cursor" || key == "page%5Bcursor%5D" || key == "page[cursor]" {
+                let decoded = urlencoding::decode(value).ok()?.into_owned();
+                if !decoded.is_empty() {
+                    return Some(decoded);
+                }
+            }
+        }
+    }
+    None
+}
+
 #[derive(Debug, Clone, Deserialize, Default)]
 struct ConnectorHealthResponse {
     #[serde(default)]
@@ -1310,4 +1484,58 @@ struct ConnectorHealthResponse {
 struct NotificationChannelsResponse {
     #[serde(default)]
     channels: Vec<CoauthNotificationChannel>,
+}
+
+#[cfg(test)]
+mod cursor_tests {
+    use super::{extract_cursor_param, AccountListFilter};
+
+    #[test]
+    fn extract_cursor_handles_plain_param() {
+        assert_eq!(
+            extract_cursor_param("/api/admin/v1/accounts?cursor=ABC123&limit=25"),
+            Some("ABC123".to_string()),
+        );
+    }
+
+    #[test]
+    fn extract_cursor_handles_jsonapi_bracketed_param() {
+        assert_eq!(
+            extract_cursor_param("/api/admin/v1/accounts?page%5Bcursor%5D=DEF456"),
+            Some("DEF456".to_string()),
+        );
+    }
+
+    #[test]
+    fn extract_cursor_returns_none_when_absent() {
+        assert!(extract_cursor_param("/api/admin/v1/accounts?limit=25").is_none());
+        assert!(extract_cursor_param("").is_none());
+    }
+
+    #[test]
+    fn extract_cursor_decodes_url_escaping() {
+        // base64url uses only [A-Za-z0-9_-], but wire data sometimes
+        // includes URL-encoded `=` padding — make sure we round-trip the
+        // raw cursor token cleanly.
+        assert_eq!(
+            extract_cursor_param("/x?cursor=A%3DB&limit=25"),
+            Some("A=B".to_string()),
+        );
+    }
+
+    #[test]
+    fn account_list_filter_is_empty_when_blank() {
+        let f = AccountListFilter::default();
+        assert!(f.is_empty());
+        let f = AccountListFilter {
+            handle: "  ".to_string(),
+            display_name: "".to_string(),
+        };
+        assert!(f.is_empty());
+        let f = AccountListFilter {
+            handle: "alice".to_string(),
+            display_name: "".to_string(),
+        };
+        assert!(!f.is_empty());
+    }
 }

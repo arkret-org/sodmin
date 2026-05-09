@@ -3,16 +3,308 @@ use dioxus::prelude::*;
 use crate::components::ui::icons::Icon;
 use crate::router::Route;
 use crate::utils::i18n::t;
+use crate::utils::session::{self, bridge, scope};
 
 struct NavItem {
     title: String,
     route: Route,
     icon: &'static str,
+    /// Required scope this nav item needs. `None` means "always allowed
+    /// when the parent group is shown".
+    required_scope: Option<&'static str>,
+}
+
+impl NavItem {
+    fn new(title: String, route: Route, icon: &'static str) -> Self {
+        Self {
+            title,
+            route,
+            icon,
+            required_scope: None,
+        }
+    }
+
+    fn scoped(mut self, scope: &'static str) -> Self {
+        self.required_scope = Some(scope);
+        self
+    }
 }
 
 struct NavSection {
     label: String,
     items: Vec<NavItem>,
+    /// Required active bridge contract for the whole group. `None` means
+    /// "always shown".
+    required_bridge: Option<&'static str>,
+    /// Required admin scope for the whole group. `None` means "show iff
+    /// at least one inner item is allowed by `has_scope`".
+    required_scope: Option<&'static str>,
+}
+
+impl NavSection {
+    fn new(label: String, items: Vec<NavItem>) -> Self {
+        Self {
+            label,
+            items,
+            required_bridge: None,
+            required_scope: None,
+        }
+    }
+
+    fn bridge(mut self, b: &'static str) -> Self {
+        self.required_bridge = Some(b);
+        self
+    }
+
+    fn scope(mut self, s: &'static str) -> Self {
+        self.required_scope = Some(s);
+        self
+    }
+
+    /// Item filter — keep only entries whose required_scope is held by
+    /// the current session.
+    fn filtered_items(&self) -> Vec<&NavItem> {
+        self.items
+            .iter()
+            .filter(|item| match item.required_scope {
+                Some(s) => session::has_scope(s),
+                None => true,
+            })
+            .collect()
+    }
+
+    /// Hide a whole section if its bridge is not active or its scope is
+    /// not held — also hide if every item has been filtered out.
+    fn is_visible(&self) -> bool {
+        if let Some(b) = self.required_bridge {
+            if !session::has_bridge(b) {
+                return false;
+            }
+        }
+        if let Some(s) = self.required_scope {
+            if !session::has_scope(s) {
+                return false;
+            }
+        }
+        !self.filtered_items().is_empty()
+    }
+}
+
+/// Build the dynamic sidebar nav. Reads `active_bridges` + `admin_scope`
+/// from the cached session info and only emits groups/items the operator
+/// is actually allowed to see. Unknown extras in either set are ignored.
+fn build_nav_sections() -> Vec<NavSection> {
+    let mut sections: Vec<NavSection> = Vec::new();
+
+    // Dashboard is always visible — it has its own per-bridge readiness
+    // surface.
+    sections.push(NavSection::new(
+        String::new(),
+        vec![NavItem::new(
+            t("nav.dashboard"),
+            Route::Dashboard {},
+            "layout-dashboard",
+        )],
+    ));
+
+    sections.push(
+        NavSection::new(
+            t("nav.section_identity"),
+            vec![
+                NavItem::new(t("nav.actors"), Route::ActorList {}, "users"),
+                NavItem::new(t("nav.devices"), Route::DeviceList {}, "smartphone"),
+                NavItem::new(t("nav.capabilities"), Route::CapabilityList {}, "shield"),
+                NavItem::new(
+                    t("nav.invite_tokens"),
+                    Route::InviteTokenList {},
+                    "key",
+                ),
+            ],
+        )
+        .bridge(bridge::SOLAND)
+        .scope(scope::IDENTITY),
+    );
+
+    sections.push(
+        NavSection::new(
+            t("nav.section_moderation"),
+            vec![
+                NavItem::new(t("nav.spaces"), Route::SpaceList {}, "message-square"),
+                NavItem::new(t("nav.reports"), Route::ReportList {}, "flag"),
+                NavItem::new(t("nav.audit"), Route::AuditLog {}, "scroll-text"),
+            ],
+        )
+        .bridge(bridge::SOLAND)
+        .scope(scope::MODERATION),
+    );
+
+    sections.push(
+        NavSection::new(
+            t("nav.section_infrastructure"),
+            vec![
+                NavItem::new(t("nav.federation"), Route::FederationList {}, "globe"),
+                NavItem::new(t("nav.media"), Route::MediaList {}, "image"),
+                NavItem::new(t("nav.applets"), Route::AppletList {}, "plug"),
+                NavItem::new(t("nav.agents"), Route::AgentList {}, "bot"),
+            ],
+        )
+        .bridge(bridge::SOLAND)
+        .scope(scope::INFRASTRUCTURE),
+    );
+
+    sections.push(
+        NavSection::new(
+            t("nav.section_server_ops"),
+            vec![
+                NavItem::new(t("nav.policy"), Route::PolicyList {}, "file-text"),
+                NavItem::new(
+                    t("nav.server_status"),
+                    Route::ServerStatus {},
+                    "activity",
+                ),
+            ],
+        )
+        .bridge(bridge::SOLAND)
+        .scope(scope::SERVER_OPS),
+    );
+
+    // Stream H' (Move/Anchor/Lattice admin) — gated on the soland bridge
+    // (without the principal server there is no Move/Anchor surface) and
+    // on the anchor admin scope. Per-space deep links keep their
+    // placeholder space id since admins typically arrive from the Space
+    // detail page.
+    sections.push(
+        NavSection::new(
+            t("nav.section_anchor"),
+            vec![
+                NavItem::new(
+                    t("nav.anchor_bottom"),
+                    Route::AnchorBottom {},
+                    "alert-triangle",
+                ),
+                NavItem::new(
+                    t("nav.anchor_anchorer"),
+                    Route::SpaceAnchorer {
+                        space_id: "_".to_string(),
+                    },
+                    "shield",
+                ),
+                NavItem::new(
+                    t("nav.anchor_dag"),
+                    Route::SpaceAnchorDag {
+                        space_id: "_".to_string(),
+                    },
+                    "git-branch",
+                ),
+                NavItem::new(
+                    t("nav.consent"),
+                    Route::SpaceConsent {
+                        space_id: "_".to_string(),
+                    },
+                    "shield",
+                ),
+                NavItem::new(
+                    t("nav.covered_frontier"),
+                    Route::SpaceCoveredFrontier {
+                        space_id: "_".to_string(),
+                    },
+                    "lock",
+                ),
+                NavItem::new(
+                    t("nav.components"),
+                    Route::ComponentsRegistry {},
+                    "plug",
+                ),
+                NavItem::new(
+                    t("nav.signing_keys"),
+                    Route::SpaceSigningKeys {
+                        space_id: "_".to_string(),
+                    },
+                    "key",
+                ),
+                NavItem::new(
+                    t("nav.multisig"),
+                    Route::SpaceMultiSig {
+                        space_id: "_".to_string(),
+                    },
+                    "users",
+                ),
+            ],
+        )
+        .bridge(bridge::SOLAND)
+        .scope(scope::ANCHOR),
+    );
+
+    sections.push(
+        NavSection::new(
+            t("nav.section_coauth"),
+            vec![
+                NavItem::new(
+                    t("nav.coauth_accounts"),
+                    Route::CoauthAccountList {},
+                    "user-round",
+                )
+                .scoped(scope::COAUTH),
+                NavItem::new(
+                    t("nav.audit_log"),
+                    Route::CoauthAuditLog {},
+                    "scroll-text",
+                )
+                .scoped(scope::COAUTH),
+                NavItem::new(
+                    t("nav.oauth2_sessions"),
+                    Route::CoauthOAuth2Sessions {},
+                    "key",
+                )
+                .scoped(scope::COAUTH),
+                NavItem::new(
+                    t("nav.personal_tokens"),
+                    Route::CoauthPersonalSessions {},
+                    "fingerprint",
+                )
+                .scoped(scope::COAUTH),
+                NavItem::new(
+                    t("nav.registration_tokens"),
+                    Route::CoauthRegistrationTokens {},
+                    "ticket",
+                )
+                .scoped(scope::COAUTH),
+                NavItem::new(
+                    t("nav.upstream_providers"),
+                    Route::CoauthUpstreamProviders {},
+                    "link",
+                )
+                .scoped(scope::COAUTH),
+                NavItem::new(
+                    t("nav.upstream_links"),
+                    Route::CoauthUpstreamLinks {},
+                    "link",
+                )
+                .scoped(scope::COAUTH),
+                NavItem::new(
+                    t("nav.notification_channels"),
+                    Route::CoauthNotificationChannels {},
+                    "mail",
+                )
+                .scoped(scope::COAUTH),
+                NavItem::new(
+                    t("nav.notification_templates"),
+                    Route::CoauthNotificationTemplates {},
+                    "scroll-text",
+                )
+                .scoped(scope::COAUTH),
+                NavItem::new(
+                    t("nav.connector_health"),
+                    Route::CoauthConnectorHealth {},
+                    "heart-pulse",
+                )
+                .scoped(scope::COAUTH),
+            ],
+        )
+        .bridge(bridge::COAUTH),
+    );
+
+    sections.into_iter().filter(|s| s.is_visible()).collect()
 }
 
 #[component]
@@ -21,233 +313,7 @@ pub fn AppSidebar(collapsed: Signal<bool>, mobile_open: Signal<bool>) -> Element
     let nav = use_navigator();
     let current_path = use_route::<Route>();
 
-    let has_coauth = crate::utils::session::has_coauth();
-
-    let mut sections: Vec<NavSection> = Vec::new();
-
-    sections.push(NavSection {
-        label: String::new(),
-        items: vec![NavItem {
-            title: t("nav.dashboard"),
-            route: Route::Dashboard {},
-            icon: "layout-dashboard",
-        }],
-    });
-
-    sections.push(NavSection {
-        label: t("nav.section_identity"),
-        items: vec![
-            NavItem {
-                title: t("nav.actors"),
-                route: Route::ActorList {},
-                icon: "users",
-            },
-            NavItem {
-                title: t("nav.devices"),
-                route: Route::DeviceList {},
-                icon: "smartphone",
-            },
-            NavItem {
-                title: t("nav.capabilities"),
-                route: Route::CapabilityList {},
-                icon: "shield",
-            },
-            NavItem {
-                title: t("nav.invite_tokens"),
-                route: Route::InviteTokenList {},
-                icon: "key",
-            },
-        ],
-    });
-
-    sections.push(NavSection {
-        label: t("nav.section_moderation"),
-        items: vec![
-            NavItem {
-                title: t("nav.spaces"),
-                route: Route::SpaceList {},
-                icon: "message-square",
-            },
-            NavItem {
-                title: t("nav.reports"),
-                route: Route::ReportList {},
-                icon: "flag",
-            },
-            NavItem {
-                title: t("nav.audit"),
-                route: Route::AuditLog {},
-                icon: "scroll-text",
-            },
-        ],
-    });
-
-    sections.push(NavSection {
-        label: t("nav.section_infrastructure"),
-        items: vec![
-            NavItem {
-                title: t("nav.federation"),
-                route: Route::FederationList {},
-                icon: "globe",
-            },
-            NavItem {
-                title: t("nav.media"),
-                route: Route::MediaList {},
-                icon: "image",
-            },
-            NavItem {
-                title: t("nav.applets"),
-                route: Route::AppletList {},
-                icon: "plug",
-            },
-            NavItem {
-                title: t("nav.agents"),
-                route: Route::AgentList {},
-                icon: "bot",
-            },
-        ],
-    });
-
-    sections.push(NavSection {
-        label: t("nav.section_server_ops"),
-        items: vec![
-            NavItem {
-                title: t("nav.policy"),
-                route: Route::PolicyList {},
-                icon: "file-text",
-            },
-            NavItem {
-                title: t("nav.server_status"),
-                route: Route::ServerStatus {},
-                icon: "activity",
-            },
-        ],
-    });
-
-    // Stream H' (Move/Anchor/Lattice admin) — see _todos.md C10.F.
-    // The per-space anchorer / anchor-dag entries point at a placeholder
-    // space id; admins typically reach them from a Space detail page deep
-    // link. This avoids a "select a space first" interstitial while soland
-    // MAL-15 read-side describe is still wireframe-only.
-    sections.push(NavSection {
-        label: t("nav.section_anchor"),
-        items: vec![
-            NavItem {
-                title: t("nav.anchor_bottom"),
-                route: Route::AnchorBottom {},
-                icon: "alert-triangle",
-            },
-            NavItem {
-                title: t("nav.anchor_anchorer"),
-                route: Route::SpaceAnchorer {
-                    space_id: "_".to_string(),
-                },
-                icon: "shield",
-            },
-            NavItem {
-                title: t("nav.anchor_dag"),
-                route: Route::SpaceAnchorDag {
-                    space_id: "_".to_string(),
-                },
-                icon: "git-branch",
-            },
-            // H'5/H'7 (per-Space deep links — placeholder space id for the
-            // sidebar entry, real entry from Space detail page).
-            NavItem {
-                title: t("nav.consent"),
-                route: Route::SpaceConsent {
-                    space_id: "_".to_string(),
-                },
-                icon: "shield",
-            },
-            NavItem {
-                title: t("nav.covered_frontier"),
-                route: Route::SpaceCoveredFrontier {
-                    space_id: "_".to_string(),
-                },
-                icon: "lock",
-            },
-            // H'6 (server-wide, no per-Space scoping).
-            NavItem {
-                title: t("nav.components"),
-                route: Route::ComponentsRegistry {},
-                icon: "plug",
-            },
-            // H'8 / H'9 — per-Space deep links (placeholder space id for
-            // the sidebar entry, real entry from Space detail page).
-            NavItem {
-                title: t("nav.signing_keys"),
-                route: Route::SpaceSigningKeys {
-                    space_id: "_".to_string(),
-                },
-                icon: "key",
-            },
-            NavItem {
-                title: t("nav.multisig"),
-                route: Route::SpaceMultiSig {
-                    space_id: "_".to_string(),
-                },
-                icon: "users",
-            },
-        ],
-    });
-
-    if has_coauth {
-        sections.push(NavSection {
-            label: t("nav.section_coauth"),
-            items: vec![
-                NavItem {
-                    title: t("nav.coauth_accounts"),
-                    route: Route::CoauthAccountList {},
-                    icon: "user-round",
-                },
-                NavItem {
-                    title: t("nav.audit_log"),
-                    route: Route::CoauthAuditLog {},
-                    icon: "scroll-text",
-                },
-                NavItem {
-                    title: t("nav.oauth2_sessions"),
-                    route: Route::CoauthOAuth2Sessions {},
-                    icon: "key",
-                },
-                NavItem {
-                    title: t("nav.personal_tokens"),
-                    route: Route::CoauthPersonalSessions {},
-                    icon: "fingerprint",
-                },
-                NavItem {
-                    title: t("nav.registration_tokens"),
-                    route: Route::CoauthRegistrationTokens {},
-                    icon: "ticket",
-                },
-                NavItem {
-                    title: t("nav.upstream_providers"),
-                    route: Route::CoauthUpstreamProviders {},
-                    icon: "link",
-                },
-                NavItem {
-                    title: t("nav.upstream_links"),
-                    route: Route::CoauthUpstreamLinks {},
-                    icon: "link",
-                },
-                NavItem {
-                    title: t("nav.notification_channels"),
-                    route: Route::CoauthNotificationChannels {},
-                    icon: "mail",
-                },
-                NavItem {
-                    title: t("nav.notification_templates"),
-                    route: Route::CoauthNotificationTemplates {},
-                    icon: "scroll-text",
-                },
-                NavItem {
-                    title: t("nav.connector_health"),
-                    route: Route::CoauthConnectorHealth {},
-                    icon: "heart-pulse",
-                },
-            ],
-        });
-    }
+    let sections = build_nav_sections();
 
     let is_mobile_open = *mobile_open.read();
     let is_collapsed = *collapsed.read() && !is_mobile_open;
@@ -290,7 +356,7 @@ pub fn AppSidebar(collapsed: Signal<bool>, mobile_open: Signal<bool>) -> Element
                                 {section.label.clone()}
                             }
                         }
-                        for item in section.items.iter() {
+                        for item in section.filtered_items().into_iter() {
                             {
                                 let is_active = is_route_active(&current_path, &item.route);
                                 let active_class = if is_active {
@@ -347,5 +413,85 @@ fn is_route_active(current: &Route, target: &Route) -> bool {
             Route::CoauthAccountList {} | Route::CoauthAccountShow { .. }
         ),
         _ => false,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// Apply the same filtering as `NavSection::filtered_items` but using
+    /// an explicit (storage-free) scope set so the unit tests don't need
+    /// browser `LocalStorage`. Mirrors the runtime semantics exactly.
+    fn filter_with_scopes<'a>(section: &'a NavSection, scopes: &[&str]) -> Vec<&'a NavItem> {
+        section
+            .items
+            .iter()
+            .filter(|item| match item.required_scope {
+                Some(s) => scopes.contains(&scope::WILDCARD) || scopes.contains(&s),
+                None => true,
+            })
+            .collect()
+    }
+
+    fn section_visible_with(
+        section: &NavSection,
+        bridges: &[&str],
+        scopes: &[&str],
+    ) -> bool {
+        if let Some(b) = section.required_bridge {
+            if !bridges.contains(&b) {
+                return false;
+            }
+        }
+        if let Some(s) = section.required_scope {
+            if !(scopes.contains(&scope::WILDCARD) || scopes.contains(&s)) {
+                return false;
+            }
+        }
+        !filter_with_scopes(section, scopes).is_empty()
+    }
+
+    #[test]
+    fn nav_section_hidden_when_required_bridge_inactive() {
+        let section = NavSection::new(
+            "x".to_string(),
+            vec![NavItem::new("y".to_string(), Route::Dashboard {}, "x")],
+        )
+        .bridge(bridge::SOLAND);
+        assert!(!section_visible_with(&section, &[], &[scope::WILDCARD]));
+        assert!(section_visible_with(
+            &section,
+            &[bridge::SOLAND],
+            &[scope::WILDCARD]
+        ));
+    }
+
+    #[test]
+    fn nav_section_filters_items_by_scope() {
+        let section = NavSection::new(
+            "x".to_string(),
+            vec![
+                NavItem::new("a".to_string(), Route::Dashboard {}, "x"),
+                NavItem::new("b".to_string(), Route::Dashboard {}, "x")
+                    .scoped(scope::COAUTH),
+            ],
+        );
+        // Wildcard sees both items.
+        assert_eq!(filter_with_scopes(&section, &[scope::WILDCARD]).len(), 2);
+        // No scope at all hides the coauth-scoped item.
+        assert_eq!(filter_with_scopes(&section, &[]).len(), 1);
+        // Explicit coauth scope sees both.
+        assert_eq!(filter_with_scopes(&section, &[scope::COAUTH]).len(), 2);
+    }
+
+    #[test]
+    fn nav_section_hidden_when_all_items_filtered_out() {
+        let section = NavSection::new(
+            "x".to_string(),
+            vec![NavItem::new("y".to_string(), Route::Dashboard {}, "x")
+                .scoped(scope::COAUTH)],
+        );
+        assert!(!section_visible_with(&section, &[], &[]));
     }
 }

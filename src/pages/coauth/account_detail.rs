@@ -1,6 +1,8 @@
 use dioxus::prelude::*;
 
 use crate::api::coauth;
+use crate::components::claims_panel::ClaimsPanel;
+use crate::components::did_binding_panel::DidBindingPanel;
 use crate::components::risk_action_panel;
 use crate::components::ui::error_banner::ErrorBanner;
 use crate::components::ui::loading::PageSkeleton;
@@ -15,6 +17,11 @@ pub fn AccountDetailPage(account_id: String) -> Element {
         let account_id_for_resource = account_id_for_resource.clone();
         async move { coauth::get_account_detail(&account_id_for_resource).await }
     });
+    // Mutation panels (DID binding add/remove, claim revoke) need to
+    // restart this resource on success; clone the signal so each panel
+    // gets its own owned handle.
+    let mut data_for_dids = data;
+    let mut data_for_claims = data;
 
     rsx! {
         div { class: "space-y-6",
@@ -116,71 +123,17 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                             )}
                         }
 
-                        {section_block(
-                            "Managed DID Bindings",
-                            if detail.managed_dids.is_empty() {
-                                rsx! {
-                                    p { class: "text-sm text-muted-foreground",
-                                        "No DID bindings are currently returned for this account."
-                                    }
-                                }
-                            } else {
-                                rsx! {
-                                    ul { class: "space-y-2",
-                                        for binding in detail.managed_dids.iter() {
-                                            {
-                                                let method = binding.method.clone().unwrap_or_else(|| "-".to_string());
-                                                let state = binding.state.clone().unwrap_or_else(|| "-".to_string());
-                                                let verified_at = binding.last_verified_at.clone().unwrap_or_else(|| "-".to_string());
-                                                rsx! {
-                                                    li { class: "rounded-md border p-3",
-                                                        div { class: "font-mono text-sm", "{binding.did}" }
-                                                        div { class: "mt-2 grid gap-2 text-sm md:grid-cols-3",
-                                                            {detail_row("Method", &method)}
-                                                            {detail_row("State", &state)}
-                                                            {detail_row("Last Verified", &verified_at)}
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            },
-                        )}
+                        DidBindingPanel {
+                            account_id: account_id.clone(),
+                            bindings: detail.managed_dids.clone(),
+                            on_mutated: move |_| data_for_dids.restart(),
+                        }
 
-                        {section_block(
-                            "Claims",
-                            if detail.claims.is_empty() {
-                                rsx! {
-                                    p { class: "text-sm text-muted-foreground",
-                                        "No claim material is exposed by the current coauth account admin contract."
-                                    }
-                                }
-                            } else {
-                                rsx! {
-                                    ul { class: "space-y-2",
-                                        for claim in detail.claims.iter() {
-                                            {
-                                                let value = claim.value.clone().unwrap_or_else(|| "-".to_string());
-                                                let state = claim.state.clone().unwrap_or_else(|| "-".to_string());
-                                                let source = claim.source.clone().unwrap_or_else(|| "-".to_string());
-                                                rsx! {
-                                                    li { class: "rounded-md border p-3",
-                                                        div { class: "font-medium", "{claim.claim_type}" }
-                                                        div { class: "mt-2 grid gap-2 text-sm md:grid-cols-3",
-                                                            {detail_row("Value", &value)}
-                                                            {detail_row("State", &state)}
-                                                            {detail_row("Source", &source)}
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            },
-                        )}
+                        ClaimsPanel {
+                            account_id: account_id.clone(),
+                            claims: detail.claims.clone(),
+                            on_mutated: move |_| data_for_claims.restart(),
+                        }
 
                         {section_block(
                             "Session Grants",

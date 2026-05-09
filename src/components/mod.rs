@@ -1,3 +1,5 @@
+pub mod claims_panel;
+pub mod did_binding_panel;
 pub mod footer;
 pub mod header;
 pub mod keyboard_shortcuts;
