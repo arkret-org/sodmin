@@ -3,6 +3,9 @@ pub mod anchor_admin;
 pub mod api_client {
     pub use crate::api::client::*;
 }
+pub mod components_admin;
+pub mod consent_admin;
+pub mod covered_frontier_admin;
 // TODO(A0): populated by codegen once coauth-admin-types / soland-admin-types land.
 // See _todos.md A0 checklist.
 pub mod generated;

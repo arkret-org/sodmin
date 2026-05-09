@@ -7,6 +7,8 @@
 //! back to `manual` when no candidate heads are surfaced) before the
 //! POST.
 
+use std::collections::HashMap;
+
 use dioxus::prelude::*;
 
 use crate::api::anchor_admin;
@@ -18,7 +20,7 @@ use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::table::*;
 use crate::components::ui::toast::{ToastVariant, show_toast};
-use crate::types::anchor::{BottomEntry, BottomKind, BottomRepairStrategy};
+use crate::types::anchor::{BottomEntry, BottomKind, BottomRepairStrategy, WinnerHead};
 
 #[component]
 pub fn BottomDiagnosticsPage() -> Element {
@@ -30,6 +32,12 @@ pub fn BottomDiagnosticsPage() -> Element {
     // during the in-flight POST don't lose the selected head.
     let mut pending = use_signal::<Option<(BottomEntry, BottomRepairStrategy)>>(|| None);
     let mut submitting = use_signal(|| false);
+    // Per-row picker selection for multi-head conflict bottoms (continued
+    // H'3): when `candidate_heads.len() > 1` the user picks which head to
+    // promote *before* opening the confirm modal. Keyed by cell_id; absent
+    // = "use default (first head)". This lets the page survive re-fetches
+    // without losing in-flight selections.
+    let mut selected_heads = use_signal::<HashMap<String, usize>>(HashMap::new);
 
     rsx! {
         div { class: "space-y-6",
@@ -104,14 +112,51 @@ pub fn BottomDiagnosticsPage() -> Element {
                                                         "{details}"
                                                     }
                                                     TableCell { class: "text-right".to_string(),
-                                                        Button {
-                                                            variant: ButtonVariant::Ghost,
-                                                            size: ButtonSize::Sm,
-                                                            onclick: move |_| {
-                                                                let strategy = default_repair_strategy(&entry_clone);
-                                                                pending.set(Some((entry_clone.clone(), strategy)));
-                                                            },
-                                                            "Construct repair Move"
+                                                        {
+                                                            let cell_id_for_select = entry_clone.cell_id.clone();
+                                                            let cell_id_for_button = entry_clone.cell_id.clone();
+                                                            let candidate_count = entry_clone.candidate_heads.len();
+                                                            let current_idx = *selected_heads
+                                                                .read()
+                                                                .get(&cell_id_for_select)
+                                                                .unwrap_or(&0usize);
+                                                            let entry_for_button = entry_clone.clone();
+                                                            rsx! {
+                                                                div { class: "flex flex-col gap-1 items-end",
+                                                                    if candidate_count > 1 {
+                                                                        select {
+                                                                            class: "h-8 rounded-md border bg-background px-2 text-xs",
+                                                                            value: current_idx.to_string(),
+                                                                            onchange: move |evt: FormEvent| {
+                                                                                if let Ok(idx) = evt.value().parse::<usize>() {
+                                                                                    let mut map = selected_heads.read().clone();
+                                                                                    map.insert(cell_id_for_select.clone(), idx);
+                                                                                    selected_heads.set(map);
+                                                                                }
+                                                                            },
+                                                                            for (i, head) in entry_clone.candidate_heads.iter().enumerate() {
+                                                                                option {
+                                                                                    value: i.to_string(),
+                                                                                    {format_head_option(i, head)}
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                    Button {
+                                                                        variant: ButtonVariant::Ghost,
+                                                                        size: ButtonSize::Sm,
+                                                                        onclick: move |_| {
+                                                                            let idx = *selected_heads
+                                                                                .read()
+                                                                                .get(&cell_id_for_button)
+                                                                                .unwrap_or(&0usize);
+                                                                            let strategy = repair_strategy_for_entry(&entry_for_button, idx);
+                                                                            pending.set(Some((entry_for_button.clone(), strategy)));
+                                                                        },
+                                                                        "Construct repair Move"
+                                                                    }
+                                                                }
+                                                            }
                                                         }
                                                     }
                                                 }
@@ -200,6 +245,43 @@ pub fn BottomDiagnosticsPage() -> Element {
     }
 }
 
+/// Render label for a head option in the picker. Truncates the move id
+/// to keep the dropdown narrow but still distinguishable. Pure helper so
+/// we can unit test the formatting independent of Dioxus.
+pub(crate) fn format_head_option(idx: usize, head: &WinnerHead) -> String {
+    let summary = head.summary.as_deref().unwrap_or("");
+    let short = if head.move_id.len() > 16 {
+        format!("{}…", &head.move_id[..16])
+    } else {
+        head.move_id.clone()
+    };
+    if summary.is_empty() {
+        format!("{}: {}", idx + 1, short)
+    } else {
+        format!("{}: {} ({})", idx + 1, short, summary)
+    }
+}
+
+/// Pick the repair strategy for an entry given a user-selected head
+/// index. When the entry has >1 candidate heads the picker lets the
+/// admin choose; we honor that selection here. Out-of-bounds indices
+/// fall back to the same logic as `default_repair_strategy` so the page
+/// is robust to stale `selected_heads` state across re-fetches.
+pub(crate) fn repair_strategy_for_entry(
+    entry: &BottomEntry,
+    head_idx: usize,
+) -> BottomRepairStrategy {
+    if let Some(head) = entry.candidate_heads.get(head_idx) {
+        match BottomKind::from_wire(&entry.kind) {
+            Some(BottomKind::Conflict) | Some(BottomKind::AnchorerSplit) => {
+                return BottomRepairStrategy::HeadInWinner { head: head.clone() };
+            }
+            _ => {}
+        }
+    }
+    default_repair_strategy(entry)
+}
+
 /// Pick the default `BottomRepairStrategy` to seed into the confirmation
 /// modal based on the bottom entry shape:
 ///
@@ -250,7 +332,10 @@ pub(crate) fn bottom_kind_variant(wire: &str) -> BadgeVariant {
 
 #[cfg(test)]
 mod tests {
-    use super::{bottom_kind_variant, default_repair_strategy, format_kind_label};
+    use super::{
+        bottom_kind_variant, default_repair_strategy, format_head_option, format_kind_label,
+        repair_strategy_for_entry,
+    };
     use crate::components::ui::badge::BadgeVariant;
     use crate::types::anchor::{BottomEntry, BottomRepairStrategy, WinnerHead};
 
@@ -304,6 +389,72 @@ mod tests {
                 assert_eq!(head.move_id, "move:abc");
             }
             other => panic!("expected head_in_winner default, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn format_head_option_truncates_long_move_ids() {
+        let head = WinnerHead {
+            move_id: "cx:move:sha256:aaaabbbbccccddddeeeeffff".into(),
+            ..Default::default()
+        };
+        let label = format_head_option(0, &head);
+        // 1-indexed, truncated with ellipsis at 16 chars of the move id.
+        assert!(label.starts_with("1: "));
+        assert!(label.contains("\u{2026}"));
+        assert!(!label.contains("ffff"));
+    }
+
+    #[test]
+    fn format_head_option_includes_summary_when_present() {
+        let head = WinnerHead {
+            move_id: "m:abc".into(),
+            summary: Some("set value=42".into()),
+            ..Default::default()
+        };
+        let label = format_head_option(2, &head);
+        assert!(label.starts_with("3: "));
+        assert!(label.contains("m:abc"));
+        assert!(label.contains("set value=42"));
+    }
+
+    #[test]
+    fn repair_strategy_picker_uses_chosen_index() {
+        // Conflict bottom with 3 candidate heads → picker index 2 should
+        // produce HeadInWinner { head: heads[2] }, not the default first.
+        let entry = BottomEntry {
+            space_id: "cx:space:demo".into(),
+            cell_id: "cx:cell:cx.component.profile.v1:cx:space:demo".into(),
+            kind: "conflict".into(),
+            candidate_heads: vec![
+                WinnerHead { move_id: "m:1".into(), ..Default::default() },
+                WinnerHead { move_id: "m:2".into(), ..Default::default() },
+                WinnerHead { move_id: "m:3".into(), ..Default::default() },
+            ],
+            ..Default::default()
+        };
+        match repair_strategy_for_entry(&entry, 2) {
+            BottomRepairStrategy::HeadInWinner { head } => assert_eq!(head.move_id, "m:3"),
+            other => panic!("expected head_in_winner with picked index, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn repair_strategy_picker_falls_back_when_index_out_of_bounds() {
+        // Out-of-bounds index → fall back to default_repair_strategy
+        // (which picks the first head for a conflict entry).
+        let entry = BottomEntry {
+            space_id: "cx:space:demo".into(),
+            cell_id: "cx:cell:cx.component.profile.v1:cx:space:demo".into(),
+            kind: "conflict".into(),
+            candidate_heads: vec![
+                WinnerHead { move_id: "m:first".into(), ..Default::default() },
+            ],
+            ..Default::default()
+        };
+        match repair_strategy_for_entry(&entry, 99) {
+            BottomRepairStrategy::HeadInWinner { head } => assert_eq!(head.move_id, "m:first"),
+            other => panic!("expected default head_in_winner fallback, got {other:?}"),
         }
     }
 

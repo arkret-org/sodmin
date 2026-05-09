@@ -40,9 +40,16 @@ pub enum Route {
         SpaceAnchorer { space_id: String },
         #[route("/spaces/:space_id/anchor-dag")]
         SpaceAnchorDag { space_id: String },
+        #[route("/spaces/:space_id/consent")]
+        SpaceConsent { space_id: String },
+        #[route("/spaces/:space_id/covered-frontier")]
+        SpaceCoveredFrontier { space_id: String },
 
         #[route("/anchor/bottom")]
         AnchorBottom {},
+
+        #[route("/components")]
+        ComponentsRegistry {},
 
         #[route("/media")]
         MediaList {},
@@ -231,6 +238,21 @@ fn SpaceAnchorDag(space_id: String) -> Element {
 #[component]
 fn AnchorBottom() -> Element {
     rsx! { pages::spaces::bottom::BottomDiagnosticsPage {} }
+}
+
+#[component]
+fn SpaceConsent(space_id: String) -> Element {
+    rsx! { pages::spaces::consent::ConsentPage { space_id } }
+}
+
+#[component]
+fn SpaceCoveredFrontier(space_id: String) -> Element {
+    rsx! { pages::spaces::covered_frontier::CoveredFrontierPage { space_id } }
+}
+
+#[component]
+fn ComponentsRegistry() -> Element {
+    rsx! { pages::spaces::components::ComponentsPage {} }
 }
 
 #[component]

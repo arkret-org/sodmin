@@ -150,6 +150,28 @@ pub fn AppSidebar(collapsed: Signal<bool>, mobile_open: Signal<bool>) -> Element
                 },
                 icon: "git-branch",
             },
+            // H'5/H'7 (per-Space deep links — placeholder space id for the
+            // sidebar entry, real entry from Space detail page).
+            NavItem {
+                title: t("nav.consent"),
+                route: Route::SpaceConsent {
+                    space_id: "_".to_string(),
+                },
+                icon: "shield",
+            },
+            NavItem {
+                title: t("nav.covered_frontier"),
+                route: Route::SpaceCoveredFrontier {
+                    space_id: "_".to_string(),
+                },
+                icon: "lock",
+            },
+            // H'6 (server-wide, no per-Space scoping).
+            NavItem {
+                title: t("nav.components"),
+                route: Route::ComponentsRegistry {},
+                icon: "plug",
+            },
         ],
     });
 

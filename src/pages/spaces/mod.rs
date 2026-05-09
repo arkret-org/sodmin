@@ -1,6 +1,9 @@
 pub mod anchor_dag;
 pub mod anchorer;
 pub mod bottom;
+pub mod components;
+pub mod consent;
+pub mod covered_frontier;
 pub mod create;
 pub mod list;
 pub mod show;
