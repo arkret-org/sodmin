@@ -1235,6 +1235,140 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("server_status.event_kind_registry", "Event Kind Registry"),
             ("server_status.profiles_label", "Supported Profiles"),
             ("server_status.features_label", "Supported Features"),
+
+            // ── Round 24 sidebar entries ──
+            ("nav.coauth_capabilities", "Authz Capabilities"),
+            ("nav.spaces_admin", "Spaces (admin)"),
+            ("nav.moderation_reports", "Moderation reports"),
+
+            // ── Round 24 common UI ──
+            ("common.refresh", "Refresh"),
+            ("common.previous", "Previous"),
+            ("common.next", "Next"),
+            ("common.confirm", "Confirm"),
+
+            // ── Round 24 B5: soland authz capabilities ──
+            ("authz_caps.title", "Authz capability grants"),
+            (
+                "authz_caps.subtitle",
+                "soland authz capability grants visible to the current admin scope. Filter by holder / peer / scope; revoke to publish a cx.cell.authz.capability.revoke Move.",
+            ),
+            ("authz_caps.holder", "Holder DID"),
+            ("authz_caps.peer", "Peer DID"),
+            ("authz_caps.scope", "Scope"),
+            ("authz_caps.status", "Status"),
+            ("authz_caps.granted_at", "Granted at"),
+            ("authz_caps.expires_at", "Expires at"),
+            ("authz_caps.revoke", "Revoke"),
+            ("authz_caps.filter_holder", "Filter by holder DID"),
+            ("authz_caps.filter_peer", "Filter by peer DID"),
+            ("authz_caps.filter_scope", "Filter by scope"),
+            ("authz_caps.empty_title", "No capability grants"),
+            (
+                "authz_caps.empty_subtitle",
+                "soland reported no capability grants matching the current filter.",
+            ),
+            ("authz_caps.revoke_confirm_title", "Revoke capability grant?"),
+            (
+                "authz_caps.revoke_confirm_body",
+                "Publishes a revoke Move on the authz cell. Existing sessions resting on this capability will be re-checked on next anchor view. Audit-logged. Continue?",
+            ),
+
+            // ── Round 24 B6: per-account devices ──
+            ("coauth_devices.title", "Account devices"),
+            (
+                "coauth_devices.subtitle",
+                "Devices registered to this account. Revoke cascades to linked session grants on the soland side.",
+            ),
+            ("coauth_devices.device_id", "Device ID"),
+            ("coauth_devices.display_name", "Display name"),
+            ("coauth_devices.status", "Status"),
+            ("coauth_devices.last_seen", "Last seen"),
+            ("coauth_devices.linked_sessions", "Linked sessions"),
+            ("coauth_devices.revoke", "Revoke"),
+            ("coauth_devices.empty_title", "No devices registered"),
+            (
+                "coauth_devices.empty_subtitle",
+                "coauth has not registered any device for this account.",
+            ),
+            ("coauth_devices.revoke_confirm_title", "Revoke device?"),
+            (
+                "coauth_devices.revoke_confirm_body",
+                "Marks the device as revoked in coauth and cascade-revokes any session grants tied to it on the soland side. Audit-logged. Continue?",
+            ),
+
+            // ── Round 24 D1: Spaces admin list ──
+            ("spaces_admin.title", "Spaces (admin)"),
+            (
+                "spaces_admin.subtitle",
+                "Spaces visible to the current admin scope, backed by soland's admin describe surface.",
+            ),
+            ("spaces_admin.search_placeholder", "Search by id or name"),
+            ("spaces_admin.id", "ID"),
+            ("spaces_admin.name", "Name"),
+            ("spaces_admin.members", "Members"),
+            ("spaces_admin.health", "Health"),
+            ("spaces_admin.created_at", "Created at"),
+            ("spaces_admin.open_detail", "Open detail"),
+            ("spaces_admin.open_hierarchy", "Hierarchy"),
+            ("spaces_admin.empty_title", "No Spaces"),
+            (
+                "spaces_admin.empty_subtitle",
+                "soland reported no Spaces matching the current filter for this admin scope.",
+            ),
+
+            // ── Round 24 D2: Space hierarchy ──
+            ("space_hierarchy.title", "Hierarchy"),
+            (
+                "space_hierarchy.subtitle",
+                "Immediate parent and direct children for this Space.",
+            ),
+            ("space_hierarchy.parent_label", "Parent"),
+            ("space_hierarchy.this_label", "This"),
+            ("space_hierarchy.child_label", "Child"),
+            ("space_hierarchy.children_label", "Children"),
+            ("space_hierarchy.empty_title", "No relations"),
+            (
+                "space_hierarchy.empty_subtitle",
+                "This Space has no parent and no immediate children.",
+            ),
+
+            // ── Round 24 D5: Moderation reports ──
+            ("moderation_reports.title", "Moderation reports"),
+            (
+                "moderation_reports.subtitle",
+                "Open moderation reports awaiting an admin decision. Resolve marks the matter closed; Dismiss records a no-op review.",
+            ),
+            ("moderation_reports.id", "Report ID"),
+            ("moderation_reports.reporter", "Reporter"),
+            ("moderation_reports.target", "Target"),
+            ("moderation_reports.space", "Space"),
+            ("moderation_reports.reason", "Reason"),
+            ("moderation_reports.status", "Status"),
+            ("moderation_reports.created_at", "Created at"),
+            ("moderation_reports.resolve", "Resolve"),
+            ("moderation_reports.dismiss", "Dismiss"),
+            ("moderation_reports.filter_open", "Open"),
+            ("moderation_reports.filter_resolved", "Resolved"),
+            ("moderation_reports.filter_dismissed", "Dismissed"),
+            ("moderation_reports.filter_all", "All"),
+            ("moderation_reports.empty_title", "No moderation reports"),
+            (
+                "moderation_reports.empty_subtitle",
+                "soland reported no moderation reports for the current filter.",
+            ),
+            ("moderation_reports.resolve_confirm_title", "Resolve report?"),
+            (
+                "moderation_reports.resolve_confirm_body",
+                "Records an admin Resolve decision on this report. Audit-logged. Continue?",
+            ),
+            ("moderation_reports.resolve_confirm_btn", "Confirm resolve"),
+            ("moderation_reports.dismiss_confirm_title", "Dismiss report?"),
+            (
+                "moderation_reports.dismiss_confirm_body",
+                "Records an admin Dismiss decision on this report (no further action). Audit-logged. Continue?",
+            ),
+            ("moderation_reports.dismiss_confirm_btn", "Confirm dismiss"),
         ],
         Language::ZhCn => &[
             ("nav.actors", "Actor"),
@@ -1504,6 +1638,140 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("server_status.event_kind_registry", "Event Kind Registry"),
             ("server_status.profiles_label", "支持的 Profile"),
             ("server_status.features_label", "支持的 Feature"),
+
+            // ── 第 24 轮 侧边栏 ──
+            ("nav.coauth_capabilities", "Authz 权限"),
+            ("nav.spaces_admin", "Space（管理）"),
+            ("nav.moderation_reports", "审核举报"),
+
+            // ── 第 24 轮 通用 UI ──
+            ("common.refresh", "刷新"),
+            ("common.previous", "上一页"),
+            ("common.next", "下一页"),
+            ("common.confirm", "确认"),
+
+            // ── 第 24 轮 B5：soland authz 权限授予 ──
+            ("authz_caps.title", "Authz 权限授予"),
+            (
+                "authz_caps.subtitle",
+                "当前管理员作用域可见的 soland authz 权限授予。可按 holder / peer / scope 过滤；撤销将发布 cx.cell.authz.capability.revoke Move。",
+            ),
+            ("authz_caps.holder", "Holder DID"),
+            ("authz_caps.peer", "Peer DID"),
+            ("authz_caps.scope", "Scope"),
+            ("authz_caps.status", "状态"),
+            ("authz_caps.granted_at", "授予时间"),
+            ("authz_caps.expires_at", "过期时间"),
+            ("authz_caps.revoke", "撤销"),
+            ("authz_caps.filter_holder", "按 Holder DID 过滤"),
+            ("authz_caps.filter_peer", "按 Peer DID 过滤"),
+            ("authz_caps.filter_scope", "按 Scope 过滤"),
+            ("authz_caps.empty_title", "无权限授予"),
+            (
+                "authz_caps.empty_subtitle",
+                "soland 报告没有匹配当前过滤条件的权限授予。",
+            ),
+            ("authz_caps.revoke_confirm_title", "撤销权限授予？"),
+            (
+                "authz_caps.revoke_confirm_body",
+                "在 authz cell 上发布 revoke Move。依赖此权限的现有会话将在下一次 anchor view 时重新检查。该操作记入审计。继续？",
+            ),
+
+            // ── 第 24 轮 B6：账号设备 ──
+            ("coauth_devices.title", "账号设备"),
+            (
+                "coauth_devices.subtitle",
+                "注册到该账号的设备列表。撤销操作将级联撤销 soland 端关联的会话授权。",
+            ),
+            ("coauth_devices.device_id", "设备 ID"),
+            ("coauth_devices.display_name", "显示名"),
+            ("coauth_devices.status", "状态"),
+            ("coauth_devices.last_seen", "最后在线"),
+            ("coauth_devices.linked_sessions", "关联会话"),
+            ("coauth_devices.revoke", "撤销"),
+            ("coauth_devices.empty_title", "尚未注册设备"),
+            (
+                "coauth_devices.empty_subtitle",
+                "coauth 尚未为该账号注册任何设备。",
+            ),
+            ("coauth_devices.revoke_confirm_title", "撤销设备？"),
+            (
+                "coauth_devices.revoke_confirm_body",
+                "在 coauth 中将设备标记为已撤销，并级联撤销 soland 端绑定到该设备的会话授权。该操作记入审计。继续？",
+            ),
+
+            // ── 第 24 轮 D1：Space 管理列表 ──
+            ("spaces_admin.title", "Space（管理）"),
+            (
+                "spaces_admin.subtitle",
+                "当前管理员作用域可见的 Space 列表，由 soland 管理 describe 接口提供。",
+            ),
+            ("spaces_admin.search_placeholder", "按 ID 或名称搜索"),
+            ("spaces_admin.id", "ID"),
+            ("spaces_admin.name", "名称"),
+            ("spaces_admin.members", "成员数"),
+            ("spaces_admin.health", "健康度"),
+            ("spaces_admin.created_at", "创建时间"),
+            ("spaces_admin.open_detail", "打开详情"),
+            ("spaces_admin.open_hierarchy", "层级"),
+            ("spaces_admin.empty_title", "无 Space"),
+            (
+                "spaces_admin.empty_subtitle",
+                "soland 报告该管理员作用域下没有匹配过滤条件的 Space。",
+            ),
+
+            // ── 第 24 轮 D2：Space 层级视图 ──
+            ("space_hierarchy.title", "层级"),
+            (
+                "space_hierarchy.subtitle",
+                "该 Space 的直接父级与子级。",
+            ),
+            ("space_hierarchy.parent_label", "父级"),
+            ("space_hierarchy.this_label", "本"),
+            ("space_hierarchy.child_label", "子级"),
+            ("space_hierarchy.children_label", "子级列表"),
+            ("space_hierarchy.empty_title", "无关联"),
+            (
+                "space_hierarchy.empty_subtitle",
+                "该 Space 没有父级也没有直接子级。",
+            ),
+
+            // ── 第 24 轮 D5：审核举报 ──
+            ("moderation_reports.title", "审核举报"),
+            (
+                "moderation_reports.subtitle",
+                "等待管理员决策的待审核举报列表。Resolve 表示已处理结案；Dismiss 表示审核后判定无需处理。",
+            ),
+            ("moderation_reports.id", "举报 ID"),
+            ("moderation_reports.reporter", "举报人"),
+            ("moderation_reports.target", "对象"),
+            ("moderation_reports.space", "Space"),
+            ("moderation_reports.reason", "原因"),
+            ("moderation_reports.status", "状态"),
+            ("moderation_reports.created_at", "创建时间"),
+            ("moderation_reports.resolve", "处理"),
+            ("moderation_reports.dismiss", "驳回"),
+            ("moderation_reports.filter_open", "待办"),
+            ("moderation_reports.filter_resolved", "已处理"),
+            ("moderation_reports.filter_dismissed", "已驳回"),
+            ("moderation_reports.filter_all", "全部"),
+            ("moderation_reports.empty_title", "无审核举报"),
+            (
+                "moderation_reports.empty_subtitle",
+                "soland 报告当前过滤条件下没有审核举报。",
+            ),
+            ("moderation_reports.resolve_confirm_title", "处理该举报？"),
+            (
+                "moderation_reports.resolve_confirm_body",
+                "在该举报上记录管理员 Resolve 决策。该操作记入审计。继续？",
+            ),
+            ("moderation_reports.resolve_confirm_btn", "确认处理"),
+            ("moderation_reports.dismiss_confirm_title", "驳回该举报？"),
+            (
+                "moderation_reports.dismiss_confirm_body",
+                "在该举报上记录管理员 Dismiss 决策（无需进一步处理）。该操作记入审计。继续？",
+            ),
+            ("moderation_reports.dismiss_confirm_btn", "确认驳回"),
         ],
     };
 

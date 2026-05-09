@@ -1,7 +1,9 @@
 pub mod account_detail;
 pub mod accounts;
 pub mod audit_log;
+pub mod capabilities;
 pub mod connector_health;
+pub mod devices;
 pub mod notification_channels;
 pub mod notification_templates;
 pub mod oauth2_sessions;

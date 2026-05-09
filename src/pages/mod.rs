@@ -10,6 +10,7 @@ pub mod federation;
 pub mod invite_tokens;
 pub mod login;
 pub mod media;
+pub mod moderation;
 pub mod not_authorized;
 pub mod oauth_callback;
 pub mod policy;

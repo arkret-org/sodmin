@@ -115,6 +115,11 @@ fn build_nav_sections() -> Vec<NavSection> {
                 NavItem::new(t("nav.devices"), Route::DeviceList {}, "smartphone"),
                 NavItem::new(t("nav.capabilities"), Route::CapabilityList {}, "shield"),
                 NavItem::new(
+                    t("nav.coauth_capabilities"),
+                    Route::CoauthCapabilities {},
+                    "shield",
+                ),
+                NavItem::new(
                     t("nav.invite_tokens"),
                     Route::InviteTokenList {},
                     "key",
@@ -130,7 +135,17 @@ fn build_nav_sections() -> Vec<NavSection> {
             t("nav.section_moderation"),
             vec![
                 NavItem::new(t("nav.spaces"), Route::SpaceList {}, "message-square"),
+                NavItem::new(
+                    t("nav.spaces_admin"),
+                    Route::SpaceAdminList {},
+                    "message-square",
+                ),
                 NavItem::new(t("nav.reports"), Route::ReportList {}, "flag"),
+                NavItem::new(
+                    t("nav.moderation_reports"),
+                    Route::ModerationReports {},
+                    "flag",
+                ),
                 NavItem::new(t("nav.audit"), Route::AuditLog {}, "scroll-text"),
             ],
         )
@@ -402,7 +417,12 @@ fn is_route_active(current: &Route, target: &Route) -> bool {
             Route::ActorList {} | Route::ActorShow { .. } | Route::ActorCreate {}
         ),
         Route::SpaceList {} => matches!(current, Route::SpaceList {} | Route::SpaceShow { .. }),
+        Route::SpaceAdminList {} => matches!(
+            current,
+            Route::SpaceAdminList {} | Route::SpaceHierarchy { .. }
+        ),
         Route::ReportList {} => matches!(current, Route::ReportList {} | Route::ReportShow { .. }),
+        Route::ModerationReports {} => matches!(current, Route::ModerationReports {}),
         Route::FederationList {} => matches!(
             current,
             Route::FederationList {} | Route::FederationShow { .. }

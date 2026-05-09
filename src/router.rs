@@ -32,10 +32,14 @@ pub enum Route {
 
         #[route("/spaces")]
         SpaceList {},
+        #[route("/spaces/admin")]
+        SpaceAdminList {},
         #[route("/spaces/create")]
         SpaceCreate {},
         #[route("/spaces/:space_id")]
         SpaceShow { space_id: String },
+        #[route("/spaces/:space_id/hierarchy")]
+        SpaceHierarchy { space_id: String },
         #[route("/spaces/:space_id/anchorer")]
         SpaceAnchorer { space_id: String },
         #[route("/spaces/:space_id/anchor-dag")]
@@ -62,6 +66,9 @@ pub enum Route {
         ReportList {},
         #[route("/reports/:report_id")]
         ReportShow { report_id: String },
+
+        #[route("/moderation/reports")]
+        ModerationReports {},
 
         #[route("/federation")]
         FederationList {},
@@ -100,6 +107,10 @@ pub enum Route {
         CoauthAccountList {},
         #[route("/coauth/accounts/:account_id")]
         CoauthAccountShow { account_id: String },
+        #[route("/coauth/accounts/:account_id/devices")]
+        CoauthAccountDevices { account_id: String },
+        #[route("/coauth/capabilities")]
+        CoauthCapabilities {},
         #[route("/coauth/oauth2-sessions")]
         CoauthOAuth2Sessions {},
         #[route("/coauth/personal-sessions")]
@@ -220,6 +231,16 @@ fn SpaceList() -> Element {
 }
 
 #[component]
+fn SpaceAdminList() -> Element {
+    rsx! { pages::spaces::admin_list::SpaceAdminList {} }
+}
+
+#[component]
+fn SpaceHierarchy(space_id: String) -> Element {
+    rsx! { pages::spaces::hierarchy::SpaceHierarchyPage { space_id } }
+}
+
+#[component]
 fn SpaceCreate() -> Element {
     rsx! { pages::spaces::create::SpaceCreate {} }
 }
@@ -282,6 +303,11 @@ fn ReportList() -> Element {
 #[component]
 fn ReportShow(report_id: String) -> Element {
     rsx! { pages::reports::show::ReportShow { report_id } }
+}
+
+#[component]
+fn ModerationReports() -> Element {
+    rsx! { pages::moderation::reports::ModerationReportsPage {} }
 }
 
 #[component]
@@ -352,6 +378,16 @@ fn CoauthAccountList() -> Element {
 #[component]
 fn CoauthAccountShow(account_id: String) -> Element {
     rsx! { pages::coauth::account_detail::AccountDetailPage { account_id } }
+}
+
+#[component]
+fn CoauthAccountDevices(account_id: String) -> Element {
+    rsx! { pages::coauth::devices::AccountDevicesPage { account_id } }
+}
+
+#[component]
+fn CoauthCapabilities() -> Element {
+    rsx! { pages::coauth::capabilities::AuthzCapabilitiesPage {} }
 }
 
 #[component]
