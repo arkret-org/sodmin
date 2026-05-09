@@ -1,4 +1,5 @@
 pub mod actors;
+pub mod anchor_admin;
 pub mod api_client {
     pub use crate::api::client::*;
 }

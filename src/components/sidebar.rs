@@ -123,6 +123,36 @@ pub fn AppSidebar(collapsed: Signal<bool>, mobile_open: Signal<bool>) -> Element
         ],
     });
 
+    // Stream H' (Move/Anchor/Lattice admin) — see _todos.md C10.F.
+    // The per-space anchorer / anchor-dag entries point at a placeholder
+    // space id; admins typically reach them from a Space detail page deep
+    // link. This avoids a "select a space first" interstitial while soland
+    // MAL-15 read-side describe is still wireframe-only.
+    sections.push(NavSection {
+        label: t("nav.section_anchor"),
+        items: vec![
+            NavItem {
+                title: t("nav.anchor_bottom"),
+                route: Route::AnchorBottom {},
+                icon: "alert-triangle",
+            },
+            NavItem {
+                title: t("nav.anchor_anchorer"),
+                route: Route::SpaceAnchorer {
+                    space_id: "_".to_string(),
+                },
+                icon: "shield",
+            },
+            NavItem {
+                title: t("nav.anchor_dag"),
+                route: Route::SpaceAnchorDag {
+                    space_id: "_".to_string(),
+                },
+                icon: "git-branch",
+            },
+        ],
+    });
+
     if has_coauth {
         sections.push(NavSection {
             label: t("nav.section_coauth"),

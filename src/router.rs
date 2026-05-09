@@ -36,6 +36,13 @@ pub enum Route {
         SpaceCreate {},
         #[route("/spaces/:space_id")]
         SpaceShow { space_id: String },
+        #[route("/spaces/:space_id/anchorer")]
+        SpaceAnchorer { space_id: String },
+        #[route("/spaces/:space_id/anchor-dag")]
+        SpaceAnchorDag { space_id: String },
+
+        #[route("/anchor/bottom")]
+        AnchorBottom {},
 
         #[route("/media")]
         MediaList {},
@@ -209,6 +216,21 @@ fn SpaceCreate() -> Element {
 #[component]
 fn SpaceShow(space_id: String) -> Element {
     rsx! { pages::spaces::show::SpaceShow { space_id } }
+}
+
+#[component]
+fn SpaceAnchorer(space_id: String) -> Element {
+    rsx! { pages::spaces::anchorer::AnchorerPage { space_id } }
+}
+
+#[component]
+fn SpaceAnchorDag(space_id: String) -> Element {
+    rsx! { pages::spaces::anchor_dag::AnchorDagPage { space_id } }
+}
+
+#[component]
+fn AnchorBottom() -> Element {
+    rsx! { pages::spaces::bottom::BottomDiagnosticsPage {} }
 }
 
 #[component]

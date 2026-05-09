@@ -1,0 +1,304 @@
+//! Anchorer cell admin page (Stream H', H'2).
+//!
+//! Renders the current `cx:cell:cx.component.anchorer.v1:<space>` cell
+//! value (single_did / threshold / open_set / mixed) and exposes a form
+//! that constructs an anchorer-reconfig Move. The form handler today calls
+//! the `anchor_admin::submit_anchorer_reconfig` stub — once the soland
+//! `/api/v1/moves` wire integration lands the stub becomes a real POST.
+
+use dioxus::prelude::*;
+
+use crate::api::anchor_admin;
+use crate::components::ui::badge::{Badge, BadgeVariant};
+use crate::components::ui::button::{Button, ButtonVariant};
+use crate::components::ui::card::*;
+use crate::components::ui::error_banner::ErrorBanner;
+use crate::components::ui::input::{Input, Label};
+use crate::components::ui::loading::PageSkeleton;
+use crate::components::ui::page_header::PageHeader;
+use crate::components::ui::toast::{ToastVariant, show_toast};
+use crate::types::anchor::{AnchorerKind, AnchorerReconfigRequest, AnchorerValue};
+
+#[component]
+pub fn AnchorerPage(space_id: String) -> Element {
+    let space_id_for_fetch = space_id.clone();
+    let mut data = use_resource(move || {
+        let id = space_id_for_fetch.clone();
+        // TODO(soland-admin-api): replace stub with real anchorer cell
+        // describe call once soland MAL-15 lands.
+        async move { anchor_admin::get_anchorer_value(&id).await }
+    });
+
+    let mut new_kind = use_signal(|| "single_did".to_string());
+    let mut new_single_did = use_signal(String::new);
+    let mut new_threshold_k = use_signal(|| "2".to_string());
+    let mut new_threshold_n = use_signal(|| "3".to_string());
+    let mut new_threshold_dids = use_signal(String::new);
+    let mut new_open_set_members = use_signal(String::new);
+    let mut new_mixed_primary = use_signal(String::new);
+    let mut new_mixed_recovery = use_signal(String::new);
+    let mut submitting = use_signal(|| false);
+
+    let space_id_for_submit = space_id.clone();
+    let header_space_id = space_id.clone();
+
+    rsx! {
+        div { class: "space-y-6",
+            PageHeader {
+                title: format!("Anchorer · {}", header_space_id),
+                description: "Configure the anchorer cell for this Space (single_did / threshold / open_set / mixed).".to_string(),
+            }
+
+            match &*data.read() {
+                Some(Ok(value)) => rsx! {
+                    Card {
+                        CardHeader { CardTitle { "Current anchorer value" } }
+                        CardContent {
+                            div { class: "space-y-2 text-sm",
+                                div { class: "flex items-center gap-2",
+                                    Badge { variant: BadgeVariant::Secondary, "{value.kind().label()}" }
+                                    span { class: "text-muted-foreground", "{value.summary()}" }
+                                    if value.paused {
+                                        Badge { variant: BadgeVariant::Destructive, "paused" }
+                                    }
+                                }
+                                {render_value_detail(value)}
+                                if let Some(ms) = value.max_anchor_staleness_ms {
+                                    p { class: "text-muted-foreground",
+                                        {format!("max_anchor_staleness_ms: {}", ms)}
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                Some(Err(e)) => rsx! {
+                    ErrorBanner {
+                        message: e.message.clone(),
+                        on_retry: move |_| data.restart(),
+                    }
+                },
+                None => rsx! { PageSkeleton {} },
+            }
+
+            Card {
+                CardHeader { CardTitle { "Construct anchorer-reconfig Move" } }
+                CardContent {
+                    div { class: "space-y-3",
+                        div { class: "space-y-1",
+                            Label { r#for: "anchorer-kind".to_string(), "Kind" }
+                            select {
+                                class: "flex h-10 w-full rounded-md border bg-background px-3 py-2 text-sm",
+                                value: new_kind.read().clone(),
+                                onchange: move |evt: FormEvent| new_kind.set(evt.value()),
+                                option { value: "single_did", "single_did" }
+                                option { value: "threshold", "threshold" }
+                                option { value: "open_set", "open_set" }
+                                option { value: "mixed", "mixed" }
+                            }
+                        }
+
+                        if *new_kind.read() == "single_did" {
+                            div { class: "space-y-1",
+                                Label { r#for: "anchorer-single-did".to_string(), "DID" }
+                                Input {
+                                    value: new_single_did.read().clone(),
+                                    oninput: move |evt: FormEvent| new_single_did.set(evt.value()),
+                                }
+                            }
+                        }
+
+                        if *new_kind.read() == "threshold" {
+                            div { class: "grid grid-cols-2 gap-3",
+                                div { class: "space-y-1",
+                                    Label { r#for: "anchorer-k".to_string(), "k" }
+                                    Input {
+                                        r#type: "number".to_string(),
+                                        value: new_threshold_k.read().clone(),
+                                        oninput: move |evt: FormEvent| new_threshold_k.set(evt.value()),
+                                    }
+                                }
+                                div { class: "space-y-1",
+                                    Label { r#for: "anchorer-n".to_string(), "n" }
+                                    Input {
+                                        r#type: "number".to_string(),
+                                        value: new_threshold_n.read().clone(),
+                                        oninput: move |evt: FormEvent| new_threshold_n.set(evt.value()),
+                                    }
+                                }
+                            }
+                            div { class: "space-y-1",
+                                Label { r#for: "anchorer-threshold-dids".to_string(),
+                                    "DIDs (one per line)"
+                                }
+                                textarea {
+                                    class: "flex min-h-[80px] w-full rounded-md border bg-background px-3 py-2 text-sm",
+                                    value: new_threshold_dids.read().clone(),
+                                    oninput: move |evt: FormEvent| new_threshold_dids.set(evt.value()),
+                                }
+                            }
+                        }
+
+                        if *new_kind.read() == "open_set" {
+                            div { class: "space-y-1",
+                                Label { r#for: "anchorer-open-set".to_string(),
+                                    "Members (one DID per line)"
+                                }
+                                textarea {
+                                    class: "flex min-h-[80px] w-full rounded-md border bg-background px-3 py-2 text-sm",
+                                    value: new_open_set_members.read().clone(),
+                                    oninput: move |evt: FormEvent| new_open_set_members.set(evt.value()),
+                                }
+                            }
+                        }
+
+                        if *new_kind.read() == "mixed" {
+                            div { class: "space-y-1",
+                                Label { r#for: "anchorer-mixed-primary".to_string(), "Primary DID" }
+                                Input {
+                                    value: new_mixed_primary.read().clone(),
+                                    oninput: move |evt: FormEvent| new_mixed_primary.set(evt.value()),
+                                }
+                            }
+                            div { class: "space-y-1",
+                                Label { r#for: "anchorer-mixed-recovery".to_string(),
+                                    "Recovery DIDs (one per line)"
+                                }
+                                textarea {
+                                    class: "flex min-h-[80px] w-full rounded-md border bg-background px-3 py-2 text-sm",
+                                    value: new_mixed_recovery.read().clone(),
+                                    oninput: move |evt: FormEvent| new_mixed_recovery.set(evt.value()),
+                                }
+                            }
+                        }
+
+                        div { class: "flex justify-end",
+                            Button {
+                                variant: ButtonVariant::Default,
+                                disabled: *submitting.read(),
+                                onclick: move |_| {
+                                    let kind = new_kind.read().clone();
+                                    let req = AnchorerReconfigRequest {
+                                        space_id: space_id_for_submit.clone(),
+                                        kind: kind.clone(),
+                                        single_did: opt_string(&new_single_did.read()),
+                                        threshold_k: parse_u32(&new_threshold_k.read()),
+                                        threshold_dids: split_lines(&new_threshold_dids.read()),
+                                        open_set_members: split_lines(&new_open_set_members.read()),
+                                        mixed_primary: opt_string(&new_mixed_primary.read()),
+                                        mixed_recovery: split_lines(&new_mixed_recovery.read()),
+                                    };
+                                    let _ = parse_u32(&new_threshold_n.read()); // currently unused on req shape
+                                    submitting.set(true);
+                                    spawn(async move {
+                                        // TODO(soland-admin-api): real Move
+                                        // submission against /api/v1/moves.
+                                        match anchor_admin::submit_anchorer_reconfig(&req).await {
+                                            Ok(resp) => show_toast(
+                                                &format!("Move submitted: {}", resp.move_id),
+                                                ToastVariant::Success,
+                                            ),
+                                            Err(e) => show_toast(
+                                                &format!("Failed: {}", e.message),
+                                                ToastVariant::Error,
+                                            ),
+                                        }
+                                        submitting.set(false);
+                                    });
+                                },
+                                "Construct Move"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+fn render_value_detail(v: &AnchorerValue) -> Element {
+    match v.kind() {
+        AnchorerKind::SingleDid => {
+            let did = v.single_did.clone().unwrap_or_else(|| "-".to_string());
+            rsx! {
+                div { class: "font-mono text-xs", "did: {did}" }
+            }
+        }
+        AnchorerKind::Threshold => {
+            let k = v.threshold_k.unwrap_or(0);
+            let n = v.threshold_n.unwrap_or(0);
+            let dids = v.threshold_dids.clone();
+            rsx! {
+                div { class: "font-mono text-xs", "k/n: {k}/{n}" }
+                ul { class: "list-disc list-inside text-xs font-mono",
+                    for d in dids.iter() { li { "{d}" } }
+                }
+            }
+        }
+        AnchorerKind::OpenSet => {
+            let members = v.open_set_members.clone();
+            rsx! {
+                ul { class: "list-disc list-inside text-xs font-mono",
+                    for m in members.iter() { li { "{m}" } }
+                }
+            }
+        }
+        AnchorerKind::Mixed => {
+            let primary = v.mixed_primary.clone().unwrap_or_else(|| "-".to_string());
+            let recovery = v.mixed_recovery.clone();
+            rsx! {
+                div { class: "font-mono text-xs", "primary: {primary}" }
+                div { class: "text-xs text-muted-foreground", "recovery:" }
+                ul { class: "list-disc list-inside text-xs font-mono",
+                    for r in recovery.iter() { li { "{r}" } }
+                }
+            }
+        }
+    }
+}
+
+pub(crate) fn split_lines(raw: &str) -> Vec<String> {
+    raw.lines()
+        .map(|s| s.trim().to_string())
+        .filter(|s| !s.is_empty())
+        .collect()
+}
+
+pub(crate) fn opt_string(raw: &str) -> Option<String> {
+    let trimmed = raw.trim();
+    if trimmed.is_empty() {
+        None
+    } else {
+        Some(trimmed.to_string())
+    }
+}
+
+pub(crate) fn parse_u32(raw: &str) -> Option<u32> {
+    raw.trim().parse::<u32>().ok()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{opt_string, parse_u32, split_lines};
+
+    #[test]
+    fn split_lines_trims_and_drops_empty() {
+        let raw = "did:a\n  did:b  \n\n\ndid:c\n";
+        let v = split_lines(raw);
+        assert_eq!(v, vec!["did:a".to_string(), "did:b".into(), "did:c".into()]);
+    }
+
+    #[test]
+    fn opt_string_empty_becomes_none() {
+        assert!(opt_string("").is_none());
+        assert!(opt_string("   ").is_none());
+        assert_eq!(opt_string("  hi  "), Some("hi".to_string()));
+    }
+
+    #[test]
+    fn parse_u32_handles_invalid() {
+        assert_eq!(parse_u32(" 7 "), Some(7));
+        assert!(parse_u32("").is_none());
+        assert!(parse_u32("not-a-number").is_none());
+    }
+}
