@@ -172,6 +172,22 @@ pub fn AppSidebar(collapsed: Signal<bool>, mobile_open: Signal<bool>) -> Element
                 route: Route::ComponentsRegistry {},
                 icon: "plug",
             },
+            // H'8 / H'9 — per-Space deep links (placeholder space id for
+            // the sidebar entry, real entry from Space detail page).
+            NavItem {
+                title: t("nav.signing_keys"),
+                route: Route::SpaceSigningKeys {
+                    space_id: "_".to_string(),
+                },
+                icon: "key",
+            },
+            NavItem {
+                title: t("nav.multisig"),
+                route: Route::SpaceMultiSig {
+                    space_id: "_".to_string(),
+                },
+                icon: "users",
+            },
         ],
     });
 

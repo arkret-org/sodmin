@@ -6,4 +6,6 @@ pub mod consent;
 pub mod covered_frontier;
 pub mod create;
 pub mod list;
+pub mod multisig;
 pub mod show;
+pub mod signing_keys;

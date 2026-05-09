@@ -44,6 +44,10 @@ pub enum Route {
         SpaceConsent { space_id: String },
         #[route("/spaces/:space_id/covered-frontier")]
         SpaceCoveredFrontier { space_id: String },
+        #[route("/spaces/:space_id/signing-keys")]
+        SpaceSigningKeys { space_id: String },
+        #[route("/spaces/:space_id/multisig")]
+        SpaceMultiSig { space_id: String },
 
         #[route("/anchor/bottom")]
         AnchorBottom {},
@@ -248,6 +252,16 @@ fn SpaceConsent(space_id: String) -> Element {
 #[component]
 fn SpaceCoveredFrontier(space_id: String) -> Element {
     rsx! { pages::spaces::covered_frontier::CoveredFrontierPage { space_id } }
+}
+
+#[component]
+fn SpaceSigningKeys(space_id: String) -> Element {
+    rsx! { pages::spaces::signing_keys::SigningKeysPage { space_id } }
+}
+
+#[component]
+fn SpaceMultiSig(space_id: String) -> Element {
+    rsx! { pages::spaces::multisig::MultiSigPage { space_id } }
 }
 
 #[component]
