@@ -60,6 +60,36 @@ pub struct ConsentGrant {
     pub updated_at: Option<String>,
     #[serde(default)]
     pub note: Option<String>,
+    /// Stable id for admin-side mutations (resolve route). soland is
+    /// expected to populate this on rows that are eligible for the
+    /// `consent_admin::resolve` override (today: only `Pending` rows).
+    #[serde(default)]
+    pub consent_id: Option<String>,
+}
+
+/// Admin override decision for a `Pending` consent row.
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum ConsentResolveDecision {
+    Approve,
+    Reject,
+}
+
+impl ConsentResolveDecision {
+    pub fn label(&self) -> &'static str {
+        match self {
+            ConsentResolveDecision::Approve => "approve",
+            ConsentResolveDecision::Reject => "reject",
+        }
+    }
+}
+
+/// Body POSTed to `/api/admin/v1/consent/{consent_id}/resolve`.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConsentResolveRequest {
+    pub decision: ConsentResolveDecision,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub note: Option<String>,
 }
 
 impl ConsentGrant {
@@ -136,6 +166,31 @@ mod tests {
         ];
         assert_eq!(filter_by_holder(&grants, "").len(), 2);
         assert_eq!(filter_by_holder(&grants, "   ").len(), 2);
+    }
+
+    #[test]
+    fn resolve_decision_serializes_snake_case() {
+        // The wire shape MUST be `{decision: "approve" | "reject"}`,
+        // matching the invite-quarantine resolve route (which soland is
+        // expected to copy). Drift here would silently break the admin
+        // override.
+        let approve = ConsentResolveRequest {
+            decision: ConsentResolveDecision::Approve,
+            note: Some("looks legit".into()),
+        };
+        let s = serde_json::to_string(&approve).unwrap();
+        assert!(s.contains("\"decision\":\"approve\""));
+        assert!(s.contains("\"note\":\"looks legit\""));
+        assert_eq!(ConsentResolveDecision::Approve.label(), "approve");
+
+        let reject_no_note = ConsentResolveRequest {
+            decision: ConsentResolveDecision::Reject,
+            note: None,
+        };
+        let s = serde_json::to_string(&reject_no_note).unwrap();
+        assert!(s.contains("\"decision\":\"reject\""));
+        // None note is skipped on the wire so the backend can default it.
+        assert!(!s.contains("\"note\""));
     }
 
     #[test]

@@ -40,6 +40,23 @@ pub struct CoveredFrontierSnapshot {
     pub last_covered_at: Option<String>,
 }
 
+/// Response from the `POST /api/admin/v1/spaces/{id}/mls/covered-frontier/advance`
+/// route. soland reports the new lag count after the override Move
+/// landed; the page uses this to render an immediate "now caught up"
+/// confirmation toast without waiting for a re-fetch round-trip.
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct CoveredFrontierAdvanceResponse {
+    pub space_id: String,
+    /// New lag count after the override landed. Typically 0; non-zero
+    /// means new governance Moves landed concurrently and the admin has
+    /// to retry.
+    #[serde(default)]
+    pub lag_count: u64,
+    /// Move id of the override commit.
+    #[serde(default)]
+    pub move_id: Option<String>,
+}
+
 impl CoveredFrontierSnapshot {
     /// Lag = number of governance Moves the MLS group has not yet
     /// acknowledged. Computed as set-difference (governance \ covered);

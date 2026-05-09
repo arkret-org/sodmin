@@ -4,17 +4,26 @@
 //! `GET /api/admin/v1/spaces/{id}/mls/covered-frontier` and shows how
 //! many governance Moves the MLS group has yet to acknowledge. Above the
 //! configurable threshold the lag count is painted in destructive red
-//! with a warning banner so the admin sees the urgency.
+//! with a warning banner so the admin sees the urgency, AND a
+//! "Manually advance covered_frontier" override button is surfaced so
+//! the operator can fold the current governance frontier into the MLS
+//! cover or-set when members are stuck offline. The override POSTs to
+//! `/api/admin/v1/spaces/{id}/mls/covered-frontier/advance` and follows
+//! the same 404-tolerant pattern as the other Stream H' admin actions.
 
 use dioxus::prelude::*;
 
 use crate::api::covered_frontier_admin;
 use crate::components::ui::badge::{Badge, BadgeVariant};
+use crate::components::ui::button::{Button, ButtonVariant};
 use crate::components::ui::card::*;
+use crate::components::ui::empty_state::EmptyState;
 use crate::components::ui::error_banner::ErrorBanner;
 use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
+use crate::components::ui::toast::{ToastVariant, show_toast};
 use crate::types::covered_frontier::DEFAULT_LAG_WARN_THRESHOLD;
+use crate::utils::error::format_optional_endpoint_error;
 
 #[component]
 pub fn CoveredFrontierPage(space_id: String) -> Element {
@@ -23,7 +32,9 @@ pub fn CoveredFrontierPage(space_id: String) -> Element {
         let id = space_id_for_fetch.clone();
         async move { covered_frontier_admin::get_covered_frontier(&id).await }
     });
+    let mut advancing = use_signal(|| false);
     let header_space_id = space_id.clone();
+    let space_id_for_action = space_id.clone();
 
     rsx! {
         div { class: "space-y-6",
@@ -40,6 +51,9 @@ pub fn CoveredFrontierPage(space_id: String) -> Element {
                     let mls_epoch = snap.mls_epoch;
                     let governance_count = snap.governance_frontier.len();
                     let covered_count = snap.covered_frontier.len();
+                    let governance_empty = snap.governance_frontier.is_empty()
+                        && snap.covered_frontier.is_empty()
+                        && snap.latest_anchor_id.is_none();
                     let frontier_text = snap.governance_frontier.join(", ");
                     let covered_text = snap.covered_frontier.join(", ");
                     let last_anchor = snap
@@ -50,57 +64,98 @@ pub fn CoveredFrontierPage(space_id: String) -> Element {
                         .last_covered_at
                         .clone()
                         .unwrap_or_else(|| "-".to_string());
-                    rsx! {
-                        if above_threshold {
-                            div { class: "rounded-md bg-destructive/10 p-3 text-sm text-destructive",
-                                {format!(
-                                    "Lag of {lag} Moves is above warn threshold {DEFAULT_LAG_WARN_THRESHOLD}; investigate MLS group health (member offline, KeyPackage stale)."
-                                )}
+                    if governance_empty {
+                        rsx! {
+                            EmptyState {
+                                icon: "shield".to_string(),
+                                title: "No covered_frontier data yet".to_string(),
+                                description: "soland has not yet seen any governance Moves for this Space — covered_frontier is empty by construction.".to_string(),
                             }
                         }
-                        Card {
-                            CardHeader { CardTitle { "Lag summary" } }
-                            CardContent {
-                                div { class: "space-y-2 text-sm",
-                                    div { class: "flex items-center gap-2",
-                                        span { class: "text-muted-foreground", "Lag:" }
-                                        Badge { variant: lag_variant, "{lag_label}" }
+                    } else {
+                        let space_id_for_button = space_id_for_action.clone();
+                        let advancing_now = *advancing.read();
+                        rsx! {
+                            if above_threshold {
+                                div { class: "rounded-md bg-destructive/10 p-3 text-sm text-destructive flex items-center justify-between gap-3",
+                                    span {
+                                        {format!(
+                                            "Lag of {lag} Moves is above warn threshold {DEFAULT_LAG_WARN_THRESHOLD}; investigate MLS group health (member offline, KeyPackage stale)."
+                                        )}
                                     }
-                                    div {
-                                        span { class: "text-muted-foreground mr-2", "MLS epoch:" }
-                                        span { class: "font-mono text-xs", "{mls_epoch}" }
-                                    }
-                                    div {
-                                        span { class: "text-muted-foreground mr-2", "Governance frontier size:" }
-                                        span { class: "font-mono text-xs", "{governance_count}" }
-                                    }
-                                    div {
-                                        span { class: "text-muted-foreground mr-2", "Covered frontier size:" }
-                                        span { class: "font-mono text-xs", "{covered_count}" }
-                                    }
-                                    div {
-                                        span { class: "text-muted-foreground mr-2", "Latest anchor:" }
-                                        span { class: "font-mono text-xs", "{last_anchor}" }
-                                    }
-                                    div {
-                                        span { class: "text-muted-foreground mr-2", "Last covered_frontier update:" }
-                                        span { class: "font-mono text-xs", "{last_covered_at}" }
+                                    Button {
+                                        variant: ButtonVariant::Destructive,
+                                        disabled: advancing_now,
+                                        onclick: move |_| {
+                                            let id = space_id_for_button.clone();
+                                            advancing.set(true);
+                                            spawn(async move {
+                                                let res = covered_frontier_admin::advance(&id).await;
+                                                match res {
+                                                    Ok(r) => show_toast(
+                                                        &format!("Advanced covered_frontier; new lag = {}", r.lag_count),
+                                                        ToastVariant::Success,
+                                                    ),
+                                                    Err(e) => {
+                                                        let msg = format_optional_endpoint_error(
+                                                            "covered_frontier advance",
+                                                            &e,
+                                                        );
+                                                        show_toast(&msg, ToastVariant::Error);
+                                                    }
+                                                }
+                                                advancing.set(false);
+                                                data.restart();
+                                            });
+                                        },
+                                        if advancing_now { "Advancing…" } else { "Manually advance covered_frontier" }
                                     }
                                 }
                             }
-                        }
-
-                        Card {
-                            CardHeader { CardTitle { "Governance frontier" } }
-                            CardContent {
-                                p { class: "font-mono text-xs break-all", "{frontier_text}" }
+                            Card {
+                                CardHeader { CardTitle { "Lag summary" } }
+                                CardContent {
+                                    div { class: "space-y-2 text-sm",
+                                        div { class: "flex items-center gap-2",
+                                            span { class: "text-muted-foreground", "Lag:" }
+                                            Badge { variant: lag_variant, "{lag_label}" }
+                                        }
+                                        div {
+                                            span { class: "text-muted-foreground mr-2", "MLS epoch:" }
+                                            span { class: "font-mono text-xs", "{mls_epoch}" }
+                                        }
+                                        div {
+                                            span { class: "text-muted-foreground mr-2", "Governance frontier size:" }
+                                            span { class: "font-mono text-xs", "{governance_count}" }
+                                        }
+                                        div {
+                                            span { class: "text-muted-foreground mr-2", "Covered frontier size:" }
+                                            span { class: "font-mono text-xs", "{covered_count}" }
+                                        }
+                                        div {
+                                            span { class: "text-muted-foreground mr-2", "Latest anchor:" }
+                                            span { class: "font-mono text-xs", "{last_anchor}" }
+                                        }
+                                        div {
+                                            span { class: "text-muted-foreground mr-2", "Last covered_frontier update:" }
+                                            span { class: "font-mono text-xs", "{last_covered_at}" }
+                                        }
+                                    }
+                                }
                             }
-                        }
 
-                        Card {
-                            CardHeader { CardTitle { "Covered frontier" } }
-                            CardContent {
-                                p { class: "font-mono text-xs break-all", "{covered_text}" }
+                            Card {
+                                CardHeader { CardTitle { "Governance frontier" } }
+                                CardContent {
+                                    p { class: "font-mono text-xs break-all", "{frontier_text}" }
+                                }
+                            }
+
+                            Card {
+                                CardHeader { CardTitle { "Covered frontier" } }
+                                CardContent {
+                                    p { class: "font-mono text-xs break-all", "{covered_text}" }
+                                }
                             }
                         }
                     }

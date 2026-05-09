@@ -11,6 +11,7 @@ use crate::api::anchor_admin;
 use crate::components::ui::badge::{Badge, BadgeVariant};
 use crate::components::ui::button::{Button, ButtonVariant};
 use crate::components::ui::card::*;
+use crate::components::ui::empty_state::EmptyState;
 use crate::components::ui::error_banner::ErrorBanner;
 use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
@@ -60,6 +61,24 @@ pub fn AnchorDagPage(space_id: String) -> Element {
 
             match &*data.read() {
                 Some(Ok(snapshot)) => {
+                    // True empty snapshot: soland returned 200 but the
+                    // Space has no Anchors yet. Distinguish from the
+                    // error path so the operator sees "nothing to show"
+                    // rather than "fetch failed".
+                    if snapshot.leaves.is_empty()
+                        && snapshot.frontier.is_empty()
+                        && snapshot.state_root.is_none()
+                    {
+                        return rsx! {
+                            div { class: "space-y-6",
+                                EmptyState {
+                                    icon: "shield".to_string(),
+                                    title: "No Anchors yet".to_string(),
+                                    description: "soland returned no Anchor leaves for this Space — the DAG is empty.".to_string(),
+                                }
+                            }
+                        };
+                    }
                     let frontier = snapshot.frontier.join(", ");
                     let state_root = snapshot
                         .state_root

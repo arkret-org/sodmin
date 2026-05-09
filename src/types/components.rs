@@ -92,6 +92,22 @@ pub struct ComponentRegistryEntry {
     pub note: Option<String>,
 }
 
+/// Response from the `POST /api/admin/v1/components/{type}/refresh`
+/// route. soland reports the new resolved impl version (or echoes the
+/// existing one when no refresh was needed) and a short status string.
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct ComponentRefreshResponse {
+    pub component_type: String,
+    #[serde(default)]
+    pub spec_version: String,
+    #[serde(default)]
+    pub impl_version: String,
+    /// Short status: "refreshed" | "noop" | "queued". Passed through to
+    /// the success toast so the operator sees what happened.
+    #[serde(default)]
+    pub status: Option<String>,
+}
+
 impl ComponentRegistryEntry {
     /// Drift = the server claims it conforms to `spec_version` but the
     /// loaded impl reports a different `impl_version`. Empty `impl_version`

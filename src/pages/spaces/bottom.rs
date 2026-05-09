@@ -15,6 +15,7 @@ use crate::api::anchor_admin;
 use crate::components::ui::badge::{Badge, BadgeVariant};
 use crate::components::ui::button::{Button, ButtonSize, ButtonVariant};
 use crate::components::ui::dialog::ConfirmDialog;
+use crate::components::ui::empty_state::EmptyState;
 use crate::components::ui::error_banner::ErrorBanner;
 use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
@@ -52,7 +53,16 @@ pub fn BottomDiagnosticsPage() -> Element {
             }
 
             match &*data.read() {
-                Some(Ok(entries)) => rsx! {
+                Some(Ok(entries)) => if entries.is_empty() {
+                    rsx! {
+                        EmptyState {
+                            icon: "shield".to_string(),
+                            title: "All clear".to_string(),
+                            description: "No bottom-state cells reported across visible Spaces.".to_string(),
+                        }
+                    }
+                } else {
+                    rsx! {
                     div { class: "rounded-md border",
                         Table {
                             TableHeader {
@@ -67,15 +77,6 @@ pub fn BottomDiagnosticsPage() -> Element {
                                 }
                             }
                             TableBody {
-                                if entries.is_empty() {
-                                    TableRow {
-                                        TableCell {
-                                            class: "text-center text-muted-foreground py-8".to_string(),
-                                            colspan: 99,
-                                            "No bottom-state cells reported."
-                                        }
-                                    }
-                                } else {
                                     for entry in entries.iter() {
                                         {
                                             let entry_clone = entry.clone();
@@ -121,6 +122,16 @@ pub fn BottomDiagnosticsPage() -> Element {
                                                                 .get(&cell_id_for_select)
                                                                 .unwrap_or(&0usize);
                                                             let entry_for_button = entry_clone.clone();
+                                                            // Inline metadata for the currently-selected
+                                                            // candidate head (issuer / hlc / summary).
+                                                            // soland populates these fields when
+                                                            // available; the helper returns `None` when
+                                                            // none are populated, so the meta block is
+                                                            // skipped entirely on bare candidates.
+                                                            let metadata_text = entry_clone
+                                                                .candidate_heads
+                                                                .get(current_idx)
+                                                                .and_then(format_head_metadata);
                                                             rsx! {
                                                                 div { class: "flex flex-col gap-1 items-end",
                                                                     if candidate_count > 1 {
@@ -140,6 +151,11 @@ pub fn BottomDiagnosticsPage() -> Element {
                                                                                     {format_head_option(i, head)}
                                                                                 }
                                                                             }
+                                                                        }
+                                                                    }
+                                                                    if let Some(meta) = metadata_text {
+                                                                        div { class: "text-[10px] text-muted-foreground font-mono max-w-[280px] truncate text-right",
+                                                                            "{meta}"
                                                                         }
                                                                     }
                                                                     Button {
@@ -262,6 +278,29 @@ pub(crate) fn format_head_option(idx: usize, head: &WinnerHead) -> String {
     }
 }
 
+/// Render the inline metadata block for a selected candidate head — the
+/// issuer DID, HLC timestamp and human summary fields soland may
+/// populate. Returns `None` when none of the optional fields are
+/// populated, so the caller can skip rendering an empty block. Pure
+/// helper so the formatting logic is unit-testable.
+pub(crate) fn format_head_metadata(head: &WinnerHead) -> Option<String> {
+    let mut parts = Vec::new();
+    if let Some(issuer) = head.issuer.as_deref().filter(|s| !s.is_empty()) {
+        parts.push(format!("issuer={issuer}"));
+    }
+    if let Some(hlc) = head.hlc.as_deref().filter(|s| !s.is_empty()) {
+        parts.push(format!("hlc={hlc}"));
+    }
+    if let Some(summary) = head.summary.as_deref().filter(|s| !s.is_empty()) {
+        parts.push(format!("summary={summary}"));
+    }
+    if parts.is_empty() {
+        None
+    } else {
+        Some(parts.join(" · "))
+    }
+}
+
 /// Pick the repair strategy for an entry given a user-selected head
 /// index. When the entry has >1 candidate heads the picker lets the
 /// admin choose; we honor that selection here. Out-of-bounds indices
@@ -333,8 +372,8 @@ pub(crate) fn bottom_kind_variant(wire: &str) -> BadgeVariant {
 #[cfg(test)]
 mod tests {
     use super::{
-        bottom_kind_variant, default_repair_strategy, format_head_option, format_kind_label,
-        repair_strategy_for_entry,
+        bottom_kind_variant, default_repair_strategy, format_head_metadata, format_head_option,
+        format_kind_label, repair_strategy_for_entry,
     };
     use crate::components::ui::badge::BadgeVariant;
     use crate::types::anchor::{BottomEntry, BottomRepairStrategy, WinnerHead};
@@ -456,6 +495,43 @@ mod tests {
             BottomRepairStrategy::HeadInWinner { head } => assert_eq!(head.move_id, "m:first"),
             other => panic!("expected default head_in_winner fallback, got {other:?}"),
         }
+    }
+
+    #[test]
+    fn head_metadata_is_none_when_no_optional_fields_populated() {
+        let head = WinnerHead {
+            move_id: "m:1".into(),
+            ..Default::default()
+        };
+        assert!(format_head_metadata(&head).is_none());
+    }
+
+    #[test]
+    fn head_metadata_concatenates_populated_optional_fields() {
+        // All three populated: ordering is issuer · hlc · summary so the
+        // operator gets a stable, predictable line.
+        let head = WinnerHead {
+            move_id: "m:1".into(),
+            issuer: Some("did:cx:alice".into()),
+            hlc: Some("01J9-0001-abcd".into()),
+            summary: Some("set value=42".into()),
+        };
+        let meta = format_head_metadata(&head).expect("metadata present");
+        assert!(meta.starts_with("issuer=did:cx:alice"));
+        assert!(meta.contains("hlc=01J9-0001-abcd"));
+        assert!(meta.ends_with("summary=set value=42"));
+        // Empty-string optional fields are treated as absent — soland
+        // sometimes serializes "" instead of `null` and we must not show
+        // a bare "issuer=" key.
+        let head = WinnerHead {
+            move_id: "m:1".into(),
+            issuer: Some(String::new()),
+            hlc: None,
+            summary: Some("only this".into()),
+        };
+        let meta = format_head_metadata(&head).expect("metadata present");
+        assert!(!meta.contains("issuer="));
+        assert!(meta.contains("summary=only this"));
     }
 
     #[test]
