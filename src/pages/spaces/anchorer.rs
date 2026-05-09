@@ -2,9 +2,13 @@
 //!
 //! Renders the current `cx:cell:cx.component.anchorer.v1:<space>` cell
 //! value (single_did / threshold / open_set / mixed) and exposes a form
-//! that constructs an anchorer-reconfig Move. The form handler today calls
-//! the `anchor_admin::submit_anchorer_reconfig` stub — once the soland
-//! `/api/v1/moves` wire integration lands the stub becomes a real POST.
+//! that constructs an anchorer-reconfig Move. The submit path posts to
+//! soland's `/api/admin/v1/spaces/{id}/anchorer/reconfigure` endpoint;
+//! soland builds the typed Move + signs with the admin's signer flow.
+//!
+//! Spec rule: a new anchorer cannot self-sign itself in. We mirror that
+//! constraint client-side via `AnchorerReconfigRequest::admin_self_signs_themselves_in`
+//! so the operator gets a hard pre-flight stop before paying a round-trip.
 
 use dioxus::prelude::*;
 
@@ -12,20 +16,20 @@ use crate::api::anchor_admin;
 use crate::components::ui::badge::{Badge, BadgeVariant};
 use crate::components::ui::button::{Button, ButtonVariant};
 use crate::components::ui::card::*;
+use crate::components::ui::dialog::ConfirmDialog;
 use crate::components::ui::error_banner::ErrorBanner;
 use crate::components::ui::input::{Input, Label};
 use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::toast::{ToastVariant, show_toast};
 use crate::types::anchor::{AnchorerKind, AnchorerReconfigRequest, AnchorerValue};
+use crate::utils::session;
 
 #[component]
 pub fn AnchorerPage(space_id: String) -> Element {
     let space_id_for_fetch = space_id.clone();
     let mut data = use_resource(move || {
         let id = space_id_for_fetch.clone();
-        // TODO(soland-admin-api): replace stub with real anchorer cell
-        // describe call once soland MAL-15 lands.
         async move { anchor_admin::get_anchorer_value(&id).await }
     });
 
@@ -38,6 +42,21 @@ pub fn AnchorerPage(space_id: String) -> Element {
     let mut new_mixed_primary = use_signal(String::new);
     let mut new_mixed_recovery = use_signal(String::new);
     let mut submitting = use_signal(|| false);
+    // Pending reconfig request the user has clicked "Construct Move" on
+    // but not yet confirmed. While `Some`, the confirmation modal is
+    // visible. We carry the typed request rather than re-reading the
+    // form signals so the body the user confirmed is what we POST.
+    let mut pending = use_signal::<Option<AnchorerReconfigRequest>>(|| None);
+
+    // Best-effort admin DID. Used both for the spec-rule pre-check
+    // ("new anchorer cannot self-sign itself in") and for the warning
+    // banner that prompts the operator to re-check their admin scope
+    // before submitting. `user_id` is what the OAuth callback persists;
+    // for did:key admins this is the did string itself, for opaque
+    // admins it's a stable id we still treat as the DID for comparison.
+    let admin_did: Option<String> = session::current_user().id.filter(|s| !s.is_empty());
+    let admin_did_for_submit = admin_did.clone();
+    let admin_did_for_modal = admin_did.clone();
 
     let space_id_for_submit = space_id.clone();
     let header_space_id = space_id.clone();
@@ -183,32 +202,95 @@ pub fn AnchorerPage(space_id: String) -> Element {
                                         kind: kind.clone(),
                                         single_did: opt_string(&new_single_did.read()),
                                         threshold_k: parse_u32(&new_threshold_k.read()),
+                                        threshold_n: parse_u32(&new_threshold_n.read()),
                                         threshold_dids: split_lines(&new_threshold_dids.read()),
                                         open_set_members: split_lines(&new_open_set_members.read()),
                                         mixed_primary: opt_string(&new_mixed_primary.read()),
                                         mixed_recovery: split_lines(&new_mixed_recovery.read()),
                                     };
-                                    let _ = parse_u32(&new_threshold_n.read()); // currently unused on req shape
-                                    submitting.set(true);
-                                    spawn(async move {
-                                        // TODO(soland-admin-api): real Move
-                                        // submission against /api/v1/moves.
-                                        match anchor_admin::submit_anchorer_reconfig(&req).await {
-                                            Ok(resp) => show_toast(
-                                                &format!("Move submitted: {}", resp.move_id),
-                                                ToastVariant::Success,
-                                            ),
-                                            Err(e) => show_toast(
-                                                &format!("Failed: {}", e.message),
+                                    // Spec rule: "new anchorer cannot
+                                    // self-sign itself in". soland will
+                                    // reject this server-side too, but
+                                    // we hard-block client-side so the
+                                    // operator can correct the form
+                                    // before paying a round-trip.
+                                    if let Some(did) = &admin_did_for_submit {
+                                        if req.admin_self_signs_themselves_in(did) {
+                                            show_toast(
+                                                "Refusing to submit: the proposed anchorer includes the current admin DID. Pick a different operator (or, if you intend the swap, perform it via a fresh admin scope, not self-signed).",
                                                 ToastVariant::Error,
-                                            ),
+                                            );
+                                            return;
                                         }
-                                        submitting.set(false);
-                                    });
+                                    }
+                                    pending.set(Some(req));
                                 },
                                 "Construct Move"
                             }
                         }
+                    }
+                }
+            }
+
+            // Confirmation modal. Shown whenever a pending reconfig
+            // request is staged. Highlights that this is a high-sensitivity
+            // admin operation and re-states the proposed kind so the
+            // operator has one last chance to back out.
+            {
+                let pending_snapshot = pending.read().clone();
+                let open = pending_snapshot.is_some();
+                let title = "Submit anchorer reconfig?".to_string();
+                let admin_did_for_warn = admin_did_for_modal.clone();
+                let description = match &pending_snapshot {
+                    Some(req) => {
+                        let mut d = format!(
+                            "High-sensitivity admin operation. Proposed kind = {}. Confirm your admin scope is current; soland will reject if scope has lapsed.",
+                            req.kind
+                        );
+                        if let Some(did) = admin_did_for_warn.as_deref() {
+                            if req.admin_self_signs_themselves_in(did) {
+                                d.push_str(" Warning: the proposed anchorer references the current admin DID; this will be rejected.");
+                            }
+                        }
+                        d
+                    }
+                    None => String::new(),
+                };
+                let confirm_text = if *submitting.read() {
+                    "Submitting…".to_string()
+                } else {
+                    "Submit Move".to_string()
+                };
+                rsx! {
+                    ConfirmDialog {
+                        open,
+                        title,
+                        description,
+                        confirm_text,
+                        cancel_text: "Cancel".to_string(),
+                        destructive: true,
+                        on_cancel: move |_| pending.set(None),
+                        on_confirm: move |_| {
+                            if *submitting.read() { return; }
+                            let staged = pending.read().clone();
+                            if let Some(req) = staged {
+                                submitting.set(true);
+                                spawn(async move {
+                                    match anchor_admin::submit_anchorer_reconfig(&req).await {
+                                        Ok(resp) => show_toast(
+                                            &format!("Move submitted: {}", resp.move_id),
+                                            ToastVariant::Success,
+                                        ),
+                                        Err(e) => show_toast(
+                                            &format!("Failed: {}", e.message),
+                                            ToastVariant::Error,
+                                        ),
+                                    }
+                                    submitting.set(false);
+                                    pending.set(None);
+                                });
+                            }
+                        },
                     }
                 }
             }

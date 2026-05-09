@@ -22,8 +22,6 @@ pub fn AnchorDagPage(space_id: String) -> Element {
     let space_id_for_fetch = space_id.clone();
     let mut data = use_resource(move || {
         let id = space_id_for_fetch.clone();
-        // TODO(soland-admin-api): replace stub fetch with anchor-dag describe
-        // endpoint once soland MAL-11 lands.
         async move { anchor_admin::get_anchor_dag(&id).await }
     });
 
@@ -43,8 +41,6 @@ pub fn AnchorDagPage(space_id: String) -> Element {
                         compacting.set(true);
                         let id = space_id_for_compact.clone();
                         spawn(async move {
-                            // TODO(soland-admin-api): replace stub with real
-                            // POST /api/v1/admin/anchors/sign call.
                             match anchor_admin::trigger_compaction(&id).await {
                                 Ok(r) => show_toast(
                                     &format!("Compaction Anchor signed: {}", r.anchor_id),

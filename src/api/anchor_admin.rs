@@ -1,137 +1,218 @@
-//! Stub HTTP client for the Move/Anchor/Lattice admin endpoints.
+//! HTTP client for the Move/Anchor/Lattice admin endpoints exposed by
+//! soland (Stream H', C10.F).
 //!
-//! The real wire calls land later — soland exposes
-//! `POST /api/v1/admin/anchors/sign`, `POST /api/v1/moves`, and
-//! `POST /api/v1/anchors`, plus read-side describe endpoints we don't have
-//! generated bindings for yet. Until then, these helpers return canned data
-//! so the new admin pages can render and exercise their action paths.
+//! Endpoint shape mirrors the canonical `/api/admin/v1/...` admin surface
+//! used by the rest of sodmin (see `api/spaces.rs`); the soland routes
+//! land at:
 //!
-//! TODO(soland-admin-api): replace the stub responses with real HTTP fetches
-//! against soland once the read-side describe endpoints (anchorer cell value,
-//! bottom diagnostics, anchor DAG snapshot) are stabilised.
+//! - `GET  /api/admin/v1/spaces/{id}/anchorer`                 — describe current anchorer cell value
+//! - `POST /api/admin/v1/spaces/{id}/anchorer/reconfigure`     — submit reconfig Move
+//! - `GET  /api/admin/v1/spaces/{id}/bottom`                   — list ⊥ cells in this Space
+//! - `POST /api/admin/v1/spaces/{id}/bottom/{cell_id}/repair`  — submit repair Move
+//! - `GET  /api/admin/v1/spaces/{id}/anchor-dag`               — leaves+frontier+state_root
+//! - `POST /api/admin/v1/spaces/{id}/anchor-dag/compact`       — trigger compaction Anchor
+//!
+//! The soland handlers translate the typed request bodies into real
+//! Moves / Anchors, sign them with the principal-server's anchorer key
+//! (or, for the reconfigure endpoint, route through the admin's signer
+//! flow with the bearer token from the `Authorization` header), and
+//! POST onto the canonical Move / Anchor pipelines.
 
+use crate::api::client::{api_client, build_url};
 use crate::types::anchor::{
-    AnchorDagSnapshot, AnchorLeaf, AnchorerReconfigRequest, AnchorerValue, BottomEntry,
-    SignAnchorResponse, SubmitMoveResponse,
+    AnchorDagSnapshot, AnchorerReconfigRequest, AnchorerValue, BottomEntry, BottomRepairRequest,
+    BottomRepairStrategy, CompactionRequest, SignAnchorResponse, SubmitMoveResponse,
 };
 use crate::utils::error::HttpError;
 
-/// Stub: fetch the anchorer cell value for a space.
+/// Fetch the current anchorer cell value for a Space.
 ///
-/// TODO(soland-admin-api): wire to `GET /api/v1/spaces/{id}/anchorer`
-/// (or whichever describe endpoint soland MAL-15 lands).
+/// `GET /api/admin/v1/spaces/{id}/anchorer`. soland projects the joined
+/// `cx:cell:cx.component.anchorer.v1:<space>` value plus the surrounding
+/// hint fields (`max_anchor_staleness_ms`, `paused`).
 pub async fn get_anchorer_value(space_id: &str) -> Result<AnchorerValue, HttpError> {
-    // Hardcoded sample for UI scaffolding.
-    let _ = space_id;
-    Ok(AnchorerValue {
-        kind_raw: "threshold".into(),
-        threshold_k: Some(2),
-        threshold_n: Some(3),
-        threshold_dids: vec![
-            "did:cx:anchorer-a".into(),
-            "did:cx:anchorer-b".into(),
-            "did:cx:anchorer-c".into(),
-        ],
-        max_anchor_staleness_ms: Some(60_000),
-        paused: false,
-        ..Default::default()
-    })
+    let url = format!(
+        "/api/admin/v1/spaces/{}/anchorer",
+        urlencoding::encode(space_id)
+    );
+    api_client(&url, "GET", None).await
 }
 
-/// Stub: submit an anchorer reconfiguration Move.
+/// Submit an anchorer reconfiguration Move.
 ///
-/// TODO(soland-admin-api): build a real Move payload from the request and
-/// POST to soland's `/api/v1/moves`. The current stub just echoes a fake
-/// move_id without contacting the backend.
+/// `POST /api/admin/v1/spaces/{id}/anchorer/reconfigure`. The body shape
+/// is `{ kind, single_did?, threshold_k?, threshold_n?, threshold_dids?, ... }`
+/// (see `AnchorerReconfigRequest::to_reconfigure_body`); soland builds
+/// the typed Move on the server side, signs with the admin's key (or
+/// routes through the admin signer flow tied to the bearer token), and
+/// posts onto `/api/v1/moves`.
 pub async fn submit_anchorer_reconfig(
     req: &AnchorerReconfigRequest,
 ) -> Result<SubmitMoveResponse, HttpError> {
-    Ok(SubmitMoveResponse {
-        move_id: format!("stub-move-{}-{}", req.space_id, req.kind),
-        accepted: true,
-        reason: None,
-    })
+    let url = format!(
+        "/api/admin/v1/spaces/{}/anchorer/reconfigure",
+        urlencoding::encode(&req.space_id)
+    );
+    let body = req.to_reconfigure_body();
+    api_client(
+        &url,
+        "POST",
+        Some(serde_json::to_string(&body).unwrap_or_default()),
+    )
+    .await
 }
 
-/// Stub: list all cells currently in Bottom state across visible Spaces.
+/// List all cells currently in `Bottom` state inside the given Space.
 ///
-/// TODO(soland-admin-api): wire to soland's bottom-diagnostics describe
-/// endpoint when MAL-5 lands.
-pub async fn list_bottom_entries() -> Result<Vec<BottomEntry>, HttpError> {
-    Ok(vec![
-        BottomEntry {
-            space_id: "space:demo-1".into(),
-            cell_id: "cx:cell:cx.component.anchorer.v1:space:demo-1".into(),
-            kind: "anchorer_split".into(),
-            move_ids: vec!["move:abc".into(), "move:def".into()],
-            details: Some("Two disjoint anchorer reconfig branches detected.".into()),
-            detected_at: Some("2026-05-09T03:21:00Z".into()),
-        },
-        BottomEntry {
-            space_id: "space:demo-2".into(),
-            cell_id: "cx:cell:cx.component.profile.v1:space:demo-2".into(),
-            kind: "conflict".into(),
-            move_ids: vec!["move:xyz".into()],
-            details: Some("LWW register received concurrent writes that cannot join.".into()),
-            detected_at: Some("2026-05-09T03:55:00Z".into()),
-        },
-    ])
+/// `GET /api/admin/v1/spaces/{id}/bottom`.
+pub async fn list_bottom_entries(space_id: &str) -> Result<Vec<BottomEntry>, HttpError> {
+    let url = format!(
+        "/api/admin/v1/spaces/{}/bottom",
+        urlencoding::encode(space_id)
+    );
+    api_client(&url, "GET", None).await
 }
 
-/// Stub: submit a "construct repair Move" for a bottom entry.
+/// List bottom entries across every Space the admin can see — used by
+/// the global "Bottom diagnostics" page in the sidebar (no per-Space
+/// pre-filter).
 ///
-/// TODO(soland-admin-api): the admin UI builds a repair payload (chosen
-/// branch / override) and POSTs to `/api/v1/moves`. Today we just return a
-/// fake move_id.
+/// `GET /api/admin/v1/bottom`. Each row carries its `space_id` so the
+/// renderer can link out.
+pub async fn list_bottom_entries_global() -> Result<Vec<BottomEntry>, HttpError> {
+    let url = build_url("/api/admin/v1/bottom", &[])?;
+    api_client(&url, "GET", None).await
+}
+
+/// Submit a "construct repair Move" for a single bottom cell.
+///
+/// `POST /api/admin/v1/spaces/{id}/bottom/{cell_id}/repair`. The body
+/// carries the typed `BottomRepairStrategy` — `head_in_winner` (the
+/// admin picks one of the concurrent heads) or `manual` (free-form
+/// effects array, used as the escape hatch for non-conflict bottoms).
 pub async fn submit_bottom_repair(
     space_id: &str,
     cell_id: &str,
+    strategy: BottomRepairStrategy,
 ) -> Result<SubmitMoveResponse, HttpError> {
-    Ok(SubmitMoveResponse {
-        move_id: format!("stub-repair-{}-{}", space_id, cell_id),
-        accepted: true,
-        reason: None,
-    })
-}
-
-/// Stub: fetch Anchor DAG snapshot (leaves + frontier + state_root).
-///
-/// TODO(soland-admin-api): wire to soland's anchor-dag describe endpoint.
-pub async fn get_anchor_dag(space_id: &str) -> Result<AnchorDagSnapshot, HttpError> {
-    Ok(AnchorDagSnapshot {
+    let url = format!(
+        "/api/admin/v1/spaces/{}/bottom/{}/repair",
+        urlencoding::encode(space_id),
+        urlencoding::encode(cell_id),
+    );
+    let req = BottomRepairRequest {
         space_id: space_id.to_string(),
-        leaves: vec![
-            AnchorLeaf {
-                anchor_id: "anchor:001".into(),
-                state_root: Some("sha256:aaaa".into()),
-                move_count: 42,
-                created_at: Some("2026-05-09T01:00:00Z".into()),
-                signers: vec!["did:cx:anchorer-a".into(), "did:cx:anchorer-b".into()],
-                is_compaction: false,
-            },
-            AnchorLeaf {
-                anchor_id: "anchor:002".into(),
-                state_root: Some("sha256:bbbb".into()),
-                move_count: 17,
-                created_at: Some("2026-05-09T02:30:00Z".into()),
-                signers: vec!["did:cx:anchorer-b".into(), "did:cx:anchorer-c".into()],
-                is_compaction: false,
-            },
-        ],
-        frontier: vec!["anchor:001".into(), "anchor:002".into()],
-        state_root: Some("sha256:bbbb".into()),
-        last_compaction_at: Some("2026-05-08T22:00:00Z".into()),
-    })
+        cell_id: cell_id.to_string(),
+        strategy,
+    };
+    api_client(
+        &url,
+        "POST",
+        Some(serde_json::to_string(&req).unwrap_or_default()),
+    )
+    .await
 }
 
-/// Stub: trigger signed compaction Anchor.
+/// Fetch the Anchor DAG snapshot (leaves + frontier + state_root + last
+/// compaction timestamp).
 ///
-/// TODO(soland-admin-api): replace with real call to
-/// `POST /api/v1/admin/anchors/sign` (`cx.admin.anchors.sign`).
+/// `GET /api/admin/v1/spaces/{id}/anchor-dag`.
+pub async fn get_anchor_dag(space_id: &str) -> Result<AnchorDagSnapshot, HttpError> {
+    let url = format!(
+        "/api/admin/v1/spaces/{}/anchor-dag",
+        urlencoding::encode(space_id)
+    );
+    api_client(&url, "GET", None).await
+}
+
+/// Trigger a signed compaction Anchor.
+///
+/// `POST /api/admin/v1/spaces/{id}/anchor-dag/compact`. soland's handler
+/// is the admin-facing entry point onto `cx.admin.anchors.sign`; it folds
+/// up to `max_moves` moves into a fresh compaction Anchor and returns
+/// the new anchor id + state_root.
 pub async fn trigger_compaction(space_id: &str) -> Result<SignAnchorResponse, HttpError> {
-    Ok(SignAnchorResponse {
-        anchor_id: format!("stub-compaction-{}", space_id),
-        state_root: Some("sha256:cccc".into()),
-        move_count: 0,
-    })
+    let url = format!(
+        "/api/admin/v1/spaces/{}/anchor-dag/compact",
+        urlencoding::encode(space_id)
+    );
+    let req = CompactionRequest {
+        space_id: space_id.to_string(),
+        max_moves: None,
+    };
+    api_client(
+        &url,
+        "POST",
+        Some(serde_json::to_string(&req).unwrap_or_default()),
+    )
+    .await
+}
+
+#[cfg(test)]
+mod tests {
+    //! Pure-shape tests — these verify that the request bodies we POST
+    //! match the wire shape soland's handlers expect, without needing a
+    //! live HTTP loop.
+
+    use super::*;
+    use crate::types::anchor::WinnerHead;
+
+    #[test]
+    fn reconfig_request_body_renders_threshold_shape() {
+        let req = AnchorerReconfigRequest {
+            space_id: "cx:space:0196419b-0000-7000-8000-000000000000".into(),
+            kind: "threshold".into(),
+            threshold_k: Some(2),
+            threshold_n: Some(3),
+            threshold_dids: vec!["did:cx:a".into(), "did:cx:b".into(), "did:cx:c".into()],
+            ..Default::default()
+        };
+        let body = req.to_reconfigure_body();
+        // Wire body must include kind+k+n+dids and exclude unrelated
+        // shape fields so the soland handler doesn't see ambiguous input.
+        assert_eq!(body["kind"], "threshold");
+        assert_eq!(body["threshold_k"], 2);
+        assert_eq!(body["threshold_n"], 3);
+        assert_eq!(
+            body["threshold_dids"]
+                .as_array()
+                .map(|a| a.len())
+                .unwrap_or(0),
+            3
+        );
+        assert!(body.get("single_did").is_none());
+        assert!(body.get("open_set_members").is_none());
+    }
+
+    #[test]
+    fn repair_request_body_serializes_with_strategy_tag() {
+        let req = BottomRepairRequest {
+            space_id: "cx:space:demo".into(),
+            cell_id: "cx:cell:cx.component.anchorer.v1:cx:space:demo".into(),
+            strategy: BottomRepairStrategy::HeadInWinner {
+                head: WinnerHead {
+                    move_id: "cx:move:sha256:aaaa".into(),
+                    issuer: Some("did:cx:alice".into()),
+                    hlc: None,
+                    summary: None,
+                },
+            },
+        };
+        let s = serde_json::to_string(&req).unwrap();
+        // Strategy MUST be tagged on the wire so the soland handler can
+        // pattern-match without sniffing the rest of the body.
+        assert!(s.contains("\"strategy\":\"head_in_winner\""));
+        assert!(s.contains("\"move_id\":\"cx:move:sha256:aaaa\""));
+    }
+
+    #[test]
+    fn compaction_request_body_default_omits_max_moves() {
+        let req = CompactionRequest {
+            space_id: "cx:space:demo".into(),
+            max_moves: None,
+        };
+        let s = serde_json::to_string(&req).unwrap();
+        assert!(s.contains("\"space_id\":\"cx:space:demo\""));
+        assert!(!s.contains("max_moves"));
+    }
 }
