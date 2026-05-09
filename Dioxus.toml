@@ -4,3 +4,19 @@ default_platform = "web"
 
 [web.app]
 title = "Contrix Admin"
+
+# S5 token hardening (round 25): emit a strict CSP via meta http-equiv.
+# Dioxus injects its own runtime + WASM bundle inline, so `script-src`
+# must allow `'self'` + `'wasm-unsafe-eval'`. We forbid `'unsafe-inline'`
+# entirely on script-src and rely on the build-time nonce mechanism in
+# `utils::csp` for any future inline `<script nonce>` tags. Future
+# round 26: rotate the nonce server-side per-request.
+[web.resource]
+style = []
+script = []
+
+# Headers Dioxus serves for the dev bundle. Production deployments MUST
+# also set these headers at the web server / CDN tier; the meta tag
+# is a defense-in-depth fallback.
+[web.https]
+enabled = false

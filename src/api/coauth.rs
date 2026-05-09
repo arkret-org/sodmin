@@ -10,10 +10,18 @@
 //!
 //! TODO(a0-shared-crate): finish migrating the remaining inline DTOs
 //! (account summary / DID binding / claim / session grant / bridge
-//! describe / recovery describe / integration manifest / connector
-//! health / notification channels / notification templates) into
-//! `coauth-admin-types` so this file is reduced to API verb wrappers
-//! plus a re-export block.
+//! describe / integration manifest / connector health / notification
+//! channels / notification templates) into `coauth-admin-types` so this
+//! file is reduced to API verb wrappers plus a re-export block.
+//!
+//! Round 28 (A0 switch-over): the recovery / federation / space-policy /
+//! applets-admin DTOs that previously lived inline under
+//! `crate::types::{recovery,federation_status,space_policy,applets_admin}`
+//! have moved into `coauth_admin_types::{recovery_admin, federation_admin,
+//! space_policy_admin, applets_admin}` and the sodmin-side mirror modules
+//! were deleted. Consumers import from the shared crate directly —
+//! rustc enforces wire-shape parity across the coauth backend and the
+//! admin SPA from this point forward.
 
 use serde::{Deserialize, Serialize};
 use serde_json::Value;

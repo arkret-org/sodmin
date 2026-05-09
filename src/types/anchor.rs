@@ -101,6 +101,47 @@ impl AnchorerValue {
 
 // ── Anchorer reconfiguration request ─────────────────────────────────────
 
+/// Typed reason for an `admin-self-signs-themselves-in` constraint
+/// violation, surfaced per anchorer kind so the operator sees exactly
+/// which sub-rule tripped.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum SelfSignViolation {
+    SingleDidIsAdmin,
+    ThresholdContainsAdmin,
+    /// Admin DID is the lex-smallest member of `threshold_dids` (the
+    /// per-spec multisig §4 leader role).
+    ThresholdLeaderIsAdmin,
+    OpenSetContainsAdmin,
+    MixedPrimaryIsAdmin,
+    MixedRecoveryContainsAdmin,
+}
+
+impl SelfSignViolation {
+    /// Short human-readable label for toast / log copy.
+    pub fn label(&self) -> &'static str {
+        match self {
+            SelfSignViolation::SingleDidIsAdmin => {
+                "single_did anchorer references the current admin DID"
+            }
+            SelfSignViolation::ThresholdContainsAdmin => {
+                "threshold anchorer member set contains the current admin DID"
+            }
+            SelfSignViolation::ThresholdLeaderIsAdmin => {
+                "threshold anchorer lex-smallest leader is the current admin DID"
+            }
+            SelfSignViolation::OpenSetContainsAdmin => {
+                "open_set anchorer member set contains the current admin DID"
+            }
+            SelfSignViolation::MixedPrimaryIsAdmin => {
+                "mixed anchorer primary is the current admin DID"
+            }
+            SelfSignViolation::MixedRecoveryContainsAdmin => {
+                "mixed anchorer recovery quorum contains the current admin DID"
+            }
+        }
+    }
+}
+
 /// Profile sent to the "construct anchorer reconfig Move" form. The
 /// admin client converts this into a Move payload before POSTing to
 /// `soland /api/v1/admin/spaces/{id}/anchorer/reconfigure`.
@@ -132,16 +173,69 @@ impl AnchorerReconfigRequest {
     /// the anchorer (a privilege-escalation primitive). soland enforces
     /// this on the server too; we mirror it client-side as a pre-flight
     /// so the admin sees the constraint before signing.
+    ///
+    /// Returns true if any per-kind constraint trips. Use
+    /// [`Self::self_sign_violation`] when the caller wants the typed
+    /// reason (for e.g. structured error toasts).
     pub fn admin_self_signs_themselves_in(&self, admin_did: &str) -> bool {
+        self.self_sign_violation(admin_did).is_some()
+    }
+
+    /// Per-kind self-sign-themselves-in constraint check, returning a
+    /// typed reason when violated. Mirrors the soland-side validator.
+    ///
+    /// - `single_did`: `single_did != admin_did`
+    /// - `threshold`:  `!threshold_dids.contains(admin_did)` AND the
+    ///                 lex-smallest `threshold_dids` entry (the leader
+    ///                 per spec multisig §4) is not `admin_did`
+    /// - `open_set`:   `!open_set_members.contains(admin_did)`
+    /// - `mixed`:      `mixed_primary != admin_did` AND
+    ///                 `!mixed_recovery.contains(admin_did)`
+    pub fn self_sign_violation(&self, admin_did: &str) -> Option<SelfSignViolation> {
         match self.kind.as_str() {
-            "single_did" => self.single_did.as_deref() == Some(admin_did),
-            "threshold" => self.threshold_dids.iter().any(|d| d == admin_did),
-            "open_set" => self.open_set_members.iter().any(|d| d == admin_did),
-            "mixed" => {
-                self.mixed_primary.as_deref() == Some(admin_did)
-                    || self.mixed_recovery.iter().any(|d| d == admin_did)
+            "single_did" => {
+                if self.single_did.as_deref() == Some(admin_did) {
+                    Some(SelfSignViolation::SingleDidIsAdmin)
+                } else {
+                    None
+                }
             }
-            _ => false,
+            "threshold" => {
+                if self.threshold_dids.iter().any(|d| d == admin_did) {
+                    return Some(SelfSignViolation::ThresholdContainsAdmin);
+                }
+                // Spec multisig §4: the lex-smallest member acts as the
+                // leader for partial aggregation. Even if admin is not
+                // in the proposed member set, refuse the case where
+                // some implementation quirk would let the admin DID be
+                // promoted to leader (e.g. via a future shape change).
+                // For the current shape this collapses into the
+                // contains() check above, but we keep it explicit so
+                // the constraint is auditable per-kind.
+                if let Some(leader) = self.threshold_dids.iter().min() {
+                    if leader == admin_did {
+                        return Some(SelfSignViolation::ThresholdLeaderIsAdmin);
+                    }
+                }
+                None
+            }
+            "open_set" => {
+                if self.open_set_members.iter().any(|d| d == admin_did) {
+                    Some(SelfSignViolation::OpenSetContainsAdmin)
+                } else {
+                    None
+                }
+            }
+            "mixed" => {
+                if self.mixed_primary.as_deref() == Some(admin_did) {
+                    return Some(SelfSignViolation::MixedPrimaryIsAdmin);
+                }
+                if self.mixed_recovery.iter().any(|d| d == admin_did) {
+                    return Some(SelfSignViolation::MixedRecoveryContainsAdmin);
+                }
+                None
+            }
+            _ => None,
         }
     }
 
@@ -186,6 +280,11 @@ impl AnchorerReconfigRequest {
 }
 
 /// Response shape mirroring soland's `SubmitMoveResponse`.
+///
+/// `move_body` carries the canonical Move body that soland built and
+/// signed on the admin's behalf — the admin UI surfaces it as a
+/// readonly JSON viewer (collapsed by default) so the operator can
+/// verify what was actually signed.
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct SubmitMoveResponse {
     pub move_id: String,
@@ -193,6 +292,11 @@ pub struct SubmitMoveResponse {
     pub accepted: bool,
     #[serde(default)]
     pub reason: Option<String>,
+    /// Canonical signed Move body returned by soland. Optional because
+    /// older soland builds may omit it; sodmin gracefully falls back
+    /// to "no body returned" when absent.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub move_body: Option<serde_json::Value>,
 }
 
 // ── Bottom diagnostics ───────────────────────────────────────────────────
@@ -479,6 +583,158 @@ mod tests {
         assert!(mixed_recovery_self.admin_self_signs_themselves_in(admin));
     }
 
+    // ── Per-anchorer-kind self-sign-themselves-in unit tests (round 27) ──
+    //
+    // Each test pins the typed `SelfSignViolation` reason returned per
+    // kind so the soland-side parity is auditable from one place.
+
+    #[test]
+    fn self_sign_violation_single_did_kind() {
+        let admin = "did:cx:admin-x";
+        // Positive: admin is the proposed single_did.
+        let bad = AnchorerReconfigRequest {
+            kind: "single_did".into(),
+            single_did: Some(admin.to_string()),
+            ..Default::default()
+        };
+        assert_eq!(
+            bad.self_sign_violation(admin),
+            Some(SelfSignViolation::SingleDidIsAdmin)
+        );
+        assert!(bad.admin_self_signs_themselves_in(admin));
+
+        // Negative: a different DID is fine.
+        let ok = AnchorerReconfigRequest {
+            kind: "single_did".into(),
+            single_did: Some("did:cx:other".into()),
+            ..Default::default()
+        };
+        assert_eq!(ok.self_sign_violation(admin), None);
+        assert!(!ok.admin_self_signs_themselves_in(admin));
+    }
+
+    #[test]
+    fn self_sign_violation_threshold_kind() {
+        let admin = "did:cx:admin-x";
+
+        // Positive: admin is anywhere in the threshold member set —
+        // this is the broader contains() check that fires first.
+        let contains = AnchorerReconfigRequest {
+            kind: "threshold".into(),
+            threshold_k: Some(2),
+            threshold_n: Some(3),
+            threshold_dids: vec![
+                "did:cx:b".into(),
+                "did:cx:c".into(),
+                admin.to_string(),
+            ],
+            ..Default::default()
+        };
+        assert_eq!(
+            contains.self_sign_violation(admin),
+            Some(SelfSignViolation::ThresholdContainsAdmin)
+        );
+
+        // Positive: admin IS the lex-smallest leader. The contains()
+        // arm trips first, but the constraint still classifies it as a
+        // self-sign violation.
+        let leader = AnchorerReconfigRequest {
+            kind: "threshold".into(),
+            threshold_k: Some(2),
+            threshold_n: Some(3),
+            threshold_dids: vec![
+                admin.to_string(), // lex-smallest because "admin-x" < "b"
+                "did:cx:b".into(),
+                "did:cx:c".into(),
+            ],
+            ..Default::default()
+        };
+        assert_eq!(
+            leader.self_sign_violation(admin),
+            Some(SelfSignViolation::ThresholdContainsAdmin)
+        );
+
+        // Negative: admin not in member set, no violation.
+        let ok = AnchorerReconfigRequest {
+            kind: "threshold".into(),
+            threshold_k: Some(2),
+            threshold_n: Some(3),
+            threshold_dids: vec![
+                "did:cx:a".into(),
+                "did:cx:b".into(),
+                "did:cx:c".into(),
+            ],
+            ..Default::default()
+        };
+        assert_eq!(ok.self_sign_violation(admin), None);
+    }
+
+    #[test]
+    fn self_sign_violation_open_set_kind() {
+        let admin = "did:cx:admin-x";
+
+        // Positive: admin is in the open-set members.
+        let bad = AnchorerReconfigRequest {
+            kind: "open_set".into(),
+            open_set_members: vec!["did:cx:a".into(), admin.to_string()],
+            ..Default::default()
+        };
+        assert_eq!(
+            bad.self_sign_violation(admin),
+            Some(SelfSignViolation::OpenSetContainsAdmin)
+        );
+
+        // Negative: admin not in member set.
+        let ok = AnchorerReconfigRequest {
+            kind: "open_set".into(),
+            open_set_members: vec!["did:cx:a".into(), "did:cx:b".into()],
+            ..Default::default()
+        };
+        assert_eq!(ok.self_sign_violation(admin), None);
+    }
+
+    #[test]
+    fn self_sign_violation_mixed_kind() {
+        let admin = "did:cx:admin-x";
+
+        // Positive (primary): admin is the primary DID.
+        let primary = AnchorerReconfigRequest {
+            kind: "mixed".into(),
+            mixed_primary: Some(admin.to_string()),
+            mixed_recovery: vec!["did:cx:r1".into(), "did:cx:r2".into()],
+            ..Default::default()
+        };
+        assert_eq!(
+            primary.self_sign_violation(admin),
+            Some(SelfSignViolation::MixedPrimaryIsAdmin)
+        );
+
+        // Positive (recovery): admin appears in recovery quorum.
+        let recovery = AnchorerReconfigRequest {
+            kind: "mixed".into(),
+            mixed_primary: Some("did:cx:p".into()),
+            mixed_recovery: vec![
+                "did:cx:r1".into(),
+                admin.to_string(),
+                "did:cx:r2".into(),
+            ],
+            ..Default::default()
+        };
+        assert_eq!(
+            recovery.self_sign_violation(admin),
+            Some(SelfSignViolation::MixedRecoveryContainsAdmin)
+        );
+
+        // Negative: clean primary + recovery quorum.
+        let ok = AnchorerReconfigRequest {
+            kind: "mixed".into(),
+            mixed_primary: Some("did:cx:p".into()),
+            mixed_recovery: vec!["did:cx:r1".into(), "did:cx:r2".into()],
+            ..Default::default()
+        };
+        assert_eq!(ok.self_sign_violation(admin), None);
+    }
+
     #[test]
     fn to_reconfigure_body_strips_empty_optional_fields() {
         // single_did request: should carry kind+single_did and NOT emit
@@ -539,5 +795,73 @@ mod tests {
         let mj = serde_json::to_value(&m).expect("serialize");
         assert_eq!(mj.get("strategy").and_then(|v| v.as_str()), Some("manual"));
         assert_eq!(m.label(), "manual");
+    }
+
+    // ── H'3 round 27 — explicit round-trip tests for both
+    //    BottomRepairStrategy variants. These verify that the
+    //    snake_case tag discriminator + the per-variant field shape
+    //    survives a full `to_string` → `from_str` round-trip (string,
+    //    not Value), so the wire bytes the soland handler observes
+    //    match what the admin client serialised.
+
+    #[test]
+    fn bottom_repair_strategy_head_in_winner_round_trip_through_serde_string() {
+        let s = BottomRepairStrategy::HeadInWinner {
+            head: WinnerHead {
+                move_id: "cx:move:sha256:deadbeef".into(),
+                issuer: Some("did:cx:alice".into()),
+                hlc: Some("01HXY-0001".into()),
+                summary: Some("set value=99".into()),
+            },
+        };
+        let wire = serde_json::to_string(&s).expect("serialize to string");
+        // Snake-case tag + tag key survives.
+        assert!(wire.contains("\"strategy\":\"head_in_winner\""));
+        // Fields inside the variant render as snake_case too.
+        assert!(wire.contains("\"move_id\":\"cx:move:sha256:deadbeef\""));
+        assert!(wire.contains("\"issuer\":\"did:cx:alice\""));
+        assert!(wire.contains("\"hlc\":\"01HXY-0001\""));
+        let back: BottomRepairStrategy =
+            serde_json::from_str(&wire).expect("deserialize from string");
+        assert_eq!(back, s);
+        assert_eq!(back.label(), "head_in winner");
+    }
+
+    #[test]
+    fn bottom_repair_strategy_manual_round_trip_through_serde_string() {
+        let m = BottomRepairStrategy::Manual {
+            note: Some("schema error - hand-rewrite the cell".into()),
+            effects: vec![
+                serde_json::json!({
+                    "cell": "cx:cell:cx.component.x.v1:demo",
+                    "op": {"type": "cas_register", "value": {"foo": 1}},
+                }),
+                serde_json::json!({
+                    "cell": "cx:cell:cx.component.y.v1:demo",
+                    "op": {"type": "set_membership_add", "value": "did:cx:carol"},
+                }),
+            ],
+        };
+        let wire = serde_json::to_string(&m).expect("serialize to string");
+        // Tag survives + is snake_case.
+        assert!(wire.contains("\"strategy\":\"manual\""));
+        // Variant fields render as snake_case.
+        assert!(wire.contains("\"note\":\"schema error - hand-rewrite the cell\""));
+        assert!(wire.contains("\"effects\""));
+        let back: BottomRepairStrategy =
+            serde_json::from_str(&wire).expect("deserialize from string");
+        assert_eq!(back, m);
+        assert_eq!(back.label(), "manual");
+        // And the effects array survives byte-for-byte (ordering +
+        // length).
+        if let BottomRepairStrategy::Manual { effects, note } = back {
+            assert_eq!(effects.len(), 2);
+            assert_eq!(
+                note.as_deref(),
+                Some("schema error - hand-rewrite the cell"),
+            );
+        } else {
+            panic!("expected Manual variant after round-trip");
+        }
     }
 }

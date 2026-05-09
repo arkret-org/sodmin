@@ -160,7 +160,36 @@ fn build_nav_sections() -> Vec<NavSection> {
                 NavItem::new(t("nav.federation"), Route::FederationList {}, "globe"),
                 NavItem::new(t("nav.media"), Route::MediaList {}, "image"),
                 NavItem::new(t("nav.applets"), Route::AppletList {}, "plug"),
+                NavItem::new(
+                    t("nav.applets_admin"),
+                    Route::AppletAdmin {},
+                    "plug",
+                ),
                 NavItem::new(t("nav.agents"), Route::AgentList {}, "bot"),
+                NavItem::new(
+                    t("nav.agents_admin"),
+                    Route::AgentAdmin {},
+                    "bot",
+                ),
+                NavItem::new(
+                    t("nav.directory_admin"),
+                    Route::DirectoryAdmin {},
+                    "globe",
+                ),
+                NavItem::new(
+                    t("nav.federation_status"),
+                    Route::SpaceFederationStatus {
+                        space_id: "_".to_string(),
+                    },
+                    "globe",
+                ),
+                NavItem::new(
+                    t("nav.policy_editor"),
+                    Route::SpacePolicyEditor {
+                        space_id: "_".to_string(),
+                    },
+                    "file-text",
+                ),
             ],
         )
         .bridge(bridge::SOLAND)
@@ -312,6 +341,26 @@ fn build_nav_sections() -> Vec<NavSection> {
                     t("nav.connector_health"),
                     Route::CoauthConnectorHealth {},
                     "heart-pulse",
+                )
+                .scoped(scope::COAUTH),
+                NavItem::new(
+                    t("nav.recovery_tickets"),
+                    Route::RecoveryTicketList {},
+                    "shield",
+                )
+                .scoped(scope::COAUTH),
+                NavItem::new(
+                    t("nav.recovery_audit"),
+                    Route::RecoveryAuditLog {
+                        ticket_id: String::new(),
+                    },
+                    "scroll-text",
+                )
+                .scoped(scope::COAUTH),
+                NavItem::new(
+                    t("nav.recovery_describe"),
+                    Route::RecoveryDescribe {},
+                    "file-text",
                 )
                 .scoped(scope::COAUTH),
             ],

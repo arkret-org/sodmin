@@ -38,12 +38,16 @@ pub fn AppLayout(children: Element) -> Element {
     // immediately instead of polling.
     use_hook(move || {
         let closure = Closure::<dyn FnMut(StorageEvent)>::new(move |event: StorageEvent| {
-            // Only care about auth-bearing keys; ignore unrelated writes
-            // (i18n.lang, sidebar collapsed, etc.).
+            // S5: the bearer credential is now in an httpOnly cookie
+            // and never lives in localStorage. The only auth-bearing
+            // signal we still listen on is the non-secret
+            // `session_active` marker — when another tab clears it
+            // (logout) we mirror the redirect immediately. `None` is
+            // the wholesale `localStorage.clear()` case (still fires).
             let key = event.key();
             let is_auth_key = matches!(
                 key.as_deref(),
-                Some("access_token") | Some("refresh_token") | None
+                Some("session_active") | None
             );
             if is_auth_key && !auth::is_authenticated() {
                 nav.replace(Route::LoginPage {});

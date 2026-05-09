@@ -1,10 +1,10 @@
 use gloo_net::http::{Headers, Request, RequestBuilder};
 use serde::de::DeserializeOwned;
+use web_sys::RequestCredentials;
 
 use crate::utils::crypto::random_token;
 use crate::utils::error::{AdminErrorEnvelope, HttpError, display_error};
 use crate::utils::perf;
-use crate::utils::session;
 
 pub const HEADER_REQUEST_ID: &str = "X-Contrix-Request-Id";
 pub const HEADER_IDEMPOTENCY_KEY: &str = "Idempotency-Key";
@@ -66,8 +66,11 @@ where
 
     let rid_value = generate_request_id();
     let rid = Some(rid_value.clone());
-    let token = session::access_token();
 
+    // S5 token hardening: every admin API call rides the httpOnly
+    // session cookie. There is no `Authorization: Bearer <token>`
+    // header from the SPA — the cookie is sent automatically by the
+    // browser when `credentials: "include"` is set on the request.
     let mut builder: RequestBuilder = match method {
         "POST" => Request::post(&url),
         "PUT" => Request::put(&url),
@@ -76,11 +79,8 @@ where
         _ => Request::get(&url),
     }
     .header("Accept", "application/json")
-    .header(HEADER_REQUEST_ID, &rid_value);
-
-    if let Some(ref token) = token {
-        builder = builder.header("Authorization", &format!("Bearer {token}"));
-    }
+    .header(HEADER_REQUEST_ID, &rid_value)
+    .credentials(RequestCredentials::Include);
 
     if is_mutation_method(method) {
         builder = builder.header(HEADER_IDEMPOTENCY_KEY, &generate_idempotency_key());

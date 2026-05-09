@@ -1,7 +1,40 @@
+//! OAuth/OIDC + session lifecycle (Round 25, S5 token hardening).
+//!
+//! Round 25 replaces the old localStorage `access_token` / `refresh_token`
+//! pair with an httpOnly cookie that coauth's `/oauth2/token` endpoint
+//! sets via `Set-Cookie`. The cookie carries the bearer credential and
+//! is `HttpOnly + Secure + SameSite=Strict + __Host-` prefixed so it
+//! cannot be read from JS, can only be sent to the issuing origin, and
+//! cannot be smuggled across navigations from third-party iframes.
+//!
+//! This module's contract is therefore:
+//!
+//! - **Login** — `start_oauth_login` opens the OAuth authorize URL.
+//!   PKCE verifier / state / nonce live in `sessionStorage` (still
+//!   readable from JS, but they are *one-shot*: invalid after the
+//!   callback consumes them, so leakage has zero replay value).
+//! - **Callback** — `handle_oauth_callback` exchanges the code with
+//!   `credentials: "include"`. coauth sets the session cookie. On
+//!   success, sodmin stores ONLY a non-secret `session_active=1`
+//!   marker plus the userinfo block (id / display name / avatar).
+//!   None of these carry entropy.
+//! - **API calls** — `api::client::api_client` now sends every
+//!   request with `credentials: "include"` so the cookie travels with
+//!   the request automatically. There is no `Authorization: Bearer`
+//!   header from the SPA.
+//! - **Refresh** — when the cookie has expired the server returns
+//!   401, the client invokes `handle_unauthorized` which calls
+//!   `/oauth2/refresh` (also with `credentials: "include"`) and the
+//!   server sets a new cookie. No JS-visible refresh_token.
+//! - **Logout** — `logout` POSTs to `/oauth2/revoke` (same cookie
+//!   credentials), then clears the JS-visible session marker +
+//!   userinfo + the SPA-side cached config.
+
 use gloo_net::http::Request;
 use serde::Deserialize;
 use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::JsFuture;
+use web_sys::RequestCredentials;
 use web_sys::RequestMode;
 
 use crate::utils::crypto::{base64url_encode, random_token};
@@ -15,6 +48,11 @@ const OAUTH_DEVICE_ID_STORAGE_KEY: &str = "oauth_device_id";
 const PKCE_VERIFIER_KEY: &str = "pkce_code_verifier";
 const OAUTH_STATE_KEY: &str = "oauth_state";
 const OAUTH_NONCE_KEY: &str = "oauth_nonce";
+
+/// Non-secret marker localStorage key. Set to `"1"` after a successful
+/// OAuth callback, removed on logout. Carries no entropy — the actual
+/// bearer credential is in an httpOnly cookie.
+pub(crate) const SESSION_ACTIVE_KEY: &str = "session_active";
 
 #[derive(Debug)]
 struct TextResponse {
@@ -70,7 +108,11 @@ async fn read_text_response(response: gloo_net::http::Response) -> Result<TextRe
 async fn send_form_post(url: &str, body: &str) -> Result<TextResponse, HttpError> {
     let mut builder = Request::post(url)
         .header("Content-Type", "application/x-www-form-urlencoded")
-        .header("Accept", "application/json");
+        .header("Accept", "application/json")
+        // S5: every OAuth call must carry the httpOnly cookie so the
+        // server can both set the cookie on /token and read it on
+        // /refresh and /revoke.
+        .credentials(RequestCredentials::Include);
 
     if is_public_oauth_url(url) {
         builder = builder.mode(RequestMode::Cors);
@@ -235,10 +277,14 @@ pub async fn handle_oauth_callback(code: &str, state: Option<&str>) -> Result<()
         )));
     }
 
+    // S5: the bearer credential rides back as an httpOnly cookie set by
+    // coauth, NOT in the JSON body. We still parse the body for
+    // optional metadata (id_token nonce, expiry hint, scope) but never
+    // touch `access_token` / `refresh_token` even if the server
+    // returns them on the wire.
     let token_resp: TokenResponse =
         serde_json::from_str(&response.text).map_err(|e| make_err(e.to_string()))?;
 
-    // Verify OIDC nonce if the server returned an id_token.
     if let (Some(id_token), Some(expected)) = (&token_resp.id_token, &expected_nonce) {
         if let Some(nonce_in_token) = extract_id_token_nonce(id_token) {
             if nonce_in_token != *expected {
@@ -247,11 +293,10 @@ pub async fn handle_oauth_callback(code: &str, state: Option<&str>) -> Result<()
         }
     }
 
-    storage::set_item("access_token", &token_resp.access_token);
+    // Mark the session as active for the JS-visible UI checks. The
+    // value `"1"` carries no entropy.
+    storage::set_item(SESSION_ACTIVE_KEY, "1");
     persist_token_expiry(token_resp.expires_in);
-    if let Some(ref rt) = token_resp.refresh_token {
-        storage::set_item("refresh_token", rt);
-    }
 
     let viewer_resp = crate::api::coauth::get_viewer().await?;
     storage::set_item("user_id", &viewer_resp.sub);
@@ -267,9 +312,6 @@ pub async fn handle_oauth_callback(code: &str, state: Option<&str>) -> Result<()
 
 #[derive(Deserialize)]
 struct TokenResponse {
-    access_token: String,
-    #[serde(default)]
-    refresh_token: Option<String>,
     #[serde(default)]
     expires_in: Option<u64>,
     #[serde(default)]
@@ -292,27 +334,18 @@ pub async fn handle_unauthorized() -> bool {
     if refresh_oauth_token().await {
         return true;
     }
-    storage::remove_item("access_token");
-    storage::remove_item("refresh_token");
-    storage::remove_item("is_admin");
-    storage::remove_item("token_expires_at_ms");
+    clear_session_marker();
     false
 }
 
 pub async fn refresh_oauth_token() -> bool {
-    let refresh_token = match storage::get_item("refresh_token") {
-        Some(rt) => rt,
-        None => return false,
-    };
+    // S5: the refresh token is in the httpOnly cookie. Just hit
+    // /oauth2/refresh with credentials: "include" — coauth pulls the
+    // refresh token from the cookie, mints a new pair, and ships back
+    // a new cookie. The JSON body carries no secrets.
+    let form_body = format!("grant_type=refresh_token&client_id={OAUTH_CLIENT_ID}");
 
-    let form_body = format!(
-        "grant_type=refresh_token\
-         &refresh_token={}\
-         &client_id={OAUTH_CLIENT_ID}",
-        urlencoding::encode(&refresh_token),
-    );
-
-    let response = match send_oauth_form_request("/oauth2/token", &form_body).await {
+    let response = match send_oauth_form_request("/oauth2/refresh", &form_body).await {
         Ok(r) => r,
         Err(_) => return false,
     };
@@ -326,25 +359,25 @@ pub async fn refresh_oauth_token() -> bool {
         Err(_) => return false,
     };
 
-    storage::set_item("access_token", &token_resp.access_token);
+    storage::set_item(SESSION_ACTIVE_KEY, "1");
     persist_token_expiry(token_resp.expires_in);
-    if let Some(ref rt) = token_resp.refresh_token {
-        storage::set_item("refresh_token", rt);
-    }
     true
 }
 
 pub async fn verify_admin() -> Result<bool, HttpError> {
-    let access_token =
-        storage::get_item("access_token").ok_or_else(|| make_err("Not authenticated".into()))?;
+    if !is_authenticated() {
+        return Err(make_err("Not authenticated".into()));
+    }
 
-    // TODO(sodmin.codegen): replace this probe with generated admin discovery
-    // from `/api/v1/server/describe` + admin OpenAPI scopes. The path is
-    // centralized through `canonical_api_path` during the migration.
+    // S5: admin probe sends the cookie automatically via
+    // credentials: "include"; no Authorization header.
+    //
+    // TODO(sodmin.codegen): replace this probe with generated admin
+    // discovery from `/api/v1/server/describe` + admin OpenAPI scopes.
     let admin_probe = crate::api::client::canonical_api_path("/contrix/admin/v1/server/info");
     let response = Request::get(&admin_probe)
         .header("Accept", "application/json")
-        .header("Authorization", &format!("Bearer {access_token}"))
+        .credentials(RequestCredentials::Include)
         .send()
         .await
         .map_err(|e| make_err(e.to_string()))?;
@@ -412,30 +445,30 @@ pub async fn refresh_if_expiring_soon() {
 }
 
 pub async fn logout() -> Result<(), HttpError> {
-    if let Some(token) = storage::get_item("access_token") {
-        let body = format!(
-            "token={}&client_id={OAUTH_CLIENT_ID}",
-            urlencoding::encode(&token)
-        );
-        let _ = send_oauth_form_request("/oauth2/revoke", &body).await;
-    }
+    // S5: the cookie carries the bearer; just hit /oauth2/revoke with
+    // credentials: "include" so coauth can read it server-side and
+    // clear it via Set-Cookie.
+    let body = format!("client_id={OAUTH_CLIENT_ID}");
+    let _ = send_oauth_form_request("/oauth2/revoke", &body).await;
 
     let _ = Request::post("/api/v1/auth/logout")
         .header("Accept", "application/json")
+        .credentials(RequestCredentials::Include)
         .send()
         .await;
 
-    // Auth/session keys: must be cleared on logout so the next user on
-    // the same browser doesn't inherit the previous session. The
-    // `oauth_device_id` is a sticky pairing for OAuth device flow — also
-    // an auth-derived secret, so it goes in this set.
-    //
-    // User preferences (`language`, `theme`) and deployment-derived
-    // values (`coauth_public_url`, set from `/config.json`) intentionally
-    // survive logout.
+    clear_session_marker();
+    crate::utils::config::clear_config();
+    Ok(())
+}
+
+/// Drop every JS-visible piece of session state so the next user on
+/// the same browser doesn't inherit a logged-in UI shell. The actual
+/// bearer cookie is cleared by the server's Set-Cookie response — this
+/// helper handles ONLY the markers that survive in localStorage.
+fn clear_session_marker() {
     const KEYS_TO_CLEAR: &[&str] = &[
-        "access_token",
-        "refresh_token",
+        SESSION_ACTIVE_KEY,
         "is_admin",
         "token_expires_at_ms",
         "user_id",
@@ -446,17 +479,19 @@ pub async fn logout() -> Result<(), HttpError> {
     for key in KEYS_TO_CLEAR {
         storage::remove_item(key);
     }
-    crate::utils::config::clear_config();
-    Ok(())
 }
 
+/// True if the JS-visible session marker is set. The actual bearer
+/// credential lives in an httpOnly cookie; this is just a hint for
+/// rendering the login page vs. the authenticated layout. The server
+/// is the ultimate source of truth on every API call.
 pub fn is_authenticated() -> bool {
-    storage::get_item("access_token").is_some()
+    storage::get_item(SESSION_ACTIVE_KEY).is_some()
 }
 
 #[cfg(test)]
 mod tests {
-    use super::build_oauth_scope;
+    use super::{SESSION_ACTIVE_KEY, build_oauth_scope};
 
     #[test]
     fn oauth_scope_contains_admin_scopes() {
@@ -464,5 +499,16 @@ mod tests {
         assert!(scope.contains("urn:coauth:admin"));
         assert!(scope.contains("urn:contrix:admin:*"));
         assert!(!scope.contains("urn:cx:admin"));
+    }
+
+    #[test]
+    fn session_marker_key_is_non_secret_namespace() {
+        // Sanity check: the marker key is not the same as the legacy
+        // bearer-token storage keys we deleted in S5. If those names
+        // ever come back in production they will not silently
+        // collide with the marker.
+        assert_eq!(SESSION_ACTIVE_KEY, "session_active");
+        assert_ne!(SESSION_ACTIVE_KEY, "access_token");
+        assert_ne!(SESSION_ACTIVE_KEY, "refresh_token");
     }
 }

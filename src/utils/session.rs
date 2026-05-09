@@ -1,13 +1,21 @@
-//! Typed read-only views into the current admin session that lives in
-//! `localStorage`. Pages and infrastructure should prefer these helpers
-//! over hand-rolled `storage::get_item("...")` calls so the storage key
-//! names ("access_token", "user_id", "coauth_public_url", …) only have
-//! to be defined and spelled correctly in one place.
+//! Typed read-only views into the current admin session (Round 25, S5
+//! token hardening).
 //!
-//! The write path (login, logout, refresh, OAuth callback) is owned by
-//! `crate::api::auth` — this module is intentionally read-only and
-//! re-exports the small number of cached read helpers from there so the
-//! caller can `use crate::utils::session::*` and get the full picture.
+//! Round 25 replaces the localStorage token with an httpOnly cookie
+//! issued by coauth's `/oauth2/token` endpoint. The bearer token is
+//! not readable from JS (cookie has `HttpOnly` + `Secure` +
+//! `SameSite=Strict`), so this module no longer exposes an
+//! `access_token()` accessor — the API client sends the cookie
+//! automatically via `credentials: "include"`. What we do still keep
+//! in localStorage is a *non-secret* `session_active=1` marker so the
+//! UI can decide whether to render the login page vs. the
+//! authenticated layout. The marker carries no entropy and is safe to
+//! read from JS.
+//!
+//! See `api::auth` for the write path (login / logout / refresh / OAuth
+//! callback). This module is intentionally read-only and re-exports the
+//! small number of cached read helpers from there so callers can
+//! `use crate::utils::session::*` and get the full picture.
 
 use crate::utils::storage;
 
@@ -39,13 +47,6 @@ pub fn current_user() -> CurrentUser {
         display_name: storage::get_item("user_display_name").filter(|v| !v.is_empty()),
         avatar_url: storage::get_item("user_avatar_url").filter(|v| !v.is_empty()),
     }
-}
-
-/// Bearer token used by `api::client::api_client` for the
-/// `Authorization: Bearer ...` header. `None` means we have no
-/// credentials and the next request should bounce to login.
-pub fn access_token() -> Option<String> {
-    storage::get_item("access_token")
 }
 
 /// Origin of the upstream coauth service we federate authentication

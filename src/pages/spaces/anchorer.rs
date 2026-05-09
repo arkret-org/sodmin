@@ -22,7 +22,9 @@ use crate::components::ui::input::{Input, Label};
 use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::toast::{ToastVariant, show_toast};
-use crate::types::anchor::{AnchorerKind, AnchorerReconfigRequest, AnchorerValue};
+use crate::types::anchor::{
+    AnchorerKind, AnchorerReconfigRequest, AnchorerValue, SubmitMoveResponse,
+};
 use crate::utils::session;
 
 #[component]
@@ -47,6 +49,11 @@ pub fn AnchorerPage(space_id: String) -> Element {
     // visible. We carry the typed request rather than re-reading the
     // form signals so the body the user confirmed is what we POST.
     let mut pending = use_signal::<Option<AnchorerReconfigRequest>>(|| None);
+    // H'2 round 27 — last successful soland response. Drives the
+    // "Signed Move body" readonly JSON viewer below the form so the
+    // admin can verify byte-for-byte what was signed before walking
+    // away from the page.
+    let mut last_response = use_signal::<Option<SubmitMoveResponse>>(|| None);
 
     // Best-effort admin DID. Used both for the spec-rule pre-check
     // ("new anchorer cannot self-sign itself in") and for the warning
@@ -232,6 +239,48 @@ pub fn AnchorerPage(space_id: String) -> Element {
                 }
             }
 
+            // H'2 round 27 — readonly Move body viewer. Surfaces the
+            // canonical signed body that soland built on the admin's
+            // behalf so the operator can verify byte-for-byte what was
+            // signed. Collapsed by default via native `<details>`; no
+            // JS, no copy-paste affordance (admins can use browser
+            // built-ins).
+            {
+                let snapshot = last_response.read().clone();
+                if let Some(resp) = snapshot {
+                    let move_id = resp.move_id.clone();
+                    let pretty = resp
+                        .move_body
+                        .as_ref()
+                        .map(|v| serde_json::to_string_pretty(v)
+                            .unwrap_or_else(|_| "(failed to render move_body)".to_string()))
+                        .unwrap_or_else(|| "(soland did not return a move_body)".to_string());
+                    rsx! {
+                        Card {
+                            CardHeader { CardTitle { "Last submitted Move body" } }
+                            CardContent {
+                                div { class: "space-y-2 text-sm",
+                                    div { class: "flex items-center gap-2",
+                                        Badge { variant: BadgeVariant::Secondary, "move_id" }
+                                        span { class: "font-mono text-xs break-all", "{move_id}" }
+                                    }
+                                    details { class: "rounded-md border bg-muted/30",
+                                        summary { class: "cursor-pointer select-none px-3 py-2 text-xs font-medium",
+                                            "Signed move_body (click to expand)"
+                                        }
+                                        pre { class: "px-3 py-2 text-xs font-mono whitespace-pre-wrap break-all",
+                                            "{pretty}"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    rsx! {}
+                }
+            }
+
             // Confirmation modal. Shown whenever a pending reconfig
             // request is staged. Highlights that this is a high-sensitivity
             // admin operation and re-states the proposed kind so the
@@ -277,10 +326,16 @@ pub fn AnchorerPage(space_id: String) -> Element {
                                 submitting.set(true);
                                 spawn(async move {
                                     match anchor_admin::submit_anchorer_reconfig(&req).await {
-                                        Ok(resp) => show_toast(
-                                            &format!("Move submitted: {}", resp.move_id),
-                                            ToastVariant::Success,
-                                        ),
+                                        Ok(resp) => {
+                                            show_toast(
+                                                &format!("Move submitted: {}", resp.move_id),
+                                                ToastVariant::Success,
+                                            );
+                                            // H'2 — surface the signed
+                                            // Move body in the readonly
+                                            // JSON viewer panel below.
+                                            last_response.set(Some(resp));
+                                        }
                                         Err(e) => show_toast(
                                             &format!("Failed: {}", e.message),
                                             ToastVariant::Error,

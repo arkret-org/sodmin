@@ -395,6 +395,11 @@ impl I18n {
         m.insert("common.name".into(), "Name".into());
         m.insert("common.actions".into(), "Actions".into());
         m.insert("common.failed".into(), "Failed".into());
+        m.insert("common.approve".into(), "Approve".into());
+        m.insert("common.revoke".into(), "Revoke".into());
+        m.insert("common.suspend".into(), "Suspend".into());
+        m.insert("common.reject".into(), "Reject".into());
+        m.insert("common.open".into(), "Open".into());
 
         // Pasion shared
         m.insert("pasion.status_active".into(), "Active".into());
@@ -837,6 +842,13 @@ impl I18n {
         m.insert("common.name".into(), "\u{540d}\u{79f0}".into());
         m.insert("common.actions".into(), "\u{64cd}\u{4f5c}".into());
         m.insert("common.failed".into(), "\u{5931}\u{8d25}".into());
+        m.insert("common.approve".into(), "\u{6279}\u{51c6}".into());
+        m.insert("common.revoke".into(), "\u{64a4}\u{9500}".into());
+        // 暂停 — Suspend
+        m.insert("common.suspend".into(), "\u{6682}\u{505c}".into());
+        // 驳回 — Reject
+        m.insert("common.reject".into(), "\u{9a73}\u{56de}".into());
+        m.insert("common.open".into(), "\u{6253}\u{5f00}".into());
 
         // Pasion 共享 —— 状态标签
         m.insert("pasion.status_active".into(), "\u{6d3b}\u{8dc3}".into());
@@ -1369,6 +1381,252 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "Records an admin Dismiss decision on this report (no further action). Audit-logged. Continue?",
             ),
             ("moderation_reports.dismiss_confirm_btn", "Confirm dismiss"),
+
+            // ── Round 25 nav additions ──
+            ("nav.applets_admin", "Applets (admin)"),
+            ("nav.agents_admin", "Agents (admin)"),
+            ("nav.directory_admin", "Directory (admin)"),
+            ("nav.federation_status", "Federation status"),
+            ("nav.policy_editor", "Policy editor"),
+            ("nav.recovery_tickets", "Recovery tickets"),
+            ("nav.recovery_audit", "Recovery audit"),
+            ("nav.recovery_describe", "Recovery describe"),
+
+            // ── Round 25 C1: Recovery list ──
+            ("recovery_list.title", "Recovery tickets"),
+            (
+                "recovery_list.subtitle",
+                "Active coauth recovery tickets awaiting an admin decision or executor progress.",
+            ),
+            ("recovery_list.ticket_id", "Ticket ID"),
+            ("recovery_list.account_did", "Account DID"),
+            ("recovery_list.status", "Status"),
+            ("recovery_list.mode", "Mode"),
+            ("recovery_list.created_at", "Created at"),
+            ("recovery_list.empty_title", "No recovery tickets"),
+            (
+                "recovery_list.empty_subtitle",
+                "coauth reported no recovery tickets matching the current filter.",
+            ),
+            ("recovery_list.filter_active", "Active"),
+            ("recovery_list.filter_pending", "Pending"),
+            ("recovery_list.filter_approved", "Approved"),
+            ("recovery_list.filter_complete", "Complete"),
+            ("recovery_list.filter_all", "All"),
+
+            // ── Round 25 C2: Recovery detail ──
+            ("recovery_detail.title", "Recovery ticket"),
+            (
+                "recovery_detail.subtitle",
+                "Per-ticket status timeline and admin lifecycle controls (approve/reject/advance/cancel).",
+            ),
+            ("recovery_detail.back_to_list", "Back to recovery tickets"),
+            ("recovery_detail.updated_at", "Updated at"),
+            ("recovery_detail.timeline_title", "Status timeline"),
+            ("recovery_detail.timeline_empty", "No transitions recorded yet."),
+            ("recovery_detail.approve", "Approve"),
+            ("recovery_detail.reject", "Reject"),
+            ("recovery_detail.advance", "Advance"),
+            ("recovery_detail.cancel", "Cancel ticket"),
+            ("recovery_detail.open_restore_state", "Open restore state"),
+            ("recovery_detail.open_audit_log", "Open audit log"),
+            ("recovery_detail.approve_confirm_title", "Approve recovery?"),
+            (
+                "recovery_detail.approve_confirm_body",
+                "Records an admin Approve decision and unlocks the executor stage. Audit-logged.",
+            ),
+            ("recovery_detail.reject_confirm_title", "Reject recovery?"),
+            (
+                "recovery_detail.reject_confirm_body",
+                "Permanently rejects the recovery ticket. The user will need to start a fresh recovery flow. Audit-logged.",
+            ),
+            ("recovery_detail.advance_confirm_title", "Advance executor?"),
+            (
+                "recovery_detail.advance_confirm_body",
+                "Manually advance the restore executor when it has stalled. Use sparingly.",
+            ),
+            ("recovery_detail.cancel_confirm_title", "Cancel recovery?"),
+            (
+                "recovery_detail.cancel_confirm_body",
+                "Cancels the in-progress recovery. The ticket is closed and the user can start a fresh recovery if needed.",
+            ),
+
+            // ── Round 25 C3: Restore state ──
+            ("restore_state.title", "Restore state"),
+            (
+                "restore_state.subtitle",
+                "Linear restore state machine progress for this ticket: pending → approved → executor_running → complete.",
+            ),
+            ("restore_state.back_to_detail", "Back to ticket detail"),
+            ("restore_state.entered_at", "entered"),
+            ("restore_state.completed_at", "completed"),
+
+            // ── Round 25 C4: Recovery audit ──
+            ("recovery_audit.title", "Recovery audit log"),
+            (
+                "recovery_audit.subtitle",
+                "Read-only audit log of admin actions on recovery tickets.",
+            ),
+            ("recovery_audit.filter_ticket_id", "Filtered to ticket"),
+            ("recovery_audit.at", "At"),
+            ("recovery_audit.action", "Action"),
+            ("recovery_audit.ticket_id", "Ticket"),
+            ("recovery_audit.actor_did", "Actor DID"),
+            ("recovery_audit.note", "Note"),
+            ("recovery_audit.empty_title", "No audit entries"),
+            (
+                "recovery_audit.empty_subtitle",
+                "No recovery operations have been recorded for this filter.",
+            ),
+
+            // ── Round 25 C5: Recovery describe ──
+            ("recovery_describe.title", "Recovery describe"),
+            (
+                "recovery_describe.subtitle",
+                "Read-only soland recovery describe surface — what the bridge claims to support.",
+            ),
+            ("recovery_describe.contract", "Contract"),
+            ("recovery_describe.version", "Version"),
+            ("recovery_describe.recovery_modes", "Recovery modes"),
+            ("recovery_describe.verification_kinds", "Verification kinds"),
+            ("recovery_describe.paths_title", "Paths"),
+            ("recovery_describe.paths_empty", "No paths advertised."),
+
+            // ── Round 25 D3: Federation status ──
+            ("federation_status.title", "Federation status"),
+            (
+                "federation_status.subtitle",
+                "Per-Space federation peers, last anchor pulled, and outbound replication queue depth.",
+            ),
+            ("federation_status.generated_at", "Generated at"),
+            ("federation_status.space_id", "Space"),
+            ("federation_status.peer", "Peer"),
+            ("federation_status.health", "Health"),
+            ("federation_status.last_anchor_pulled_at", "Last anchor pulled"),
+            ("federation_status.last_pushed_at", "Last pushed"),
+            ("federation_status.outbound_queue_depth", "Outbound queue"),
+            ("federation_status.empty_title", "No federation peers"),
+            (
+                "federation_status.empty_subtitle",
+                "soland reported no federation peers for this scope, or the federation status endpoint is not yet wired.",
+            ),
+
+            // ── Round 25 D4: Policy editor ──
+            ("policy_editor.title", "Space policy editor"),
+            (
+                "policy_editor.subtitle",
+                "Edit cx.component.space.policy.v1 components. Submit constructs a cas-register Move.",
+            ),
+            ("policy_editor.history_visibility", "History visibility"),
+            ("policy_editor.join_rule", "Join rule"),
+            ("policy_editor.guest_access", "Guest access"),
+            ("policy_editor.federate", "Federate"),
+            ("policy_editor.encryption_algorithm", "Encryption algorithm"),
+            ("policy_editor.note", "Commit note"),
+            ("policy_editor.submit", "Submit policy update"),
+            ("policy_editor.confirm_title", "Submit policy update?"),
+            (
+                "policy_editor.confirm_body",
+                "Constructs and signs a cas-register Move on cx.component.space.policy.v1. Audit-logged. Continue?",
+            ),
+            ("policy_editor.confirm_btn", "Confirm submit"),
+
+            // ── Round 25 F1: Applets admin ──
+            ("applets_admin.title", "Applets (admin)"),
+            (
+                "applets_admin.subtitle",
+                "soland-side applet registrations awaiting approval / revocation.",
+            ),
+            ("applets_admin.id", "ID"),
+            ("applets_admin.name", "Name"),
+            ("applets_admin.owner_did", "Owner DID"),
+            ("applets_admin.status", "Status"),
+            ("applets_admin.registered_at", "Registered at"),
+            ("applets_admin.empty_title", "No applet registrations"),
+            (
+                "applets_admin.empty_subtitle",
+                "soland reported no applet registrations, or the surface is not yet wired.",
+            ),
+            ("applets_admin.approve_confirm_title", "Approve applet?"),
+            (
+                "applets_admin.approve_confirm_body",
+                "Marks the applet registration as Approved. Audit-logged.",
+            ),
+            ("applets_admin.revoke_confirm_title", "Revoke applet?"),
+            (
+                "applets_admin.revoke_confirm_body",
+                "Marks the applet registration as Revoked. Audit-logged.",
+            ),
+            ("applets_admin.suspend_confirm_title", "Suspend applet?"),
+            (
+                "applets_admin.suspend_confirm_body",
+                "Temporarily disables the applet without revoking its identity. Re-approve to resume. Audit-logged.",
+            ),
+
+            // ── Round 25 F2: Agents admin ──
+            ("agents_admin.title", "Agents (admin)"),
+            (
+                "agents_admin.subtitle",
+                "soland-side agent registrations awaiting approval / revocation.",
+            ),
+            ("agents_admin.id", "ID"),
+            ("agents_admin.name", "Name"),
+            ("agents_admin.owner_did", "Owner DID"),
+            ("agents_admin.status", "Status"),
+            ("agents_admin.registered_at", "Registered at"),
+            ("agents_admin.empty_title", "No agent registrations"),
+            (
+                "agents_admin.empty_subtitle",
+                "soland reported no agent registrations, or the surface is not yet wired.",
+            ),
+            ("agents_admin.approve_confirm_title", "Approve agent?"),
+            (
+                "agents_admin.approve_confirm_body",
+                "Marks the agent registration as Approved. Audit-logged.",
+            ),
+            ("agents_admin.revoke_confirm_title", "Revoke agent?"),
+            (
+                "agents_admin.revoke_confirm_body",
+                "Marks the agent registration as Revoked. Audit-logged.",
+            ),
+            ("agents_admin.suspend_confirm_title", "Suspend agent?"),
+            (
+                "agents_admin.suspend_confirm_body",
+                "Temporarily disables the agent without revoking its identity. Re-approve to resume. Audit-logged.",
+            ),
+
+            // ── Round 25 F3: Directory admin ──
+            ("directory_admin.title", "Directory (admin)"),
+            (
+                "directory_admin.subtitle",
+                "soland-side directory entries awaiting approval / revocation.",
+            ),
+            ("directory_admin.entry_id", "Entry ID"),
+            ("directory_admin.kind", "Kind"),
+            ("directory_admin.label", "Label"),
+            ("directory_admin.owner_did", "Owner DID"),
+            ("directory_admin.status", "Status"),
+            ("directory_admin.published_at", "Published at"),
+            ("directory_admin.empty_title", "No directory entries"),
+            (
+                "directory_admin.empty_subtitle",
+                "soland reported no directory entries, or the surface is not yet wired.",
+            ),
+            ("directory_admin.approve_confirm_title", "Approve entry?"),
+            (
+                "directory_admin.approve_confirm_body",
+                "Marks the directory entry as Approved (publicly listed). Audit-logged.",
+            ),
+            ("directory_admin.revoke_confirm_title", "Revoke entry?"),
+            (
+                "directory_admin.revoke_confirm_body",
+                "Marks the directory entry as Revoked (delisted). Audit-logged.",
+            ),
+            ("directory_admin.reject_confirm_title", "Reject entry?"),
+            (
+                "directory_admin.reject_confirm_body",
+                "Rejects the directory entry — it will not be listed publicly. Audit-logged.",
+            ),
         ],
         Language::ZhCn => &[
             ("nav.actors", "Actor"),
@@ -1772,6 +2030,252 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "在该举报上记录管理员 Dismiss 决策（无需进一步处理）。该操作记入审计。继续？",
             ),
             ("moderation_reports.dismiss_confirm_btn", "确认驳回"),
+
+            // ── Round 25 nav additions ──
+            ("nav.applets_admin", "Applet（管理）"),
+            ("nav.agents_admin", "Agent（管理）"),
+            ("nav.directory_admin", "目录（管理）"),
+            ("nav.federation_status", "联邦状态"),
+            ("nav.policy_editor", "策略编辑"),
+            ("nav.recovery_tickets", "恢复工单"),
+            ("nav.recovery_audit", "恢复审计"),
+            ("nav.recovery_describe", "恢复描述"),
+
+            // ── Round 25 C1: Recovery list ──
+            ("recovery_list.title", "恢复工单"),
+            (
+                "recovery_list.subtitle",
+                "等待管理员决策或执行器进展的活跃 coauth 恢复工单。",
+            ),
+            ("recovery_list.ticket_id", "工单 ID"),
+            ("recovery_list.account_did", "账号 DID"),
+            ("recovery_list.status", "状态"),
+            ("recovery_list.mode", "模式"),
+            ("recovery_list.created_at", "创建时间"),
+            ("recovery_list.empty_title", "无恢复工单"),
+            (
+                "recovery_list.empty_subtitle",
+                "coauth 报告当前过滤条件下无恢复工单。",
+            ),
+            ("recovery_list.filter_active", "活跃"),
+            ("recovery_list.filter_pending", "待审"),
+            ("recovery_list.filter_approved", "已批准"),
+            ("recovery_list.filter_complete", "已完成"),
+            ("recovery_list.filter_all", "全部"),
+
+            // ── Round 25 C2: Recovery detail ──
+            ("recovery_detail.title", "恢复工单详情"),
+            (
+                "recovery_detail.subtitle",
+                "单工单的状态时间线及管理员生命周期控制（批准/拒绝/推进/取消）。",
+            ),
+            ("recovery_detail.back_to_list", "返回恢复工单列表"),
+            ("recovery_detail.updated_at", "更新时间"),
+            ("recovery_detail.timeline_title", "状态时间线"),
+            ("recovery_detail.timeline_empty", "尚未记录任何状态变迁。"),
+            ("recovery_detail.approve", "批准"),
+            ("recovery_detail.reject", "拒绝"),
+            ("recovery_detail.advance", "推进"),
+            ("recovery_detail.cancel", "取消工单"),
+            ("recovery_detail.open_restore_state", "查看恢复状态机"),
+            ("recovery_detail.open_audit_log", "查看审计日志"),
+            ("recovery_detail.approve_confirm_title", "批准恢复？"),
+            (
+                "recovery_detail.approve_confirm_body",
+                "记录管理员批准决策并解锁执行器阶段。该操作记入审计。",
+            ),
+            ("recovery_detail.reject_confirm_title", "拒绝恢复？"),
+            (
+                "recovery_detail.reject_confirm_body",
+                "永久拒绝该恢复工单。用户需重新发起恢复流程。该操作记入审计。",
+            ),
+            ("recovery_detail.advance_confirm_title", "推进执行器？"),
+            (
+                "recovery_detail.advance_confirm_body",
+                "在执行器停滞时手动推进恢复状态机。请谨慎使用。",
+            ),
+            ("recovery_detail.cancel_confirm_title", "取消恢复？"),
+            (
+                "recovery_detail.cancel_confirm_body",
+                "取消进行中的恢复流程。工单关闭后用户可发起新恢复。",
+            ),
+
+            // ── Round 25 C3: Restore state ──
+            ("restore_state.title", "恢复状态机"),
+            (
+                "restore_state.subtitle",
+                "本工单的线性恢复状态机进度：pending → approved → executor_running → complete。",
+            ),
+            ("restore_state.back_to_detail", "返回工单详情"),
+            ("restore_state.entered_at", "进入"),
+            ("restore_state.completed_at", "完成"),
+
+            // ── Round 25 C4: Recovery audit ──
+            ("recovery_audit.title", "恢复审计日志"),
+            (
+                "recovery_audit.subtitle",
+                "恢复工单上管理员操作的只读审计日志。",
+            ),
+            ("recovery_audit.filter_ticket_id", "已按工单过滤"),
+            ("recovery_audit.at", "时间"),
+            ("recovery_audit.action", "操作"),
+            ("recovery_audit.ticket_id", "工单"),
+            ("recovery_audit.actor_did", "操作者 DID"),
+            ("recovery_audit.note", "备注"),
+            ("recovery_audit.empty_title", "无审计记录"),
+            (
+                "recovery_audit.empty_subtitle",
+                "本过滤条件下无任何恢复操作记录。",
+            ),
+
+            // ── Round 25 C5: Recovery describe ──
+            ("recovery_describe.title", "恢复描述"),
+            (
+                "recovery_describe.subtitle",
+                "soland 恢复 bridge 描述只读视图——bridge 声明支持的能力。",
+            ),
+            ("recovery_describe.contract", "Contract"),
+            ("recovery_describe.version", "版本"),
+            ("recovery_describe.recovery_modes", "恢复模式"),
+            ("recovery_describe.verification_kinds", "验证类型"),
+            ("recovery_describe.paths_title", "路径"),
+            ("recovery_describe.paths_empty", "未声明任何路径。"),
+
+            // ── Round 25 D3: Federation status ──
+            ("federation_status.title", "联邦状态"),
+            (
+                "federation_status.subtitle",
+                "按 Space 列出联邦节点、最近 anchor 拉取时间及出站复制队列深度。",
+            ),
+            ("federation_status.generated_at", "生成时间"),
+            ("federation_status.space_id", "Space"),
+            ("federation_status.peer", "对端"),
+            ("federation_status.health", "健康度"),
+            ("federation_status.last_anchor_pulled_at", "最近 anchor 拉取"),
+            ("federation_status.last_pushed_at", "最近推送"),
+            ("federation_status.outbound_queue_depth", "出站队列"),
+            ("federation_status.empty_title", "无联邦节点"),
+            (
+                "federation_status.empty_subtitle",
+                "soland 报告本范围内无联邦节点，或联邦状态接口尚未部署。",
+            ),
+
+            // ── Round 25 D4: Policy editor ──
+            ("policy_editor.title", "Space 策略编辑"),
+            (
+                "policy_editor.subtitle",
+                "编辑 cx.component.space.policy.v1 组件。提交将构造 cas-register Move。",
+            ),
+            ("policy_editor.history_visibility", "历史可见性"),
+            ("policy_editor.join_rule", "加入规则"),
+            ("policy_editor.guest_access", "访客访问"),
+            ("policy_editor.federate", "联邦"),
+            ("policy_editor.encryption_algorithm", "加密算法"),
+            ("policy_editor.note", "提交备注"),
+            ("policy_editor.submit", "提交策略更新"),
+            ("policy_editor.confirm_title", "提交策略更新？"),
+            (
+                "policy_editor.confirm_body",
+                "构造并签名 cx.component.space.policy.v1 上的 cas-register Move。该操作记入审计。继续？",
+            ),
+            ("policy_editor.confirm_btn", "确认提交"),
+
+            // ── Round 25 F1: Applets admin ──
+            ("applets_admin.title", "Applet（管理）"),
+            (
+                "applets_admin.subtitle",
+                "等待 soland 端审批/撤销的 applet 注册。",
+            ),
+            ("applets_admin.id", "ID"),
+            ("applets_admin.name", "名称"),
+            ("applets_admin.owner_did", "拥有者 DID"),
+            ("applets_admin.status", "状态"),
+            ("applets_admin.registered_at", "注册时间"),
+            ("applets_admin.empty_title", "无 applet 注册"),
+            (
+                "applets_admin.empty_subtitle",
+                "soland 报告无 applet 注册，或该接口尚未部署。",
+            ),
+            ("applets_admin.approve_confirm_title", "批准 applet？"),
+            (
+                "applets_admin.approve_confirm_body",
+                "将 applet 注册标记为已批准。该操作记入审计。",
+            ),
+            ("applets_admin.revoke_confirm_title", "撤销 applet？"),
+            (
+                "applets_admin.revoke_confirm_body",
+                "将 applet 注册标记为已撤销。该操作记入审计。",
+            ),
+            ("applets_admin.suspend_confirm_title", "暂停 applet？"),
+            (
+                "applets_admin.suspend_confirm_body",
+                "暂时停用该 applet，但保留其身份。重新批准即可恢复。该操作记入审计。",
+            ),
+
+            // ── Round 25 F2: Agents admin ──
+            ("agents_admin.title", "Agent（管理）"),
+            (
+                "agents_admin.subtitle",
+                "等待 soland 端审批/撤销的 agent 注册。",
+            ),
+            ("agents_admin.id", "ID"),
+            ("agents_admin.name", "名称"),
+            ("agents_admin.owner_did", "拥有者 DID"),
+            ("agents_admin.status", "状态"),
+            ("agents_admin.registered_at", "注册时间"),
+            ("agents_admin.empty_title", "无 agent 注册"),
+            (
+                "agents_admin.empty_subtitle",
+                "soland 报告无 agent 注册，或该接口尚未部署。",
+            ),
+            ("agents_admin.approve_confirm_title", "批准 agent？"),
+            (
+                "agents_admin.approve_confirm_body",
+                "将 agent 注册标记为已批准。该操作记入审计。",
+            ),
+            ("agents_admin.revoke_confirm_title", "撤销 agent？"),
+            (
+                "agents_admin.revoke_confirm_body",
+                "将 agent 注册标记为已撤销。该操作记入审计。",
+            ),
+            ("agents_admin.suspend_confirm_title", "暂停 agent？"),
+            (
+                "agents_admin.suspend_confirm_body",
+                "暂时停用该 agent，但保留其身份。重新批准即可恢复。该操作记入审计。",
+            ),
+
+            // ── Round 25 F3: Directory admin ──
+            ("directory_admin.title", "目录（管理）"),
+            (
+                "directory_admin.subtitle",
+                "等待 soland 端审批/撤销的目录条目。",
+            ),
+            ("directory_admin.entry_id", "条目 ID"),
+            ("directory_admin.kind", "类型"),
+            ("directory_admin.label", "标签"),
+            ("directory_admin.owner_did", "拥有者 DID"),
+            ("directory_admin.status", "状态"),
+            ("directory_admin.published_at", "发布时间"),
+            ("directory_admin.empty_title", "无目录条目"),
+            (
+                "directory_admin.empty_subtitle",
+                "soland 报告无目录条目，或该接口尚未部署。",
+            ),
+            ("directory_admin.approve_confirm_title", "批准条目？"),
+            (
+                "directory_admin.approve_confirm_body",
+                "将目录条目标记为已批准（公开列表中可见）。该操作记入审计。",
+            ),
+            ("directory_admin.revoke_confirm_title", "撤销条目？"),
+            (
+                "directory_admin.revoke_confirm_body",
+                "将目录条目标记为已撤销（从公开列表移除）。该操作记入审计。",
+            ),
+            ("directory_admin.reject_confirm_title", "驳回条目？"),
+            (
+                "directory_admin.reject_confirm_body",
+                "驳回该目录条目——不会被公开列出。该操作记入审计。",
+            ),
         ],
     };
 

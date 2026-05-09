@@ -52,6 +52,10 @@ pub enum Route {
         SpaceSigningKeys { space_id: String },
         #[route("/spaces/:space_id/multisig")]
         SpaceMultiSig { space_id: String },
+        #[route("/spaces/:space_id/federation-status")]
+        SpaceFederationStatus { space_id: String },
+        #[route("/spaces/:space_id/policy-editor")]
+        SpacePolicyEditor { space_id: String },
 
         #[route("/anchor/bottom")]
         AnchorBottom {},
@@ -83,11 +87,18 @@ pub enum Route {
 
         #[route("/applets")]
         AppletList {},
+        #[route("/applets/admin")]
+        AppletAdmin {},
 
         #[route("/agents")]
         AgentList {},
+        #[route("/agents/admin")]
+        AgentAdmin {},
         #[route("/agents/:agent_id")]
         AgentShow { agent_id: String },
+
+        #[route("/directory")]
+        DirectoryAdmin {},
 
         #[route("/audit")]
         AuditLog {},
@@ -127,6 +138,17 @@ pub enum Route {
         CoauthNotificationTemplates {},
         #[route("/coauth/connector-health")]
         CoauthConnectorHealth {},
+
+        #[route("/coauth/recovery/tickets")]
+        RecoveryTicketList {},
+        #[route("/coauth/recovery/tickets/:ticket_id")]
+        RecoveryTicketDetail { ticket_id: String },
+        #[route("/coauth/recovery/tickets/:ticket_id/restore-state")]
+        RecoveryRestoreState { ticket_id: String },
+        #[route("/coauth/recovery/audit?:ticket_id")]
+        RecoveryAuditLog { ticket_id: String },
+        #[route("/coauth/recovery/describe")]
+        RecoveryDescribe {},
     #[end_layout]
 
     #[route("/:..route")]
@@ -336,8 +358,58 @@ fn AppletList() -> Element {
 }
 
 #[component]
+fn AppletAdmin() -> Element {
+    rsx! { pages::applets::admin::AppletAdminPage {} }
+}
+
+#[component]
 fn AgentList() -> Element {
     rsx! { pages::agents::list::AgentList {} }
+}
+
+#[component]
+fn AgentAdmin() -> Element {
+    rsx! { pages::agents::admin::AgentAdminPage {} }
+}
+
+#[component]
+fn DirectoryAdmin() -> Element {
+    rsx! { pages::directory::admin::DirectoryAdminPage {} }
+}
+
+#[component]
+fn SpaceFederationStatus(space_id: String) -> Element {
+    rsx! { pages::spaces::federation_status::FederationStatusPage { space_id } }
+}
+
+#[component]
+fn SpacePolicyEditor(space_id: String) -> Element {
+    rsx! { pages::spaces::policy_editor::PolicyEditorPage { space_id } }
+}
+
+#[component]
+fn RecoveryTicketList() -> Element {
+    rsx! { pages::coauth::recovery::recovery_list::RecoveryTicketListPage {} }
+}
+
+#[component]
+fn RecoveryTicketDetail(ticket_id: String) -> Element {
+    rsx! { pages::coauth::recovery::recovery_detail::RecoveryTicketDetailPage { ticket_id } }
+}
+
+#[component]
+fn RecoveryRestoreState(ticket_id: String) -> Element {
+    rsx! { pages::coauth::recovery::restore_state::RestoreStatePage { ticket_id } }
+}
+
+#[component]
+fn RecoveryAuditLog(ticket_id: String) -> Element {
+    rsx! { pages::coauth::recovery::recovery_audit::RecoveryAuditLogPage { ticket_id } }
+}
+
+#[component]
+fn RecoveryDescribe() -> Element {
+    rsx! { pages::coauth::recovery::recovery_describe::RecoveryDescribePage {} }
 }
 
 #[component]

@@ -6,6 +6,7 @@ pub mod capabilities;
 pub mod coauth;
 pub mod dashboard;
 pub mod devices;
+pub mod directory;
 pub mod federation;
 pub mod invite_tokens;
 pub mod login;
