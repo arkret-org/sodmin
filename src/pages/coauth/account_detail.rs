@@ -282,9 +282,5 @@ fn detail_row(label: &'static str, value: &str) -> Element {
 }
 
 fn bool_label(value: bool) -> &'static str {
-    if value {
-        "Yes"
-    } else {
-        "No"
-    }
+    if value { "Yes" } else { "No" }
 }

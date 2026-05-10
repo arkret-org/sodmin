@@ -108,10 +108,7 @@ fn HierarchyRow(node: SpaceHierarchyNode, kind_label: String, indent: u32) -> El
     let pad_class = if indent == 0 { "pl-0" } else { "pl-4" };
     let id = node.space_id.clone();
     let id_for_link = id.clone();
-    let name = node
-        .name
-        .clone()
-        .unwrap_or_else(|| "-".to_string());
+    let name = node.name.clone().unwrap_or_else(|| "-".to_string());
     let members = node.member_count;
     rsx! {
         div { class: "flex items-center gap-2 {pad_class}",

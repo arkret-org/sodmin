@@ -1,3 +1,21 @@
+# sodmin Dockerfile.
+#
+# Build context: the contrix-dev umbrella directory (parent of sodmin).
+# The Cargo workspace at sodmin/Cargo.toml has path-deps on sibling
+# repos that must be present in the build sandbox:
+#
+#   - ../contrix-rust-sdk/crates/sdk      (contrix SDK)
+#   - ../coauth/crates/admin-types        (coauth admin types)
+#
+# Standalone single-repo build (the sodmin docker.yml workflow) checks
+# out coauth + contrix-rust-sdk into siblings of `./` and invokes:
+#   docker build -f sodmin/Dockerfile ..
+#
+# The example-stack compose file does the equivalent via
+#   build:
+#     context: ../..
+#     dockerfile: sodmin/Dockerfile
+
 FROM --platform=$BUILDPLATFORM rust:bookworm AS builder
 
 ENV CARGO_HTTP_TIMEOUT=600
@@ -17,28 +35,35 @@ RUN --mount=type=cache,id=sodmin-cargo-registry,target=/usr/local/cargo/registry
     --mount=type=cache,id=sodmin-cargo-git,target=/usr/local/cargo/git \
     cargo install dioxus-cli@0.7.5 --locked
 
-WORKDIR /app
+WORKDIR /workspace
 
-COPY Cargo.toml Cargo.lock Dioxus.toml ./
-RUN mkdir -p src && echo "fn main() {}" > src/main.rs
+# Copy the sibling path-deps FIRST so cargo fetch / dx build can resolve
+# the workspace `path = "../<sibling>/..."` entries. Order matches the
+# umbrella layout: contrix-dev/{contrix-rust-sdk,coauth,sodmin}/.
+COPY contrix-rust-sdk/ /workspace/contrix-rust-sdk
+COPY coauth/ /workspace/coauth
+COPY sodmin/ /workspace/sodmin
+
+WORKDIR /workspace/sodmin
+
+# Pre-fetch deps so source-only changes don't redownload the world.
 RUN --mount=type=cache,id=sodmin-cargo-registry,target=/usr/local/cargo/registry \
     --mount=type=cache,id=sodmin-cargo-git,target=/usr/local/cargo/git \
     cargo fetch --locked
 
-COPY . .
 RUN --network=default \
     --mount=type=cache,id=sodmin-cargo-registry,target=/usr/local/cargo/registry \
     --mount=type=cache,id=sodmin-cargo-git,target=/usr/local/cargo/git \
-    --mount=type=cache,id=sodmin-target,target=/app/target \
+    --mount=type=cache,id=sodmin-target,target=/workspace/sodmin/target \
     for i in 1 2 3; do dx build --release && break || echo "Retry $i..." && sleep 10; done && \
-    dist_dir="$(find /app/target/dx -type d -path '*/release/web/public' | head -n 1)" && \
+    dist_dir="$(find /workspace/sodmin/target/dx -type d -path '*/release/web/public' | head -n 1)" && \
     test -n "$dist_dir" && \
-    cp -r "$dist_dir" /app/dist
+    cp -r "$dist_dir" /workspace/dist
 
 FROM nginx:alpine
 
-COPY --from=builder /app/dist /usr/share/nginx/html
-COPY --chmod=755 docker-entrypoint.sh /docker-entrypoint.sh
+COPY --from=builder /workspace/dist /usr/share/nginx/html
+COPY --chmod=755 sodmin/docker-entrypoint.sh /docker-entrypoint.sh
 
 # Runtime configuration. SOLAND_URL is the soland Principal Server (admin
 # + reducer surface) the proxy should forward to; COAUTH_URL is the

@@ -327,7 +327,10 @@ impl I18n {
         m.insert("reports.id".into(), "ID".into());
         m.insert("reports.room".into(), "Space".into());
         m.insert("reports.report_details".into(), "Report Details".into());
-        m.insert("reports.reporter_user_id".into(), "Reporter Actor ID".into());
+        m.insert(
+            "reports.reporter_user_id".into(),
+            "Reporter Actor ID".into(),
+        );
         m.insert("reports.room_id".into(), "Space ID".into());
         m.insert("reports.event_id".into(), "Event ID".into());
         m.insert("reports.sender".into(), "Sender".into());
@@ -998,7 +1001,10 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("signing_keys.algorithm", "Algorithm"),
             ("signing_keys.last_rotated", "Last rotated"),
             ("signing_keys.rotate", "Rotate signing key"),
-            ("signing_keys.rotate_confirm_title", "Rotate AnchorerWorker signing key?"),
+            (
+                "signing_keys.rotate_confirm_title",
+                "Rotate AnchorerWorker signing key?",
+            ),
             (
                 "signing_keys.rotate_confirm_body",
                 "This generates a fresh key and rebinds the AnchorerWorker. Existing in-flight Anchors will be re-signed with the new key. Audit-logged. Continue?",
@@ -1007,7 +1013,10 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "signing_keys.ephemeral_warning",
                 "Anchorer is signing with an EPHEMERAL key. This key will be lost on the next worker restart and cannot be rotated in place — redeploy the principal-server with a configured key (PEM / KMS) before promoting to production.",
             ),
-            ("signing_keys.read_only_note", "(read-only — operator must redeploy with a configured key to rotate)"),
+            (
+                "signing_keys.read_only_note",
+                "(read-only — operator must redeploy with a configured key to rotate)",
+            ),
             (
                 "signing_keys.rotate_disabled_hint",
                 "Rotation disabled for this signing-key origin. Configure a stable PEM / KMS-backed signer and redeploy to enable.",
@@ -1043,7 +1052,10 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("consent.scope", "Scope"),
             ("consent.status", "Status"),
             ("consent.created", "Created"),
-            ("consent.no_grants", "No consent grants match the current filter."),
+            (
+                "consent.no_grants",
+                "No consent grants match the current filter.",
+            ),
             ("components.title", "Component registry"),
             (
                 "components.subtitle",
@@ -1057,7 +1069,10 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("components.col_status", "Status"),
             ("components.col_drift", "Drift"),
             ("components.empty", "Server reported no components."),
-            ("components.drift_alert", "{count} component(s) report version drift between spec and impl."),
+            (
+                "components.drift_alert",
+                "{count} component(s) report version drift between spec and impl.",
+            ),
             ("covered_frontier.title", "covered_frontier lag"),
             (
                 "covered_frontier.subtitle",
@@ -1065,10 +1080,16 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ),
             ("covered_frontier.lag", "Lag"),
             ("covered_frontier.mls_epoch", "MLS epoch"),
-            ("covered_frontier.governance_size", "Governance frontier size"),
+            (
+                "covered_frontier.governance_size",
+                "Governance frontier size",
+            ),
             ("covered_frontier.covered_size", "Covered frontier size"),
             ("covered_frontier.latest_anchor", "Latest anchor"),
-            ("covered_frontier.last_covered", "Last covered_frontier update"),
+            (
+                "covered_frontier.last_covered",
+                "Last covered_frontier update",
+            ),
             (
                 "covered_frontier.warn",
                 "Lag is above warn threshold; investigate MLS group health (member offline, KeyPackage stale).",
@@ -1134,7 +1155,10 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "Verify the reverse proxy does not strip /config.json.",
             ),
             ("audit.title", "Audit Log"),
-            ("audit.subtitle", "Admin actions recorded by the Principal Server"),
+            (
+                "audit.subtitle",
+                "Admin actions recorded by the Principal Server",
+            ),
             ("audit.id", "ID"),
             ("audit.action", "Action"),
             ("audit.actor_id", "Actor"),
@@ -1181,10 +1205,7 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "e.g. account, session",
             ),
             ("coauth.audit_log.filter_target_id", "Target ID"),
-            (
-                "coauth.audit_log.filter_target_id_placeholder",
-                "target id",
-            ),
+            ("coauth.audit_log.filter_target_id_placeholder", "target id"),
             ("coauth.audit_log.filter_since", "Since"),
             ("coauth.audit_log.filter_until", "Until"),
             ("coauth.audit_log.filter_apply", "Apply"),
@@ -1205,7 +1226,10 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("server_status.online", "Online"),
             ("server_status.not_configured", "Not Configured"),
             ("server_status.unreachable", "Unreachable"),
-            ("server_status.fetch_failed", "Failed to fetch service describe"),
+            (
+                "server_status.fetch_failed",
+                "Failed to fetch service describe",
+            ),
             ("server_status.services_title", "Services"),
             ("server_status.components_title", "Components"),
             ("server_status.service_admin", "Admin (local)"),
@@ -1247,18 +1271,15 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("server_status.event_kind_registry", "Event Kind Registry"),
             ("server_status.profiles_label", "Supported Profiles"),
             ("server_status.features_label", "Supported Features"),
-
             // ── Round 24 sidebar entries ──
             ("nav.coauth_capabilities", "Authz Capabilities"),
             ("nav.spaces_admin", "Spaces (admin)"),
             ("nav.moderation_reports", "Moderation reports"),
-
             // ── Round 24 common UI ──
             ("common.refresh", "Refresh"),
             ("common.previous", "Previous"),
             ("common.next", "Next"),
             ("common.confirm", "Confirm"),
-
             // ── Round 24 B5: soland authz capabilities ──
             ("authz_caps.title", "Authz capability grants"),
             (
@@ -1280,12 +1301,14 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "authz_caps.empty_subtitle",
                 "soland reported no capability grants matching the current filter.",
             ),
-            ("authz_caps.revoke_confirm_title", "Revoke capability grant?"),
+            (
+                "authz_caps.revoke_confirm_title",
+                "Revoke capability grant?",
+            ),
             (
                 "authz_caps.revoke_confirm_body",
                 "Publishes a revoke Move on the authz cell. Existing sessions resting on this capability will be re-checked on next anchor view. Audit-logged. Continue?",
             ),
-
             // ── Round 24 B6: per-account devices ──
             ("coauth_devices.title", "Account devices"),
             (
@@ -1308,7 +1331,6 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "coauth_devices.revoke_confirm_body",
                 "Marks the device as revoked in coauth and cascade-revokes any session grants tied to it on the soland side. Audit-logged. Continue?",
             ),
-
             // ── Round 24 D1: Spaces admin list ──
             ("spaces_admin.title", "Spaces (admin)"),
             (
@@ -1328,7 +1350,6 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "spaces_admin.empty_subtitle",
                 "soland reported no Spaces matching the current filter for this admin scope.",
             ),
-
             // ── Round 24 D2: Space hierarchy ──
             ("space_hierarchy.title", "Hierarchy"),
             (
@@ -1344,7 +1365,6 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "space_hierarchy.empty_subtitle",
                 "This Space has no parent and no immediate children.",
             ),
-
             // ── Round 24 D5: Moderation reports ──
             ("moderation_reports.title", "Moderation reports"),
             (
@@ -1369,19 +1389,24 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "moderation_reports.empty_subtitle",
                 "soland reported no moderation reports for the current filter.",
             ),
-            ("moderation_reports.resolve_confirm_title", "Resolve report?"),
+            (
+                "moderation_reports.resolve_confirm_title",
+                "Resolve report?",
+            ),
             (
                 "moderation_reports.resolve_confirm_body",
                 "Records an admin Resolve decision on this report. Audit-logged. Continue?",
             ),
             ("moderation_reports.resolve_confirm_btn", "Confirm resolve"),
-            ("moderation_reports.dismiss_confirm_title", "Dismiss report?"),
+            (
+                "moderation_reports.dismiss_confirm_title",
+                "Dismiss report?",
+            ),
             (
                 "moderation_reports.dismiss_confirm_body",
                 "Records an admin Dismiss decision on this report (no further action). Audit-logged. Continue?",
             ),
             ("moderation_reports.dismiss_confirm_btn", "Confirm dismiss"),
-
             // ── Round 25 nav additions ──
             ("nav.applets_admin", "Applets (admin)"),
             ("nav.agents_admin", "Agents (admin)"),
@@ -1391,7 +1416,6 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("nav.recovery_tickets", "Recovery tickets"),
             ("nav.recovery_audit", "Recovery audit"),
             ("nav.recovery_describe", "Recovery describe"),
-
             // ── Round 25 C1: Recovery list ──
             ("recovery_list.title", "Recovery tickets"),
             (
@@ -1413,7 +1437,6 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("recovery_list.filter_approved", "Approved"),
             ("recovery_list.filter_complete", "Complete"),
             ("recovery_list.filter_all", "All"),
-
             // ── Round 25 C2: Recovery detail ──
             ("recovery_detail.title", "Recovery ticket"),
             (
@@ -1423,7 +1446,10 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("recovery_detail.back_to_list", "Back to recovery tickets"),
             ("recovery_detail.updated_at", "Updated at"),
             ("recovery_detail.timeline_title", "Status timeline"),
-            ("recovery_detail.timeline_empty", "No transitions recorded yet."),
+            (
+                "recovery_detail.timeline_empty",
+                "No transitions recorded yet.",
+            ),
             ("recovery_detail.approve", "Approve"),
             ("recovery_detail.reject", "Reject"),
             ("recovery_detail.advance", "Advance"),
@@ -1450,7 +1476,6 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "recovery_detail.cancel_confirm_body",
                 "Cancels the in-progress recovery. The ticket is closed and the user can start a fresh recovery if needed.",
             ),
-
             // ── Round 25 C3: Restore state ──
             ("restore_state.title", "Restore state"),
             (
@@ -1460,7 +1485,6 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("restore_state.back_to_detail", "Back to ticket detail"),
             ("restore_state.entered_at", "entered"),
             ("restore_state.completed_at", "completed"),
-
             // ── Round 25 C4: Recovery audit ──
             ("recovery_audit.title", "Recovery audit log"),
             (
@@ -1478,7 +1502,6 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "recovery_audit.empty_subtitle",
                 "No recovery operations have been recorded for this filter.",
             ),
-
             // ── Round 25 C5: Recovery describe ──
             ("recovery_describe.title", "Recovery describe"),
             (
@@ -1491,7 +1514,42 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("recovery_describe.verification_kinds", "Verification kinds"),
             ("recovery_describe.paths_title", "Paths"),
             ("recovery_describe.paths_empty", "No paths advertised."),
-
+            // ── Round 35.4 C35.4: Starid resolver status panel ──
+            ("nav.starid_resolver", "Starid resolver"),
+            ("starid_resolver.title", "Starid resolver"),
+            (
+                "starid_resolver.subtitle",
+                "Read-only view of the upstream did:webvh writer — head version, witness count, and freshness.",
+            ),
+            ("starid_resolver.card_title", "Resolver status"),
+            (
+                "starid_resolver.card_subtitle",
+                "Aggregate state reported by /api/v1/identity/describe.",
+            ),
+            ("starid_resolver.service_did", "Service DID"),
+            ("starid_resolver.registry_mode", "Registry mode"),
+            ("starid_resolver.protocol_version", "Protocol version"),
+            ("starid_resolver.head_version_id", "Head version_id"),
+            ("starid_resolver.witness_count", "Witness count"),
+            ("starid_resolver.freshness", "Last activity"),
+            ("starid_resolver.methods_label", "Supported methods"),
+            ("starid_resolver.profiles_label", "Profiles"),
+            ("starid_resolver.status_healthy", "Healthy"),
+            ("starid_resolver.status_pending", "Pending witnesses"),
+            ("starid_resolver.status_idle", "Idle"),
+            ("starid_resolver.not_configured_badge", "Not configured"),
+            (
+                "starid_resolver.not_configured_hint",
+                "Set starid_public_url in the deployment config to enable this panel.",
+            ),
+            (
+                "starid_resolver.not_configured_body",
+                "Starid is not configured for this deployment. The sodmin admin SPA reads the upstream resolver URL from the deployment config — once it is wired the panel will start mirroring the writer's status.",
+            ),
+            (
+                "starid_resolver.docs_link",
+                "Open Starid resolver docs \u{2192}",
+            ),
             // ── Round 25 D3: Federation status ──
             ("federation_status.title", "Federation status"),
             (
@@ -1502,7 +1560,10 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("federation_status.space_id", "Space"),
             ("federation_status.peer", "Peer"),
             ("federation_status.health", "Health"),
-            ("federation_status.last_anchor_pulled_at", "Last anchor pulled"),
+            (
+                "federation_status.last_anchor_pulled_at",
+                "Last anchor pulled",
+            ),
             ("federation_status.last_pushed_at", "Last pushed"),
             ("federation_status.outbound_queue_depth", "Outbound queue"),
             ("federation_status.empty_title", "No federation peers"),
@@ -1510,7 +1571,6 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "federation_status.empty_subtitle",
                 "soland reported no federation peers for this scope, or the federation status endpoint is not yet wired.",
             ),
-
             // ── Round 25 D4: Policy editor ──
             ("policy_editor.title", "Space policy editor"),
             (
@@ -1530,7 +1590,6 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "Constructs and signs a cas-register Move on cx.component.space.policy.v1. Audit-logged. Continue?",
             ),
             ("policy_editor.confirm_btn", "Confirm submit"),
-
             // ── Round 25 F1: Applets admin ──
             ("applets_admin.title", "Applets (admin)"),
             (
@@ -1562,7 +1621,6 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "applets_admin.suspend_confirm_body",
                 "Temporarily disables the applet without revoking its identity. Re-approve to resume. Audit-logged.",
             ),
-
             // ── Round 25 F2: Agents admin ──
             ("agents_admin.title", "Agents (admin)"),
             (
@@ -1594,7 +1652,6 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "agents_admin.suspend_confirm_body",
                 "Temporarily disables the agent without revoking its identity. Re-approve to resume. Audit-logged.",
             ),
-
             // ── Round 25 F3: Directory admin ──
             ("directory_admin.title", "Directory (admin)"),
             (
@@ -1663,7 +1720,10 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("signing_keys.algorithm", "算法"),
             ("signing_keys.last_rotated", "上次轮换"),
             ("signing_keys.rotate", "轮换签名密钥"),
-            ("signing_keys.rotate_confirm_title", "轮换 AnchorerWorker 签名密钥？"),
+            (
+                "signing_keys.rotate_confirm_title",
+                "轮换 AnchorerWorker 签名密钥？",
+            ),
             (
                 "signing_keys.rotate_confirm_body",
                 "将生成新密钥并原子地重新绑定 AnchorerWorker；进行中的 Anchor 会用新密钥重新签名。该操作记入审计。继续？",
@@ -1672,7 +1732,10 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "signing_keys.ephemeral_warning",
                 "Anchorer 当前使用临时密钥签名。该密钥在 worker 重启后即丢失且无法原地轮换 —— 在升级到生产环境前，请使用已配置密钥（PEM / KMS）重新部署 principal-server。",
             ),
-            ("signing_keys.read_only_note", "（只读 —— 必须先用已配置密钥重新部署才能轮换）"),
+            (
+                "signing_keys.read_only_note",
+                "（只读 —— 必须先用已配置密钥重新部署才能轮换）",
+            ),
             (
                 "signing_keys.rotate_disabled_hint",
                 "当前签名密钥来源不支持轮换。请先配置稳定的 PEM / KMS 签名后端并重新部署。",
@@ -1698,10 +1761,7 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "本 Space 的所有 Anchor 已达阈值并完成组装。",
             ),
             ("consent.title", "授权同意列表"),
-            (
-                "consent.subtitle",
-                "consent cell or-set 值的只读 join 投影",
-            ),
+            ("consent.subtitle", "consent cell or-set 值的只读 join 投影"),
             ("consent.filter_holder", "按持有者 DID 过滤"),
             ("consent.holder_did", "持有者 DID"),
             ("consent.peer_did", "对端 DID"),
@@ -1722,7 +1782,10 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("components.col_status", "状态"),
             ("components.col_drift", "Drift"),
             ("components.empty", "服务器未报告任何组件。"),
-            ("components.drift_alert", "{count} 个组件 spec / impl 版本不一致。"),
+            (
+                "components.drift_alert",
+                "{count} 个组件 spec / impl 版本不一致。",
+            ),
             ("covered_frontier.title", "covered_frontier 滞后"),
             (
                 "covered_frontier.subtitle",
@@ -1730,10 +1793,16 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ),
             ("covered_frontier.lag", "滞后"),
             ("covered_frontier.mls_epoch", "MLS epoch"),
-            ("covered_frontier.governance_size", "Governance frontier 大小"),
+            (
+                "covered_frontier.governance_size",
+                "Governance frontier 大小",
+            ),
             ("covered_frontier.covered_size", "Covered frontier 大小"),
             ("covered_frontier.latest_anchor", "最新 anchor"),
-            ("covered_frontier.last_covered", "上次 covered_frontier 更新"),
+            (
+                "covered_frontier.last_covered",
+                "上次 covered_frontier 更新",
+            ),
             (
                 "covered_frontier.warn",
                 "滞后已超过阈值；请排查 MLS group 健康度（成员掉线 / KeyPackage 过期）。",
@@ -1820,29 +1889,20 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "如 account.suspend",
             ),
             ("coauth.audit_log.filter_actor", "Actor"),
-            (
-                "coauth.audit_log.filter_actor_placeholder",
-                "actor user id",
-            ),
+            ("coauth.audit_log.filter_actor_placeholder", "actor user id"),
             ("coauth.audit_log.filter_target_type", "目标类型"),
             (
                 "coauth.audit_log.filter_target_type_placeholder",
                 "如 account、session",
             ),
             ("coauth.audit_log.filter_target_id", "目标 ID"),
-            (
-                "coauth.audit_log.filter_target_id_placeholder",
-                "target id",
-            ),
+            ("coauth.audit_log.filter_target_id_placeholder", "target id"),
             ("coauth.audit_log.filter_since", "起始时间"),
             ("coauth.audit_log.filter_until", "截止时间"),
             ("coauth.audit_log.filter_apply", "应用"),
             ("coauth.audit_log.filter_reset", "重置"),
             ("server_status.title", "服务状态"),
-            (
-                "server_status.subtitle",
-                "各 contrix 后端的健康与能力快照",
-            ),
+            ("server_status.subtitle", "各 contrix 后端的健康与能力快照"),
             ("server_status.server_info", "服务器"),
             ("server_status.version", "版本"),
             ("server_status.protocol_version", "协议"),
@@ -1896,18 +1956,15 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("server_status.event_kind_registry", "Event Kind Registry"),
             ("server_status.profiles_label", "支持的 Profile"),
             ("server_status.features_label", "支持的 Feature"),
-
             // ── 第 24 轮 侧边栏 ──
             ("nav.coauth_capabilities", "Authz 权限"),
             ("nav.spaces_admin", "Space（管理）"),
             ("nav.moderation_reports", "审核举报"),
-
             // ── 第 24 轮 通用 UI ──
             ("common.refresh", "刷新"),
             ("common.previous", "上一页"),
             ("common.next", "下一页"),
             ("common.confirm", "确认"),
-
             // ── 第 24 轮 B5：soland authz 权限授予 ──
             ("authz_caps.title", "Authz 权限授予"),
             (
@@ -1934,7 +1991,6 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "authz_caps.revoke_confirm_body",
                 "在 authz cell 上发布 revoke Move。依赖此权限的现有会话将在下一次 anchor view 时重新检查。该操作记入审计。继续？",
             ),
-
             // ── 第 24 轮 B6：账号设备 ──
             ("coauth_devices.title", "账号设备"),
             (
@@ -1957,7 +2013,6 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "coauth_devices.revoke_confirm_body",
                 "在 coauth 中将设备标记为已撤销，并级联撤销 soland 端绑定到该设备的会话授权。该操作记入审计。继续？",
             ),
-
             // ── 第 24 轮 D1：Space 管理列表 ──
             ("spaces_admin.title", "Space（管理）"),
             (
@@ -1977,13 +2032,9 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "spaces_admin.empty_subtitle",
                 "soland 报告该管理员作用域下没有匹配过滤条件的 Space。",
             ),
-
             // ── 第 24 轮 D2：Space 层级视图 ──
             ("space_hierarchy.title", "层级"),
-            (
-                "space_hierarchy.subtitle",
-                "该 Space 的直接父级与子级。",
-            ),
+            ("space_hierarchy.subtitle", "该 Space 的直接父级与子级。"),
             ("space_hierarchy.parent_label", "父级"),
             ("space_hierarchy.this_label", "本"),
             ("space_hierarchy.child_label", "子级"),
@@ -1993,7 +2044,6 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "space_hierarchy.empty_subtitle",
                 "该 Space 没有父级也没有直接子级。",
             ),
-
             // ── 第 24 轮 D5：审核举报 ──
             ("moderation_reports.title", "审核举报"),
             (
@@ -2030,7 +2080,6 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "在该举报上记录管理员 Dismiss 决策（无需进一步处理）。该操作记入审计。继续？",
             ),
             ("moderation_reports.dismiss_confirm_btn", "确认驳回"),
-
             // ── Round 25 nav additions ──
             ("nav.applets_admin", "Applet（管理）"),
             ("nav.agents_admin", "Agent（管理）"),
@@ -2040,7 +2089,6 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("nav.recovery_tickets", "恢复工单"),
             ("nav.recovery_audit", "恢复审计"),
             ("nav.recovery_describe", "恢复描述"),
-
             // ── Round 25 C1: Recovery list ──
             ("recovery_list.title", "恢复工单"),
             (
@@ -2062,7 +2110,6 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("recovery_list.filter_approved", "已批准"),
             ("recovery_list.filter_complete", "已完成"),
             ("recovery_list.filter_all", "全部"),
-
             // ── Round 25 C2: Recovery detail ──
             ("recovery_detail.title", "恢复工单详情"),
             (
@@ -2099,7 +2146,6 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "recovery_detail.cancel_confirm_body",
                 "取消进行中的恢复流程。工单关闭后用户可发起新恢复。",
             ),
-
             // ── Round 25 C3: Restore state ──
             ("restore_state.title", "恢复状态机"),
             (
@@ -2109,7 +2155,6 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("restore_state.back_to_detail", "返回工单详情"),
             ("restore_state.entered_at", "进入"),
             ("restore_state.completed_at", "完成"),
-
             // ── Round 25 C4: Recovery audit ──
             ("recovery_audit.title", "恢复审计日志"),
             (
@@ -2127,7 +2172,6 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "recovery_audit.empty_subtitle",
                 "本过滤条件下无任何恢复操作记录。",
             ),
-
             // ── Round 25 C5: Recovery describe ──
             ("recovery_describe.title", "恢复描述"),
             (
@@ -2140,7 +2184,42 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("recovery_describe.verification_kinds", "验证类型"),
             ("recovery_describe.paths_title", "路径"),
             ("recovery_describe.paths_empty", "未声明任何路径。"),
-
+            // ── Round 35.4 C35.4: Starid resolver status panel ──
+            ("nav.starid_resolver", "Starid 解析器"),
+            ("starid_resolver.title", "Starid 解析器"),
+            (
+                "starid_resolver.subtitle",
+                "上游 did:webvh 写入端的只读视图——头版本、见证数量与最近活跃时间。",
+            ),
+            ("starid_resolver.card_title", "解析器状态"),
+            (
+                "starid_resolver.card_subtitle",
+                "/api/v1/identity/describe 报告的聚合状态。",
+            ),
+            ("starid_resolver.service_did", "服务 DID"),
+            ("starid_resolver.registry_mode", "注册模式"),
+            ("starid_resolver.protocol_version", "协议版本"),
+            ("starid_resolver.head_version_id", "头 version_id"),
+            ("starid_resolver.witness_count", "见证数量"),
+            ("starid_resolver.freshness", "最近活跃"),
+            ("starid_resolver.methods_label", "支持的方法"),
+            ("starid_resolver.profiles_label", "配置档"),
+            ("starid_resolver.status_healthy", "健康"),
+            ("starid_resolver.status_pending", "等待见证"),
+            ("starid_resolver.status_idle", "空闲"),
+            ("starid_resolver.not_configured_badge", "未配置"),
+            (
+                "starid_resolver.not_configured_hint",
+                "在部署配置中设置 starid_public_url 以启用此面板。",
+            ),
+            (
+                "starid_resolver.not_configured_body",
+                "本部署未配置 Starid。sodmin 管理端从部署配置读取上游解析器 URL——一旦配置完成，本面板将自动镜像写入端的状态。",
+            ),
+            (
+                "starid_resolver.docs_link",
+                "查看 Starid 解析器文档 \u{2192}",
+            ),
             // ── Round 25 D3: Federation status ──
             ("federation_status.title", "联邦状态"),
             (
@@ -2151,7 +2230,10 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("federation_status.space_id", "Space"),
             ("federation_status.peer", "对端"),
             ("federation_status.health", "健康度"),
-            ("federation_status.last_anchor_pulled_at", "最近 anchor 拉取"),
+            (
+                "federation_status.last_anchor_pulled_at",
+                "最近 anchor 拉取",
+            ),
             ("federation_status.last_pushed_at", "最近推送"),
             ("federation_status.outbound_queue_depth", "出站队列"),
             ("federation_status.empty_title", "无联邦节点"),
@@ -2159,7 +2241,6 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "federation_status.empty_subtitle",
                 "soland 报告本范围内无联邦节点，或联邦状态接口尚未部署。",
             ),
-
             // ── Round 25 D4: Policy editor ──
             ("policy_editor.title", "Space 策略编辑"),
             (
@@ -2179,7 +2260,6 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "构造并签名 cx.component.space.policy.v1 上的 cas-register Move。该操作记入审计。继续？",
             ),
             ("policy_editor.confirm_btn", "确认提交"),
-
             // ── Round 25 F1: Applets admin ──
             ("applets_admin.title", "Applet（管理）"),
             (
@@ -2211,7 +2291,6 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "applets_admin.suspend_confirm_body",
                 "暂时停用该 applet，但保留其身份。重新批准即可恢复。该操作记入审计。",
             ),
-
             // ── Round 25 F2: Agents admin ──
             ("agents_admin.title", "Agent（管理）"),
             (
@@ -2243,7 +2322,6 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "agents_admin.suspend_confirm_body",
                 "暂时停用该 agent，但保留其身份。重新批准即可恢复。该操作记入审计。",
             ),
-
             // ── Round 25 F3: Directory admin ──
             ("directory_admin.title", "目录（管理）"),
             (

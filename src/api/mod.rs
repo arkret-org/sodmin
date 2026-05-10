@@ -18,7 +18,6 @@ pub mod space_policy_admin;
 pub mod spaces_admin;
 // TODO(A0): populated by codegen once coauth-admin-types / soland-admin-types land.
 // See _todos.md A0 checklist.
-pub mod generated;
 pub mod agents;
 pub mod applets;
 pub mod audit;
@@ -28,9 +27,11 @@ pub mod client;
 pub mod coauth;
 pub mod devices;
 pub mod federation;
+pub mod generated;
 pub mod invite_tokens;
 pub mod media;
 pub mod policy;
 pub mod reports;
 pub mod server;
 pub mod spaces;
+pub mod starid;

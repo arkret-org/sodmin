@@ -259,12 +259,21 @@ impl AnchorerReconfigRequest {
             body["threshold_n"] = serde_json::Value::from(n);
         }
         if !self.threshold_dids.is_empty() {
-            body["threshold_dids"] =
-                serde_json::Value::Array(self.threshold_dids.iter().cloned().map(Into::into).collect());
+            body["threshold_dids"] = serde_json::Value::Array(
+                self.threshold_dids
+                    .iter()
+                    .cloned()
+                    .map(Into::into)
+                    .collect(),
+            );
         }
         if !self.open_set_members.is_empty() {
             body["open_set_members"] = serde_json::Value::Array(
-                self.open_set_members.iter().cloned().map(Into::into).collect(),
+                self.open_set_members
+                    .iter()
+                    .cloned()
+                    .map(Into::into)
+                    .collect(),
             );
         }
         if let Some(p) = &self.mixed_primary {
@@ -272,7 +281,11 @@ impl AnchorerReconfigRequest {
         }
         if !self.mixed_recovery.is_empty() {
             body["mixed_recovery"] = serde_json::Value::Array(
-                self.mixed_recovery.iter().cloned().map(Into::into).collect(),
+                self.mixed_recovery
+                    .iter()
+                    .cloned()
+                    .map(Into::into)
+                    .collect(),
             );
         }
         body
@@ -623,11 +636,7 @@ mod tests {
             kind: "threshold".into(),
             threshold_k: Some(2),
             threshold_n: Some(3),
-            threshold_dids: vec![
-                "did:cx:b".into(),
-                "did:cx:c".into(),
-                admin.to_string(),
-            ],
+            threshold_dids: vec!["did:cx:b".into(), "did:cx:c".into(), admin.to_string()],
             ..Default::default()
         };
         assert_eq!(
@@ -659,11 +668,7 @@ mod tests {
             kind: "threshold".into(),
             threshold_k: Some(2),
             threshold_n: Some(3),
-            threshold_dids: vec![
-                "did:cx:a".into(),
-                "did:cx:b".into(),
-                "did:cx:c".into(),
-            ],
+            threshold_dids: vec!["did:cx:a".into(), "did:cx:b".into(), "did:cx:c".into()],
             ..Default::default()
         };
         assert_eq!(ok.self_sign_violation(admin), None);
@@ -713,11 +718,7 @@ mod tests {
         let recovery = AnchorerReconfigRequest {
             kind: "mixed".into(),
             mixed_primary: Some("did:cx:p".into()),
-            mixed_recovery: vec![
-                "did:cx:r1".into(),
-                admin.to_string(),
-                "did:cx:r2".into(),
-            ],
+            mixed_recovery: vec!["did:cx:r1".into(), admin.to_string(), "did:cx:r2".into()],
             ..Default::default()
         };
         assert_eq!(
@@ -745,7 +746,10 @@ mod tests {
             ..Default::default()
         };
         let body = req.to_reconfigure_body();
-        assert_eq!(body.get("kind").and_then(|v| v.as_str()), Some("single_did"));
+        assert_eq!(
+            body.get("kind").and_then(|v| v.as_str()),
+            Some("single_did")
+        );
         assert_eq!(
             body.get("single_did").and_then(|v| v.as_str()),
             Some("did:cx:abc")
@@ -766,7 +770,9 @@ mod tests {
         assert_eq!(body.get("threshold_k").and_then(|v| v.as_u64()), Some(2));
         assert_eq!(body.get("threshold_n").and_then(|v| v.as_u64()), Some(3));
         assert_eq!(
-            body.get("threshold_dids").and_then(|v| v.as_array()).map(|a| a.len()),
+            body.get("threshold_dids")
+                .and_then(|v| v.as_array())
+                .map(|a| a.len()),
             Some(3)
         );
     }
@@ -783,7 +789,10 @@ mod tests {
         };
         let j = serde_json::to_value(&s).expect("serialize");
         // Internally tagged: strategy field must be at top level.
-        assert_eq!(j.get("strategy").and_then(|v| v.as_str()), Some("head_in_winner"));
+        assert_eq!(
+            j.get("strategy").and_then(|v| v.as_str()),
+            Some("head_in_winner")
+        );
         let back: BottomRepairStrategy = serde_json::from_value(j).expect("deserialize");
         assert_eq!(back, s);
         assert_eq!(s.label(), "head_in winner");

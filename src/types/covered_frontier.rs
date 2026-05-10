@@ -63,11 +63,8 @@ impl CoveredFrontierSnapshot {
     /// duplicates in either side are dropped before the diff so the count
     /// is canonical. Always returns `0` when MLS is fully caught up.
     pub fn lag_count(&self) -> u64 {
-        let covered: std::collections::HashSet<&str> = self
-            .covered_frontier
-            .iter()
-            .map(|s| s.as_str())
-            .collect();
+        let covered: std::collections::HashSet<&str> =
+            self.covered_frontier.iter().map(|s| s.as_str()).collect();
         let mut seen = std::collections::HashSet::new();
         let mut count: u64 = 0;
         for m in &self.governance_frontier {

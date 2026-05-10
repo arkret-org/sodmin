@@ -18,3 +18,4 @@ pub mod policy;
 pub mod reports;
 pub mod server_status;
 pub mod spaces;
+pub mod starid_resolver;

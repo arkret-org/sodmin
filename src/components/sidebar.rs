@@ -119,11 +119,7 @@ fn build_nav_sections() -> Vec<NavSection> {
                     Route::CoauthCapabilities {},
                     "shield",
                 ),
-                NavItem::new(
-                    t("nav.invite_tokens"),
-                    Route::InviteTokenList {},
-                    "key",
-                ),
+                NavItem::new(t("nav.invite_tokens"), Route::InviteTokenList {}, "key"),
             ],
         )
         .bridge(bridge::SOLAND)
@@ -160,22 +156,10 @@ fn build_nav_sections() -> Vec<NavSection> {
                 NavItem::new(t("nav.federation"), Route::FederationList {}, "globe"),
                 NavItem::new(t("nav.media"), Route::MediaList {}, "image"),
                 NavItem::new(t("nav.applets"), Route::AppletList {}, "plug"),
-                NavItem::new(
-                    t("nav.applets_admin"),
-                    Route::AppletAdmin {},
-                    "plug",
-                ),
+                NavItem::new(t("nav.applets_admin"), Route::AppletAdmin {}, "plug"),
                 NavItem::new(t("nav.agents"), Route::AgentList {}, "bot"),
-                NavItem::new(
-                    t("nav.agents_admin"),
-                    Route::AgentAdmin {},
-                    "bot",
-                ),
-                NavItem::new(
-                    t("nav.directory_admin"),
-                    Route::DirectoryAdmin {},
-                    "globe",
-                ),
+                NavItem::new(t("nav.agents_admin"), Route::AgentAdmin {}, "bot"),
+                NavItem::new(t("nav.directory_admin"), Route::DirectoryAdmin {}, "globe"),
                 NavItem::new(
                     t("nav.federation_status"),
                     Route::SpaceFederationStatus {
@@ -201,10 +185,11 @@ fn build_nav_sections() -> Vec<NavSection> {
             t("nav.section_server_ops"),
             vec![
                 NavItem::new(t("nav.policy"), Route::PolicyList {}, "file-text"),
+                NavItem::new(t("nav.server_status"), Route::ServerStatus {}, "activity"),
                 NavItem::new(
-                    t("nav.server_status"),
-                    Route::ServerStatus {},
-                    "activity",
+                    t("nav.starid_resolver"),
+                    Route::StaridResolver {},
+                    "fingerprint",
                 ),
             ],
         )
@@ -254,11 +239,7 @@ fn build_nav_sections() -> Vec<NavSection> {
                     },
                     "lock",
                 ),
-                NavItem::new(
-                    t("nav.components"),
-                    Route::ComponentsRegistry {},
-                    "plug",
-                ),
+                NavItem::new(t("nav.components"), Route::ComponentsRegistry {}, "plug"),
                 NavItem::new(
                     t("nav.signing_keys"),
                     Route::SpaceSigningKeys {
@@ -289,12 +270,8 @@ fn build_nav_sections() -> Vec<NavSection> {
                     "user-round",
                 )
                 .scoped(scope::COAUTH),
-                NavItem::new(
-                    t("nav.audit_log"),
-                    Route::CoauthAuditLog {},
-                    "scroll-text",
-                )
-                .scoped(scope::COAUTH),
+                NavItem::new(t("nav.audit_log"), Route::CoauthAuditLog {}, "scroll-text")
+                    .scoped(scope::COAUTH),
                 NavItem::new(
                     t("nav.oauth2_sessions"),
                     Route::CoauthOAuth2Sessions {},
@@ -503,11 +480,7 @@ mod tests {
             .collect()
     }
 
-    fn section_visible_with(
-        section: &NavSection,
-        bridges: &[&str],
-        scopes: &[&str],
-    ) -> bool {
+    fn section_visible_with(section: &NavSection, bridges: &[&str], scopes: &[&str]) -> bool {
         if let Some(b) = section.required_bridge {
             if !bridges.contains(&b) {
                 return false;
@@ -542,8 +515,7 @@ mod tests {
             "x".to_string(),
             vec![
                 NavItem::new("a".to_string(), Route::Dashboard {}, "x"),
-                NavItem::new("b".to_string(), Route::Dashboard {}, "x")
-                    .scoped(scope::COAUTH),
+                NavItem::new("b".to_string(), Route::Dashboard {}, "x").scoped(scope::COAUTH),
             ],
         );
         // Wildcard sees both items.
@@ -558,8 +530,7 @@ mod tests {
     fn nav_section_hidden_when_all_items_filtered_out() {
         let section = NavSection::new(
             "x".to_string(),
-            vec![NavItem::new("y".to_string(), Route::Dashboard {}, "x")
-                .scoped(scope::COAUTH)],
+            vec![NavItem::new("y".to_string(), Route::Dashboard {}, "x").scoped(scope::COAUTH)],
         );
         assert!(!section_visible_with(&section, &[], &[]));
     }

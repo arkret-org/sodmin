@@ -14,13 +14,17 @@ use crate::components::ui::error_banner::ErrorBanner;
 use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::table::*;
-use coauth_admin_types::federation_admin::FederationPeerHealth;
 use crate::utils::i18n::t;
+use coauth_admin_types::federation_admin::FederationPeerHealth;
 
 #[component]
 pub fn FederationStatusPage(space_id: String) -> Element {
     let id_for_resource = space_id.clone();
-    let id_filter = if space_id == "_" { None } else { Some(id_for_resource.clone()) };
+    let id_filter = if space_id == "_" {
+        None
+    } else {
+        Some(id_for_resource.clone())
+    };
 
     let mut data = use_resource(move || {
         let id = id_filter.clone();

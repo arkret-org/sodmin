@@ -107,7 +107,10 @@ pub fn emit_admin_audit(
     outcome: AdminAuditOutcome,
     note: Option<&str>,
 ) {
-    log::info!("{}", format_admin_audit_line(target, id, action, outcome, note));
+    log::info!(
+        "{}",
+        format_admin_audit_line(target, id, action, outcome, note)
+    );
 }
 
 #[cfg(test)]

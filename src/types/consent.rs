@@ -211,7 +211,10 @@ mod tests {
         ];
         let out = filter_by_holder(&grants, "alice");
         assert_eq!(out.len(), 2);
-        assert!(out.iter().all(|g| g.holder_did.to_lowercase().contains("alice")));
+        assert!(
+            out.iter()
+                .all(|g| g.holder_did.to_lowercase().contains("alice"))
+        );
 
         let out = filter_by_holder(&grants, "BOB");
         assert_eq!(out.len(), 1);

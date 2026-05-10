@@ -93,9 +93,7 @@ pub struct AuthzGrantFilter {
 
 impl AuthzGrantFilter {
     pub fn is_empty(&self) -> bool {
-        self.holder.trim().is_empty()
-            && self.peer.trim().is_empty()
-            && self.scope.trim().is_empty()
+        self.holder.trim().is_empty() && self.peer.trim().is_empty() && self.scope.trim().is_empty()
     }
 }
 
@@ -113,15 +111,9 @@ pub fn filter_grants(
     let scope = filter.scope.trim().to_lowercase();
     grants
         .iter()
-        .filter(|g| {
-            holder.is_empty() || g.holder_did.to_lowercase().contains(&holder)
-        })
-        .filter(|g| {
-            peer.is_empty() || g.peer_did.to_lowercase().contains(&peer)
-        })
-        .filter(|g| {
-            scope.is_empty() || g.scope.to_lowercase().contains(&scope)
-        })
+        .filter(|g| holder.is_empty() || g.holder_did.to_lowercase().contains(&holder))
+        .filter(|g| peer.is_empty() || g.peer_did.to_lowercase().contains(&peer))
+        .filter(|g| scope.is_empty() || g.scope.to_lowercase().contains(&scope))
         .cloned()
         .collect()
 }

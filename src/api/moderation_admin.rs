@@ -36,10 +36,8 @@ pub async fn list_reports(
     status: &str,
 ) -> Result<ModerationReportPage, HttpError> {
     let limit_str = limit.max(1).to_string();
-    let mut params: Vec<(&str, &str)> = vec![
-        ("status", status.trim()),
-        ("limit", limit_str.as_str()),
-    ];
+    let mut params: Vec<(&str, &str)> =
+        vec![("status", status.trim()), ("limit", limit_str.as_str())];
     if let Some(cursor) = cursor.filter(|c| !c.is_empty()) {
         params.push(("cursor", cursor));
     }
@@ -52,10 +50,7 @@ pub async fn list_reports(
     })
 }
 
-pub async fn resolve_report(
-    report_id: &str,
-    body: &ResolveReportRequest,
-) -> Result<(), HttpError> {
+pub async fn resolve_report(report_id: &str, body: &ResolveReportRequest) -> Result<(), HttpError> {
     let url = format!(
         "/api/admin/v1/moderation/reports/{}/resolve",
         urlencoding::encode(report_id)

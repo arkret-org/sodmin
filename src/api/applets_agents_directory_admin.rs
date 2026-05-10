@@ -73,10 +73,7 @@ fn cursor_params<'a>(cursor: Option<&'a str>, limit_str: &'a str) -> Vec<(&'a st
 
 // ── Applets ───────────────────────────────────────────────────────────
 
-pub async fn list_applets(
-    cursor: Option<&str>,
-    limit: u64,
-) -> Result<AppletAdminPage, HttpError> {
+pub async fn list_applets(cursor: Option<&str>, limit: u64) -> Result<AppletAdminPage, HttpError> {
     let limit_str = limit.max(1).to_string();
     let params = cursor_params(cursor, limit_str.as_str());
     let url = build_url("/api/admin/v1/applets", &params)?;
@@ -88,30 +85,21 @@ pub async fn list_applets(
     })
 }
 
-pub async fn approve_applet(
-    id: &str,
-    body: &ApprovalActionRequest,
-) -> Result<(), HttpError> {
+pub async fn approve_applet(id: &str, body: &ApprovalActionRequest) -> Result<(), HttpError> {
     let url = format!("/api/admin/v1/applets/{}/approve", urlencoding::encode(id));
     let payload = serde_json::to_string(body).unwrap_or_default();
     let _: serde_json::Value = api_client(&url, "POST", Some(payload)).await?;
     Ok(())
 }
 
-pub async fn suspend_applet(
-    id: &str,
-    body: &ApprovalActionRequest,
-) -> Result<(), HttpError> {
+pub async fn suspend_applet(id: &str, body: &ApprovalActionRequest) -> Result<(), HttpError> {
     let url = format!("/api/admin/v1/applets/{}/suspend", urlencoding::encode(id));
     let payload = serde_json::to_string(body).unwrap_or_default();
     let _: serde_json::Value = api_client(&url, "POST", Some(payload)).await?;
     Ok(())
 }
 
-pub async fn revoke_applet(
-    id: &str,
-    body: &ApprovalActionRequest,
-) -> Result<(), HttpError> {
+pub async fn revoke_applet(id: &str, body: &ApprovalActionRequest) -> Result<(), HttpError> {
     let url = format!("/api/admin/v1/applets/{}/revoke", urlencoding::encode(id));
     let payload = serde_json::to_string(body).unwrap_or_default();
     let _: serde_json::Value = api_client(&url, "POST", Some(payload)).await?;
@@ -135,30 +123,21 @@ pub async fn list_agents_admin(
     })
 }
 
-pub async fn approve_agent(
-    id: &str,
-    body: &ApprovalActionRequest,
-) -> Result<(), HttpError> {
+pub async fn approve_agent(id: &str, body: &ApprovalActionRequest) -> Result<(), HttpError> {
     let url = format!("/api/admin/v1/agents/{}/approve", urlencoding::encode(id));
     let payload = serde_json::to_string(body).unwrap_or_default();
     let _: serde_json::Value = api_client(&url, "POST", Some(payload)).await?;
     Ok(())
 }
 
-pub async fn suspend_agent(
-    id: &str,
-    body: &ApprovalActionRequest,
-) -> Result<(), HttpError> {
+pub async fn suspend_agent(id: &str, body: &ApprovalActionRequest) -> Result<(), HttpError> {
     let url = format!("/api/admin/v1/agents/{}/suspend", urlencoding::encode(id));
     let payload = serde_json::to_string(body).unwrap_or_default();
     let _: serde_json::Value = api_client(&url, "POST", Some(payload)).await?;
     Ok(())
 }
 
-pub async fn revoke_agent(
-    id: &str,
-    body: &ApprovalActionRequest,
-) -> Result<(), HttpError> {
+pub async fn revoke_agent(id: &str, body: &ApprovalActionRequest) -> Result<(), HttpError> {
     let url = format!("/api/admin/v1/agents/{}/revoke", urlencoding::encode(id));
     let payload = serde_json::to_string(body).unwrap_or_default();
     let _: serde_json::Value = api_client(&url, "POST", Some(payload)).await?;
@@ -199,10 +178,7 @@ pub async fn revoke_directory_entry(
     id: &str,
     body: &ApprovalActionRequest,
 ) -> Result<(), HttpError> {
-    let url = format!(
-        "/api/admin/v1/directory/{}/revoke",
-        urlencoding::encode(id)
-    );
+    let url = format!("/api/admin/v1/directory/{}/revoke", urlencoding::encode(id));
     let payload = serde_json::to_string(body).unwrap_or_default();
     let _: serde_json::Value = api_client(&url, "POST", Some(payload)).await?;
     Ok(())
@@ -215,10 +191,7 @@ pub async fn reject_directory_entry(
     id: &str,
     body: &ApprovalActionRequest,
 ) -> Result<(), HttpError> {
-    let url = format!(
-        "/api/admin/v1/directory/{}/reject",
-        urlencoding::encode(id)
-    );
+    let url = format!("/api/admin/v1/directory/{}/reject", urlencoding::encode(id));
     let payload = serde_json::to_string(body).unwrap_or_default();
     let _: serde_json::Value = api_client(&url, "POST", Some(payload)).await?;
     Ok(())

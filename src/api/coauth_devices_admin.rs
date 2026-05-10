@@ -53,10 +53,7 @@ pub async fn list_account_devices(
     })
 }
 
-pub async fn revoke_account_device(
-    account_id: &str,
-    device_id: &str,
-) -> Result<(), HttpError> {
+pub async fn revoke_account_device(account_id: &str, device_id: &str) -> Result<(), HttpError> {
     let url = format!(
         "/api/admin/v1/accounts/{}/devices/{}/revoke",
         urlencoding::encode(account_id),

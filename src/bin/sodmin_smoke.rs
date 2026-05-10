@@ -22,7 +22,7 @@ use std::process::ExitCode;
 use std::time::Duration;
 
 use reqwest::blocking::Client;
-use reqwest::header::{HeaderMap, HeaderValue, ACCEPT, AUTHORIZATION};
+use reqwest::header::{ACCEPT, AUTHORIZATION, HeaderMap, HeaderValue};
 
 const DEFAULT_TIMEOUT_SECS: u64 = 10;
 
@@ -81,9 +81,7 @@ impl Args {
                     let raw = args
                         .next()
                         .ok_or_else(|| "--timeout requires a value".to_string())?;
-                    timeout_secs = raw
-                        .parse()
-                        .map_err(|e| format!("invalid --timeout: {e}"))?;
+                    timeout_secs = raw.parse().map_err(|e| format!("invalid --timeout: {e}"))?;
                 }
                 "--help" | "-h" => {
                     print_help();
@@ -393,7 +391,7 @@ fn main() -> ExitCode {
 
 #[cfg(test)]
 mod tests {
-    use super::{build_space_url, classify_status, urlencoding_encode, CheckOutcome};
+    use super::{CheckOutcome, build_space_url, classify_status, urlencoding_encode};
 
     #[test]
     fn classify_status_buckets_by_code() {

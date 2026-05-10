@@ -66,8 +66,7 @@ impl CoauthDeviceRow {
     /// an already-revoked device would just be a noop on the server
     /// side, so we hide the button.
     pub fn is_revocable(&self) -> bool {
-        !matches!(self.status_typed(), CoauthDeviceStatus::Revoked)
-            && !self.device_id.is_empty()
+        !matches!(self.status_typed(), CoauthDeviceStatus::Revoked) && !self.device_id.is_empty()
     }
 }
 
@@ -76,9 +75,7 @@ impl CoauthDeviceRow {
 /// missing values. Kept separate from `signing_keys::render_*` so the
 /// fallback rule is consistent across the device table.
 pub fn render_last_seen(row: &CoauthDeviceRow) -> String {
-    row.last_seen_at
-        .clone()
-        .unwrap_or_else(|| "-".to_string())
+    row.last_seen_at.clone().unwrap_or_else(|| "-".to_string())
 }
 
 #[cfg(test)]
@@ -95,7 +92,11 @@ mod tests {
 
     #[test]
     fn device_status_round_trips_via_wire_strings() {
-        for (wire, label) in [("active", "Active"), ("stale", "Stale"), ("revoked", "Revoked")] {
+        for (wire, label) in [
+            ("active", "Active"),
+            ("stale", "Stale"),
+            ("revoked", "Revoked"),
+        ] {
             let s = CoauthDeviceStatus::from_wire(wire).expect("variant");
             assert_eq!(s.label(), label);
         }

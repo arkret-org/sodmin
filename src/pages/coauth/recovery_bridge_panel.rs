@@ -5,9 +5,14 @@ use crate::api::coauth::CoauthRecoveryBridgeDescribe;
 pub fn recovery_bridge_block(bridge: &CoauthRecoveryBridgeDescribe) -> Element {
     let verification_kinds = bridge.verification_event_kinds.join(", ");
     let recovery_modes = bridge.recovery_modes.join(", ");
-    let backup_example = bridge.example_backup_payload.to_string();
-    let restore_example = bridge.recovery_restore_examples.to_string();
-    let authz_example = bridge.recovery_authz_examples.to_string();
+    // C34.2: the three example payloads are now typed shared structures
+    // (`RecoveryBackupPayloadExample` etc.) instead of opaque
+    // `serde_json::Value`. Round-trip them through `serde_json` so the
+    // rendered string keeps the same JSON shape the SPA used to display.
+    let backup_example = serde_json::to_string(&bridge.example_backup_payload).unwrap_or_default();
+    let restore_example =
+        serde_json::to_string(&bridge.recovery_restore_examples).unwrap_or_default();
+    let authz_example = serde_json::to_string(&bridge.recovery_authz_examples).unwrap_or_default();
     let todos_text = bridge.todos.join(" ");
 
     rsx! {

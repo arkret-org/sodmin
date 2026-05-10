@@ -28,8 +28,12 @@ fn main() {
 /// already been emitted (e.g. by the server-rendered shell) we leave
 /// it alone — never overwrite a stricter policy.
 fn install_csp_meta() {
-    let Some(window) = web_sys::window() else { return };
-    let Some(document) = window.document() else { return };
+    let Some(window) = web_sys::window() else {
+        return;
+    };
+    let Some(document) = window.document() else {
+        return;
+    };
     let head = match document.head() {
         Some(h) => h,
         None => return,
@@ -40,7 +44,9 @@ fn install_csp_meta() {
             return;
         }
     }
-    let Ok(meta) = document.create_element("meta") else { return };
+    let Ok(meta) = document.create_element("meta") else {
+        return;
+    };
     let _ = meta.set_attribute("http-equiv", "Content-Security-Policy");
     let _ = meta.set_attribute("content", &utils::csp::csp_meta_value());
     let _ = head.append_child(&meta);

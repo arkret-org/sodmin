@@ -11,9 +11,16 @@ title = "Contrix Admin"
 # entirely on script-src and rely on the build-time nonce mechanism in
 # `utils::csp` for any future inline `<script nonce>` tags. Future
 # round 26: rotate the nonce server-side per-request.
+#
+# C37.3: dx 0.7.5 requires the `dev` sub-section explicitly — without
+# it `dx build --release` errors with "missing field `dev`". The
+# `script` field was also dropped from the schema; only `style` is
+# supported now.
 [web.resource]
 style = []
-script = []
+
+[web.resource.dev]
+style = []
 
 # Headers Dioxus serves for the dev bundle. Production deployments MUST
 # also set these headers at the web server / CDN tier; the meta tag

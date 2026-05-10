@@ -20,10 +20,10 @@ use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::table::*;
 use crate::components::ui::toast::{ToastVariant, show_toast};
-use coauth_admin_types::applets_admin::{ApprovalActionRequest, ApprovalStatus};
 use crate::utils::audit::{AdminAuditOutcome, emit_admin_audit};
 use crate::utils::error::format_optional_endpoint_error;
 use crate::utils::i18n::t;
+use coauth_admin_types::applets_admin::{ApprovalActionRequest, ApprovalStatus};
 
 const PAGE_SIZE: u64 = 25;
 
@@ -362,11 +362,20 @@ mod tests {
 
     #[test]
     fn pending_decision_carries_action_polarity() {
-        let p = PendingDecision { id: "a1".into(), action: RowAction::Approve };
+        let p = PendingDecision {
+            id: "a1".into(),
+            action: RowAction::Approve,
+        };
         assert_eq!(p.action, RowAction::Approve);
-        let p = PendingDecision { id: "a1".into(), action: RowAction::Suspend };
+        let p = PendingDecision {
+            id: "a1".into(),
+            action: RowAction::Suspend,
+        };
         assert_eq!(p.action, RowAction::Suspend);
-        let p = PendingDecision { id: "a1".into(), action: RowAction::Revoke };
+        let p = PendingDecision {
+            id: "a1".into(),
+            action: RowAction::Revoke,
+        };
         assert_eq!(p.action, RowAction::Revoke);
     }
 

@@ -54,12 +54,8 @@ pub fn display_error(errcode: &str, status: u16, message: &str) -> String {
         "cx.error.recovery_required" | "recovery_required" => {
             "Recovery flow must complete before this action is allowed"
         }
-        "cx.error.policy_required" | "policy_required" => {
-            "Required policy approval is missing"
-        }
-        "cx.error.session_expired" | "session_expired" => {
-            "Session expired — sign in again"
-        }
+        "cx.error.policy_required" | "policy_required" => "Required policy approval is missing",
+        "cx.error.session_expired" | "session_expired" => "Session expired — sign in again",
         "cx.error.idempotency_conflict" | "idempotency_conflict" => {
             "Idempotency key conflicted with a previous request"
         }
@@ -177,7 +173,6 @@ mod tests {
             "conflict"
         );
     }
-
 
     #[test]
     fn redact_pii_strips_email_ip_token() {

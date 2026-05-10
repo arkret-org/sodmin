@@ -101,17 +101,22 @@ pub fn risk_action_panel(
                 "State store: "
                 span { class: "font-mono", "{bridge.risk_action_state_store_kind}" }
             }
+            // C34.2: the three example payloads are now typed shared
+            // structures from `coauth_admin_types::bridge_admin` instead
+            // of opaque `serde_json::Value`. Round-trip them through
+            // `serde_json` so the rendered string keeps the same JSON
+            // shape the SPA used to display.
             p { class: "text-sm text-muted-foreground",
                 "Proposal example: "
-                span { class: "font-mono", "{bridge.risk_action_examples.proposal_request}" }
+                span { class: "font-mono", "{serde_json::to_string(&bridge.risk_action_examples.proposal_request).unwrap_or_default()}" }
             }
             p { class: "text-sm text-muted-foreground",
                 "Approve example: "
-                span { class: "font-mono", "{bridge.risk_action_examples.approve_request}" }
+                span { class: "font-mono", "{serde_json::to_string(&bridge.risk_action_examples.approve_request).unwrap_or_default()}" }
             }
             p { class: "text-sm text-muted-foreground",
                 "Execute example: "
-                span { class: "font-mono", "{bridge.risk_action_examples.execute_request}" }
+                span { class: "font-mono", "{serde_json::to_string(&bridge.risk_action_examples.execute_request).unwrap_or_default()}" }
             }
             p { class: "text-sm text-muted-foreground", "{hook.todo}" }
 
@@ -214,12 +219,27 @@ pub fn risk_action_panel(
 }
 
 fn current_state_grid(current: &coauth::CoauthAccountRiskActionCurrentState) -> Element {
-    let proposal_id = current.proposal_id.clone().unwrap_or_else(|| "-".to_string());
-    let state_record_id = current.state_record_id.clone().unwrap_or_else(|| "-".to_string());
+    let proposal_id = current
+        .proposal_id
+        .clone()
+        .unwrap_or_else(|| "-".to_string());
+    let state_record_id = current
+        .state_record_id
+        .clone()
+        .unwrap_or_else(|| "-".to_string());
     let action = current.action.clone().unwrap_or_else(|| "-".to_string());
-    let last_operation = current.last_operation.clone().unwrap_or_else(|| "-".to_string());
-    let transition_kind = current.transition_kind.clone().unwrap_or_else(|| "-".to_string());
-    let previous_state = current.previous_state.clone().unwrap_or_else(|| "-".to_string());
+    let last_operation = current
+        .last_operation
+        .clone()
+        .unwrap_or_else(|| "-".to_string());
+    let transition_kind = current
+        .transition_kind
+        .clone()
+        .unwrap_or_else(|| "-".to_string());
+    let previous_state = current
+        .previous_state
+        .clone()
+        .unwrap_or_else(|| "-".to_string());
     let state_revision = current
         .state_revision
         .map(|v| v.to_string())
@@ -234,7 +254,10 @@ fn current_state_grid(current: &coauth::CoauthAccountRiskActionCurrentState) -> 
         .recorded_at
         .map(|dt| dt.to_rfc3339())
         .unwrap_or_else(|| "-".to_string());
-    let recorded_by = current.recorded_by.clone().unwrap_or_else(|| "-".to_string());
+    let recorded_by = current
+        .recorded_by
+        .clone()
+        .unwrap_or_else(|| "-".to_string());
     let recorded_by_username = current
         .recorded_by_username
         .clone()
@@ -386,7 +409,10 @@ fn format_risk_action_status(proposal: &coauth::CoauthAccountRiskActionProposal)
             .as_deref()
             .unwrap_or("missing"),
         proposal.requested_by.as_deref().unwrap_or("missing"),
-        proposal.requested_by_username.as_deref().unwrap_or("missing"),
+        proposal
+            .requested_by_username
+            .as_deref()
+            .unwrap_or("missing"),
         proposal.ticket.as_deref().unwrap_or("missing"),
         proposal.approved_by.as_deref().unwrap_or("pending"),
         proposal.todo,
@@ -410,16 +436,17 @@ fn format_risk_action_approval_status(
             .as_deref()
             .unwrap_or("missing"),
         approval.approved_by.as_deref().unwrap_or("missing"),
-        approval.approved_by_username.as_deref().unwrap_or("missing"),
+        approval
+            .approved_by_username
+            .as_deref()
+            .unwrap_or("missing"),
         approval.execution_endpoint,
         approval.approval_note.as_deref().unwrap_or("missing"),
         approval.todo,
     )
 }
 
-fn format_risk_action_execute_status(
-    execution: &coauth::CoauthAccountRiskActionExecute,
-) -> String {
+fn format_risk_action_execute_status(execution: &coauth::CoauthAccountRiskActionExecute) -> String {
     format!(
         "Executed risk-action scaffold.\nstate_record_id={}\nproposal_id={}\naction={}\nexecution_state={}\nstate_revision={}\ntransition_kind={}\nexecuted_at={}\nexecution_mode={}\nmutation_endpoint={}\nexecution_note={}\n\n{}",
         execution.state_record_id,

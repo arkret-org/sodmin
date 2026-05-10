@@ -112,6 +112,9 @@ pub enum Route {
         #[route("/server-status")]
         ServerStatus {},
 
+        #[route("/starid/resolver")]
+        StaridResolver {},
+
         #[route("/coauth/audit-log")]
         CoauthAuditLog {},
         #[route("/coauth/accounts")]
@@ -435,6 +438,11 @@ fn PolicyList() -> Element {
 #[component]
 fn ServerStatus() -> Element {
     rsx! { pages::server_status::ServerStatus {} }
+}
+
+#[component]
+fn StaridResolver() -> Element {
+    rsx! { pages::starid_resolver::StaridResolverPage {} }
 }
 
 #[component]

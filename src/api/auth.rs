@@ -245,10 +245,7 @@ pub async fn handle_oauth_callback(code: &str, state: Option<&str>) -> Result<()
         return Err(make_err("OAuth state validation failed".into()));
     }
     // Capture nonce before cleanup — verified against id_token after token exchange.
-    let expected_nonce = session
-        .get_item(OAUTH_NONCE_KEY)
-        .ok()
-        .flatten();
+    let expected_nonce = session.get_item(OAUTH_NONCE_KEY).ok().flatten();
     session.remove_item(PKCE_VERIFIER_KEY).ok();
     session.remove_item(OAUTH_STATE_KEY).ok();
     session.remove_item(OAUTH_NONCE_KEY).ok();

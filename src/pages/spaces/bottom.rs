@@ -335,13 +335,16 @@ pub(crate) fn repair_strategy_for_entry(
 ///   that fails closed if the operator clicks "Submit" without first
 ///   filling in effects.
 pub(crate) fn default_repair_strategy(entry: &BottomEntry) -> BottomRepairStrategy {
-    match (BottomKind::from_wire(&entry.kind), entry.candidate_heads.first()) {
-        (Some(BottomKind::Conflict), Some(head)) => BottomRepairStrategy::HeadInWinner {
-            head: head.clone(),
-        },
-        (Some(BottomKind::AnchorerSplit), Some(head)) => BottomRepairStrategy::HeadInWinner {
-            head: head.clone(),
-        },
+    match (
+        BottomKind::from_wire(&entry.kind),
+        entry.candidate_heads.first(),
+    ) {
+        (Some(BottomKind::Conflict), Some(head)) => {
+            BottomRepairStrategy::HeadInWinner { head: head.clone() }
+        }
+        (Some(BottomKind::AnchorerSplit), Some(head)) => {
+            BottomRepairStrategy::HeadInWinner { head: head.clone() }
+        }
         _ => BottomRepairStrategy::Manual {
             note: Some(format!(
                 "Manual repair — bottom kind = {}",
@@ -466,9 +469,18 @@ mod tests {
             cell_id: "cx:cell:cx.component.profile.v1:cx:space:demo".into(),
             kind: "conflict".into(),
             candidate_heads: vec![
-                WinnerHead { move_id: "m:1".into(), ..Default::default() },
-                WinnerHead { move_id: "m:2".into(), ..Default::default() },
-                WinnerHead { move_id: "m:3".into(), ..Default::default() },
+                WinnerHead {
+                    move_id: "m:1".into(),
+                    ..Default::default()
+                },
+                WinnerHead {
+                    move_id: "m:2".into(),
+                    ..Default::default()
+                },
+                WinnerHead {
+                    move_id: "m:3".into(),
+                    ..Default::default()
+                },
             ],
             ..Default::default()
         };
@@ -486,9 +498,10 @@ mod tests {
             space_id: "cx:space:demo".into(),
             cell_id: "cx:cell:cx.component.profile.v1:cx:space:demo".into(),
             kind: "conflict".into(),
-            candidate_heads: vec![
-                WinnerHead { move_id: "m:first".into(), ..Default::default() },
-            ],
+            candidate_heads: vec![WinnerHead {
+                move_id: "m:first".into(),
+                ..Default::default()
+            }],
             ..Default::default()
         };
         match repair_strategy_for_entry(&entry, 99) {

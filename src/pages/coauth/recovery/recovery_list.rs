@@ -15,8 +15,8 @@ use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::table::*;
 use crate::router::Route;
-use coauth_admin_types::recovery_admin::RecoveryTicketStatus;
 use crate::utils::i18n::t;
+use coauth_admin_types::recovery_admin::RecoveryTicketStatus;
 
 const PAGE_SIZE: u64 = 25;
 
@@ -31,9 +31,7 @@ pub fn RecoveryTicketListPage() -> Element {
     let mut data = use_resource(move || {
         let cursor = cursor_snapshot.clone();
         let status = status_snapshot.clone();
-        async move {
-            recovery_admin::list_tickets(cursor.as_deref(), PAGE_SIZE, &status).await
-        }
+        async move { recovery_admin::list_tickets(cursor.as_deref(), PAGE_SIZE, &status).await }
     });
 
     let mut reset_to_first_page = move || {

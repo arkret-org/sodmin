@@ -63,9 +63,9 @@ impl std::fmt::Display for ConfigLoadError {
         match self {
             Self::Fetch(msg) => write!(f, "Failed to fetch /config.json: {msg}"),
             Self::Parse(msg) => write!(f, "Failed to parse /config.json: {msg}"),
-            Self::MissingCoauthUrl => f.write_str(
-                "/config.json is missing the required `coauth_public_url` field",
-            ),
+            Self::MissingCoauthUrl => {
+                f.write_str("/config.json is missing the required `coauth_public_url` field")
+            }
         }
     }
 }

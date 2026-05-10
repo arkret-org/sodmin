@@ -11,9 +11,7 @@
 
 use dioxus::prelude::*;
 
-use crate::api::coauth::{
-    self, CoauthManagedDidBinding,
-};
+use crate::api::coauth::{self, CoauthManagedDidBinding};
 use crate::components::ui::button::{Button, ButtonVariant};
 use crate::components::ui::dialog::ConfirmDialog;
 use crate::components::ui::input::{Input, Label};

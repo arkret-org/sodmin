@@ -9,9 +9,25 @@
 //! the local copy into a re-export, in lock-step with this client.
 //!
 //! TODO(a0-shared-crate): finish migrating the remaining inline DTOs
-//! (account summary / DID binding / claim / session grant / bridge
-//! describe / integration manifest) into `coauth-admin-types` so this
-//! file is reduced to API verb wrappers plus a re-export block.
+//! (session grant / bridge describe / integration manifest /
+//! recovery describe) into `coauth-admin-types` so this file is
+//! reduced to API verb wrappers plus a re-export block.
+//!
+//! Round 33 (C33.3): the per-account admin attributes, DID-binding
+//! inventory, and per-account claim inventory DTOs moved into
+//! `coauth_admin_types::{account_admin, did_binding_admin,
+//! account_claims_admin}`. The sodmin-side decoder shims
+//! (`CoauthAdminAccountRecord`, `CoauthAdminDidBindingRecord`,
+//! `CoauthAccountClaimsEnvelope`) used `String` for what are actually
+//! typed enums on the wire — silently collapsing unknown
+//! lifecycle states into `is_locked = false`, dropping the rich
+//! `id`/`account_id`/`subject`/`issuer`/`verifier_did`/`represented_org`
+//! fields the backend has been emitting for the inventory surfaces,
+//! and missing the `locked_at`/`disabled_at`/`principal_did_bindings`
+//! fields the account list now publishes. Decoders now use the typed
+//! shared shape and the projection layer maps it to the UI's compact
+//! `Coauth*` summary structs, so any new server-side enum variant or
+//! field rename is a compile error rather than a silent UI drift.
 //!
 //! Round 32 (C32.7): the connector-health and notification-channel /
 //! notification-template DTOs moved into
@@ -33,7 +49,6 @@
 //! admin SPA from this point forward.
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 use crate::api::client::{api_client, build_url};
 use crate::utils::error::HttpError;
@@ -276,245 +291,40 @@ pub struct CoauthRiskActionHook {
     pub todo: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-#[non_exhaustive]
-pub struct CoauthAdminBridgeDescribe {
-    #[serde(default)]
-    pub contract: String,
-    #[serde(default)]
-    pub version: String,
-    #[serde(default)]
-    pub api_base_path: String,
-    #[serde(default)]
-    pub accounts_path: String,
-    #[serde(default)]
-    pub account_detail_path_template: String,
-    #[serde(default)]
-    pub account_dids_path_template: String,
-    #[serde(default)]
-    pub account_claims_path_template: String,
-    #[serde(default)]
-    pub account_session_grants_path_template: String,
-    #[serde(default)]
-    pub risk_action_path_template: String,
-    #[serde(default)]
-    pub risk_action_current_path_template: String,
-    #[serde(default)]
-    pub risk_action_history_path_template: String,
-    #[serde(default)]
-    pub risk_action_approve_path_template: String,
-    #[serde(default)]
-    pub risk_action_execute_path_template: String,
-    #[serde(default)]
-    pub risk_action_state_store_kind: String,
-    #[serde(default)]
-    pub risk_action_approval_mode: String,
-    #[serde(default)]
-    pub risk_action_examples: CoauthAdminBridgeRiskActionExamples,
-    #[serde(default)]
-    pub todos: Vec<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-#[non_exhaustive]
-pub struct CoauthAdminBridgeRiskActionExamples {
-    #[serde(default)]
-    pub proposal_request: Value,
-    #[serde(default)]
-    pub approve_request: Value,
-    #[serde(default)]
-    pub execute_request: Value,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-#[non_exhaustive]
-pub struct CoauthIntegrationManifest {
-    #[serde(default)]
-    pub contract: String,
-    #[serde(default)]
-    pub version: String,
-    #[serde(default)]
-    pub service: String,
-    #[serde(default)]
-    pub service_kind: String,
-    #[serde(default)]
-    pub api_base_path: String,
-    #[serde(default)]
-    pub describe_path: String,
-    #[serde(default)]
-    pub dependencies: Vec<CoauthIntegrationDependency>,
-    #[serde(default)]
-    pub surfaces: Vec<CoauthIntegrationSurface>,
-    #[serde(default)]
-    pub todos: Vec<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-#[non_exhaustive]
-pub struct CoauthIntegrationDependency {
-    #[serde(default)]
-    pub service: String,
-    #[serde(default)]
-    pub purpose: String,
-    #[serde(default)]
-    pub required_contract: String,
-    #[serde(default)]
-    pub discovery_path: String,
-    #[serde(default)]
-    pub mode: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-#[non_exhaustive]
-pub struct CoauthIntegrationSurface {
-    #[serde(default)]
-    pub name: String,
-    #[serde(default)]
-    pub method: String,
-    #[serde(default)]
-    pub path: String,
-    #[serde(default)]
-    pub contract: String,
-    #[serde(default)]
-    pub stability: String,
-    #[serde(default)]
-    pub todo: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-#[non_exhaustive]
-pub struct CoauthRecoveryBridgeDescribe {
-    #[serde(default)]
-    pub contract: String,
-    #[serde(default)]
-    pub version: String,
-    #[serde(default)]
-    pub recovery_start_path: String,
-    #[serde(default)]
-    pub recovery_status_path: String,
-    #[serde(default)]
-    pub recovery_resend_path: String,
-    #[serde(default)]
-    pub recovery_principal_snapshot_path: String,
-    #[serde(default)]
-    pub recovery_principal_cache_status_path: String,
-    #[serde(default)]
-    pub recovery_principal_cache_refresh_path: String,
-    #[serde(default)]
-    pub recovery_principal_cache_queue_path: String,
-    #[serde(default)]
-    pub recovery_principal_cache_complete_path: String,
-    #[serde(default)]
-    pub recovery_principal_cache_fail_path: String,
-    #[serde(default)]
-    pub recovery_principal_cache_policy_path: String,
-    #[serde(default)]
-    pub recovery_principal_cache_retry_path: String,
-    #[serde(default)]
-    pub recovery_principal_cache_invalidate_path: String,
-    #[serde(default)]
-    pub recovery_principal_cache_failures_path: String,
-    #[serde(default)]
-    pub recovery_principal_cache_upstream_path: String,
-    #[serde(default)]
-    pub recovery_principal_cache_upstream_probe_path: String,
-    #[serde(default)]
-    pub recovery_principal_cache_upstream_bind_path: String,
-    #[serde(default)]
-    pub key_backup_rest_base: String,
-    #[serde(default)]
-    pub key_backup_schema: String,
-    #[serde(default)]
-    pub device_message_schema: String,
-    #[serde(default)]
-    pub principal_recovery_contract_stack_path: String,
-    #[serde(default)]
-    pub principal_recovery_stack_bundle_path: String,
-    #[serde(default)]
-    pub principal_recovery_discovery_path: String,
-    #[serde(default)]
-    pub principal_recovery_readiness_path: String,
-    #[serde(default)]
-    pub principal_device_messages_describe_path: String,
-    #[serde(default)]
-    pub principal_key_backups_describe_path: String,
-    #[serde(default)]
-    pub principal_restore_state_describe_path: String,
-    #[serde(default)]
-    pub principal_restore_state_export_path: String,
-    #[serde(default)]
-    pub principal_restore_state_import_path: String,
-    #[serde(default)]
-    pub principal_restore_state_durability_path: String,
-    #[serde(default)]
-    pub principal_restore_state_checkpoint_collection_path: String,
-    #[serde(default)]
-    pub principal_restore_start_path: String,
-    #[serde(default)]
-    pub principal_restore_describe_path: String,
-    #[serde(default)]
-    pub principal_restore_ticket_collection_path: String,
-    #[serde(default)]
-    pub principal_restore_ticket_path: String,
-    #[serde(default)]
-    pub principal_restore_ticket_advance_path: String,
-    #[serde(default)]
-    pub principal_restore_ticket_resume_path: String,
-    #[serde(default)]
-    pub principal_restore_ticket_cancel_path: String,
-    #[serde(default)]
-    pub principal_restore_ticket_retry_path: String,
-    #[serde(default)]
-    pub principal_restore_approval_status_path: String,
-    #[serde(default)]
-    pub principal_restore_approval_submit_path: String,
-    #[serde(default)]
-    pub principal_restore_executor_status_path: String,
-    #[serde(default)]
-    pub principal_restore_executor_enqueue_path: String,
-    #[serde(default)]
-    pub principal_restore_executor_start_path: String,
-    #[serde(default)]
-    pub principal_restore_executor_complete_path: String,
-    #[serde(default)]
-    pub principal_restore_result_path: String,
-    #[serde(default)]
-    pub principal_restore_receipt_path: String,
-    #[serde(default)]
-    pub principal_restore_materialized_device_handoff_path: String,
-    #[serde(default)]
-    pub principal_restore_bundle_path: String,
-    #[serde(default)]
-    pub principal_restore_activity_path: String,
-    #[serde(default)]
-    pub principal_restore_timeline_path: String,
-    #[serde(default)]
-    pub principal_restore_audit_feed_path: String,
-    #[serde(default)]
-    pub principal_recovery_live_snapshot_path: String,
-    #[serde(default)]
-    pub principal_authz_describe_path: String,
-    #[serde(default)]
-    pub principal_authz_check_path: String,
-    #[serde(default)]
-    pub principal_policy_describe_path: String,
-    #[serde(default)]
-    pub principal_policy_collection_path: String,
-    #[serde(default)]
-    pub principal_policy_item_path: String,
-    #[serde(default)]
-    pub verification_event_kinds: Vec<String>,
-    #[serde(default)]
-    pub recovery_modes: Vec<String>,
-    #[serde(default)]
-    pub example_backup_payload: Value,
-    #[serde(default)]
-    pub recovery_restore_examples: Value,
-    #[serde(default)]
-    pub recovery_authz_examples: Value,
-    #[serde(default)]
-    pub todos: Vec<String>,
-}
+// The admin-bridge / integration-manifest / recovery-bridge describe
+// shapes used to live inline here. They moved to
+// `coauth_admin_types::{bridge_admin, integration_manifest_admin,
+// recovery_bridge_admin}` in C34.2. Aliases preserve the local
+// `Coauth*` names that the SPA components import.
+//
+// Wire-drift caught and fixed during the lift:
+//
+//   1. `risk_action_examples` (proposal/approve/execute) used to decode
+//      as opaque `serde_json::Value` triple — silently dropping the
+//      typed `action`/`reason`/`ticket`/`approved_by`/`approval_note`/
+//      `execution_note` fields the backend emits. The shared shape now
+//      typed-decodes them, and the risk-action panel formats them with a
+//      stable `Display` string instead of a raw JSON blob.
+//   2. `CoauthIntegrationManifest` was missing the top-level `examples`
+//      field entirely — the backend has been emitting a multi-step
+//      compose-flow example block on every call and the sodmin shim
+//      silently dropped it. The shared shape now carries it.
+//   3. `CoauthRecoveryBridgeDescribe.example_backup_payload` /
+//      `recovery_restore_examples` / `recovery_authz_examples` used to
+//      decode as opaque `serde_json::Value` — silently dropping the
+//      typed `RecoveryBackupPayloadExample` /
+//      `RecoveryRestoreExamples` / `RecoveryAuthzExamples` payloads
+//      the backend has been emitting since the recovery-bridge contract
+//      first shipped. The shared shape now carries the typed structures.
+pub use coauth_admin_types::AdminBridgeDescribe as CoauthAdminBridgeDescribe;
+pub use coauth_admin_types::AdminBridgeRiskActionApprovalExample as CoauthAdminBridgeRiskActionApprovalExample;
+pub use coauth_admin_types::AdminBridgeRiskActionExamples as CoauthAdminBridgeRiskActionExamples;
+pub use coauth_admin_types::AdminBridgeRiskActionExecuteExample as CoauthAdminBridgeRiskActionExecuteExample;
+pub use coauth_admin_types::AdminBridgeRiskActionProposalExample as CoauthAdminBridgeRiskActionProposalExample;
+pub use coauth_admin_types::IntegrationManifest as CoauthIntegrationManifest;
+pub use coauth_admin_types::IntegrationManifestDependency as CoauthIntegrationDependency;
+pub use coauth_admin_types::IntegrationManifestSurface as CoauthIntegrationSurface;
+pub use coauth_admin_types::RecoveryBridgeDescribe as CoauthRecoveryBridgeDescribe;
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 #[non_exhaustive]
@@ -598,11 +408,12 @@ pub struct CoauthAccountRiskActionExecute {
 // shape are now sourced from `coauth_admin_types` via the re-exports
 // above; the local definitions used to live here.
 
-#[derive(Debug, Clone, Deserialize, Default)]
-struct CoauthAccountClaimsEnvelope {
-    #[serde(default)]
-    data: Vec<CoauthAccountClaim>,
-}
+// `CoauthAccountClaimsEnvelope` is now sourced from
+// `coauth_admin_types::AdminAccountClaimsResponse` — sodmin imports the
+// rich shape (15 fields including `id`, `subject`, `issuer`,
+// `verifier_did`, `represented_org`, lifecycle timestamps) and projects
+// down to the compact UI-facing `CoauthAccountClaim` at the boundary.
+type CoauthAccountClaimsEnvelope = coauth_admin_types::AdminAccountClaimsResponse;
 
 #[derive(Debug, Clone, Deserialize, Default)]
 struct CoauthAccountSessionGrantsEnvelope {
@@ -633,53 +444,16 @@ struct CoauthAdminPaginationMeta {
     count: Option<u64>,
 }
 
-#[derive(Debug, Clone, Deserialize, Default)]
-struct CoauthAdminAccountRecord {
-    #[serde(default)]
-    username: String,
-    #[serde(default)]
-    status: String,
-    #[serde(default)]
-    created_at: Option<String>,
-    #[serde(default)]
-    updated_at: Option<String>,
-    #[serde(default)]
-    display_name: Option<String>,
-    #[serde(default)]
-    avatar_url: Option<String>,
-    #[serde(default)]
-    preferred_locale: Option<String>,
-    #[serde(default)]
-    primary_principal_did: Option<String>,
-    #[serde(default)]
-    principal_dids: Vec<String>,
-    #[serde(default)]
-    admin: bool,
-}
-
-#[derive(Debug, Clone, Deserialize, Default)]
-struct CoauthAdminDidBindingsEnvelope {
-    #[serde(default)]
-    data: Vec<CoauthAdminDidBindingRecord>,
-}
-
-#[derive(Debug, Clone, Deserialize, Default)]
-struct CoauthAdminDidBindingRecord {
-    #[serde(default)]
-    did: String,
-    #[serde(default)]
-    kind: String,
-    #[serde(default)]
-    state: String,
-    #[serde(default)]
-    verification_status: String,
-    #[serde(default)]
-    primary: bool,
-    #[serde(default)]
-    active: bool,
-    #[serde(default)]
-    last_verified_at: Option<String>,
-}
+// `CoauthAdminAccountRecord` and `CoauthAdminDidBindingRecord` /
+// `CoauthAdminDidBindingsEnvelope` are now sourced from the shared
+// `coauth_admin_types` crate. Type aliases preserve the local names
+// the rest of this file uses; the compact UI projections
+// (`CoauthAccountSummary`, `CoauthManagedDidBinding`) are mapped
+// from these typed shapes at the API boundary by
+// `map_admin_account_summary_resource` / `map_admin_did_binding`.
+type CoauthAdminAccountRecord = coauth_admin_types::AdminAccountAttributes;
+type CoauthAdminDidBindingsEnvelope = coauth_admin_types::AdminAccountDidBindingsResponse;
+type CoauthAdminDidBindingRecord = coauth_admin_types::AdminAccountDidBinding;
 
 // ── API methods ──
 
@@ -1049,16 +823,8 @@ pub async fn list_accounts_cursor(
         .into_iter()
         .map(map_admin_account_summary_resource)
         .collect();
-    let next_cursor = resp
-        .links
-        .next
-        .as_deref()
-        .and_then(extract_cursor_param);
-    let prev_cursor = resp
-        .links
-        .prev
-        .as_deref()
-        .and_then(extract_cursor_param);
+    let next_cursor = resp.links.next.as_deref().and_then(extract_cursor_param);
+    let prev_cursor = resp.links.prev.as_deref().and_then(extract_cursor_param);
     Ok(CursorPage {
         data: summaries,
         next_cursor,
@@ -1072,8 +838,14 @@ pub async fn get_account_detail(id: &str) -> Result<CoauthAccountDetail, HttpErr
     let recovery_url = "/contrix/api/v1/auth/recovery/describe";
     let integration_manifest_url = "/contrix/api/v1/integration/describe";
     let summary_url = format!("/contrix/admin/v1/accounts/{}", urlencoding::encode(id));
-    let dids_url = format!("/contrix/admin/v1/accounts/{}/dids", urlencoding::encode(id));
-    let claims_url = format!("/contrix/admin/v1/accounts/{}/claims", urlencoding::encode(id));
+    let dids_url = format!(
+        "/contrix/admin/v1/accounts/{}/dids",
+        urlencoding::encode(id)
+    );
+    let claims_url = format!(
+        "/contrix/admin/v1/accounts/{}/claims",
+        urlencoding::encode(id)
+    );
     let grants_url = format!(
         "/contrix/admin/v1/accounts/{}/session-grants",
         urlencoding::encode(id)
@@ -1093,7 +865,8 @@ pub async fn get_account_detail(id: &str) -> Result<CoauthAccountDetail, HttpErr
     let session_grants: CoauthAccountSessionGrantsEnvelope =
         api_client(&grants_url, "GET", None).await?;
     let bridge: CoauthAdminBridgeDescribe = api_client(bridge_url, "GET", None).await?;
-    let recovery_bridge: CoauthRecoveryBridgeDescribe = api_client(recovery_url, "GET", None).await?;
+    let recovery_bridge: CoauthRecoveryBridgeDescribe =
+        api_client(recovery_url, "GET", None).await?;
     let integration_manifest: CoauthIntegrationManifest =
         api_client(integration_manifest_url, "GET", None).await?;
     let current: CoauthAdminSingleEnvelope<CoauthAccountRiskActionCurrentState> =
@@ -1102,20 +875,18 @@ pub async fn get_account_detail(id: &str) -> Result<CoauthAccountDetail, HttpErr
         api_client(&history_url, "GET", None).await?;
     let account = map_admin_account_summary_resource(summary.data);
     Ok(CoauthAccountDetail {
-        claims: claims.data,
+        claims: claims
+            .data
+            .into_iter()
+            .map(map_admin_account_claim)
+            .collect(),
         session_grants: session_grants.data,
         risk_action_current: current.data.attributes,
         risk_action_history: history.data,
-        managed_dids: dids
-            .data
-            .into_iter()
-            .map(map_admin_did_binding)
-            .collect(),
+        managed_dids: dids.data.into_iter().map(map_admin_did_binding).collect(),
         account,
         risk_action_hook: CoauthRiskActionHook {
-            endpoint: bridge
-                .risk_action_path_template
-                .replace("{account_id}", id),
+            endpoint: bridge.risk_action_path_template.replace("{account_id}", id),
             approval_mode: bridge.risk_action_approval_mode.clone(),
             todo: if bridge.todos.is_empty() {
                 "Coauth account admin bridge does not yet publish scaffold TODO items.".to_string()
@@ -1151,10 +922,7 @@ pub async fn add_account_did_binding(
 
 /// Remove a managed DID binding from an account. The DID is part of the
 /// path so the request body is empty.
-pub async fn remove_account_did_binding(
-    account_id: &str,
-    did: &str,
-) -> Result<(), HttpError> {
+pub async fn remove_account_did_binding(account_id: &str, did: &str) -> Result<(), HttpError> {
     let url = format!(
         "/contrix/admin/v1/accounts/{}/dids/{}",
         urlencoding::encode(account_id),
@@ -1167,10 +935,7 @@ pub async fn remove_account_did_binding(
 /// Revoke a single claim attached to the account. The claim is keyed by
 /// its `claim_type` (e.g. `email`, `principal_did`); coauth's claims
 /// admin routes accept the type as a path segment.
-pub async fn revoke_account_claim(
-    account_id: &str,
-    claim_type: &str,
-) -> Result<(), HttpError> {
+pub async fn revoke_account_claim(account_id: &str, claim_type: &str) -> Result<(), HttpError> {
     let url = format!(
         "/contrix/admin/v1/accounts/{}/claims/{}/revoke",
         urlencoding::encode(account_id),
@@ -1235,7 +1000,10 @@ pub async fn execute_account_risk_action(
 }
 
 pub async fn lock_account(id: &str) -> Result<(), HttpError> {
-    let url = format!("/contrix/admin/v1/accounts/{}/lock", urlencoding::encode(id));
+    let url = format!(
+        "/contrix/admin/v1/accounts/{}/lock",
+        urlencoding::encode(id)
+    );
     let _: serde_json::Value = api_client(&url, "POST", None).await?;
     Ok(())
 }
@@ -1250,7 +1018,10 @@ pub async fn disable_account(id: &str) -> Result<(), HttpError> {
 }
 
 pub async fn erase_account(id: &str) -> Result<(), HttpError> {
-    let url = format!("/contrix/admin/v1/accounts/{}/erase", urlencoding::encode(id));
+    let url = format!(
+        "/contrix/admin/v1/accounts/{}/erase",
+        urlencoding::encode(id)
+    );
     let _: serde_json::Value = api_client(&url, "POST", None).await?;
     Ok(())
 }
@@ -1285,38 +1056,87 @@ fn map_admin_account_summary_resource(
     resource: CoauthAdminResource<CoauthAdminAccountRecord>,
 ) -> CoauthAccountSummary {
     let attributes = resource.attributes;
-    let is_locked = attributes.status == "locked";
-    let is_deactivated = attributes.status == "disabled";
+    // Status used to be a `String` compared with `==` — the typed
+    // enum lift catches any new server-side lifecycle variant at
+    // decode time instead of silently rendering as `is_locked = false`.
+    let is_locked = attributes.status.is_locked();
+    let is_deactivated = attributes.status.is_disabled();
+    let primary_did = attributes.effective_primary_did().map(str::to_owned);
+    let bridge_status = if attributes.admin {
+        "coauth_admin_accounts_v1+admin".to_string()
+    } else {
+        "coauth_admin_accounts_v1".to_string()
+    };
     CoauthAccountSummary {
         id: resource.id,
         username: Some(attributes.username),
         display_name: attributes.display_name,
         avatar_url: attributes.avatar_url,
         email: None,
-        primary_did: attributes.primary_principal_did.or_else(|| attributes.principal_dids.first().cloned()),
+        primary_did,
         is_locked,
         is_deactivated,
-        created_at: attributes.created_at,
-        updated_at: attributes.updated_at,
-        bridge_status: if attributes.admin {
-            "coauth_admin_accounts_v1+admin".to_string()
-        } else {
-            "coauth_admin_accounts_v1".to_string()
-        },
+        created_at: attributes.created_at.map(|t| t.to_rfc3339()),
+        updated_at: attributes.updated_at.map(|t| t.to_rfc3339()),
+        bridge_status,
     }
 }
 
 fn map_admin_did_binding(binding: CoauthAdminDidBindingRecord) -> CoauthManagedDidBinding {
+    use coauth_admin_types::{DidBindingKind, DidBindingState, DidBindingVerificationStatus};
+    // The `state:verification_status:primary|secondary` colon-stamp is
+    // exactly what the prior shim emitted so the existing UI panel
+    // doesn't change shape — but each segment is now derived from a
+    // typed enum instead of a free-form `String`, so a new server-side
+    // variant fails to decode loudly rather than silently rendering as
+    // garbled text.
+    let kind_wire = match binding.kind {
+        DidBindingKind::Primary => "primary",
+        DidBindingKind::Recovery => "recovery",
+        DidBindingKind::Pairwise => "pairwise",
+    };
+    let state_wire = match binding.state {
+        DidBindingState::PendingProof => "pending_proof",
+        DidBindingState::Active => "active",
+        DidBindingState::Revoked => "revoked",
+        DidBindingState::Rejected => "rejected",
+    };
+    let verification_wire = match binding.verification_status {
+        DidBindingVerificationStatus::Pending => "pending",
+        DidBindingVerificationStatus::Verified => "verified",
+        DidBindingVerificationStatus::Rejected => "rejected",
+        DidBindingVerificationStatus::NotRequested => "not_requested",
+    };
     CoauthManagedDidBinding {
         did: binding.did,
-        method: Some(binding.kind),
+        method: Some(kind_wire.to_owned()),
         state: Some(format!(
             "{}:{}:{}",
-            binding.state,
-            binding.verification_status,
-            if binding.primary { "primary" } else { "secondary" }
+            state_wire,
+            verification_wire,
+            if binding.primary {
+                "primary"
+            } else {
+                "secondary"
+            }
         )),
-        last_verified_at: binding.last_verified_at,
+        last_verified_at: binding.last_verified_at.map(|t| t.to_rfc3339()),
+    }
+}
+
+/// Map the rich shared `AdminAccountClaimRecord` to the compact
+/// UI-facing `CoauthAccountClaim`. The UI only renders four columns
+/// today; the typed lift preserves the rest of the wire fields on the
+/// `AdminAccountClaimRecord` decode path so a future panel iteration
+/// can surface them without another round-trip migration.
+fn map_admin_account_claim(
+    record: coauth_admin_types::AdminAccountClaimRecord,
+) -> CoauthAccountClaim {
+    CoauthAccountClaim {
+        claim_type: record.claim_type,
+        value: record.value,
+        state: Some(record.state),
+        source: Some(record.source),
     }
 }
 
@@ -1330,7 +1150,11 @@ fn admin_account_claims(account: &CoauthAccountSummary) -> Vec<CoauthAccountClai
             source: Some("coauth_admin_accounts_v1".to_string()),
         });
     }
-    if let Some(primary_did) = account.primary_did.as_ref().filter(|value| !value.is_empty()) {
+    if let Some(primary_did) = account
+        .primary_did
+        .as_ref()
+        .filter(|value| !value.is_empty())
+    {
         claims.push(CoauthAccountClaim {
             claim_type: "principal_did".to_string(),
             value: Some(primary_did.clone()),
@@ -1400,7 +1224,10 @@ fn bridge_session_grants(user: &CoauthUser) -> Vec<CoauthSessionGrantSummary> {
 }
 
 fn placeholder_primary_did(account_id: &str) -> String {
-    format!("did:web:coauth.invalid:accounts:{}", bridge_slug(account_id))
+    format!(
+        "did:web:coauth.invalid:accounts:{}",
+        bridge_slug(account_id)
+    )
 }
 
 fn bridge_slug(value: &str) -> String {
@@ -1478,7 +1305,7 @@ fn extract_cursor_param(link: &str) -> Option<String> {
 
 #[cfg(test)]
 mod cursor_tests {
-    use super::{extract_cursor_param, AccountListFilter};
+    use super::{AccountListFilter, extract_cursor_param};
 
     #[test]
     fn extract_cursor_handles_plain_param() {

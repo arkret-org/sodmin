@@ -1,0 +1,118 @@
+name: Nightly example-stack
+
+# Bring up the full sodmin example stack (postgres + coauth + soland +
+# floria + sodmin) on a fresh GHA runner every night and assert each
+# service responds 200 on its /health endpoint. Logs from every
+# container are captured and uploaded as artifacts on failure so a
+# regression doesn't require local docker reproduction.
+#
+# This complements the per-repo Docker workflows (which build single
+# images in isolation) by exercising the integrated bring-up surface
+# documented in examples/docker-compose.example-stack.yaml.
+
+on:
+  schedule:
+    # 07:30 UTC daily — late enough for upstream caches to warm but
+    # early enough that a regression is triaged before the workday in
+    # the +08 timezone where most of contrix-dev is maintained.
+    - cron: "30 7 * * *"
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "examples/docker-compose.example-stack.yaml"
+      - "examples/up.sh"
+      - "examples/down.sh"
+      - "examples/smoke.sh"
+      - ".github/workflows/nightly-example-stack.yaml"
+
+concurrency:
+  group: nightly-example-stack-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  example-stack:
+    name: Bring up + smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Check out sodmin
+        uses: actions/checkout@v4
+        with:
+          path: sodmin
+
+      # The compose file references ../../{coauth,soland,floria} as
+      # build contexts so we need sibling checkouts on disk. Pinning to
+      # `main` keeps nightly bring-up reproducible against the umbrella
+      # `contrix-dev` layout described in examples/README.md.
+      - name: Check out coauth
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/coauth
+          path: coauth
+          ref: main
+
+      - name: Check out soland
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/soland
+          path: soland
+          ref: main
+
+      - name: Check out floria
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ github.repository_owner }}/floria
+          path: floria
+          ref: main
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Show docker + compose versions
+        run: |
+          docker --version
+          docker compose version
+
+      - name: Bring up example stack
+        id: up
+        working-directory: sodmin
+        run: |
+          # `up.sh` builds every image, generates a coauth config via an
+          # ephemeral coauth container, brings the stack up with --wait,
+          # and dumps recent logs on failure. Exit non-zero propagates.
+          ./examples/up.sh
+
+      - name: Smoke probe every /health endpoint
+        id: smoke
+        working-directory: sodmin
+        env:
+          # Generous budget on a cold-start GHA runner — coauth needs to
+          # finish migrations against the freshly-spun postgres before
+          # /health flips to 200.
+          SMOKE_ATTEMPT_BUDGET: "60"
+        run: ./examples/smoke.sh
+
+      - name: Capture container logs (always)
+        if: always()
+        working-directory: sodmin
+        run: |
+          mkdir -p logs
+          for svc in postgres coauth soland floria sodmin; do
+            docker compose -f examples/docker-compose.example-stack.yaml \
+              logs --no-color --tail=2000 "${svc}" > "logs/${svc}.log" 2>&1 || true
+          done
+          docker compose -f examples/docker-compose.example-stack.yaml ps \
+            > logs/compose-ps.txt 2>&1 || true
+
+      - name: Upload logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: example-stack-logs-${{ github.run_id }}
+          path: sodmin/logs/
+          retention-days: 14
+
+      - name: Tear down (always)
+        if: always()
+        working-directory: sodmin
+        run: ./examples/down.sh || true

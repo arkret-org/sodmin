@@ -16,9 +16,7 @@
 //!   the UI surfaces a "not yet wired" toast.
 
 use crate::api::client::api_client;
-use crate::types::covered_frontier::{
-    CoveredFrontierAdvanceResponse, CoveredFrontierSnapshot,
-};
+use crate::types::covered_frontier::{CoveredFrontierAdvanceResponse, CoveredFrontierSnapshot};
 use crate::utils::error::HttpError;
 
 /// Fetch the covered_frontier snapshot for a Space.

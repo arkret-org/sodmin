@@ -15,9 +15,9 @@ use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::toast::{ToastVariant, show_toast};
 use crate::router::Route;
-use coauth_admin_types::recovery_admin::{RecoveryActionRequest, RecoveryTicketStatus};
 use crate::utils::error::format_optional_endpoint_error;
 use crate::utils::i18n::t;
+use coauth_admin_types::recovery_admin::{RecoveryActionRequest, RecoveryTicketStatus};
 
 use super::recovery_list::ticket_status_variant;
 

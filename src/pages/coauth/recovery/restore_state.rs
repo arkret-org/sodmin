@@ -16,8 +16,8 @@ use crate::components::ui::error_banner::ErrorBanner;
 use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
 use crate::router::Route;
-use coauth_admin_types::recovery_admin::{RecoveryTicketStatus, RestoreStateNode};
 use crate::utils::i18n::t;
+use coauth_admin_types::recovery_admin::{RecoveryTicketStatus, RestoreStateNode};
 
 /// Ordered canonical projection of the restore-state machine. The page
 /// keeps this list stable so the indicator doesn't reorder rows
@@ -54,10 +54,7 @@ impl StateTone {
 /// everything after is `Future`. Terminal failure / rejection /
 /// cancellation marks the matching cell as `Active` and the rest as
 /// `Future` (the indicator stops moving).
-pub(crate) fn tone_for(
-    state: &RecoveryTicketStatus,
-    current: &RecoveryTicketStatus,
-) -> StateTone {
+pub(crate) fn tone_for(state: &RecoveryTicketStatus, current: &RecoveryTicketStatus) -> StateTone {
     let pos = canonical_position(state);
     let cur_pos = canonical_position(current);
     match (pos, cur_pos) {
@@ -183,11 +180,17 @@ mod tests {
     fn tone_orders_done_active_future() {
         // current = Approved → Pending=Done, Approved=Active, ExecutorRunning=Future
         assert_eq!(
-            tone_for(&RecoveryTicketStatus::Pending, &RecoveryTicketStatus::Approved),
+            tone_for(
+                &RecoveryTicketStatus::Pending,
+                &RecoveryTicketStatus::Approved
+            ),
             StateTone::Done
         );
         assert_eq!(
-            tone_for(&RecoveryTicketStatus::Approved, &RecoveryTicketStatus::Approved),
+            tone_for(
+                &RecoveryTicketStatus::Approved,
+                &RecoveryTicketStatus::Approved
+            ),
             StateTone::Active
         );
         assert_eq!(
@@ -198,7 +201,10 @@ mod tests {
             StateTone::Future
         );
         assert_eq!(
-            tone_for(&RecoveryTicketStatus::Complete, &RecoveryTicketStatus::Approved),
+            tone_for(
+                &RecoveryTicketStatus::Complete,
+                &RecoveryTicketStatus::Approved
+            ),
             StateTone::Future
         );
     }

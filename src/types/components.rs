@@ -120,8 +120,7 @@ impl ComponentRegistryEntry {
     }
 
     pub fn criticality_typed(&self) -> ComponentCriticality {
-        ComponentCriticality::from_wire(&self.criticality)
-            .unwrap_or(ComponentCriticality::Optional)
+        ComponentCriticality::from_wire(&self.criticality).unwrap_or(ComponentCriticality::Optional)
     }
 
     pub fn status_typed(&self) -> ComponentImplStatus {
@@ -155,10 +154,7 @@ mod tests {
             ("stub", "Stub"),
             ("disabled", "Disabled"),
         ] {
-            assert_eq!(
-                ComponentImplStatus::from_wire(wire).unwrap().label(),
-                label
-            );
+            assert_eq!(ComponentImplStatus::from_wire(wire).unwrap().label(), label);
         }
         assert!(ComponentImplStatus::from_wire("xx").is_none());
     }

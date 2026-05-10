@@ -28,11 +28,7 @@ pub fn AccountsPage() -> Element {
 
     // Pull a stable snapshot of cursor + filters into the resource closure
     // so the request fires whenever any of these change.
-    let cursor_snapshot = cursor_stack
-        .read()
-        .last()
-        .cloned()
-        .unwrap_or(None);
+    let cursor_snapshot = cursor_stack.read().last().cloned().unwrap_or(None);
     let search_snapshot = search.read().clone();
     let handle_snapshot = handle_filter.read().clone();
     let display_name_snapshot = display_name_filter.read().clone();

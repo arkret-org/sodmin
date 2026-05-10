@@ -23,9 +23,7 @@ use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::table::*;
 use crate::components::ui::toast::{ToastVariant, show_toast};
-use crate::types::moderation::{
-    ReportDecision, ReportStatus, ResolveReportRequest,
-};
+use crate::types::moderation::{ReportDecision, ReportStatus, ResolveReportRequest};
 use crate::utils::error::format_optional_endpoint_error;
 use crate::utils::i18n::t;
 
@@ -52,9 +50,7 @@ pub fn ModerationReportsPage() -> Element {
     let mut data = use_resource(move || {
         let cursor = cursor_snapshot.clone();
         let status = status_snapshot.clone();
-        async move {
-            moderation_admin::list_reports(cursor.as_deref(), PAGE_SIZE, &status).await
-        }
+        async move { moderation_admin::list_reports(cursor.as_deref(), PAGE_SIZE, &status).await }
     });
 
     let mut reset_to_first_page = move || {

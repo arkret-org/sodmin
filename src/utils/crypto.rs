@@ -33,9 +33,7 @@ pub fn random_token(bytes: usize) -> String {
 
 /// Decode a base64url-encoded string (no padding).
 pub fn base64url_decode(encoded: &str) -> Option<Vec<u8>> {
-    let padded = encoded
-        .replace('-', "+")
-        .replace('_', "/");
+    let padded = encoded.replace('-', "+").replace('_', "/");
     let padding = (4 - padded.len() % 4) % 4;
     let padded = format!("{}{}", padded, "=".repeat(padding));
     let binary = web_sys::window()?.atob(&padded).ok()?;
