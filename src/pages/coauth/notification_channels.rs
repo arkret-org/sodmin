@@ -27,20 +27,21 @@ pub fn NotificationChannelsPage() -> Element {
                                 CardContent { class: "p-4".to_string(),
                                     div { class: "flex items-center justify-between",
                                         div { class: "space-y-1",
-                                            p { class: "font-medium", "{channel.id}" }
-                                            p { class: "text-sm text-muted-foreground",
-                                                {channel.channel_type.as_deref().unwrap_or("-")}
-                                            }
-                                            if !channel.is_healthy {
-                                                if let Some(ref err) = channel.last_error {
-                                                    p { class: "text-xs text-destructive mt-1", "{err}" }
+                                            p { class: "font-medium", "{channel.channel}" }
+                                            if channel.configured {
+                                                p { class: "text-xs text-muted-foreground",
+                                                    {t("coauth.notification_channels.configured")}
+                                                }
+                                            } else {
+                                                p { class: "text-xs text-muted-foreground",
+                                                    {t("coauth.notification_channels.unconfigured")}
                                                 }
                                             }
                                         }
-                                        if channel.is_healthy {
-                                            Badge { variant: BadgeVariant::Success, "Healthy" }
+                                        if channel.configured {
+                                            Badge { variant: BadgeVariant::Success, "Configured" }
                                         } else {
-                                            Badge { variant: BadgeVariant::Destructive, "Error" }
+                                            Badge { variant: BadgeVariant::Secondary, "Off" }
                                         }
                                     }
                                 }

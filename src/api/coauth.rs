@@ -10,9 +10,18 @@
 //!
 //! TODO(a0-shared-crate): finish migrating the remaining inline DTOs
 //! (account summary / DID binding / claim / session grant / bridge
-//! describe / integration manifest / connector health / notification
-//! channels / notification templates) into `coauth-admin-types` so this
+//! describe / integration manifest) into `coauth-admin-types` so this
 //! file is reduced to API verb wrappers plus a re-export block.
+//!
+//! Round 32 (C32.7): the connector-health and notification-channel /
+//! notification-template DTOs moved into
+//! `coauth_admin_types::{connector_health, notification_admin}`. The
+//! sodmin-side mirror structs (`CoauthConnectorHealth`,
+//! `CoauthNotificationChannel`, `CoauthNotificationTemplate`) had
+//! drifted out of wire-shape parity with the coauth backend (invented
+//! `id`/`is_healthy`/`last_error`/`channel_type`/`updated_at` fields
+//! that the server never emitted) — they are now removed and consumers
+//! import from the shared crate so rustc enforces the contract.
 //!
 //! Round 28 (A0 switch-over): the recovery / federation / space-policy /
 //! applets-admin DTOs that previously lived inline under
@@ -177,44 +186,16 @@ pub struct CoauthRegistrationToken {
     pub is_revoked: bool,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-#[non_exhaustive]
-pub struct CoauthConnectorHealth {
-    #[serde(default)]
-    pub name: String,
-    #[serde(default)]
-    pub ok: bool,
-    #[serde(default)]
-    pub reason: Option<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-#[non_exhaustive]
-pub struct CoauthNotificationChannel {
-    #[serde(default)]
-    pub id: String,
-    #[serde(default)]
-    pub channel_type: Option<String>,
-    #[serde(default)]
-    pub is_healthy: bool,
-    #[serde(default)]
-    pub last_error: Option<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-#[non_exhaustive]
-pub struct CoauthNotificationTemplate {
-    #[serde(default)]
-    pub id: String,
-    #[serde(default)]
-    pub name: Option<String>,
-    #[serde(default)]
-    pub channel_type: Option<String>,
-    #[serde(default)]
-    pub locale: Option<String>,
-    #[serde(default)]
-    pub updated_at: Option<String>,
-}
+// Connector-health and notification (channel + template) wire shapes
+// are sourced from `coauth-admin-types` so rustc enforces parity with
+// the backend handlers. The aliases keep sodmin's existing call-site
+// names (`Coauth*`) intact while the actual struct definitions live in
+// the shared crate.
+pub use coauth_admin_types::ConnectorHealthRow as CoauthConnectorHealth;
+pub use coauth_admin_types::NotificationChannelStatus as CoauthNotificationChannel;
+pub use coauth_admin_types::NotificationTemplateEntry as CoauthNotificationTemplate;
+pub use coauth_admin_types::PublishTemplateRequest as CoauthPublishTemplateRequest;
+pub use coauth_admin_types::PublishedTemplateResponse as CoauthPublishedTemplate;
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 #[non_exhaustive]
@@ -955,36 +936,44 @@ pub async fn revoke_registration_token(id: &str) -> Result<(), HttpError> {
 }
 
 pub async fn get_connector_health() -> Result<Vec<CoauthConnectorHealth>, HttpError> {
-    let resp: ConnectorHealthResponse =
+    let resp: coauth_admin_types::ConnectorHealthResponse =
         api_client("/contrix/admin/v1/connector-health", "GET", None).await?;
-    Ok(resp.connectors)
+    Ok(resp.providers)
 }
 
 pub async fn list_notification_channels() -> Result<Vec<CoauthNotificationChannel>, HttpError> {
-    let resp: NotificationChannelsResponse =
+    let resp: coauth_admin_types::NotificationChannelsResponse =
         api_client("/contrix/admin/v1/notification-channels", "GET", None).await?;
     Ok(resp.channels)
 }
 
-pub async fn list_notification_templates(
-    page: u64,
-    per_page: u64,
-) -> Result<PaginatedResponse<CoauthNotificationTemplate>, HttpError> {
-    let url = build_url(
-        "/contrix/admin/v1/notification-templates",
-        &[
-            ("page", &page.to_string()),
-            ("per_page", &per_page.to_string()),
-        ],
-    )?;
-    api_client(&url, "GET", None).await
+/// Returns the static catalog of known notification template keys. The
+/// backend endpoint is non-paginated — it returns the full known-keys
+/// list every call — so the sodmin UI now flat-lists the entries
+/// instead of pretending there's a paging cursor.
+pub async fn list_notification_templates() -> Result<Vec<CoauthNotificationTemplate>, HttpError> {
+    let resp: coauth_admin_types::NotificationTemplatesResponse =
+        api_client("/contrix/admin/v1/notification-templates", "GET", None).await?;
+    Ok(resp.templates)
 }
 
-pub async fn publish_notification_templates() -> Result<(), HttpError> {
+/// Publish a notification template version. The request body carries
+/// the template key + channel + body (and optional subject + locale);
+/// the response is the persisted row.
+pub async fn publish_notification_template(
+    request: &CoauthPublishTemplateRequest,
+) -> Result<CoauthPublishedTemplate, HttpError> {
+    let body = serde_json::to_string(request).map_err(|e| HttpError {
+        status: 0,
+        message: format!("serialize publish-template request: {e}"),
+        body: None,
+        request_id: None,
+        retry_after_ms: None,
+    })?;
     api_client(
         "/contrix/admin/v1/notification-templates/publish",
         "POST",
-        None,
+        Some(body),
     )
     .await
 }
@@ -1482,17 +1471,10 @@ fn extract_cursor_param(link: &str) -> Option<String> {
     None
 }
 
-#[derive(Debug, Clone, Deserialize, Default)]
-struct ConnectorHealthResponse {
-    #[serde(default)]
-    connectors: Vec<CoauthConnectorHealth>,
-}
-
-#[derive(Debug, Clone, Deserialize, Default)]
-struct NotificationChannelsResponse {
-    #[serde(default)]
-    channels: Vec<CoauthNotificationChannel>,
-}
+// `ConnectorHealthResponse` and `NotificationChannelsResponse` envelope
+// types are now sourced from `coauth-admin-types` (their wire shape was
+// drifting — sodmin's `connectors:` envelope key did not match the
+// backend's `providers:`).
 
 #[cfg(test)]
 mod cursor_tests {

@@ -27,14 +27,15 @@ pub fn ConnectorHealthPage() -> Element {
                                 CardContent { class: "p-4".to_string(),
                                     div { class: "flex items-center justify-between",
                                         div { class: "space-y-1",
-                                            p { class: "font-medium", "{connector.name}" }
-                                            if !connector.ok {
-                                                if let Some(ref reason) = connector.reason {
-                                                    p { class: "text-xs text-destructive mt-1", "{reason}" }
+                                            p { class: "font-medium", "{connector.provider}" }
+                                            p { class: "text-xs text-muted-foreground", "{connector.homeserver}" }
+                                            if !connector.is_healthy() {
+                                                if let Some(ref err) = connector.error {
+                                                    p { class: "text-xs text-destructive mt-1", "{err}" }
                                                 }
                                             }
                                         }
-                                        if connector.ok {
+                                        if connector.is_healthy() {
                                             Badge { variant: BadgeVariant::Success, "OK" }
                                         } else {
                                             Badge { variant: BadgeVariant::Destructive, "Error" }

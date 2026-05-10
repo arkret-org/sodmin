@@ -115,4 +115,4 @@ examples/       Local deployment examples, pending Contrix stack refresh
 
 ## Current Gaps
 
-See [`_todos.md`](./_todos.md). Remaining P0 work includes generated contract source-of-truth, full coauth account pages, high-risk action approval UX, and a local Contrix compose stack replacing legacy fixtures.
+See the cross-project [`../_todos.md`](../_todos.md). Remaining P0 work includes generated contract source-of-truth, full coauth account pages, high-risk action approval UX, and a local Contrix compose stack replacing legacy fixtures.
