@@ -1,4 +1,4 @@
-//! Content-Security-Policy helpers (Round 25, S5 token hardening).
+//! Content-Security-Policy helpers
 //!
 //! sodmin is a Dioxus WASM SPA. CSP enforcement happens in two places:
 //!
@@ -21,7 +21,7 @@
 //!
 //! The nonce is generated once per page load. The value is held in a
 //! thread-local so the renderer can read it back when stamping any
-//! inline `<script nonce="...">` tag. Round 26 will move nonce
+//! inline `<script nonce="...">` tag.
 //! generation to the server-rendered shell and pass it down via a
 //! data-attribute on `<html>` so each request gets a unique value.
 

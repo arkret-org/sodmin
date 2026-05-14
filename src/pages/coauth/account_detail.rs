@@ -7,7 +7,6 @@ use crate::components::risk_action_panel;
 use crate::components::ui::error_banner::ErrorBanner;
 use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
-use crate::pages::coauth::recovery_bridge_panel;
 use crate::router::Route;
 
 #[component]
@@ -97,7 +96,7 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                                 span { class: "font-mono", "{summary.bridge_status}" }
                             }
                             div { class: "text-sm text-muted-foreground",
-                                "This panel is now backed by coauth admin bridge discovery plus account, DID-binding, claims, session-grant, and risk-action endpoints. High-risk actions flow through a discovered persisted state-machine scaffold. TODO(contract): replace scaffold transitions with controlled mutation executors."
+                                "This panel is backed by coauth admin bridge discovery plus account, DID-binding, claims, session-grant, and risk-action endpoints. High-risk actions flow through a discovered persisted state-machine."
                             }
                         }
 
@@ -244,7 +243,6 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                                 "Session Grants Template: "
                                 span { class: "font-mono", "{detail.admin_bridge.account_session_grants_path_template}" }
                             }
-                            {recovery_bridge_panel::recovery_bridge_block(&detail.recovery_bridge)}
                         }
                     }
                 }

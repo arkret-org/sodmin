@@ -1,17 +1,16 @@
 #!/bin/sh
 set -eu
 
-# Resolve canonical env vars with backward-compatible legacy aliases.
-SOLAND_URL="${SOLAND_URL:-${PALPO_URL:-${MATRIX_URL:-}}}"
-COAUTH_URL="${COAUTH_URL:-${PASION_URL:-}}"
-COAUTH_PUBLIC_URL="${COAUTH_PUBLIC_URL:-${PASION_PUBLIC_URL:-}}"
-SODMIN_PORT="${SODMIN_PORT:-${PADMIN_PORT:-80}}"
+SOLAND_URL="${SOLAND_URL:-}"
+COAUTH_URL="${COAUTH_URL:-}"
+COAUTH_PUBLIC_URL="${COAUTH_PUBLIC_URL:-}"
+SODMIN_PORT="${SODMIN_PORT:-80}"
 
 RESOLVERS="$(awk '/^nameserver / { print $2 }' /etc/resolv.conf | paste -sd ' ' -)"
 LOOKUP_UNAVAILABLE=0
 
 if [ -z "$SOLAND_URL" ]; then
-    echo "SOLAND_URL (or legacy PALPO_URL / MATRIX_URL) must be set" >&2
+    echo "SOLAND_URL must be set" >&2
     exit 1
 fi
 
@@ -81,11 +80,9 @@ cat >> /etc/nginx/conf.d/default.conf <<EOF
 EOF
 }
 
-# Emit /config.json consumed by the Dioxus runtime. `pasion_public_url` is
-# kept as an alias so older app builds with the legacy field name still
-# pick up the URL.
-printf '{"coauth_public_url":"%s","pasion_public_url":"%s"}' \
-    "$COAUTH_PUBLIC_URL" "$COAUTH_PUBLIC_URL" \
+# Emit /config.json consumed by the Dioxus runtime.
+printf '{"coauth_public_url":"%s"}' \
+    "$COAUTH_PUBLIC_URL" \
     > /usr/share/nginx/html/config.json
 
 cat > /etc/nginx/conf.d/default.conf <<EOF
@@ -139,9 +136,9 @@ EOF
 fi
 
 if can_resolve_url_host "$SOLAND_URL"; then
-    write_proxy_location "/_palpo/" "$SOLAND_URL"
-    write_proxy_location "/_matrix/" "$SOLAND_URL"
-    write_proxy_location "/_synapse/" "$SOLAND_URL"
+    write_proxy_location "/api/v1/events/" "$SOLAND_URL"
+    write_proxy_location "/api/v1/sync/" "$SOLAND_URL"
+    write_proxy_location "/api/v1/directory/" "$SOLAND_URL"
 else
     if ! grep -q "resolver " /etc/nginx/conf.d/default.conf; then
         [ -n "$RESOLVERS" ] || RESOLVERS="127.0.0.11"
@@ -152,9 +149,9 @@ EOF
     cat >> /etc/nginx/conf.d/default.conf <<EOF
     set \$soland_backend ${SOLAND_URL};
 EOF
-    write_dynamic_proxy_location "/_palpo/" "soland_backend"
-    write_dynamic_proxy_location "/_matrix/" "soland_backend"
-    write_dynamic_proxy_location "/_synapse/" "soland_backend"
+    write_dynamic_proxy_location "/api/v1/events/" "soland_backend"
+    write_dynamic_proxy_location "/api/v1/sync/" "soland_backend"
+    write_dynamic_proxy_location "/api/v1/directory/" "soland_backend"
 fi
 
 cat >> /etc/nginx/conf.d/default.conf <<EOF

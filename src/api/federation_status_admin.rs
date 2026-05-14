@@ -1,13 +1,11 @@
-//! HTTP client for the soland federation status admin surface
-//! (Round 25, D3).
+//! HTTP client for the soland federation status admin surface.
 //!
 //! Endpoint: `GET /api/admin/v1/federation/status` — per-Space
 //! federation peers + last-anchor-pulled-at + outbound queue depth.
 //! 404-tolerant on the client side.
 //!
-//! Round 28: row / health DTOs moved to `coauth_admin_types::federation_admin`.
-//! The top-level envelope stays here — it is purely the sodmin client's
-//! list-paging shape and has no coauth-side counterpart.
+//! Row / health DTOs are sourced from `coauth_admin_types::federation_admin`.
+//! The top-level envelope is the sodmin client's list-paging shape.
 
 use coauth_admin_types::federation_admin::FederationStatusRow;
 use serde::{Deserialize, Serialize};

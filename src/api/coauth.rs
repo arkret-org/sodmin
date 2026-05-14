@@ -1,52 +1,10 @@
 //! coauth admin API client surface.
 //!
 //! Wire shapes that already live in the shared `coauth-admin-types`
-//! crate are imported / re-exported from there (see the `pub use
-//! coauth_admin_types::…` block below the local types). Anything still
-//! defined inline here is on the migration list — when the corresponding
-//! coauth admin handler graduates from `serde_json::json!` literals to
-//! a typed response, lift the struct into `coauth-admin-types` and turn
-//! the local copy into a re-export, in lock-step with this client.
-//!
-//! TODO(a0-shared-crate): finish migrating the remaining inline DTOs
-//! (session grant / bridge describe / integration manifest /
-//! recovery describe) into `coauth-admin-types` so this file is
-//! reduced to API verb wrappers plus a re-export block.
-//!
-//! Round 33 (C33.3): the per-account admin attributes, DID-binding
-//! inventory, and per-account claim inventory DTOs moved into
-//! `coauth_admin_types::{account_admin, did_binding_admin,
-//! account_claims_admin}`. The sodmin-side decoder shims
-//! (`CoauthAdminAccountRecord`, `CoauthAdminDidBindingRecord`,
-//! `CoauthAccountClaimsEnvelope`) used `String` for what are actually
-//! typed enums on the wire — silently collapsing unknown
-//! lifecycle states into `is_locked = false`, dropping the rich
-//! `id`/`account_id`/`subject`/`issuer`/`verifier_did`/`represented_org`
-//! fields the backend has been emitting for the inventory surfaces,
-//! and missing the `locked_at`/`disabled_at`/`principal_did_bindings`
-//! fields the account list now publishes. Decoders now use the typed
-//! shared shape and the projection layer maps it to the UI's compact
-//! `Coauth*` summary structs, so any new server-side enum variant or
-//! field rename is a compile error rather than a silent UI drift.
-//!
-//! Round 32 (C32.7): the connector-health and notification-channel /
-//! notification-template DTOs moved into
-//! `coauth_admin_types::{connector_health, notification_admin}`. The
-//! sodmin-side mirror structs (`CoauthConnectorHealth`,
-//! `CoauthNotificationChannel`, `CoauthNotificationTemplate`) had
-//! drifted out of wire-shape parity with the coauth backend (invented
-//! `id`/`is_healthy`/`last_error`/`channel_type`/`updated_at` fields
-//! that the server never emitted) — they are now removed and consumers
-//! import from the shared crate so rustc enforces the contract.
-//!
-//! Round 28 (A0 switch-over): the recovery / federation / space-policy /
-//! applets-admin DTOs that previously lived inline under
-//! `crate::types::{recovery,federation_status,space_policy,applets_admin}`
-//! have moved into `coauth_admin_types::{recovery_admin, federation_admin,
-//! space_policy_admin, applets_admin}` and the sodmin-side mirror modules
-//! were deleted. Consumers import from the shared crate directly —
-//! rustc enforces wire-shape parity across the coauth backend and the
-//! admin SPA from this point forward.
+//! crate are imported / re-exported from there. Anything still defined
+//! inline here is on the migration list — when the corresponding coauth
+//! admin handler graduates to a typed response, lift the struct into
+//! `coauth-admin-types` and turn the local copy into a re-export.
 
 use serde::{Deserialize, Serialize};
 
@@ -68,29 +26,6 @@ pub struct CoauthViewer {
     pub email: Option<String>,
     #[serde(default)]
     pub is_admin: bool,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-#[non_exhaustive]
-pub struct CoauthUser {
-    #[serde(default)]
-    pub id: String,
-    #[serde(default)]
-    pub username: Option<String>,
-    #[serde(default)]
-    pub display_name: Option<String>,
-    #[serde(default)]
-    pub avatar_url: Option<String>,
-    #[serde(default)]
-    pub email: Option<String>,
-    #[serde(default)]
-    pub is_locked: bool,
-    #[serde(default)]
-    pub is_deactivated: bool,
-    #[serde(default)]
-    pub created_at: Option<String>,
-    #[serde(default)]
-    pub updated_at: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -201,11 +136,6 @@ pub struct CoauthRegistrationToken {
     pub is_revoked: bool,
 }
 
-// Connector-health and notification (channel + template) wire shapes
-// are sourced from `coauth-admin-types` so rustc enforces parity with
-// the backend handlers. The aliases keep sodmin's existing call-site
-// names (`Coauth*`) intact while the actual struct definitions live in
-// the shared crate.
 pub use coauth_admin_types::ConnectorHealthRow as CoauthConnectorHealth;
 pub use coauth_admin_types::NotificationChannelStatus as CoauthNotificationChannel;
 pub use coauth_admin_types::NotificationTemplateEntry as CoauthNotificationTemplate;
@@ -291,40 +221,8 @@ pub struct CoauthRiskActionHook {
     pub todo: String,
 }
 
-// The admin-bridge / integration-manifest / recovery-bridge describe
-// shapes used to live inline here. They moved to
-// `coauth_admin_types::{bridge_admin, integration_manifest_admin,
-// recovery_bridge_admin}` in C34.2. Aliases preserve the local
-// `Coauth*` names that the SPA components import.
-//
-// Wire-drift caught and fixed during the lift:
-//
-//   1. `risk_action_examples` (proposal/approve/execute) used to decode
-//      as opaque `serde_json::Value` triple — silently dropping the
-//      typed `action`/`reason`/`ticket`/`approved_by`/`approval_note`/
-//      `execution_note` fields the backend emits. The shared shape now
-//      typed-decodes them, and the risk-action panel formats them with a
-//      stable `Display` string instead of a raw JSON blob.
-//   2. `CoauthIntegrationManifest` was missing the top-level `examples`
-//      field entirely — the backend has been emitting a multi-step
-//      compose-flow example block on every call and the sodmin shim
-//      silently dropped it. The shared shape now carries it.
-//   3. `CoauthRecoveryBridgeDescribe.example_backup_payload` /
-//      `recovery_restore_examples` / `recovery_authz_examples` used to
-//      decode as opaque `serde_json::Value` — silently dropping the
-//      typed `RecoveryBackupPayloadExample` /
-//      `RecoveryRestoreExamples` / `RecoveryAuthzExamples` payloads
-//      the backend has been emitting since the recovery-bridge contract
-//      first shipped. The shared shape now carries the typed structures.
 pub use coauth_admin_types::AdminBridgeDescribe as CoauthAdminBridgeDescribe;
-pub use coauth_admin_types::AdminBridgeRiskActionApprovalExample as CoauthAdminBridgeRiskActionApprovalExample;
-pub use coauth_admin_types::AdminBridgeRiskActionExamples as CoauthAdminBridgeRiskActionExamples;
-pub use coauth_admin_types::AdminBridgeRiskActionExecuteExample as CoauthAdminBridgeRiskActionExecuteExample;
-pub use coauth_admin_types::AdminBridgeRiskActionProposalExample as CoauthAdminBridgeRiskActionProposalExample;
 pub use coauth_admin_types::IntegrationManifest as CoauthIntegrationManifest;
-pub use coauth_admin_types::IntegrationManifestDependency as CoauthIntegrationDependency;
-pub use coauth_admin_types::IntegrationManifestSurface as CoauthIntegrationSurface;
-pub use coauth_admin_types::RecoveryBridgeDescribe as CoauthRecoveryBridgeDescribe;
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 #[non_exhaustive]
@@ -346,15 +244,9 @@ pub struct CoauthAccountDetail {
     #[serde(default)]
     pub admin_bridge: CoauthAdminBridgeDescribe,
     #[serde(default)]
-    pub recovery_bridge: CoauthRecoveryBridgeDescribe,
-    #[serde(default)]
     pub integration_manifest: CoauthIntegrationManifest,
 }
 
-// Risk-action wire shapes are sourced from `coauth-admin-types` so drift
-// between sodmin's request bodies / response decoders and coauth's typed
-// handlers is caught at compile time. The aliases below preserve the
-// `Coauth*` names that sodmin's UI components have been using.
 pub use coauth_admin_types::AccountRiskActionApprovalRequest as CoauthAccountRiskActionApprovalDraft;
 pub use coauth_admin_types::AccountRiskActionApprovalResponse as CoauthAccountRiskActionApproval;
 pub use coauth_admin_types::AccountRiskActionCurrentResponse as CoauthAccountRiskActionCurrentState;
@@ -363,9 +255,6 @@ pub use coauth_admin_types::AccountRiskActionHistoryResponse as CoauthAccountRis
 pub use coauth_admin_types::AccountRiskActionProposalRequest as CoauthAccountRiskActionDraft;
 pub use coauth_admin_types::AccountRiskActionProposalResponse as CoauthAccountRiskActionProposal;
 pub use coauth_admin_types::AccountRiskActionTransitionRecord as CoauthAccountRiskActionHistoryEntry;
-
-// `CoauthAccountRiskActionProposal` and `CoauthAccountRiskActionApproval`
-// are now sourced from `coauth_admin_types` via the re-exports above.
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 #[non_exhaustive]
@@ -404,15 +293,6 @@ pub struct CoauthAccountRiskActionExecute {
     pub todo: String,
 }
 
-// `CoauthAccountRiskActionHistoryEntry` and the `{data: [...]}` envelope
-// shape are now sourced from `coauth_admin_types` via the re-exports
-// above; the local definitions used to live here.
-
-// `CoauthAccountClaimsEnvelope` is now sourced from
-// `coauth_admin_types::AdminAccountClaimsResponse` — sodmin imports the
-// rich shape (15 fields including `id`, `subject`, `issuer`,
-// `verifier_did`, `represented_org`, lifecycle timestamps) and projects
-// down to the compact UI-facing `CoauthAccountClaim` at the boundary.
 type CoauthAccountClaimsEnvelope = coauth_admin_types::AdminAccountClaimsResponse;
 
 #[derive(Debug, Clone, Deserialize, Default)]
@@ -431,10 +311,6 @@ struct CoauthAdminPaginatedEnvelope<T> {
     links: coauth_admin_types::PaginationLinks,
 }
 
-// Single-resource envelope is now sourced from `coauth-admin-types` so
-// the wire shape matches what the backend actually emits (the previous
-// hand-written shape was a strict subset). The aliases keep sodmin's
-// callers using the local names while sharing the typed wrapper.
 type CoauthAdminSingleEnvelope<T> = coauth_admin_types::SingleResponse<T>;
 type CoauthAdminResource<T> = coauth_admin_types::SingleResource<T>;
 
@@ -444,13 +320,6 @@ struct CoauthAdminPaginationMeta {
     count: Option<u64>,
 }
 
-// `CoauthAdminAccountRecord` and `CoauthAdminDidBindingRecord` /
-// `CoauthAdminDidBindingsEnvelope` are now sourced from the shared
-// `coauth_admin_types` crate. Type aliases preserve the local names
-// the rest of this file uses; the compact UI projections
-// (`CoauthAccountSummary`, `CoauthManagedDidBinding`) are mapped
-// from these typed shapes at the API boundary by
-// `map_admin_account_summary_resource` / `map_admin_did_binding`.
 type CoauthAdminAccountRecord = coauth_admin_types::AdminAccountAttributes;
 type CoauthAdminDidBindingsEnvelope = coauth_admin_types::AdminAccountDidBindingsResponse;
 type CoauthAdminDidBindingRecord = coauth_admin_types::AdminAccountDidBinding;
@@ -459,41 +328,6 @@ type CoauthAdminDidBindingRecord = coauth_admin_types::AdminAccountDidBinding;
 
 pub async fn get_viewer() -> Result<CoauthViewer, HttpError> {
     api_client("/api/v1/viewer", "GET", None).await
-}
-
-pub async fn list_users(
-    page: u64,
-    per_page: u64,
-    search: &str,
-) -> Result<PaginatedResponse<CoauthUser>, HttpError> {
-    let url = build_url(
-        "/contrix/admin/v1/users",
-        &[
-            ("page", &page.to_string()),
-            ("per_page", &per_page.to_string()),
-            ("search", search),
-        ],
-    )?;
-    api_client(&url, "GET", None).await
-}
-
-pub async fn get_user(id: &str) -> Result<CoauthUser, HttpError> {
-    let url = format!("/contrix/admin/v1/users/{}", urlencoding::encode(id));
-    api_client(&url, "GET", None).await
-}
-
-pub async fn update_user(id: &str, patch: &serde_json::Value) -> Result<CoauthUser, HttpError> {
-    let url = format!("/contrix/admin/v1/users/{}", urlencoding::encode(id));
-    api_client(&url, "PATCH", Some(patch.to_string())).await
-}
-
-pub async fn set_user_password(id: &str, password: &str) -> Result<(), HttpError> {
-    let url = format!(
-        "/contrix/admin/v1/users/{}/set-password",
-        urlencoding::encode(id)
-    );
-    let body = serde_json::json!({ "password": password });
-    api_client(&url, "POST", Some(body.to_string())).await
 }
 
 /// Multi-dimensional filter for `/admin/v1/audit-feed` queries. Empty
@@ -544,7 +378,7 @@ pub async fn list_audit_feed(
     for (k, v) in owned.iter() {
         params.push((k, v.as_str()));
     }
-    let url = build_url("/contrix/admin/v1/audit-feed", &params)?;
+    let url = build_url("/api/admin/v1/audit-feed", &params)?;
     api_client(&url, "GET", None).await
 }
 
@@ -553,7 +387,7 @@ pub async fn list_oauth2_sessions(
     per_page: u64,
 ) -> Result<PaginatedResponse<CoauthOAuth2Session>, HttpError> {
     let url = build_url(
-        "/contrix/admin/v1/oauth2-sessions",
+        "/api/admin/v1/oauth2-sessions",
         &[
             ("page", &page.to_string()),
             ("per_page", &per_page.to_string()),
@@ -564,7 +398,7 @@ pub async fn list_oauth2_sessions(
 
 pub async fn finish_oauth2_session(id: &str) -> Result<(), HttpError> {
     let url = format!(
-        "/contrix/admin/v1/oauth2-sessions/{}/finish",
+        "/api/admin/v1/oauth2-sessions/{}/finish",
         urlencoding::encode(id)
     );
     api_client(&url, "POST", None).await
@@ -575,7 +409,7 @@ pub async fn list_personal_sessions(
     per_page: u64,
 ) -> Result<PaginatedResponse<CoauthPersonalSession>, HttpError> {
     let url = build_url(
-        "/contrix/admin/v1/personal-sessions",
+        "/api/admin/v1/personal-sessions",
         &[
             ("page", &page.to_string()),
             ("per_page", &per_page.to_string()),
@@ -587,7 +421,7 @@ pub async fn list_personal_sessions(
 pub async fn create_personal_session(name: &str) -> Result<CoauthPersonalSession, HttpError> {
     let body = serde_json::json!({ "name": name });
     api_client(
-        "/contrix/admin/v1/personal-sessions",
+        "/api/admin/v1/personal-sessions",
         "POST",
         Some(body.to_string()),
     )
@@ -596,7 +430,7 @@ pub async fn create_personal_session(name: &str) -> Result<CoauthPersonalSession
 
 pub async fn revoke_personal_session(id: &str) -> Result<(), HttpError> {
     let url = format!(
-        "/contrix/admin/v1/personal-sessions/{}/revoke",
+        "/api/admin/v1/personal-sessions/{}/revoke",
         urlencoding::encode(id)
     );
     api_client(&url, "POST", None).await
@@ -604,7 +438,7 @@ pub async fn revoke_personal_session(id: &str) -> Result<(), HttpError> {
 
 pub async fn regenerate_personal_session(id: &str) -> Result<CoauthPersonalSession, HttpError> {
     let url = format!(
-        "/contrix/admin/v1/personal-sessions/{}/regenerate",
+        "/api/admin/v1/personal-sessions/{}/regenerate",
         urlencoding::encode(id)
     );
     api_client(&url, "POST", None).await
@@ -615,7 +449,7 @@ pub async fn list_upstream_providers(
     per_page: u64,
 ) -> Result<PaginatedResponse<CoauthUpstreamProvider>, HttpError> {
     let url = build_url(
-        "/contrix/admin/v1/upstream-oauth-providers",
+        "/api/admin/v1/upstream-oauth-providers",
         &[
             ("page", &page.to_string()),
             ("per_page", &per_page.to_string()),
@@ -628,7 +462,7 @@ pub async fn create_upstream_provider(
     provider: &serde_json::Value,
 ) -> Result<CoauthUpstreamProvider, HttpError> {
     api_client(
-        "/contrix/admin/v1/upstream-oauth-providers",
+        "/api/admin/v1/upstream-oauth-providers",
         "POST",
         Some(provider.to_string()),
     )
@@ -637,7 +471,7 @@ pub async fn create_upstream_provider(
 
 pub async fn delete_upstream_provider(id: &str) -> Result<(), HttpError> {
     let url = format!(
-        "/contrix/admin/v1/upstream-oauth-providers/{}",
+        "/api/admin/v1/upstream-oauth-providers/{}",
         urlencoding::encode(id)
     );
     api_client(&url, "DELETE", None).await
@@ -646,7 +480,7 @@ pub async fn delete_upstream_provider(id: &str) -> Result<(), HttpError> {
 pub async fn toggle_upstream_provider(id: &str, enable: bool) -> Result<(), HttpError> {
     let action = if enable { "enable" } else { "disable" };
     let url = format!(
-        "/contrix/admin/v1/upstream-oauth-providers/{}/{}",
+        "/api/admin/v1/upstream-oauth-providers/{}/{}",
         urlencoding::encode(id),
         action
     );
@@ -658,7 +492,7 @@ pub async fn list_upstream_links(
     per_page: u64,
 ) -> Result<PaginatedResponse<CoauthUpstreamLink>, HttpError> {
     let url = build_url(
-        "/contrix/admin/v1/upstream-oauth-links",
+        "/api/admin/v1/upstream-oauth-links",
         &[
             ("page", &page.to_string()),
             ("per_page", &per_page.to_string()),
@@ -669,7 +503,7 @@ pub async fn list_upstream_links(
 
 pub async fn delete_upstream_link(id: &str) -> Result<(), HttpError> {
     let url = format!(
-        "/contrix/admin/v1/upstream-oauth-links/{}",
+        "/api/admin/v1/upstream-oauth-links/{}",
         urlencoding::encode(id)
     );
     api_client(&url, "DELETE", None).await
@@ -680,7 +514,7 @@ pub async fn list_registration_tokens(
     per_page: u64,
 ) -> Result<PaginatedResponse<CoauthRegistrationToken>, HttpError> {
     let url = build_url(
-        "/contrix/admin/v1/user-registration-tokens",
+        "/api/admin/v1/user-registration-tokens",
         &[
             ("page", &page.to_string()),
             ("per_page", &per_page.to_string()),
@@ -694,7 +528,7 @@ pub async fn create_registration_token(
 ) -> Result<CoauthRegistrationToken, HttpError> {
     let body = serde_json::json!({ "uses_allowed": uses_allowed });
     api_client(
-        "/contrix/admin/v1/user-registration-tokens",
+        "/api/admin/v1/user-registration-tokens",
         "POST",
         Some(body.to_string()),
     )
@@ -703,7 +537,7 @@ pub async fn create_registration_token(
 
 pub async fn revoke_registration_token(id: &str) -> Result<(), HttpError> {
     let url = format!(
-        "/contrix/admin/v1/user-registration-tokens/{}/revoke",
+        "/api/admin/v1/user-registration-tokens/{}/revoke",
         urlencoding::encode(id)
     );
     api_client(&url, "POST", None).await
@@ -711,13 +545,13 @@ pub async fn revoke_registration_token(id: &str) -> Result<(), HttpError> {
 
 pub async fn get_connector_health() -> Result<Vec<CoauthConnectorHealth>, HttpError> {
     let resp: coauth_admin_types::ConnectorHealthResponse =
-        api_client("/contrix/admin/v1/connector-health", "GET", None).await?;
+        api_client("/api/admin/v1/connector-health", "GET", None).await?;
     Ok(resp.providers)
 }
 
 pub async fn list_notification_channels() -> Result<Vec<CoauthNotificationChannel>, HttpError> {
     let resp: coauth_admin_types::NotificationChannelsResponse =
-        api_client("/contrix/admin/v1/notification-channels", "GET", None).await?;
+        api_client("/api/admin/v1/notification-channels", "GET", None).await?;
     Ok(resp.channels)
 }
 
@@ -727,7 +561,7 @@ pub async fn list_notification_channels() -> Result<Vec<CoauthNotificationChanne
 /// instead of pretending there's a paging cursor.
 pub async fn list_notification_templates() -> Result<Vec<CoauthNotificationTemplate>, HttpError> {
     let resp: coauth_admin_types::NotificationTemplatesResponse =
-        api_client("/contrix/admin/v1/notification-templates", "GET", None).await?;
+        api_client("/api/admin/v1/notification-templates", "GET", None).await?;
     Ok(resp.templates)
 }
 
@@ -745,53 +579,15 @@ pub async fn publish_notification_template(
         retry_after_ms: None,
     })?;
     api_client(
-        "/contrix/admin/v1/notification-templates/publish",
+        "/api/admin/v1/notification-templates/publish",
         "POST",
         Some(body),
     )
     .await
 }
 
-pub async fn list_accounts(
-    page: u64,
-    per_page: u64,
-    search: &str,
-) -> Result<PaginatedResponse<CoauthAccountSummary>, HttpError> {
-    let requested = page.max(1).saturating_mul(per_page.max(1));
-    let url = build_url(
-        "/contrix/admin/v1/accounts",
-        &[
-            ("filter[search]", search),
-            ("page[first]", &requested.to_string()),
-            ("count", "true"),
-        ],
-    )?;
-    let resp: CoauthAdminPaginatedEnvelope<CoauthAdminAccountRecord> =
-        api_client(&url, "GET", None).await?;
-    let start = page.saturating_sub(1).saturating_mul(per_page) as usize;
-    let end = start.saturating_add(per_page as usize);
-    let summaries: Vec<CoauthAccountSummary> = resp
-        .data
-        .unwrap_or_default()
-        .into_iter()
-        .map(map_admin_account_summary_resource)
-        .collect();
-    let total = resp.meta.count.unwrap_or(summaries.len() as u64);
-    Ok(PaginatedResponse {
-        data: summaries
-            .into_iter()
-            .skip(start)
-            .take(end.saturating_sub(start))
-            .collect(),
-        total,
-    })
-}
-
-/// Cursor-paginated account list. Differs from `list_accounts` in that
-/// the caller passes back the opaque `cursor` it received from the prior
-/// page's `links.next` instead of converting to / from a 1-based page
-/// number. Use this for any new UI; `list_accounts` is preserved for the
-/// legacy index-page surface.
+/// Cursor-paginated account list. The caller passes back the opaque
+/// `cursor` it received from the prior page's `links.next`.
 ///
 /// Wire shape: `?filter[search]=…&filter[handle]=…&filter[display_name]=…
 /// &cursor={base64url}&limit=N&count=true`. The base64url cursor is the
@@ -814,7 +610,7 @@ pub async fn list_accounts_cursor(
     if let Some(cursor) = cursor.filter(|c| !c.is_empty()) {
         params.push(("cursor", cursor));
     }
-    let url = build_url("/contrix/admin/v1/accounts", &params)?;
+    let url = build_url("/api/admin/v1/accounts", &params)?;
     let resp: CoauthAdminPaginatedEnvelope<CoauthAdminAccountRecord> =
         api_client(&url, "GET", None).await?;
     let summaries: Vec<CoauthAccountSummary> = resp
@@ -834,28 +630,27 @@ pub async fn list_accounts_cursor(
 }
 
 pub async fn get_account_detail(id: &str) -> Result<CoauthAccountDetail, HttpError> {
-    let bridge_url = "/contrix/admin/v1/bridge/describe";
-    let recovery_url = "/contrix/api/v1/auth/recovery/describe";
+    let bridge_url = "/api/admin/v1/bridge/describe";
     let integration_manifest_url = "/contrix/api/v1/integration/describe";
-    let summary_url = format!("/contrix/admin/v1/accounts/{}", urlencoding::encode(id));
+    let summary_url = format!("/api/admin/v1/accounts/{}", urlencoding::encode(id));
     let dids_url = format!(
-        "/contrix/admin/v1/accounts/{}/dids",
+        "/api/admin/v1/accounts/{}/dids",
         urlencoding::encode(id)
     );
     let claims_url = format!(
-        "/contrix/admin/v1/accounts/{}/claims",
+        "/api/admin/v1/accounts/{}/claims",
         urlencoding::encode(id)
     );
     let grants_url = format!(
-        "/contrix/admin/v1/accounts/{}/session-grants",
+        "/api/admin/v1/accounts/{}/session-grants",
         urlencoding::encode(id)
     );
     let current_url = format!(
-        "/contrix/admin/v1/accounts/{}/risk-action/current",
+        "/api/admin/v1/accounts/{}/risk-action/current",
         urlencoding::encode(id)
     );
     let history_url = format!(
-        "/contrix/admin/v1/accounts/{}/risk-action/history",
+        "/api/admin/v1/accounts/{}/risk-action/history",
         urlencoding::encode(id)
     );
     let summary: CoauthAdminSingleEnvelope<CoauthAdminAccountRecord> =
@@ -865,8 +660,6 @@ pub async fn get_account_detail(id: &str) -> Result<CoauthAccountDetail, HttpErr
     let session_grants: CoauthAccountSessionGrantsEnvelope =
         api_client(&grants_url, "GET", None).await?;
     let bridge: CoauthAdminBridgeDescribe = api_client(bridge_url, "GET", None).await?;
-    let recovery_bridge: CoauthRecoveryBridgeDescribe =
-        api_client(recovery_url, "GET", None).await?;
     let integration_manifest: CoauthIntegrationManifest =
         api_client(integration_manifest_url, "GET", None).await?;
     let current: CoauthAdminSingleEnvelope<CoauthAccountRiskActionCurrentState> =
@@ -895,7 +688,6 @@ pub async fn get_account_detail(id: &str) -> Result<CoauthAccountDetail, HttpErr
             },
         },
         admin_bridge: bridge,
-        recovery_bridge,
         integration_manifest,
     })
 }
@@ -909,7 +701,7 @@ pub async fn add_account_did_binding(
     control_proof: &str,
 ) -> Result<(), HttpError> {
     let url = format!(
-        "/contrix/admin/v1/accounts/{}/dids",
+        "/api/admin/v1/accounts/{}/dids",
         urlencoding::encode(account_id)
     );
     let body = serde_json::json!({
@@ -924,7 +716,7 @@ pub async fn add_account_did_binding(
 /// path so the request body is empty.
 pub async fn remove_account_did_binding(account_id: &str, did: &str) -> Result<(), HttpError> {
     let url = format!(
-        "/contrix/admin/v1/accounts/{}/dids/{}",
+        "/api/admin/v1/accounts/{}/dids/{}",
         urlencoding::encode(account_id),
         urlencoding::encode(did),
     );
@@ -937,7 +729,7 @@ pub async fn remove_account_did_binding(account_id: &str, did: &str) -> Result<(
 /// admin routes accept the type as a path segment.
 pub async fn revoke_account_claim(account_id: &str, claim_type: &str) -> Result<(), HttpError> {
     let url = format!(
-        "/contrix/admin/v1/accounts/{}/claims/{}/revoke",
+        "/api/admin/v1/accounts/{}/claims/{}/revoke",
         urlencoding::encode(account_id),
         urlencoding::encode(claim_type),
     );
@@ -950,7 +742,7 @@ pub async fn submit_account_risk_action(
     draft: &CoauthAccountRiskActionDraft,
 ) -> Result<CoauthAccountRiskActionProposal, HttpError> {
     let url = format!(
-        "/contrix/admin/v1/accounts/{}/risk-action",
+        "/api/admin/v1/accounts/{}/risk-action",
         urlencoding::encode(id)
     );
     let body = serde_json::json!({
@@ -968,7 +760,7 @@ pub async fn approve_account_risk_action(
     draft: &CoauthAccountRiskActionApprovalDraft,
 ) -> Result<CoauthAccountRiskActionApproval, HttpError> {
     let url = format!(
-        "/contrix/admin/v1/accounts/{}/risk-action/{}/approve",
+        "/api/admin/v1/accounts/{}/risk-action/{}/approve",
         urlencoding::encode(id),
         urlencoding::encode(proposal_id)
     );
@@ -987,7 +779,7 @@ pub async fn execute_account_risk_action(
     draft: &CoauthAccountRiskActionExecuteDraft,
 ) -> Result<CoauthAccountRiskActionExecute, HttpError> {
     let url = format!(
-        "/contrix/admin/v1/accounts/{}/risk-action/{}/execute",
+        "/api/admin/v1/accounts/{}/risk-action/{}/execute",
         urlencoding::encode(id),
         urlencoding::encode(proposal_id)
     );
@@ -1001,7 +793,7 @@ pub async fn execute_account_risk_action(
 
 pub async fn lock_account(id: &str) -> Result<(), HttpError> {
     let url = format!(
-        "/contrix/admin/v1/accounts/{}/lock",
+        "/api/admin/v1/accounts/{}/lock",
         urlencoding::encode(id)
     );
     let _: serde_json::Value = api_client(&url, "POST", None).await?;
@@ -1010,7 +802,7 @@ pub async fn lock_account(id: &str) -> Result<(), HttpError> {
 
 pub async fn disable_account(id: &str) -> Result<(), HttpError> {
     let url = format!(
-        "/contrix/admin/v1/accounts/{}/disable",
+        "/api/admin/v1/accounts/{}/disable",
         urlencoding::encode(id)
     );
     let _: serde_json::Value = api_client(&url, "POST", None).await?;
@@ -1019,7 +811,7 @@ pub async fn disable_account(id: &str) -> Result<(), HttpError> {
 
 pub async fn erase_account(id: &str) -> Result<(), HttpError> {
     let url = format!(
-        "/contrix/admin/v1/accounts/{}/erase",
+        "/api/admin/v1/accounts/{}/erase",
         urlencoding::encode(id)
     );
     let _: serde_json::Value = api_client(&url, "POST", None).await?;
@@ -1028,37 +820,17 @@ pub async fn erase_account(id: &str) -> Result<(), HttpError> {
 
 pub async fn reset_account_recovery(id: &str) -> Result<(), HttpError> {
     let url = format!(
-        "/contrix/admin/v1/accounts/{}/reset-recovery",
+        "/api/admin/v1/accounts/{}/reset-recovery",
         urlencoding::encode(id)
     );
     let _: serde_json::Value = api_client(&url, "POST", None).await?;
     Ok(())
 }
 
-fn map_user_to_account_summary(user: CoauthUser) -> CoauthAccountSummary {
-    let primary_did = placeholder_primary_did(&user.id);
-    CoauthAccountSummary {
-        id: user.id,
-        username: user.username,
-        display_name: user.display_name,
-        avatar_url: user.avatar_url,
-        email: user.email,
-        primary_did: Some(primary_did),
-        is_locked: user.is_locked,
-        is_deactivated: user.is_deactivated,
-        created_at: user.created_at,
-        updated_at: user.updated_at,
-        bridge_status: "legacy_user_bridge+placeholder_account_contract".to_string(),
-    }
-}
-
 fn map_admin_account_summary_resource(
     resource: CoauthAdminResource<CoauthAdminAccountRecord>,
 ) -> CoauthAccountSummary {
     let attributes = resource.attributes;
-    // Status used to be a `String` compared with `==` — the typed
-    // enum lift catches any new server-side lifecycle variant at
-    // decode time instead of silently rendering as `is_locked = false`.
     let is_locked = attributes.status.is_locked();
     let is_deactivated = attributes.status.is_disabled();
     let primary_did = attributes.effective_primary_did().map(str::to_owned);
@@ -1069,7 +841,7 @@ fn map_admin_account_summary_resource(
     };
     CoauthAccountSummary {
         id: resource.id,
-        username: Some(attributes.username),
+        username: Some(attributes.handle),
         display_name: attributes.display_name,
         avatar_url: attributes.avatar_url,
         email: None,
@@ -1084,12 +856,6 @@ fn map_admin_account_summary_resource(
 
 fn map_admin_did_binding(binding: CoauthAdminDidBindingRecord) -> CoauthManagedDidBinding {
     use coauth_admin_types::{DidBindingKind, DidBindingState, DidBindingVerificationStatus};
-    // The `state:verification_status:primary|secondary` colon-stamp is
-    // exactly what the prior shim emitted so the existing UI panel
-    // doesn't change shape — but each segment is now derived from a
-    // typed enum instead of a free-form `String`, so a new server-side
-    // variant fails to decode loudly rather than silently rendering as
-    // garbled text.
     let kind_wire = match binding.kind {
         DidBindingKind::Primary => "primary",
         DidBindingKind::Recovery => "recovery",
@@ -1124,11 +890,6 @@ fn map_admin_did_binding(binding: CoauthAdminDidBindingRecord) -> CoauthManagedD
     }
 }
 
-/// Map the rich shared `AdminAccountClaimRecord` to the compact
-/// UI-facing `CoauthAccountClaim`. The UI only renders four columns
-/// today; the typed lift preserves the rest of the wire fields on the
-/// `AdminAccountClaimRecord` decode path so a future panel iteration
-/// can surface them without another round-trip migration.
 fn map_admin_account_claim(
     record: coauth_admin_types::AdminAccountClaimRecord,
 ) -> CoauthAccountClaim {
@@ -1138,108 +899,6 @@ fn map_admin_account_claim(
         state: Some(record.state),
         source: Some(record.source),
     }
-}
-
-fn admin_account_claims(account: &CoauthAccountSummary) -> Vec<CoauthAccountClaim> {
-    let mut claims = Vec::new();
-    if let Some(handle) = account.username.as_ref().filter(|value| !value.is_empty()) {
-        claims.push(CoauthAccountClaim {
-            claim_type: "handle".to_string(),
-            value: Some(handle.clone()),
-            state: Some("resolved_from_account_admin".to_string()),
-            source: Some("coauth_admin_accounts_v1".to_string()),
-        });
-    }
-    if let Some(primary_did) = account
-        .primary_did
-        .as_ref()
-        .filter(|value| !value.is_empty())
-    {
-        claims.push(CoauthAccountClaim {
-            claim_type: "principal_did".to_string(),
-            value: Some(primary_did.clone()),
-            state: Some("resolved_from_account_admin".to_string()),
-            source: Some("coauth_admin_accounts_v1".to_string()),
-        });
-    }
-    claims
-}
-
-fn bridge_managed_dids(user: &CoauthUser) -> Vec<CoauthManagedDidBinding> {
-    vec![CoauthManagedDidBinding {
-        did: placeholder_primary_did(&user.id),
-        method: Some("did:web".to_string()),
-        state: Some(if user.is_deactivated {
-            "deactivated_placeholder".to_string()
-        } else if user.is_locked {
-            "locked_placeholder".to_string()
-        } else {
-            "bridge_placeholder".to_string()
-        }),
-        last_verified_at: user.updated_at.clone().or_else(|| user.created_at.clone()),
-    }]
-}
-
-fn bridge_account_claims(user: &CoauthUser) -> Vec<CoauthAccountClaim> {
-    let mut claims = Vec::new();
-    if let Some(username) = user.username.as_ref().filter(|value| !value.is_empty()) {
-        claims.push(CoauthAccountClaim {
-            claim_type: "handle".to_string(),
-            value: Some(username.clone()),
-            state: Some("bridge_placeholder".to_string()),
-            source: Some("legacy_user_bridge".to_string()),
-        });
-    }
-    if let Some(email) = user.email.as_ref().filter(|value| !value.is_empty()) {
-        claims.push(CoauthAccountClaim {
-            claim_type: "email".to_string(),
-            value: Some(email.clone()),
-            state: Some("bridge_placeholder".to_string()),
-            source: Some("legacy_user_bridge".to_string()),
-        });
-    }
-    if claims.is_empty() {
-        claims.push(CoauthAccountClaim {
-            claim_type: "account_id".to_string(),
-            value: Some(user.id.clone()),
-            state: Some("bridge_placeholder".to_string()),
-            source: Some("legacy_user_bridge".to_string()),
-        });
-    }
-    claims
-}
-
-fn bridge_session_grants(user: &CoauthUser) -> Vec<CoauthSessionGrantSummary> {
-    vec![CoauthSessionGrantSummary {
-        grant_id: format!("grant-bridge-preview-{}", bridge_slug(&user.id)),
-        subject: Some(user.id.clone()),
-        scope: Some("urn:contrix:principal-server:session.bind".to_string()),
-        state: Some(if user.is_deactivated {
-            "disabled_placeholder".to_string()
-        } else {
-            "scaffold_preview".to_string()
-        }),
-        issued_at: user.updated_at.clone().or_else(|| user.created_at.clone()),
-    }]
-}
-
-fn placeholder_primary_did(account_id: &str) -> String {
-    format!(
-        "did:web:coauth.invalid:accounts:{}",
-        bridge_slug(account_id)
-    )
-}
-
-fn bridge_slug(value: &str) -> String {
-    let mut out = String::with_capacity(value.len());
-    for ch in value.chars() {
-        if ch.is_ascii_alphanumeric() {
-            out.push(ch.to_ascii_lowercase());
-        } else {
-            out.push('-');
-        }
-    }
-    out.trim_matches('-').to_string()
 }
 
 #[derive(Debug, Clone, Deserialize, Default)]
@@ -1298,11 +957,6 @@ fn extract_cursor_param(link: &str) -> Option<String> {
     None
 }
 
-// `ConnectorHealthResponse` and `NotificationChannelsResponse` envelope
-// types are now sourced from `coauth-admin-types` (their wire shape was
-// drifting — sodmin's `connectors:` envelope key did not match the
-// backend's `providers:`).
-
 #[cfg(test)]
 mod cursor_tests {
     use super::{AccountListFilter, extract_cursor_param};
@@ -1331,9 +985,6 @@ mod cursor_tests {
 
     #[test]
     fn extract_cursor_decodes_url_escaping() {
-        // base64url uses only [A-Za-z0-9_-], but wire data sometimes
-        // includes URL-encoded `=` padding — make sure we round-trip the
-        // raw cursor token cleanly.
         assert_eq!(
             extract_cursor_param("/x?cursor=A%3DB&limit=25"),
             Some("A=B".to_string()),

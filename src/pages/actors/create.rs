@@ -2,7 +2,6 @@ use dioxus::prelude::*;
 
 use crate::api::actors;
 use crate::components::ui::button::Button;
-use crate::components::ui::card::*;
 use crate::components::ui::icons::Icon;
 use crate::components::ui::input::Input;
 use crate::components::ui::loading::Spinner;

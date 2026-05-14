@@ -1,9 +1,8 @@
-//! OAuth/OIDC + session lifecycle (Round 25, S5 token hardening).
+//! OAuth/OIDC + session lifecycle.
 //!
-//! Round 25 replaces the old localStorage `access_token` / `refresh_token`
-//! pair with an httpOnly cookie that coauth's `/oauth2/token` endpoint
-//! sets via `Set-Cookie`. The cookie carries the bearer credential and
-//! is `HttpOnly + Secure + SameSite=Strict + __Host-` prefixed so it
+//! The bearer credential lives in an httpOnly cookie that coauth's
+//! `/oauth2/token` endpoint sets via `Set-Cookie`. The cookie is
+//! `HttpOnly + Secure + SameSite=Strict + __Host-` prefixed so it
 //! cannot be read from JS, can only be sent to the issuing origin, and
 //! cannot be smuggled across navigations from third-party iframes.
 //!
@@ -368,11 +367,7 @@ pub async fn verify_admin() -> Result<bool, HttpError> {
 
     // S5: admin probe sends the cookie automatically via
     // credentials: "include"; no Authorization header.
-    //
-    // TODO(sodmin.codegen): replace this probe with generated admin
-    // discovery from `/api/v1/server/describe` + admin OpenAPI scopes.
-    let admin_probe = crate::api::client::canonical_api_path("/contrix/admin/v1/server/info");
-    let response = Request::get(&admin_probe)
+    let response = Request::get("/api/admin/v1/server/info")
         .header("Accept", "application/json")
         .credentials(RequestCredentials::Include)
         .send()
@@ -500,10 +495,6 @@ mod tests {
 
     #[test]
     fn session_marker_key_is_non_secret_namespace() {
-        // Sanity check: the marker key is not the same as the legacy
-        // bearer-token storage keys we deleted in S5. If those names
-        // ever come back in production they will not silently
-        // collide with the marker.
         assert_eq!(SESSION_ACTIVE_KEY, "session_active");
         assert_ne!(SESSION_ACTIVE_KEY, "access_token");
         assert_ne!(SESSION_ACTIVE_KEY, "refresh_token");

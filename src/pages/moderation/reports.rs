@@ -1,4 +1,4 @@
-//! Soland moderation reports admin page (Round 24, D5).
+//! Soland moderation reports admin page
 //!
 //! Cursor-paginated list of moderation reports. Defaults to filtering
 //! for `open` reports; status filter buttons widen the projection to
@@ -6,10 +6,10 @@
 //! Dismiss actions which POST `{decision, note?}` to soland's resolve
 //! route.
 //!
-//! Distinct from `pages/reports/list.rs` (the legacy report list which
-//! reads coauth's report-of-event surface). This page integrates the
-//! soland moderation admin describe surface and is the operational
-//! workflow for moderation triage.
+//! Distinct from `pages/reports/list.rs` (which reads coauth's
+//! report-of-event surface). This page integrates the soland moderation
+//! admin describe surface and is the operational workflow for
+//! moderation triage.
 
 use dioxus::prelude::*;
 

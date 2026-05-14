@@ -28,7 +28,7 @@ pub fn ConnectorHealthPage() -> Element {
                                     div { class: "flex items-center justify-between",
                                         div { class: "space-y-1",
                                             p { class: "font-medium", "{connector.provider}" }
-                                            p { class: "text-xs text-muted-foreground", "{connector.homeserver}" }
+                                            p { class: "text-xs text-muted-foreground", "{connector.principal_authority}" }
                                             if !connector.is_healthy() {
                                                 if let Some(ref err) = connector.error {
                                                     p { class: "text-xs text-destructive mt-1", "{err}" }

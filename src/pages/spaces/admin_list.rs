@@ -1,14 +1,14 @@
-//! Soland Spaces admin list (Round 24, D1).
+//! Soland Spaces admin list
 //!
 //! Cursor-paginated list of Spaces visible to the current admin scope,
 //! backed by `GET /api/admin/v1/spaces`. Each row shows name, member
 //! count, health (Active / Frozen / Destroyed) and an "Open detail"
 //! button that links to the existing per-space detail page.
 //!
-//! Distinct from `pages/spaces/list.rs` (the legacy Space list) — this
-//! page integrates the soland admin describe surface and exposes the
-//! health badge that drives the destroy/freeze workflows. Follows the
-//! 404-tolerant pattern shared with the rest of Stream H'.
+//! Distinct from `pages/spaces/list.rs` (the user-facing Space list) —
+//! this page integrates the soland admin describe surface and exposes
+//! the health badge that drives the destroy/freeze workflows.
+//! 404-tolerant on the client side.
 
 use dioxus::prelude::*;
 

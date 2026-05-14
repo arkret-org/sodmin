@@ -7,7 +7,7 @@ pub async fn list_invite_tokens(
     per_page: u64,
 ) -> Result<ListResponse<InviteToken>, HttpError> {
     let url = build_url(
-        "/contrix/admin/v1/invite-tokens",
+        "/api/admin/v1/invite-tokens",
         &[
             ("page", &page.to_string()),
             ("per_page", &per_page.to_string()),
@@ -18,7 +18,7 @@ pub async fn list_invite_tokens(
 
 pub async fn create_invite_token(req: &CreateInviteTokenRequest) -> Result<InviteToken, HttpError> {
     api_client(
-        "/contrix/admin/v1/invite-tokens",
+        "/api/admin/v1/invite-tokens",
         "POST",
         Some(serde_json::to_string(req).unwrap_or_default()),
     )
@@ -27,7 +27,7 @@ pub async fn create_invite_token(req: &CreateInviteTokenRequest) -> Result<Invit
 
 pub async fn delete_invite_token(id: &str) -> Result<(), HttpError> {
     let url = format!(
-        "/contrix/admin/v1/invite-tokens/{}",
+        "/api/admin/v1/invite-tokens/{}",
         urlencoding::encode(id)
     );
     api_client(&url, "DELETE", None).await

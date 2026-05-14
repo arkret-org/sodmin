@@ -142,16 +142,6 @@ pub enum Route {
         #[route("/coauth/connector-health")]
         CoauthConnectorHealth {},
 
-        #[route("/coauth/recovery/tickets")]
-        RecoveryTicketList {},
-        #[route("/coauth/recovery/tickets/:ticket_id")]
-        RecoveryTicketDetail { ticket_id: String },
-        #[route("/coauth/recovery/tickets/:ticket_id/restore-state")]
-        RecoveryRestoreState { ticket_id: String },
-        #[route("/coauth/recovery/audit?:ticket_id")]
-        RecoveryAuditLog { ticket_id: String },
-        #[route("/coauth/recovery/describe")]
-        RecoveryDescribe {},
     #[end_layout]
 
     #[route("/:..route")]
@@ -388,31 +378,6 @@ fn SpaceFederationStatus(space_id: String) -> Element {
 #[component]
 fn SpacePolicyEditor(space_id: String) -> Element {
     rsx! { pages::spaces::policy_editor::PolicyEditorPage { space_id } }
-}
-
-#[component]
-fn RecoveryTicketList() -> Element {
-    rsx! { pages::coauth::recovery::recovery_list::RecoveryTicketListPage {} }
-}
-
-#[component]
-fn RecoveryTicketDetail(ticket_id: String) -> Element {
-    rsx! { pages::coauth::recovery::recovery_detail::RecoveryTicketDetailPage { ticket_id } }
-}
-
-#[component]
-fn RecoveryRestoreState(ticket_id: String) -> Element {
-    rsx! { pages::coauth::recovery::restore_state::RestoreStatePage { ticket_id } }
-}
-
-#[component]
-fn RecoveryAuditLog(ticket_id: String) -> Element {
-    rsx! { pages::coauth::recovery::recovery_audit::RecoveryAuditLogPage { ticket_id } }
-}
-
-#[component]
-fn RecoveryDescribe() -> Element {
-    rsx! { pages::coauth::recovery::recovery_describe::RecoveryDescribePage {} }
 }
 
 #[component]

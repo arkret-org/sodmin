@@ -1,5 +1,5 @@
 //! HTTP client for the soland authz capability-grant admin surface
-//! (Round 24, B5).
+//!
 //!
 //! Endpoints:
 //!

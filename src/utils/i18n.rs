@@ -1271,16 +1271,13 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("server_status.event_kind_registry", "Event Kind Registry"),
             ("server_status.profiles_label", "Supported Profiles"),
             ("server_status.features_label", "Supported Features"),
-            // ── Round 24 sidebar entries ──
             ("nav.coauth_capabilities", "Authz Capabilities"),
             ("nav.spaces_admin", "Spaces (admin)"),
             ("nav.moderation_reports", "Moderation reports"),
-            // ── Round 24 common UI ──
             ("common.refresh", "Refresh"),
             ("common.previous", "Previous"),
             ("common.next", "Next"),
             ("common.confirm", "Confirm"),
-            // ── Round 24 B5: soland authz capabilities ──
             ("authz_caps.title", "Authz capability grants"),
             (
                 "authz_caps.subtitle",
@@ -1309,7 +1306,6 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "authz_caps.revoke_confirm_body",
                 "Publishes a revoke Move on the authz cell. Existing sessions resting on this capability will be re-checked on next anchor view. Audit-logged. Continue?",
             ),
-            // ── Round 24 B6: per-account devices ──
             ("coauth_devices.title", "Account devices"),
             (
                 "coauth_devices.subtitle",
@@ -1331,7 +1327,6 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "coauth_devices.revoke_confirm_body",
                 "Marks the device as revoked in coauth and cascade-revokes any session grants tied to it on the soland side. Audit-logged. Continue?",
             ),
-            // ── Round 24 D1: Spaces admin list ──
             ("spaces_admin.title", "Spaces (admin)"),
             (
                 "spaces_admin.subtitle",
@@ -1350,7 +1345,6 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "spaces_admin.empty_subtitle",
                 "soland reported no Spaces matching the current filter for this admin scope.",
             ),
-            // ── Round 24 D2: Space hierarchy ──
             ("space_hierarchy.title", "Hierarchy"),
             (
                 "space_hierarchy.subtitle",
@@ -1365,7 +1359,6 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "space_hierarchy.empty_subtitle",
                 "This Space has no parent and no immediate children.",
             ),
-            // ── Round 24 D5: Moderation reports ──
             ("moderation_reports.title", "Moderation reports"),
             (
                 "moderation_reports.subtitle",
@@ -1407,114 +1400,11 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "Records an admin Dismiss decision on this report (no further action). Audit-logged. Continue?",
             ),
             ("moderation_reports.dismiss_confirm_btn", "Confirm dismiss"),
-            // ── Round 25 nav additions ──
             ("nav.applets_admin", "Applets (admin)"),
             ("nav.agents_admin", "Agents (admin)"),
             ("nav.directory_admin", "Directory (admin)"),
             ("nav.federation_status", "Federation status"),
             ("nav.policy_editor", "Policy editor"),
-            ("nav.recovery_tickets", "Recovery tickets"),
-            ("nav.recovery_audit", "Recovery audit"),
-            ("nav.recovery_describe", "Recovery describe"),
-            // ── Round 25 C1: Recovery list ──
-            ("recovery_list.title", "Recovery tickets"),
-            (
-                "recovery_list.subtitle",
-                "Active coauth recovery tickets awaiting an admin decision or executor progress.",
-            ),
-            ("recovery_list.ticket_id", "Ticket ID"),
-            ("recovery_list.account_did", "Account DID"),
-            ("recovery_list.status", "Status"),
-            ("recovery_list.mode", "Mode"),
-            ("recovery_list.created_at", "Created at"),
-            ("recovery_list.empty_title", "No recovery tickets"),
-            (
-                "recovery_list.empty_subtitle",
-                "coauth reported no recovery tickets matching the current filter.",
-            ),
-            ("recovery_list.filter_active", "Active"),
-            ("recovery_list.filter_pending", "Pending"),
-            ("recovery_list.filter_approved", "Approved"),
-            ("recovery_list.filter_complete", "Complete"),
-            ("recovery_list.filter_all", "All"),
-            // ── Round 25 C2: Recovery detail ──
-            ("recovery_detail.title", "Recovery ticket"),
-            (
-                "recovery_detail.subtitle",
-                "Per-ticket status timeline and admin lifecycle controls (approve/reject/advance/cancel).",
-            ),
-            ("recovery_detail.back_to_list", "Back to recovery tickets"),
-            ("recovery_detail.updated_at", "Updated at"),
-            ("recovery_detail.timeline_title", "Status timeline"),
-            (
-                "recovery_detail.timeline_empty",
-                "No transitions recorded yet.",
-            ),
-            ("recovery_detail.approve", "Approve"),
-            ("recovery_detail.reject", "Reject"),
-            ("recovery_detail.advance", "Advance"),
-            ("recovery_detail.cancel", "Cancel ticket"),
-            ("recovery_detail.open_restore_state", "Open restore state"),
-            ("recovery_detail.open_audit_log", "Open audit log"),
-            ("recovery_detail.approve_confirm_title", "Approve recovery?"),
-            (
-                "recovery_detail.approve_confirm_body",
-                "Records an admin Approve decision and unlocks the executor stage. Audit-logged.",
-            ),
-            ("recovery_detail.reject_confirm_title", "Reject recovery?"),
-            (
-                "recovery_detail.reject_confirm_body",
-                "Permanently rejects the recovery ticket. The user will need to start a fresh recovery flow. Audit-logged.",
-            ),
-            ("recovery_detail.advance_confirm_title", "Advance executor?"),
-            (
-                "recovery_detail.advance_confirm_body",
-                "Manually advance the restore executor when it has stalled. Use sparingly.",
-            ),
-            ("recovery_detail.cancel_confirm_title", "Cancel recovery?"),
-            (
-                "recovery_detail.cancel_confirm_body",
-                "Cancels the in-progress recovery. The ticket is closed and the user can start a fresh recovery if needed.",
-            ),
-            // ── Round 25 C3: Restore state ──
-            ("restore_state.title", "Restore state"),
-            (
-                "restore_state.subtitle",
-                "Linear restore state machine progress for this ticket: pending → approved → executor_running → complete.",
-            ),
-            ("restore_state.back_to_detail", "Back to ticket detail"),
-            ("restore_state.entered_at", "entered"),
-            ("restore_state.completed_at", "completed"),
-            // ── Round 25 C4: Recovery audit ──
-            ("recovery_audit.title", "Recovery audit log"),
-            (
-                "recovery_audit.subtitle",
-                "Read-only audit log of admin actions on recovery tickets.",
-            ),
-            ("recovery_audit.filter_ticket_id", "Filtered to ticket"),
-            ("recovery_audit.at", "At"),
-            ("recovery_audit.action", "Action"),
-            ("recovery_audit.ticket_id", "Ticket"),
-            ("recovery_audit.actor_did", "Actor DID"),
-            ("recovery_audit.note", "Note"),
-            ("recovery_audit.empty_title", "No audit entries"),
-            (
-                "recovery_audit.empty_subtitle",
-                "No recovery operations have been recorded for this filter.",
-            ),
-            // ── Round 25 C5: Recovery describe ──
-            ("recovery_describe.title", "Recovery describe"),
-            (
-                "recovery_describe.subtitle",
-                "Read-only soland recovery describe surface — what the bridge claims to support.",
-            ),
-            ("recovery_describe.contract", "Contract"),
-            ("recovery_describe.version", "Version"),
-            ("recovery_describe.recovery_modes", "Recovery modes"),
-            ("recovery_describe.verification_kinds", "Verification kinds"),
-            ("recovery_describe.paths_title", "Paths"),
-            ("recovery_describe.paths_empty", "No paths advertised."),
-            // ── Round 35.4 C35.4: Starid resolver status panel ──
             ("nav.starid_resolver", "Starid resolver"),
             ("starid_resolver.title", "Starid resolver"),
             (
@@ -1550,7 +1440,6 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "starid_resolver.docs_link",
                 "Open Starid resolver docs \u{2192}",
             ),
-            // ── Round 25 D3: Federation status ──
             ("federation_status.title", "Federation status"),
             (
                 "federation_status.subtitle",
@@ -1571,7 +1460,6 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "federation_status.empty_subtitle",
                 "soland reported no federation peers for this scope, or the federation status endpoint is not yet wired.",
             ),
-            // ── Round 25 D4: Policy editor ──
             ("policy_editor.title", "Space policy editor"),
             (
                 "policy_editor.subtitle",
@@ -1590,7 +1478,6 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "Constructs and signs a cas-register Move on cx.component.space.policy.v1. Audit-logged. Continue?",
             ),
             ("policy_editor.confirm_btn", "Confirm submit"),
-            // ── Round 25 F1: Applets admin ──
             ("applets_admin.title", "Applets (admin)"),
             (
                 "applets_admin.subtitle",
@@ -1621,7 +1508,6 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "applets_admin.suspend_confirm_body",
                 "Temporarily disables the applet without revoking its identity. Re-approve to resume. Audit-logged.",
             ),
-            // ── Round 25 F2: Agents admin ──
             ("agents_admin.title", "Agents (admin)"),
             (
                 "agents_admin.subtitle",
@@ -1652,7 +1538,6 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "agents_admin.suspend_confirm_body",
                 "Temporarily disables the agent without revoking its identity. Re-approve to resume. Audit-logged.",
             ),
-            // ── Round 25 F3: Directory admin ──
             ("directory_admin.title", "Directory (admin)"),
             (
                 "directory_admin.subtitle",
@@ -2080,111 +1965,11 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "在该举报上记录管理员 Dismiss 决策（无需进一步处理）。该操作记入审计。继续？",
             ),
             ("moderation_reports.dismiss_confirm_btn", "确认驳回"),
-            // ── Round 25 nav additions ──
             ("nav.applets_admin", "Applet（管理）"),
             ("nav.agents_admin", "Agent（管理）"),
             ("nav.directory_admin", "目录（管理）"),
             ("nav.federation_status", "联邦状态"),
             ("nav.policy_editor", "策略编辑"),
-            ("nav.recovery_tickets", "恢复工单"),
-            ("nav.recovery_audit", "恢复审计"),
-            ("nav.recovery_describe", "恢复描述"),
-            // ── Round 25 C1: Recovery list ──
-            ("recovery_list.title", "恢复工单"),
-            (
-                "recovery_list.subtitle",
-                "等待管理员决策或执行器进展的活跃 coauth 恢复工单。",
-            ),
-            ("recovery_list.ticket_id", "工单 ID"),
-            ("recovery_list.account_did", "账号 DID"),
-            ("recovery_list.status", "状态"),
-            ("recovery_list.mode", "模式"),
-            ("recovery_list.created_at", "创建时间"),
-            ("recovery_list.empty_title", "无恢复工单"),
-            (
-                "recovery_list.empty_subtitle",
-                "coauth 报告当前过滤条件下无恢复工单。",
-            ),
-            ("recovery_list.filter_active", "活跃"),
-            ("recovery_list.filter_pending", "待审"),
-            ("recovery_list.filter_approved", "已批准"),
-            ("recovery_list.filter_complete", "已完成"),
-            ("recovery_list.filter_all", "全部"),
-            // ── Round 25 C2: Recovery detail ──
-            ("recovery_detail.title", "恢复工单详情"),
-            (
-                "recovery_detail.subtitle",
-                "单工单的状态时间线及管理员生命周期控制（批准/拒绝/推进/取消）。",
-            ),
-            ("recovery_detail.back_to_list", "返回恢复工单列表"),
-            ("recovery_detail.updated_at", "更新时间"),
-            ("recovery_detail.timeline_title", "状态时间线"),
-            ("recovery_detail.timeline_empty", "尚未记录任何状态变迁。"),
-            ("recovery_detail.approve", "批准"),
-            ("recovery_detail.reject", "拒绝"),
-            ("recovery_detail.advance", "推进"),
-            ("recovery_detail.cancel", "取消工单"),
-            ("recovery_detail.open_restore_state", "查看恢复状态机"),
-            ("recovery_detail.open_audit_log", "查看审计日志"),
-            ("recovery_detail.approve_confirm_title", "批准恢复？"),
-            (
-                "recovery_detail.approve_confirm_body",
-                "记录管理员批准决策并解锁执行器阶段。该操作记入审计。",
-            ),
-            ("recovery_detail.reject_confirm_title", "拒绝恢复？"),
-            (
-                "recovery_detail.reject_confirm_body",
-                "永久拒绝该恢复工单。用户需重新发起恢复流程。该操作记入审计。",
-            ),
-            ("recovery_detail.advance_confirm_title", "推进执行器？"),
-            (
-                "recovery_detail.advance_confirm_body",
-                "在执行器停滞时手动推进恢复状态机。请谨慎使用。",
-            ),
-            ("recovery_detail.cancel_confirm_title", "取消恢复？"),
-            (
-                "recovery_detail.cancel_confirm_body",
-                "取消进行中的恢复流程。工单关闭后用户可发起新恢复。",
-            ),
-            // ── Round 25 C3: Restore state ──
-            ("restore_state.title", "恢复状态机"),
-            (
-                "restore_state.subtitle",
-                "本工单的线性恢复状态机进度：pending → approved → executor_running → complete。",
-            ),
-            ("restore_state.back_to_detail", "返回工单详情"),
-            ("restore_state.entered_at", "进入"),
-            ("restore_state.completed_at", "完成"),
-            // ── Round 25 C4: Recovery audit ──
-            ("recovery_audit.title", "恢复审计日志"),
-            (
-                "recovery_audit.subtitle",
-                "恢复工单上管理员操作的只读审计日志。",
-            ),
-            ("recovery_audit.filter_ticket_id", "已按工单过滤"),
-            ("recovery_audit.at", "时间"),
-            ("recovery_audit.action", "操作"),
-            ("recovery_audit.ticket_id", "工单"),
-            ("recovery_audit.actor_did", "操作者 DID"),
-            ("recovery_audit.note", "备注"),
-            ("recovery_audit.empty_title", "无审计记录"),
-            (
-                "recovery_audit.empty_subtitle",
-                "本过滤条件下无任何恢复操作记录。",
-            ),
-            // ── Round 25 C5: Recovery describe ──
-            ("recovery_describe.title", "恢复描述"),
-            (
-                "recovery_describe.subtitle",
-                "soland 恢复 bridge 描述只读视图——bridge 声明支持的能力。",
-            ),
-            ("recovery_describe.contract", "Contract"),
-            ("recovery_describe.version", "版本"),
-            ("recovery_describe.recovery_modes", "恢复模式"),
-            ("recovery_describe.verification_kinds", "验证类型"),
-            ("recovery_describe.paths_title", "路径"),
-            ("recovery_describe.paths_empty", "未声明任何路径。"),
-            // ── Round 35.4 C35.4: Starid resolver status panel ──
             ("nav.starid_resolver", "Starid 解析器"),
             ("starid_resolver.title", "Starid 解析器"),
             (
@@ -2220,7 +2005,6 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "starid_resolver.docs_link",
                 "查看 Starid 解析器文档 \u{2192}",
             ),
-            // ── Round 25 D3: Federation status ──
             ("federation_status.title", "联邦状态"),
             (
                 "federation_status.subtitle",
@@ -2241,7 +2025,6 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "federation_status.empty_subtitle",
                 "soland 报告本范围内无联邦节点，或联邦状态接口尚未部署。",
             ),
-            // ── Round 25 D4: Policy editor ──
             ("policy_editor.title", "Space 策略编辑"),
             (
                 "policy_editor.subtitle",
@@ -2260,7 +2043,6 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "构造并签名 cx.component.space.policy.v1 上的 cas-register Move。该操作记入审计。继续？",
             ),
             ("policy_editor.confirm_btn", "确认提交"),
-            // ── Round 25 F1: Applets admin ──
             ("applets_admin.title", "Applet（管理）"),
             (
                 "applets_admin.subtitle",
@@ -2291,7 +2073,6 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "applets_admin.suspend_confirm_body",
                 "暂时停用该 applet，但保留其身份。重新批准即可恢复。该操作记入审计。",
             ),
-            // ── Round 25 F2: Agents admin ──
             ("agents_admin.title", "Agent（管理）"),
             (
                 "agents_admin.subtitle",
@@ -2322,7 +2103,6 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "agents_admin.suspend_confirm_body",
                 "暂时停用该 agent，但保留其身份。重新批准即可恢复。该操作记入审计。",
             ),
-            // ── Round 25 F3: Directory admin ──
             ("directory_admin.title", "目录（管理）"),
             (
                 "directory_admin.subtitle",

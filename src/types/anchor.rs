@@ -1,14 +1,8 @@
-//! DTO shapes for the Move/Anchor/Lattice admin surface (Stream H', C10.F).
+//! DTO shapes for the Move/Anchor/Lattice admin surface.
 //!
-//! These types mirror what soland's anchor / move / bottom admin APIs are
-//! expected to return; they are intentionally hand-written here as an interim
-//! step. Once `soland-admin-types` lands they will be replaced by
-//! `pub use soland_admin_types::*;` aliases — see `_todos.md` A0 checklist.
-//!
-//! The old hub-Space admin shapes (`writer_model`, `host_endorsement`,
-//! `host_transfer`) were deleted by `contrix-spec` 2026-05-08 and have no
-//! replacements here — the admin surface is now anchorer cells, bottom
-//! diagnostics and the Anchor DAG.
+//! These types mirror what soland's anchor / move / bottom admin APIs
+//! return. The admin surface here is anchorer cells, bottom diagnostics
+//! and the Anchor DAG.
 
 use serde::{Deserialize, Serialize};
 

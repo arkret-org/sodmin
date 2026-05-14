@@ -1,4 +1,4 @@
-//! HTTP client for the per-account device admin surface (Round 24, B6).
+//! HTTP client for the per-account device admin surface
 //!
 //! Endpoints:
 //!

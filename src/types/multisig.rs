@@ -1,5 +1,4 @@
-//! DTO shapes for the multi-sig partial-signature aggregation admin
-//! surface (Stream H', H'9).
+//! DTO shapes for the multi-sig partial-signature aggregation admin surface.
 //!
 //! When a Space's anchorer cell is configured as `threshold(k of n)` or
 //! `mixed`, soland's anchorer worker collects partial signatures from the
@@ -7,9 +6,6 @@
 //! arrive. This describe surface lets an operator see which Anchors are
 //! still waiting on partials, how many have been collected, who hasn't
 //! signed yet, and lets the operator submit their own partial signature.
-//!
-//! Hand-written for now; will become `pub use soland_admin_types::*;`
-//! once the admin-types crate lands. See `_todos.md` A0 checklist.
 
 use serde::{Deserialize, Serialize};
 

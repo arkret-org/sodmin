@@ -1,4 +1,4 @@
-//! HTTP client for the soland Space Policy editor (Round 25, D4).
+//! HTTP client for the soland Space Policy editor
 //!
 //! - `GET  /api/admin/v1/spaces/{id}/policy` — current `cx.component.space.policy.v1` value.
 //! - `POST /api/admin/v1/spaces/{id}/policy` — write a new policy. soland

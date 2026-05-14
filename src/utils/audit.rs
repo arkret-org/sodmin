@@ -1,4 +1,4 @@
-//! Client-side admin audit helper (Round 26).
+//! Client-side admin audit helper
 //!
 //! Why this exists: per-row destructive mutations on the F1/F2/F3
 //! Applets / Agents / Directory admin pages must leave a structured

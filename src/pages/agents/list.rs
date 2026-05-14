@@ -41,7 +41,6 @@ pub fn AgentList() -> Element {
                                     TableHead { {t("agents.owner_id")} }
                                     TableHead { {t("agents.agent_type")} }
                                     TableHead { {t("agents.status")} }
-                                    TableHead { {t("agents.memory_count")} }
                                     TableHead { {t("agents.enabled")} }
                                     TableHead { {t("agents.last_active_at")} }
                                     TableHead { class: "text-right".to_string(), {t("common.actions")} }
@@ -62,7 +61,6 @@ pub fn AgentList() -> Element {
                                             let owner_id = agent.owner_id.clone();
                                             let agent_type = agent.agent_type.clone().unwrap_or_else(|| "-".to_string());
                                             let status = agent.status.clone().unwrap_or_else(|| "-".to_string());
-                                            let memory_count = agent.memory_count;
                                             let is_enabled = agent.is_enabled;
                                             let last_active = agent.last_active_at.clone().unwrap_or_else(|| "-".to_string());
 
@@ -83,7 +81,6 @@ pub fn AgentList() -> Element {
                                                     TableCell {
                                                         Badge { variant: BadgeVariant::Secondary, "{status}" }
                                                     }
-                                                    TableCell { "{memory_count}" }
                                                     TableCell {
                                                         if is_enabled {
                                                             Badge { variant: BadgeVariant::Success, {t("common.enabled")} }

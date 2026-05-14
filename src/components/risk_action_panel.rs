@@ -258,8 +258,8 @@ fn current_state_grid(current: &coauth::CoauthAccountRiskActionCurrentState) -> 
         .recorded_by
         .clone()
         .unwrap_or_else(|| "-".to_string());
-    let recorded_by_username = current
-        .recorded_by_username
+    let recorded_by_handle = current
+        .recorded_by_handle
         .clone()
         .unwrap_or_else(|| "-".to_string());
     let execution_endpoint = current
@@ -287,7 +287,7 @@ fn current_state_grid(current: &coauth::CoauthAccountRiskActionCurrentState) -> 
             {detail_row("Ticket", &ticket)}
             {detail_row("Recorded At", &recorded_at)}
             {detail_row("Recorded By", &recorded_by)}
-            {detail_row("Recorded By Username", &recorded_by_username)}
+            {detail_row("Recorded By Handle", &recorded_by_handle)}
             {detail_row("Execution Endpoint", &execution_endpoint)}
             {detail_row("Mutation Endpoint", &mutation_endpoint)}
             {detail_row("State Store", &state_store_kind)}
@@ -334,7 +334,7 @@ fn history_entry_card(entry: &coauth::CoauthAccountRiskActionHistoryEntry) -> El
             div { "Ticket: " span { class: "font-mono", "{entry.ticket.as_deref().unwrap_or(\"missing\")}" } }
             div { "Recorded At: " span { class: "font-mono", "{recorded_at}" } }
             div { "Recorded By: " span { class: "font-mono", "{entry.recorded_by.as_deref().unwrap_or(\"missing\")}" } }
-            div { "Recorded By Username: " span { class: "font-mono", "{entry.recorded_by_username.as_deref().unwrap_or(\"missing\")}" } }
+            div { "Recorded By Handle: " span { class: "font-mono", "{entry.recorded_by_handle.as_deref().unwrap_or(\"missing\")}" } }
             div { "Execution Endpoint: " span { class: "font-mono", "{entry.execution_endpoint.as_deref().unwrap_or(\"missing\")}" } }
             div { "Mutation Endpoint: " span { class: "font-mono", "{entry.mutation_endpoint.as_deref().unwrap_or(\"missing\")}" } }
             div { "Approval Note: " span { class: "font-mono", "{entry.approval_note.as_deref().unwrap_or(\"missing\")}" } }
@@ -394,7 +394,7 @@ fn build_risk_action_execute_draft(
 
 fn format_risk_action_status(proposal: &coauth::CoauthAccountRiskActionProposal) -> String {
     format!(
-        "Queued risk-action proposal.\nstate_record_id={}\nproposal_id={}\naction={}\nproposal_state={}\nstate_revision={}\ntransition_kind={}\napproval_mode={}\nexecution_endpoint={}\nrequested_at={}\nrequested_by={}\nrequested_by_username={}\nticket={}\napproved_by={}\n\n{}",
+        "Queued risk-action proposal.\nstate_record_id={}\nproposal_id={}\naction={}\nproposal_state={}\nstate_revision={}\ntransition_kind={}\napproval_mode={}\nexecution_endpoint={}\nrequested_at={}\nrequested_by={}\nrequested_by_handle={}\nticket={}\napproved_by={}\n\n{}",
         proposal.state_record_id,
         proposal.proposal_id,
         proposal.action,
@@ -410,7 +410,7 @@ fn format_risk_action_status(proposal: &coauth::CoauthAccountRiskActionProposal)
             .unwrap_or("missing"),
         proposal.requested_by.as_deref().unwrap_or("missing"),
         proposal
-            .requested_by_username
+            .requested_by_handle
             .as_deref()
             .unwrap_or("missing"),
         proposal.ticket.as_deref().unwrap_or("missing"),
@@ -423,7 +423,7 @@ fn format_risk_action_approval_status(
     approval: &coauth::CoauthAccountRiskActionApproval,
 ) -> String {
     format!(
-        "Approved risk-action proposal.\nstate_record_id={}\nproposal_id={}\naction={}\napproval_state={}\nstate_revision={}\ntransition_kind={}\napproved_at={}\napproved_by={}\napproved_by_username={}\nexecution_endpoint={}\napproval_note={}\n\n{}",
+        "Approved risk-action proposal.\nstate_record_id={}\nproposal_id={}\naction={}\napproval_state={}\nstate_revision={}\ntransition_kind={}\napproved_at={}\napproved_by={}\napproved_by_handle={}\nexecution_endpoint={}\napproval_note={}\n\n{}",
         approval.state_record_id,
         approval.proposal_id,
         approval.action,
@@ -437,7 +437,7 @@ fn format_risk_action_approval_status(
             .unwrap_or("missing"),
         approval.approved_by.as_deref().unwrap_or("missing"),
         approval
-            .approved_by_username
+            .approved_by_handle
             .as_deref()
             .unwrap_or("missing"),
         approval.execution_endpoint,

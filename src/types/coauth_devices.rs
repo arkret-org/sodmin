@@ -1,4 +1,4 @@
-//! DTO shapes for the per-account device admin surface (Round 24, B6).
+//! DTO shapes for the per-account device admin surface
 //!
 //! Coauth owns the device list (one row per registered device per
 //! account); soland owns the cascade-revoke that also revokes any

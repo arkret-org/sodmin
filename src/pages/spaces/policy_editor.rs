@@ -1,4 +1,4 @@
-//! Space policy editor (Round 25, D4).
+//! Space policy editor
 //!
 //! Form to view and edit a Space's `cx.component.space.policy.v1`
 //! components. Submit constructs a cas-register Move via

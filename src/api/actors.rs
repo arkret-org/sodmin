@@ -8,7 +8,7 @@ pub async fn list_actors(
     search: &str,
 ) -> Result<ListResponse<Actor>, HttpError> {
     let url = build_url(
-        "/contrix/admin/v1/actors",
+        "/api/admin/v1/actors",
         &[
             ("page", &page.to_string()),
             ("per_page", &per_page.to_string()),
@@ -19,13 +19,13 @@ pub async fn list_actors(
 }
 
 pub async fn get_actor(id: &str) -> Result<Actor, HttpError> {
-    let url = format!("/contrix/admin/v1/actors/{}", urlencoding::encode(id));
+    let url = format!("/api/admin/v1/actors/{}", urlencoding::encode(id));
     api_client(&url, "GET", None).await
 }
 
 pub async fn create_actor(req: &CreateActorRequest) -> Result<Actor, HttpError> {
     api_client(
-        "/contrix/admin/v1/actors",
+        "/api/admin/v1/actors",
         "POST",
         Some(serde_json::to_string(req).unwrap_or_default()),
     )
@@ -33,7 +33,7 @@ pub async fn create_actor(req: &CreateActorRequest) -> Result<Actor, HttpError> 
 }
 
 pub async fn update_actor(id: &str, req: &UpdateActorRequest) -> Result<Actor, HttpError> {
-    let url = format!("/contrix/admin/v1/actors/{}", urlencoding::encode(id));
+    let url = format!("/api/admin/v1/actors/{}", urlencoding::encode(id));
     api_client(
         &url,
         "PATCH",
@@ -44,7 +44,7 @@ pub async fn update_actor(id: &str, req: &UpdateActorRequest) -> Result<Actor, H
 
 pub async fn deactivate_actor(id: &str) -> Result<(), HttpError> {
     let url = format!(
-        "/contrix/admin/v1/actors/{}/deactivate",
+        "/api/admin/v1/actors/{}/deactivate",
         urlencoding::encode(id)
     );
     api_client(&url, "POST", None).await
@@ -52,14 +52,14 @@ pub async fn deactivate_actor(id: &str) -> Result<(), HttpError> {
 
 pub async fn reactivate_actor(id: &str) -> Result<(), HttpError> {
     let url = format!(
-        "/contrix/admin/v1/actors/{}/reactivate",
+        "/api/admin/v1/actors/{}/reactivate",
         urlencoding::encode(id)
     );
     api_client(&url, "POST", None).await
 }
 
 pub async fn erase_actor(id: &str) -> Result<(), HttpError> {
-    let url = format!("/contrix/admin/v1/actors/{}/erase", urlencoding::encode(id));
+    let url = format!("/api/admin/v1/actors/{}/erase", urlencoding::encode(id));
     api_client(&url, "POST", None).await
 }
 
@@ -67,7 +67,7 @@ pub async fn check_handle_availability(
     handle: &str,
 ) -> Result<HandleAvailabilityResult, HttpError> {
     let url = build_url(
-        "/contrix/admin/v1/actors/handle-availability",
+        "/api/admin/v1/actors/handle-availability",
         &[("handle", handle)],
     )?;
     api_client(&url, "GET", None).await

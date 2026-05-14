@@ -1,11 +1,11 @@
-//! Per-account device admin page (Round 24, B6).
+//! Per-account device admin page
 //!
 //! Cursor-paginated list of devices registered to a single account.
 //! Each row shows status / last-seen / linked session count and (for
 //! `Active` / `Stale` rows) a destructive Revoke button.
 //!
 //! The cascade revoke of session grants on the soland side is wired in
-//! coauth round 23 — the admin UI just calls coauth's revoke route and
+//! coauth
 //! soland reacts. Follows the 404-tolerant pattern shared with the rest
 //! of Stream H'.
 

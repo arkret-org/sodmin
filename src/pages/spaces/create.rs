@@ -2,7 +2,6 @@ use dioxus::prelude::*;
 
 use crate::api::spaces;
 use crate::components::ui::button::Button;
-use crate::components::ui::icons::Icon;
 use crate::components::ui::input::Input;
 use crate::components::ui::loading::Spinner;
 use crate::components::ui::page_header::PageHeader;
@@ -15,7 +14,7 @@ pub fn SpaceCreate() -> Element {
     let mut name = use_signal(String::new);
     let mut topic = use_signal(String::new);
     let mut is_encrypted = use_signal(|| false);
-    let mut discoverability = use_signal(|| "listed".to_string());
+    let discoverability = use_signal(|| "listed".to_string());
     let mut saving = use_signal(|| false);
     let mut error = use_signal(String::new);
     let nav = use_navigator();

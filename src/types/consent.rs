@@ -1,9 +1,7 @@
-//! DTO shapes for the consent admin surface (Stream H', H'5).
+//! DTO shapes for the consent admin surface.
 //!
 //! These mirror the join-projection of `cx:cell:cx.component.consent.v1:<holder_did>`
 //! consent or-set values that soland exposes via the admin describe endpoint.
-//! Hand-written for now; will become `pub use soland_admin_types::*;` once
-//! the admin-types crate lands. See `_todos.md` A0 checklist.
 //!
 //! IMPORTANT: this is *admin-visible aggregated metadata*, not the raw
 //! peer-relations a holder has granted. The soland-side endpoint is

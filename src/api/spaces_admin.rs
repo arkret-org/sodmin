@@ -1,4 +1,4 @@
-//! HTTP client for the soland Spaces admin surface (Round 24, D1 / D2).
+//! HTTP client for the soland Spaces admin surface.
 //!
 //! Endpoints:
 //!

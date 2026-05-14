@@ -4,7 +4,7 @@ use crate::utils::error::HttpError;
 
 pub async fn list_policies(page: u64, per_page: u64) -> Result<ListResponse<Policy>, HttpError> {
     let url = build_url(
-        "/contrix/admin/v1/policies",
+        "/api/admin/v1/policies",
         &[
             ("page", &page.to_string()),
             ("per_page", &per_page.to_string()),
@@ -14,13 +14,13 @@ pub async fn list_policies(page: u64, per_page: u64) -> Result<ListResponse<Poli
 }
 
 pub async fn get_policy(id: &str) -> Result<Policy, HttpError> {
-    let url = format!("/contrix/admin/v1/policies/{}", urlencoding::encode(id));
+    let url = format!("/api/admin/v1/policies/{}", urlencoding::encode(id));
     api_client(&url, "GET", None).await
 }
 
 pub async fn create_policy(req: &CreatePolicyRequest) -> Result<Policy, HttpError> {
     api_client(
-        "/contrix/admin/v1/policies",
+        "/api/admin/v1/policies",
         "POST",
         Some(serde_json::to_string(req).unwrap_or_default()),
     )
@@ -28,7 +28,7 @@ pub async fn create_policy(req: &CreatePolicyRequest) -> Result<Policy, HttpErro
 }
 
 pub async fn update_policy(id: &str, req: &CreatePolicyRequest) -> Result<Policy, HttpError> {
-    let url = format!("/contrix/admin/v1/policies/{}", urlencoding::encode(id));
+    let url = format!("/api/admin/v1/policies/{}", urlencoding::encode(id));
     api_client(
         &url,
         "PUT",
@@ -38,6 +38,6 @@ pub async fn update_policy(id: &str, req: &CreatePolicyRequest) -> Result<Policy
 }
 
 pub async fn delete_policy(id: &str) -> Result<(), HttpError> {
-    let url = format!("/contrix/admin/v1/policies/{}", urlencoding::encode(id));
+    let url = format!("/api/admin/v1/policies/{}", urlencoding::encode(id));
     api_client(&url, "DELETE", None).await
 }

@@ -1,9 +1,5 @@
 use serde::{Deserialize, Serialize};
 
-// TODO(A0): these types should be replaced by re-exports from
-// coauth-admin-types / soland-admin-types / floria-admin-types once the
-// shared-crate approach lands. See _todos.md A0 checklist.
-
 // ── Pagination ──
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -293,31 +289,11 @@ pub struct Agent {
     #[serde(default)]
     pub capabilities: Vec<String>,
     #[serde(default)]
-    pub memory_count: u64,
-    #[serde(default)]
     pub is_enabled: bool,
     #[serde(default)]
     pub created_at: Option<String>,
     #[serde(default)]
     pub last_active_at: Option<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct AgentMemoryEntry {
-    #[serde(default)]
-    pub id: String,
-    #[serde(default)]
-    pub agent_id: String,
-    #[serde(default)]
-    pub memory_type: Option<String>,
-    #[serde(default)]
-    pub confidence: Option<f64>,
-    #[serde(default)]
-    pub status: Option<String>,
-    #[serde(default)]
-    pub content_summary: Option<String>,
-    #[serde(default)]
-    pub created_at: Option<String>,
 }
 
 // ── Report / Moderation types ──
@@ -521,7 +497,7 @@ pub struct ServerDescribeResponse {
     pub service_type: Option<String>,
     #[serde(default)]
     pub protocol_version: Option<String>,
-    #[serde(default, alias = "profiles")]
+    #[serde(default)]
     pub supported_profiles: Vec<String>,
     #[serde(default)]
     pub supported_features: Vec<String>,
@@ -675,12 +651,12 @@ mod tests {
     use serde_json::json;
 
     #[test]
-    fn server_describe_accepts_soland_profile_status() {
+    fn server_describe_accepts_principal_server_profile_status() {
         let describe: ServerDescribeResponse = serde_json::from_value(json!({
             "service_did": "did:web:soland.local",
             "service_type": "principal_server",
             "protocol_version": "1.0",
-            "supported_profiles": ["cx.profile.soland_limited_server.v1"],
+            "supported_profiles": ["cx.profile.principal_server.v1"],
             "supported_features": ["events.describe", "events.submit"],
             "supported_operations": ["cx.events.submit"],
             "supported_reducer_profiles": ["cx.reducer.v1"],
@@ -747,12 +723,12 @@ mod tests {
     }
 
     #[test]
-    fn server_describe_accepts_profiles_alias() {
+    fn server_describe_reads_supported_profiles() {
         let describe: ServerDescribeResponse = serde_json::from_value(json!({
             "service_did": "did:web:identity.example",
-            "profiles": ["cx.profile.identity_registry.v1"]
+            "supported_profiles": ["cx.profile.identity_registry.v1"]
         }))
-        .expect("profiles alias should deserialize");
+        .expect("supported_profiles should deserialize");
 
         assert_eq!(
             describe.supported_profiles,

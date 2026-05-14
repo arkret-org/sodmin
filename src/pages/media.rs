@@ -1,7 +1,6 @@
 use dioxus::prelude::*;
 
 use crate::api::media;
-use crate::components::ui::button::{Button, ButtonVariant};
 use crate::components::ui::card::*;
 use crate::components::ui::error_banner::ErrorBanner;
 use crate::components::ui::input::SearchInput;
@@ -18,15 +17,12 @@ pub fn MediaList() -> Element {
     let mut search = use_signal(String::new);
     let mut page = use_signal(|| 1u64);
 
-    let search_val = search.read().clone();
     let page_val = *page.read();
 
     let mut stats = use_resource(|| async { media::get_media_statistics().await.ok() });
 
-    let mut media_data = use_resource(move || {
-        let search = search_val.clone();
-        async move { media::list_actor_media(page_val, PAGE_SIZE).await }
-    });
+    let mut media_data =
+        use_resource(move || async move { media::list_actor_media(page_val, PAGE_SIZE).await });
 
     rsx! {
         div { class: "space-y-6",

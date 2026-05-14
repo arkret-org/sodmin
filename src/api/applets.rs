@@ -4,7 +4,7 @@ use crate::utils::error::HttpError;
 
 pub async fn list_applets(page: u64, per_page: u64) -> Result<ListResponse<Applet>, HttpError> {
     let url = build_url(
-        "/contrix/admin/v1/applets",
+        "/api/admin/v1/applets",
         &[
             ("page", &page.to_string()),
             ("per_page", &per_page.to_string()),
@@ -14,13 +14,13 @@ pub async fn list_applets(page: u64, per_page: u64) -> Result<ListResponse<Apple
 }
 
 pub async fn get_applet(id: &str) -> Result<Applet, HttpError> {
-    let url = format!("/contrix/admin/v1/applets/{}", urlencoding::encode(id));
+    let url = format!("/api/admin/v1/applets/{}", urlencoding::encode(id));
     api_client(&url, "GET", None).await
 }
 
 pub async fn register_applet(req: &RegisterAppletRequest) -> Result<Applet, HttpError> {
     api_client(
-        "/contrix/admin/v1/applets",
+        "/api/admin/v1/applets",
         "POST",
         Some(serde_json::to_string(req).unwrap_or_default()),
     )
@@ -28,13 +28,13 @@ pub async fn register_applet(req: &RegisterAppletRequest) -> Result<Applet, Http
 }
 
 pub async fn delete_applet(id: &str) -> Result<(), HttpError> {
-    let url = format!("/contrix/admin/v1/applets/{}", urlencoding::encode(id));
+    let url = format!("/api/admin/v1/applets/{}", urlencoding::encode(id));
     api_client(&url, "DELETE", None).await
 }
 
 pub async fn enable_applet(id: &str) -> Result<(), HttpError> {
     let url = format!(
-        "/contrix/admin/v1/applets/{}/enable",
+        "/api/admin/v1/applets/{}/enable",
         urlencoding::encode(id)
     );
     api_client(&url, "POST", None).await
@@ -42,7 +42,7 @@ pub async fn enable_applet(id: &str) -> Result<(), HttpError> {
 
 pub async fn disable_applet(id: &str) -> Result<(), HttpError> {
     let url = format!(
-        "/contrix/admin/v1/applets/{}/disable",
+        "/api/admin/v1/applets/{}/disable",
         urlencoding::encode(id)
     );
     api_client(&url, "POST", None).await

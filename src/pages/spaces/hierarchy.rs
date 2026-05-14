@@ -1,4 +1,4 @@
-//! Space hierarchy admin view (Round 24, D2).
+//! Space hierarchy admin view
 //!
 //! Per-Space tree showing the immediate parent (at most one) and the
 //! direct children. Backed by `GET /api/admin/v1/spaces/{id}/hierarchy`.

@@ -1,9 +1,7 @@
-//! DTO shapes for the soland authz capability admin surface (Round 24, B5).
+//! DTO shapes for the soland authz capability admin surface.
 //!
 //! These mirror the rows soland's authz admin endpoint emits when listing
-//! capability grants. Hand-written for now; will become
-//! `pub use soland_admin_types::*;` once the admin-types crate lands. See
-//! `_todos.md` A0 checklist.
+//! capability grants.
 //!
 //! The capability-grant admin surface is intentionally distinct from the
 //! sodmin "self-issued" capability page — those grants live in coauth's

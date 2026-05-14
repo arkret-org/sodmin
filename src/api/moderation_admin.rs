@@ -1,5 +1,5 @@
 //! HTTP client for the soland moderation reports admin surface
-//! (Round 24, D5).
+//!
 //!
 //! Endpoints:
 //!

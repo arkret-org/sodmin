@@ -320,26 +320,6 @@ fn build_nav_sections() -> Vec<NavSection> {
                     "heart-pulse",
                 )
                 .scoped(scope::COAUTH),
-                NavItem::new(
-                    t("nav.recovery_tickets"),
-                    Route::RecoveryTicketList {},
-                    "shield",
-                )
-                .scoped(scope::COAUTH),
-                NavItem::new(
-                    t("nav.recovery_audit"),
-                    Route::RecoveryAuditLog {
-                        ticket_id: String::new(),
-                    },
-                    "scroll-text",
-                )
-                .scoped(scope::COAUTH),
-                NavItem::new(
-                    t("nav.recovery_describe"),
-                    Route::RecoveryDescribe {},
-                    "file-text",
-                )
-                .scoped(scope::COAUTH),
             ],
         )
         .bridge(bridge::COAUTH),

@@ -1,4 +1,4 @@
-//! Agents admin (Round 26, F2 — full mutation flow).
+//! Agents admin
 //!
 //! Cursor-paginated list of soland-side agent registrations with
 //! per-row Approve / Suspend / Revoke buttons. ConfirmDialog destructive

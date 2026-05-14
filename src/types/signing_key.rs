@@ -1,10 +1,8 @@
-//! DTO shapes for the AnchorerWorker signing-key admin surface (Stream H',
-//! H'8).
+//! DTO shapes for the AnchorerWorker signing-key admin surface.
 //!
 //! These mirror the join-projection of the principal-server's anchorer
 //! signing-key configuration that soland exposes via the admin describe
-//! endpoint. Hand-written for now; will become `pub use soland_admin_types::*;`
-//! once the admin-types crate lands. See `_todos.md` A0 checklist.
+//! endpoint.
 
 use serde::{Deserialize, Serialize};
 

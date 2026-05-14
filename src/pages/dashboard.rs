@@ -227,7 +227,7 @@ pub fn Dashboard() -> Element {
                         {t("server.features")}
                     }
                     CardDescription {
-                        "Contrix discovery from /api/v1/server/describe, with legacy admin info as fallback."
+                        "Contrix discovery from /api/v1/server/describe."
                     }
                 }
                 CardContent {
@@ -420,10 +420,7 @@ fn conformance_rows(describe: Option<&ServerDescribeResponse>) -> Vec<Conformanc
         ),
         ("chat_mvp", &["chat", "messages."][..]),
         ("kanban_mvp", &["kanban", "card.", "container."][..]),
-        (
-            "principal_server",
-            &["principal_server", "soland_limited_server"][..],
-        ),
+        ("principal_server", &["principal_server"][..]),
         ("identity_registry", &["identity_registry"][..]),
         ("push_gateway", &["push."][..]),
     ];

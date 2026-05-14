@@ -8,8 +8,6 @@ pub mod notification_channels;
 pub mod notification_templates;
 pub mod oauth2_sessions;
 pub mod personal_sessions;
-pub mod recovery;
-pub mod recovery_bridge_panel;
 pub mod registration_tokens;
 pub mod upstream_links;
 pub mod upstream_providers;

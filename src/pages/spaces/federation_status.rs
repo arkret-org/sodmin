@@ -1,4 +1,4 @@
-//! Federation status admin page (Round 25, D3).
+//! Federation status admin page
 //!
 //! Per-Space federation peers + last-anchor-pulled-at + outbound queue
 //! depth. Reads from soland's `GET /api/admin/v1/federation/status`

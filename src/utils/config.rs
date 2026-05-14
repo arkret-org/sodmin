@@ -40,7 +40,7 @@ pub fn set_external_auth_provider(value: bool) {
 /// it back from any layer.
 #[derive(Debug, Clone, Default, serde::Deserialize)]
 pub struct RuntimeConfig {
-    #[serde(default, alias = "pasion_public_url")]
+    #[serde(default)]
     pub coauth_public_url: String,
 }
 

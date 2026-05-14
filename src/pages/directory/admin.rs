@@ -1,4 +1,4 @@
-//! Directory admin (Round 26, F3 — full mutation flow).
+//! Directory admin
 //!
 //! Cursor-paginated list of soland-side directory entries (public
 //! discovery directory) with per-row Approve / Reject buttons.

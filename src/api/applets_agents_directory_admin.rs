@@ -1,5 +1,4 @@
-//! HTTP client for the soland applets/agents/directory admin surfaces
-//! (Round 25, F1 / F2 / F3).
+//! HTTP client for the soland applets/agents/directory admin surfaces.
 //!
 //! All routes are 404-tolerant — soland may not have these admin
 //! surfaces wired yet for every deployment. The page surfaces a

@@ -1,6 +1,6 @@
-//! Directory admin (Round 25, F3).
+//! Directory admin
 //!
 //! Single admin page that lists soland-side directory entries with
-//! per-row Approve / Revoke. Light scaffolding; full UI in round 26.
+//! per-row Approve / Revoke. Light scaffolding; full UI in
 
 pub mod admin;

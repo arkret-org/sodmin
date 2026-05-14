@@ -11,6 +11,3 @@ pub mod moderation;
 pub mod multisig;
 pub mod signing_key;
 pub mod spaces_admin;
-
-pub mod applets;
-pub use applets::*;

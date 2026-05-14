@@ -1,7 +1,6 @@
 use dioxus::prelude::*;
 
 use crate::api::actors;
-use crate::components::ui::card::*;
 use crate::components::ui::error_banner::ErrorBanner;
 use crate::components::ui::icons::Icon;
 use crate::components::ui::input::SearchInput;

@@ -1,4 +1,4 @@
-//! Soland authz capability admin page (Round 24, B5).
+//! Soland authz capability admin page
 //!
 //! Cursor-paginated list of capability grants visible to the current
 //! admin scope. Filterable by holder DID / peer DID / scope (each a

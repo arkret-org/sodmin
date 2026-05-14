@@ -1,7 +1,7 @@
-//! Typed read-only views into the current admin session (Round 25, S5
+//! Typed read-only views into the current admin session (
 //! token hardening).
 //!
-//! Round 25 replaces the localStorage token with an httpOnly cookie
+//!
 //! issued by coauth's `/oauth2/token` endpoint. The bearer token is
 //! not readable from JS (cookie has `HttpOnly` + `Secure` +
 //! `SameSite=Strict`), so this module no longer exposes an
@@ -18,8 +18,6 @@
 //! `use crate::utils::session::*` and get the full picture.
 
 use crate::utils::storage;
-
-pub use crate::api::auth::{cached_is_admin, is_authenticated, token_expiry_ms};
 
 /// Snapshot of the currently signed-in admin's display attributes,
 /// derived from the OIDC userinfo we cache after a successful OAuth

@@ -70,24 +70,12 @@ COPY --chmod=755 sodmin/docker-entrypoint.sh /docker-entrypoint.sh
 # coauth admin service the proxy forwards to (with bearer); COAUTH_PUBLIC_URL
 # is the browser-facing coauth origin used for OAuth2 redirects.
 #
-# Legacy aliases (PALPO_URL / MATRIX_URL / PASION_URL / PASION_PUBLIC_URL /
-# PADMIN_PORT) are still honored for one release cycle so existing
-# deployments keep working.
 ENV SOLAND_URL=""
 ENV COAUTH_URL=""
 ENV COAUTH_PUBLIC_URL=""
 ENV SODMIN_PORT="80"
 
-# Legacy aliases (kept for backward compatibility, will be removed in a
-# future release). Prefer the SOLAND_URL / COAUTH_URL / COAUTH_PUBLIC_URL
-# / SODMIN_PORT variables above.
-ENV PALPO_URL=""
-ENV MATRIX_URL=""
-ENV PASION_URL=""
-ENV PASION_PUBLIC_URL=""
-ENV PADMIN_PORT=""
-
 EXPOSE 80
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
-    CMD wget -q --spider "http://127.0.0.1:${SODMIN_PORT:-${PADMIN_PORT:-80}}/healthz" || exit 1
+    CMD wget -q --spider "http://127.0.0.1:${SODMIN_PORT:-80}/healthz" || exit 1
 CMD ["/docker-entrypoint.sh"]

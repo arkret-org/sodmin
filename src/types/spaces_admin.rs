@@ -1,9 +1,7 @@
-//! DTO shapes for the soland Spaces admin surface (Round 24, D1 / D2).
+//! DTO shapes for the soland Spaces admin surface.
 //!
 //! Mirrors `GET /api/admin/v1/spaces` (list) and
 //! `GET /api/admin/v1/spaces/{id}/hierarchy` (per-space hierarchy).
-//! Hand-written for now; will become `pub use soland_admin_types::*;`
-//! once the admin-types crate lands. See `_todos.md` A0 checklist.
 
 use serde::{Deserialize, Serialize};
 

@@ -1,5 +1,5 @@
 //! DTO shapes for the soland moderation reports admin surface
-//! (Round 24, D5).
+//!
 //!
 //! Mirrors `GET /api/admin/v1/moderation/reports` (list open reports)
 //! and `POST /api/admin/v1/moderation/reports/{id}/resolve` body

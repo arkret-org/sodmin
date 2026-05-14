@@ -1,4 +1,4 @@
-//! Applets admin (Round 26, F1 — full mutation flow).
+//! Applets admin
 //!
 //! Cursor-paginated list of soland-side applet registrations with
 //! per-row Approve / Suspend / Revoke buttons. ConfirmDialog is
@@ -292,7 +292,7 @@ pub fn AppletAdminPage() -> Element {
 }
 
 /// Pure helper — pick a Badge variant for an applet/agent/directory
-/// approval status. Shared semantics across the F1/F2/F3 round 26
+/// approval status. Shared semantics across the F1/F2/F3
 /// pages so the visual contract is identical.
 pub(crate) fn approval_variant(s: &ApprovalStatus) -> BadgeVariant {
     match s {
@@ -304,7 +304,7 @@ pub(crate) fn approval_variant(s: &ApprovalStatus) -> BadgeVariant {
 }
 
 /// Pure helper — picks the (title, body, confirm-label) i18n triple for
-/// the per-row ConfirmDialog. Round 26: extracted so dialog copy stays
+/// the per-row ConfirmDialog. Extracted so dialog copy stays
 /// unit-testable independent of the rsx! tree.
 pub(crate) fn applet_dialog_copy(action: RowAction) -> (&'static str, &'static str, &'static str) {
     match action {
