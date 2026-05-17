@@ -1,8 +1,8 @@
 use crate::api::client::{api_client, build_url};
-use crate::types::*;
+use crate::api::generated::soland_admin::{CreatePolicyRequest, Policy, PolicyListResponse};
 use crate::utils::error::HttpError;
 
-pub async fn list_policies(page: u64, per_page: u64) -> Result<ListResponse<Policy>, HttpError> {
+pub async fn list_policies(page: u64, per_page: u64) -> Result<PolicyListResponse, HttpError> {
     let url = build_url(
         "/api/admin/v1/policies",
         &[

@@ -92,7 +92,7 @@ alias for backwards compatibility. New deployments should use
 - `soland` Principal Server Admin OpenAPI.
 - `coauth` Auth / Account Admin OpenAPI.
 
-Until generated contracts are wired in, API client code must preserve Contrix error envelopes, reject URL query credentials, propagate `X-Contrix-Request-Id`, send `Idempotency-Key` for mutations, and redact sensitive diagnostics.
+Generated/shared DTOs are consumed through `src/api/generated.rs`; API client code must preserve Contrix error envelopes, reject URL query credentials, propagate `X-Contrix-Request-Id`, send `Idempotency-Key` for mutations, and redact sensitive diagnostics.
 
 ## Dashboard Discovery
 
@@ -115,4 +115,4 @@ examples/       Local deployment examples, pending Contrix stack refresh
 
 ## Current Gaps
 
-See the cross-project [`../_todos.md`](../_todos.md). Remaining P0 work includes generated contract source-of-truth, full coauth account pages, high-risk action approval UX, and a local Contrix compose stack replacing legacy fixtures.
+See the cross-project [`../_todos.md`](../_todos.md). Remaining deferred work includes the docs site/user guide, example-stack cold image verification, and cleanup of pre-existing dead-code warnings.

@@ -53,7 +53,7 @@ pub fn risk_action_panel(
             h2 { class: "text-base font-semibold", "Current Risk Action State" }
             if current.lifecycle_state == "idle" {
                 p { class: "text-sm text-muted-foreground",
-                    "{current.todo.clone().unwrap_or_else(|| \"No risk-action scaffold state has been recorded for this account yet.\".to_string())}"
+                    "{current.todo.clone().unwrap_or_else(|| \"No risk-action state has been recorded for this account yet.\".to_string())}"
                 }
             } else {
                 {current_state_grid(current)}
@@ -184,7 +184,7 @@ pub fn risk_action_panel(
                                             last_approval.set(Some(approval.clone()));
                                             action_status.set(format_risk_action_approval_status(&approval));
                                         }
-                                        Err(error) => action_status.set(format!("Approval scaffold failed: {}", error.message)),
+                                        Err(error) => action_status.set(format!("Approval failed: {}", error.message)),
                                     }
                                 });
                             }
@@ -205,12 +205,12 @@ pub fn risk_action_panel(
                                     let draft = build_risk_action_execute_draft(&approval);
                                     match coauth::execute_account_risk_action(&account_id, &approval.proposal_id, &draft).await {
                                         Ok(execution) => action_status.set(format_risk_action_execute_status(&execution)),
-                                        Err(error) => action_status.set(format!("Execute scaffold failed: {}", error.message)),
+                                        Err(error) => action_status.set(format!("Execute failed: {}", error.message)),
                                     }
                                 });
                             }
                         },
-                        "Execute approved scaffold"
+                        "Execute approved action"
                     }
                 }
             }
@@ -291,7 +291,7 @@ fn current_state_grid(current: &coauth::CoauthAccountRiskActionCurrentState) -> 
             {detail_row("Execution Endpoint", &execution_endpoint)}
             {detail_row("Mutation Endpoint", &mutation_endpoint)}
             {detail_row("State Store", &state_store_kind)}
-            {detail_row("TODO", &todo)}
+            {detail_row("Backend Notes", &todo)}
         }
     }
 }
@@ -357,10 +357,10 @@ fn build_risk_action_draft(action: &str, account_id: &str) -> coauth::CoauthAcco
     coauth::CoauthAccountRiskActionDraft {
         action: action.to_string(),
         reason: Some(format!(
-            "sodmin scaffold proposal for account {} action {}",
+            "sodmin proposal for account {} action {}",
             account_id, action
         )),
-        ticket: Some(format!("TODO-{}-{}", action, account_id)),
+        ticket: Some(format!("SODMIN-{}-{}", action, account_id)),
         approved_by: None,
     }
 }
@@ -373,7 +373,7 @@ fn build_risk_action_approval_draft(
         ticket: proposal.ticket.clone(),
         approved_by: proposal.approved_by.clone(),
         approval_note: Some(format!(
-            "sodmin scaffold approval for proposal {} action {}",
+            "sodmin approval for proposal {} action {}",
             proposal.proposal_id, proposal.action
         )),
     }
@@ -386,7 +386,7 @@ fn build_risk_action_execute_draft(
         action: approval.action.clone(),
         ticket: approval.ticket.clone(),
         execution_note: Some(format!(
-            "sodmin execute scaffold for proposal {} action {}",
+            "sodmin execute proposal {} action {}",
             approval.proposal_id, approval.action
         )),
     }
@@ -448,7 +448,7 @@ fn format_risk_action_approval_status(
 
 fn format_risk_action_execute_status(execution: &coauth::CoauthAccountRiskActionExecute) -> String {
     format!(
-        "Executed risk-action scaffold.\nstate_record_id={}\nproposal_id={}\naction={}\nexecution_state={}\nstate_revision={}\ntransition_kind={}\nexecuted_at={}\nexecution_mode={}\nmutation_endpoint={}\nexecution_note={}\n\n{}",
+        "Executed risk-action.\nstate_record_id={}\nproposal_id={}\naction={}\nexecution_state={}\nstate_revision={}\ntransition_kind={}\nexecuted_at={}\nexecution_mode={}\nmutation_endpoint={}\nexecution_note={}\n\n{}",
         execution.state_record_id,
         execution.proposal_id,
         execution.action,

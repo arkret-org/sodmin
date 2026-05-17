@@ -10,7 +10,7 @@
 //!   404-tolerant pattern as the rest of Stream H'.
 
 use crate::api::client::{api_client, build_url};
-use crate::types::moderation::{ModerationReport, ResolveReportRequest};
+use crate::api::generated::soland_admin::{ModerationReport, ResolveReportRequest};
 use crate::utils::error::HttpError;
 
 #[derive(Debug, Clone, Default)]

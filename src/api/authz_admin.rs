@@ -14,7 +14,7 @@
 //!   a "not yet wired" toast rather than a generic error.
 
 use crate::api::client::{api_client, build_url};
-use crate::types::authz::{AuthzCapabilityGrant, AuthzGrantFilter};
+use crate::api::generated::soland_admin::{AuthzCapabilityGrant, AuthzGrantFilter};
 use crate::utils::error::HttpError;
 
 /// Cursor-shaped page wrapper for the authz admin surface. Matches the

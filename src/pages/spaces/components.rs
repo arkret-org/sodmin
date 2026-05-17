@@ -202,7 +202,7 @@ pub(crate) fn criticality_variant(c: &ComponentCriticality) -> BadgeVariant {
 }
 
 /// Status badge tone: active = success, stub = secondary (neutral
-/// "scaffold present"), disabled = destructive (operator turned it off,
+/// implementation placeholder), disabled = destructive (operator turned it off,
 /// admin needs to know).
 pub(crate) fn status_variant(s: &ComponentImplStatus) -> BadgeVariant {
     match s {

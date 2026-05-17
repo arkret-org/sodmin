@@ -682,7 +682,8 @@ pub async fn get_account_detail(id: &str) -> Result<CoauthAccountDetail, HttpErr
             endpoint: bridge.risk_action_path_template.replace("{account_id}", id),
             approval_mode: bridge.risk_action_approval_mode.clone(),
             todo: if bridge.todos.is_empty() {
-                "Coauth account admin bridge does not yet publish scaffold TODO items.".to_string()
+                "Coauth account admin bridge advertises no outstanding operator follow-ups."
+                    .to_string()
             } else {
                 bridge.todos.join(" ")
             },

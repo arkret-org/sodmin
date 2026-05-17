@@ -90,7 +90,7 @@ camera / microphone / geolocation / payment 的 `Permissions-Policy`。
 - `soland` Principal Server Admin OpenAPI。
 - `coauth` Auth / Account Admin OpenAPI。
 
-在生成式 contract 接入前，API client 必须保留 Contrix error envelope，拒绝 URL query credential，传递 `X-Contrix-Request-Id`，为 mutation 发送 `Idempotency-Key`，并在诊断中隐藏敏感信息。
+生成式/共享 DTO 统一从 `src/api/generated.rs` 消费；API client 必须保留 Contrix error envelope，拒绝 URL query credential，传递 `X-Contrix-Request-Id`，为 mutation 发送 `Idempotency-Key`，并在诊断中隐藏敏感信息。
 
 ## 目录结构
 
@@ -107,4 +107,4 @@ examples/       本地部署示例，等待替换为 Contrix stack
 
 ## 当前缺口
 
-详见 [`_todos.md`](./_todos.md)。剩余 P0 包括生成式 contract source-of-truth、完整 coauth 账号页面、高风险操作 approval UX，以及替换 legacy fixture 的本地 Contrix compose stack。
+详见 [`_todos.md`](./_todos.md)。剩余推迟项包括 docs/user guide、example-stack cold image 验证，以及既有 dead-code warning 清理。

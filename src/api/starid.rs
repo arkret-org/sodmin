@@ -3,43 +3,12 @@
 //! This client exists so the sodmin "Starid resolver status" panel
 //! (round 35.4) can mirror the resolver's `/api/v1/identity/describe`
 //! response — service DID + protocol version, head version_id, witness
-//! count, and freshness — without having to graduate starid into the
-//! shared `coauth-admin-types` crate yet.
-//!
-//! The wire shape matches starid's `wire::IdentityDescribeResponse`
-//! exactly. Optional fields are tolerated as missing so older starid
-//! deployments (pre-C35.4) that haven't started emitting the aggregate
-//! resolver-status fields still render as a healthy panel with the
-//! aggregate cells stamped "-".
-
-use chrono::{DateTime, Utc};
-use serde::{Deserialize, Serialize};
+//! count, and freshness.
 
 use crate::api::client::api_client;
+pub use crate::api::generated::starid::StaridDescribe;
 use crate::utils::error::HttpError;
 use crate::utils::session;
-
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
-pub struct StaridDescribe {
-    #[serde(default)]
-    pub service_did: String,
-    #[serde(default)]
-    pub registry_mode: String,
-    #[serde(default)]
-    pub supported_methods: Vec<String>,
-    #[serde(default)]
-    pub supported_receipts: Vec<String>,
-    #[serde(default)]
-    pub protocol_version: String,
-    #[serde(default)]
-    pub profiles: Vec<String>,
-    #[serde(default)]
-    pub head_version_id: Option<String>,
-    #[serde(default)]
-    pub witness_count: u64,
-    #[serde(default)]
-    pub freshness: Option<DateTime<Utc>>,
-}
 
 /// Raised when the operator has not configured `starid_public_url`. The
 /// page surfaces this as a "Starid not configured" empty-state instead
