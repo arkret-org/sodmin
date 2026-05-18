@@ -811,7 +811,7 @@ mod tests {
     fn bottom_repair_strategy_head_in_winner_round_trip_through_serde_string() {
         let s = BottomRepairStrategy::HeadInWinner {
             head: WinnerHead {
-                move_id: "cx:move:sha256:deadbeef".into(),
+                move_id: "sha256:deadbeef".into(),
                 issuer: Some("did:cx:alice".into()),
                 hlc: Some("01HXY-0001".into()),
                 summary: Some("set value=99".into()),
@@ -821,7 +821,7 @@ mod tests {
         // Snake-case tag + tag key survives.
         assert!(wire.contains("\"strategy\":\"head_in_winner\""));
         // Fields inside the variant render as snake_case too.
-        assert!(wire.contains("\"move_id\":\"cx:move:sha256:deadbeef\""));
+        assert!(wire.contains("\"move_id\":\"sha256:deadbeef\""));
         assert!(wire.contains("\"issuer\":\"did:cx:alice\""));
         assert!(wire.contains("\"hlc\":\"01HXY-0001\""));
         let back: BottomRepairStrategy =

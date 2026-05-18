@@ -437,7 +437,7 @@ mod tests {
     #[test]
     fn format_head_option_truncates_long_move_ids() {
         let head = WinnerHead {
-            move_id: "cx:move:sha256:aaaabbbbccccddddeeeeffff".into(),
+            move_id: "sha256:aaaabbbbccccddddeeeeffff".into(),
             ..Default::default()
         };
         let label = format_head_option(0, &head);

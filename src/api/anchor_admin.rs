@@ -191,7 +191,7 @@ mod tests {
             cell_id: "cx:cell:cx.component.anchorer.v1:cx:space:demo".into(),
             strategy: BottomRepairStrategy::HeadInWinner {
                 head: WinnerHead {
-                    move_id: "cx:move:sha256:aaaa".into(),
+                    move_id: "sha256:aaaa".into(),
                     issuer: Some("did:cx:alice".into()),
                     hlc: None,
                     summary: None,
@@ -202,7 +202,7 @@ mod tests {
         // Strategy MUST be tagged on the wire so the soland handler can
         // pattern-match without sniffing the rest of the body.
         assert!(s.contains("\"strategy\":\"head_in_winner\""));
-        assert!(s.contains("\"move_id\":\"cx:move:sha256:aaaa\""));
+        assert!(s.contains("\"move_id\":\"sha256:aaaa\""));
     }
 
     #[test]
