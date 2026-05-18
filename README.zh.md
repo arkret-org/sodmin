@@ -58,7 +58,7 @@ docker run -p 9090:80 \
 
 | 变量 | 必填 | 用途 | 兼容旧名 |
 | --- | --- | --- | --- |
-| `SOLAND_URL` | 是 | soland Principal Server 内网 URL，用于 `/_palpo/`、`/_matrix/`、`/_synapse/` 兼容代理。 | `PALPO_URL`、`MATRIX_URL` |
+| `SOLAND_URL` | 是 | soland Principal Server 内网 URL，同时用于兼容旧版代理路径。 | `PALPO_URL`、`MATRIX_URL` |
 | `COAUTH_URL` | 推荐 | coauth admin 服务的内网 URL，开启 `/auth/`、`/api/v1/auth/`、`/api/admin/`、`/authorize`、`/oauth2/`、`/.well-known/` 代理。 | `PASION_URL` |
 | `COAUTH_PUBLIC_URL` | 推荐 | 浏览器侧能访问的 coauth origin，写入 `/config.json`，OAuth2 PKCE 重定向需要。 | `PASION_PUBLIC_URL` |
 | `SODMIN_PORT` | 否 | nginx 监听端口（默认 `80`）。 | `PADMIN_PORT` |

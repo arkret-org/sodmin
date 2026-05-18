@@ -112,7 +112,7 @@ impl I18n {
         m.insert("nav.section_moderation".into(), "Moderation".into());
         m.insert("nav.section_infrastructure".into(), "Infrastructure".into());
         m.insert("nav.section_server_ops".into(), "Server Ops".into());
-        m.insert("nav.section_pasion".into(), "Identity Provider".into());
+        m.insert("nav.section_coauth".into(), "Identity Provider".into());
         m.insert("nav.audit_log".into(), "Audit Log".into());
         m.insert("nav.oauth2_sessions".into(), "OAuth2 Sessions".into());
         m.insert("nav.personal_tokens".into(), "Personal Tokens".into());
@@ -137,7 +137,7 @@ impl I18n {
         m.insert("auth_status.base_url".into(), "Base URL".into());
         m.insert("auth_status.server_version".into(), "Server Version".into());
         m.insert("auth_status.login_flows".into(), "Login Flows".into());
-        m.insert("nav.palpo_admin".into(), "Palpo Admin".into());
+        m.insert("nav.contrix_admin".into(), "Contrix Admin".into());
         m.insert("nav.server".into(), "Server".into());
 
         // Header
@@ -164,7 +164,7 @@ impl I18n {
         );
         m.insert(
             "auth.footer".into(),
-            "Palpo Admin - Matrix Server Management".into(),
+            "sodmin - Contrix Administration".into(),
         );
         m.insert(
             "auth.not_admin".into(),
@@ -173,7 +173,7 @@ impl I18n {
 
         // Users
         m.insert("users.title".into(), "Users".into());
-        m.insert("users.subtitle".into(), "Manage Matrix users".into());
+        m.insert("users.subtitle".into(), "Manage Contrix actors".into());
         m.insert("users.create".into(), "Create User".into());
         m.insert("users.user_id".into(), "User ID".into());
         m.insert("users.display_name".into(), "Display Name".into());
@@ -261,7 +261,7 @@ impl I18n {
         m.insert("rooms.state_events".into(), "State Events".into());
         m.insert("rooms.hierarchy".into(), "Hierarchy".into());
         m.insert("rooms.aliases".into(), "Aliases".into());
-        m.insert("rooms.subtitle".into(), "Manage Matrix rooms".into());
+        m.insert("rooms.subtitle".into(), "Manage Contrix spaces".into());
         m.insert("rooms.sort".into(), "Sort:".into());
         m.insert("rooms.all".into(), "All".into());
         m.insert("rooms.delete_selected".into(), "Delete Selected".into());
@@ -404,69 +404,72 @@ impl I18n {
         m.insert("common.reject".into(), "Reject".into());
         m.insert("common.open".into(), "Open".into());
 
-        // Pasion shared
-        m.insert("pasion.status_active".into(), "Active".into());
-        m.insert("pasion.status_revoked".into(), "Revoked".into());
-        m.insert("pasion.status_healthy".into(), "Healthy".into());
-        m.insert("pasion.status_degraded".into(), "Degraded".into());
-        m.insert("pasion.status_unhealthy".into(), "Unhealthy".into());
-        m.insert("pasion.status_down".into(), "Down".into());
+        // coauth shared
+        m.insert("coauth.status_active".into(), "Active".into());
+        m.insert("coauth.status_revoked".into(), "Revoked".into());
+        m.insert("coauth.status_healthy".into(), "Healthy".into());
+        m.insert("coauth.status_degraded".into(), "Degraded".into());
+        m.insert("coauth.status_unhealthy".into(), "Unhealthy".into());
+        m.insert("coauth.status_down".into(), "Down".into());
 
-        // Pasion audit log
-        m.insert("pasion.audit_log.title".into(), "Audit Log".into());
-        m.insert("pasion.audit_log.col_timestamp".into(), "Timestamp".into());
-        m.insert("pasion.audit_log.col_operation".into(), "Operation".into());
-        m.insert("pasion.audit_log.col_admin".into(), "Admin".into());
-        m.insert("pasion.audit_log.col_resource".into(), "Resource".into());
-        m.insert("pasion.audit_log.col_ip".into(), "IP Address".into());
-        m.insert("pasion.audit_log.col_detail".into(), "Detail".into());
+        // coauth audit log
+        m.insert("coauth.audit_log.title".into(), "Audit Log".into());
+        m.insert("coauth.audit_log.col_timestamp".into(), "Timestamp".into());
+        m.insert("coauth.audit_log.col_operation".into(), "Operation".into());
+        m.insert("coauth.audit_log.col_admin".into(), "Admin".into());
+        m.insert("coauth.audit_log.col_resource".into(), "Resource".into());
+        m.insert("coauth.audit_log.col_ip".into(), "IP Address".into());
+        m.insert("coauth.audit_log.col_detail".into(), "Detail".into());
 
-        // Pasion connector health
+        // coauth connector health
 
-        // Pasion personal sessions
-        m.insert("pasion.personal_sessions.revoke".into(), "Revoke".into());
-        m.insert("pasion.personal_sessions.col_scope".into(), "Scope".into());
-        m.insert("pasion.personal_sessions.col_owner".into(), "Owner".into());
+        // coauth personal sessions
+        m.insert("coauth.personal_sessions.revoke".into(), "Revoke".into());
+        m.insert("coauth.personal_sessions.col_scope".into(), "Scope".into());
+        m.insert("coauth.personal_sessions.col_owner".into(), "Owner".into());
 
-        // Pasion OAuth2 sessions
+        // coauth OAuth2 sessions
         m.insert(
-            "pasion.oauth2_sessions.title".into(),
+            "coauth.oauth2_sessions.title".into(),
             "OAuth2 Sessions".into(),
         );
         m.insert(
-            "pasion.oauth2_sessions.description".into(),
-            "Browser and app OAuth2 sessions issued by Pasion".into(),
+            "coauth.oauth2_sessions.description".into(),
+            "Browser and app OAuth2 sessions issued by coauth".into(),
         );
         m.insert(
-            "pasion.oauth2_sessions.empty".into(),
+            "coauth.oauth2_sessions.empty".into(),
             "No OAuth2 sessions found".into(),
         );
-        m.insert("pasion.oauth2_sessions.finish".into(), "Finish".into());
+        m.insert("coauth.oauth2_sessions.finish".into(), "Finish".into());
         m.insert(
-            "pasion.oauth2_sessions.finish_title".into(),
+            "coauth.oauth2_sessions.finish_title".into(),
             "Finish Session".into(),
         );
         m.insert(
-            "pasion.oauth2_sessions.finish_description".into(),
+            "coauth.oauth2_sessions.finish_description".into(),
             "End this OAuth2 session? The user will be signed out from the corresponding client."
                 .into(),
         );
         m.insert(
-            "pasion.oauth2_sessions.finished_success".into(),
+            "coauth.oauth2_sessions.finished_success".into(),
             "Session finished".into(),
         );
 
-        // Pasion upstream providers
+        // coauth upstream providers
 
-        // Pasion upstream links
+        // coauth upstream links
 
-        // Pasion notification channels
+        // coauth notification channels
 
-        // Pasion notification templates
+        // coauth notification templates
 
         // Dashboard
         m.insert("dashboard.title".into(), "Dashboard".into());
-        m.insert("dashboard.welcome".into(), "Welcome to Palpo Admin".into());
+        m.insert(
+            "dashboard.welcome".into(),
+            "Welcome to Contrix Admin".into(),
+        );
         m.insert("dashboard.total_users".into(), "Total Users".into());
         m.insert("dashboard.total_rooms".into(), "Total Rooms".into());
         m.insert("dashboard.total_reports".into(), "Pending Reports".into());
@@ -615,8 +618,8 @@ impl I18n {
         m.insert("auth_status.no_password_warning".into(), "\u{6b64}\u{670d}\u{52a1}\u{5668}\u{4e0d}\u{652f}\u{6301}\u{5bc6}\u{7801}\u{767b}\u{5f55}\u{3002}\u{7528}\u{6237}\u{5fc5}\u{987b}\u{901a}\u{8fc7} SSO \u{6216}\u{8bbf}\u{95ee}\u{4ee4}\u{724c}\u{8fdb}\u{884c}\u{8eab}\u{4efd}\u{9a8c}\u{8bc1}\u{3002}".into());
         m.insert("auth_status.sso_only_hint".into(), "\u{6b64}\u{670d}\u{52a1}\u{5668}\u{914d}\u{7f6e}\u{4e3a}\u{4ec5} SSO \u{8ba4}\u{8bc1}\u{3002}\u{7ba1}\u{7406}\u{5458}\u{8bbf}\u{95ee}\u{9700}\u{8981}\u{8bbf}\u{95ee}\u{4ee4}\u{724c}\u{6216} SSO \u{4f1a}\u{8bdd}\u{3002}".into());
         m.insert("auth_status.diagnostics_desc".into(), "\u{68c0}\u{67e5} OIDC/MAS \u{53d1}\u{884c}\u{8005}\u{53d1}\u{73b0}\u{3001}\u{7aef}\u{70b9}\u{53ef}\u{7528}\u{6027}\u{3001}DCR \u{652f}\u{6301}\u{548c}\u{4f5c}\u{7528}\u{57df}\u{914d}\u{7f6e}".into());
-        m.insert("auth_status.dev_diagnostics_desc".into(), "\u{63a2}\u{6d4b} MAS/Pasion \u{7aef}\u{70b9}\u{4ee5}\u{8c03}\u{8bd5}\u{6ce8}\u{518c}\u{3001}\u{540c}\u{610f}\u{548c} well-known \u{53d1}\u{73b0}".into());
-        m.insert("nav.palpo_admin".into(), "Palpo Admin".into());
+        m.insert("auth_status.dev_diagnostics_desc".into(), "\u{63a2}\u{6d4b} coauth \u{7aef}\u{70b9}\u{4ee5}\u{8c03}\u{8bd5}\u{6ce8}\u{518c}\u{3001}\u{540c}\u{610f}\u{548c} well-known \u{53d1}\u{73b0}".into());
+        m.insert("nav.contrix_admin".into(), "Contrix Admin".into());
         m.insert("nav.server".into(), "\u{670d}\u{52a1}\u{5668}".into());
 
         // Header
@@ -656,7 +659,10 @@ impl I18n {
             "dashboard.avg_api_response".into(),
             "\u{5e73}\u{5747} API \u{54cd}\u{5e94}\u{65f6}\u{95f4}".into(),
         );
-        m.insert("dashboard.spec_description".into(), "\u{652f}\u{6301}\u{7684} Matrix \u{89c4}\u{8303}\u{7248}\u{672c}\u{548c}\u{5b9e}\u{9a8c}\u{6027}\u{529f}\u{80fd}".into());
+        m.insert(
+            "dashboard.spec_description".into(),
+            "\u{652f}\u{6301}\u{7684} Contrix profile \u{548c} conformance \u{8986}\u{76d6}".into(),
+        );
 
         // Auth extra
         m.insert(
@@ -666,7 +672,7 @@ impl I18n {
         );
         m.insert(
             "auth.footer".into(),
-            "Palpo Admin - Matrix \u{670d}\u{52a1}\u{5668}\u{7ba1}\u{7406}".into(),
+            "sodmin - Contrix \u{7ba1}\u{7406}\u{540e}\u{53f0}".into(),
         );
         m.insert(
             "auth.not_admin".into(),
@@ -853,60 +859,60 @@ impl I18n {
         m.insert("common.reject".into(), "\u{9a73}\u{56de}".into());
         m.insert("common.open".into(), "\u{6253}\u{5f00}".into());
 
-        // Pasion 共享 —— 状态标签
-        m.insert("pasion.status_active".into(), "\u{6d3b}\u{8dc3}".into());
-        m.insert("pasion.status_healthy".into(), "\u{5065}\u{5eb7}".into());
-        m.insert("pasion.status_degraded".into(), "\u{964d}\u{7ea7}".into());
+        // coauth 共享 —— 状态标签
+        m.insert("coauth.status_active".into(), "\u{6d3b}\u{8dc3}".into());
+        m.insert("coauth.status_healthy".into(), "\u{5065}\u{5eb7}".into());
+        m.insert("coauth.status_degraded".into(), "\u{964d}\u{7ea7}".into());
 
-        // Pasion 审计日志
+        // coauth 审计日志
 
-        // Pasion 连接器健康
+        // coauth 连接器健康
 
-        // Pasion 个人访问令牌
+        // coauth 个人访问令牌
 
-        // Pasion OAuth2 会话
+        // coauth OAuth2 会话
         m.insert(
-            "pasion.oauth2_sessions.title".into(),
+            "coauth.oauth2_sessions.title".into(),
             "OAuth2 \u{4f1a}\u{8bdd}".into(),
         );
         m.insert(
-            "pasion.oauth2_sessions.description".into(),
-            "Pasion \u{7b7e}\u{53d1}\u{7684}\u{6d4f}\u{89c8}\u{5668}\u{548c}\u{5e94}\u{7528} OAuth2 \u{4f1a}\u{8bdd}".into(),
+            "coauth.oauth2_sessions.description".into(),
+            "coauth \u{7b7e}\u{53d1}\u{7684}\u{6d4f}\u{89c8}\u{5668}\u{548c}\u{5e94}\u{7528} OAuth2 \u{4f1a}\u{8bdd}".into(),
         );
         m.insert(
-            "pasion.oauth2_sessions.empty".into(),
+            "coauth.oauth2_sessions.empty".into(),
             "\u{6682}\u{65e0} OAuth2 \u{4f1a}\u{8bdd}".into(),
         );
         m.insert(
-            "pasion.oauth2_sessions.finish".into(),
+            "coauth.oauth2_sessions.finish".into(),
             "\u{7ed3}\u{675f}".into(),
         );
         m.insert(
-            "pasion.oauth2_sessions.finish_title".into(),
+            "coauth.oauth2_sessions.finish_title".into(),
             "\u{7ed3}\u{675f}\u{4f1a}\u{8bdd}".into(),
         );
         m.insert(
-            "pasion.oauth2_sessions.finish_description".into(),
+            "coauth.oauth2_sessions.finish_description".into(),
             "\u{786e}\u{8ba4}\u{7ed3}\u{675f}\u{6b64} OAuth2 \u{4f1a}\u{8bdd}\u{5417}\u{ff1f}\u{5bf9}\u{5e94}\u{5ba2}\u{6237}\u{7aef}\u{7684}\u{7528}\u{6237}\u{5c06}\u{88ab}\u{767b}\u{51fa}\u{3002}".into(),
         );
         m.insert(
-            "pasion.oauth2_sessions.finished_success".into(),
+            "coauth.oauth2_sessions.finished_success".into(),
             "\u{4f1a}\u{8bdd}\u{5df2}\u{7ed3}\u{675f}".into(),
         );
 
-        // Pasion 上游提供者
+        // coauth 上游提供者
 
-        // Pasion 上游绑定
+        // coauth 上游绑定
 
-        // Pasion 通知渠道
+        // coauth 通知渠道
 
-        // Pasion 通知模板
+        // coauth 通知模板
 
         // Dashboard
         m.insert("dashboard.title".into(), "\u{4eea}\u{8868}\u{76d8}".into());
         m.insert(
             "dashboard.welcome".into(),
-            "\u{6b22}\u{8fce}\u{4f7f}\u{7528} Palpo Admin".into(),
+            "\u{6b22}\u{8fce}\u{4f7f}\u{7528} Contrix Admin".into(),
         );
         m.insert(
             "dashboard.active_users".into(),

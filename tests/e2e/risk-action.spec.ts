@@ -7,7 +7,7 @@
 // appears for the action.
 //
 // This file co-exists with the legacy `e2e/` test suite (which targets
-// the older Pasion/Palpo example stack). New round-26+ specs land
+// the older compatibility example stack). New round-26+ specs land
 // under `tests/e2e/` so we can break cleanly from the legacy harness
 // without disturbing it.
 //

@@ -59,7 +59,7 @@ Required and optional environment variables:
 
 | Variable | Required | Purpose | Legacy alias |
 | --- | --- | --- | --- |
-| `SOLAND_URL` | yes | Internal URL of the soland Principal Server reached by the proxy. Used for `/_palpo/`, `/_matrix/`, `/_synapse/` legacy compatibility. | `PALPO_URL`, `MATRIX_URL` |
+| `SOLAND_URL` | yes | Internal URL of the soland Principal Server reached by the proxy. Also backs legacy compatibility proxy paths. | `PALPO_URL`, `MATRIX_URL` |
 | `COAUTH_URL` | recommended | Internal URL of the coauth admin service. Enables the `/auth/`, `/api/v1/auth/`, `/api/admin/`, `/authorize`, `/oauth2/`, `/.well-known/` proxy locations. | `PASION_URL` |
 | `COAUTH_PUBLIC_URL` | recommended | Browser-facing coauth origin. Written to `/config.json` for the OAuth2 PKCE redirect. | `PASION_PUBLIC_URL` |
 | `SODMIN_PORT` | no | nginx listen port (default `80`). | `PADMIN_PORT` |

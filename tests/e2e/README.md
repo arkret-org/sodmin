@@ -2,7 +2,7 @@
 
 This directory holds the round-26+ Playwright e2e tests for sodmin. It
 is **separate** from the legacy `e2e/` directory at the repo root,
-which still targets the older Pasion/Palpo example stack.
+which still targets the older compatibility example stack.
 
 ## Q2 — happy-path risk-action
 
@@ -42,7 +42,7 @@ without a wired dev stack.
 ## Why a separate config file?
 
 The root `playwright.config.ts` runs a `global-setup.ts` hook that
-provisions Pasion + Palpo accounts and wires up an `admin.json`
+provisions compatibility-stack accounts and wires up an `admin.json`
 storageState file. The round-26 spec doesn't need any of that — it
 authenticates through the sodmin SPA login form directly. Mixing the
 two would cause the legacy setup hook to run for the round-26 spec
