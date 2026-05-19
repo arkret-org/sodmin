@@ -1277,6 +1277,17 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("server_status.event_kind_registry", "Event Kind Registry"),
             ("server_status.profiles_label", "Supported Profiles"),
             ("server_status.features_label", "Supported Features"),
+            ("server_status.development_mode", "Development Mode"),
+            ("server_status.proof_verifier_mode", "Proof Verifier Mode"),
+            ("server_status.admin_auth_mode", "Admin Auth Mode"),
+            (
+                "server_status.dev_banner",
+                "DEVELOPMENT MODE — proof verification disabled, do not use in production",
+            ),
+            (
+                "server_status.dev_banner_dashboard",
+                "This server is running with SOLAND_DEVELOPMENT_MODE=true. Proof verification is relaxed and admin endpoints accept any authenticated session.",
+            ),
             ("nav.coauth_capabilities", "Authz Capabilities"),
             ("nav.spaces_admin", "Spaces (admin)"),
             ("nav.moderation_reports", "Moderation reports"),
@@ -1847,6 +1858,17 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("server_status.event_kind_registry", "Event Kind Registry"),
             ("server_status.profiles_label", "支持的 Profile"),
             ("server_status.features_label", "支持的 Feature"),
+            ("server_status.development_mode", "开发模式"),
+            ("server_status.proof_verifier_mode", "签名验证模式"),
+            ("server_status.admin_auth_mode", "管理认证模式"),
+            (
+                "server_status.dev_banner",
+                "开发模式 — 签名验证已关闭，请勿用于生产",
+            ),
+            (
+                "server_status.dev_banner_dashboard",
+                "当前服务以 SOLAND_DEVELOPMENT_MODE=true 启动：签名验证被放宽，管理端点接受任何已认证会话。",
+            ),
             // ── 第 24 轮 侧边栏 ──
             ("nav.coauth_capabilities", "Authz 权限"),
             ("nav.spaces_admin", "Space（管理）"),

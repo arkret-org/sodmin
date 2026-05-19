@@ -233,8 +233,36 @@ fn describe_body(describe: &ServerDescribeResBody) -> Element {
     let profiles = describe.supported_profiles.clone();
     let features = describe.supported_features.clone();
 
+    // T1.4 — surface the runtime posture. `development_mode` is rendered
+    // separately below (with red styling) so the operator can't miss it.
+    let proof_verifier_mode = describe
+        .proof_verifier_mode
+        .clone()
+        .unwrap_or_else(|| "-".to_string());
+    let admin_auth_mode = describe
+        .admin_auth_mode
+        .clone()
+        .unwrap_or_else(|| "-".to_string());
+    let development_mode_label = match describe.development_mode {
+        Some(true) => t("server_status.dev_banner"),
+        Some(false) => "production".to_string(),
+        None => "-".to_string(),
+    };
+    let development_mode_is_dev = describe.development_mode.unwrap_or(false);
+
     rsx! {
         div { class: "space-y-4",
+            // Red posture chip — only renders when soland reports
+            // `development_mode == true`. Production deployments see the
+            // normal grid below with no extra chrome.
+            if development_mode_is_dev {
+                div {
+                    class: "rounded-md border border-red-600 bg-red-600/10 px-3 py-2 text-sm font-semibold text-red-700 dark:text-red-300",
+                    role: "alert",
+                    span { class: "mr-2", "\u{26A0}" }
+                    "{development_mode_label}"
+                }
+            }
             div { class: "grid gap-3 sm:grid-cols-2",
                 {info_cell(t("server_status.service_did"), did)}
                 {info_cell(t("server_status.service_type"), service_type)}
@@ -242,6 +270,8 @@ fn describe_body(describe: &ServerDescribeResBody) -> Element {
                 {info_cell(t("server_status.openapi_version"), openapi)}
                 {info_cell(t("server_status.schema_registry"), schema)}
                 {info_cell(t("server_status.event_kind_registry"), event_kind)}
+                {info_cell(t("server_status.proof_verifier_mode"), proof_verifier_mode)}
+                {info_cell(t("server_status.admin_auth_mode"), admin_auth_mode)}
             }
 
             div { class: "space-y-1",

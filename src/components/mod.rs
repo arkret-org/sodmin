@@ -1,4 +1,5 @@
 pub mod claims_panel;
+pub mod dev_mode_banner;
 pub mod did_binding_panel;
 pub mod footer;
 pub mod header;

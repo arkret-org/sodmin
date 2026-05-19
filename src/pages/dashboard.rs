@@ -1,6 +1,7 @@
 use dioxus::prelude::*;
 
 use crate::api::server;
+use crate::components::dev_mode_banner::DevModeDashboardNotice;
 use crate::components::ui::card::*;
 use crate::components::ui::icons::Icon;
 use crate::components::ui::loading::StatsSkeleton;
@@ -163,6 +164,11 @@ pub fn Dashboard() -> Element {
 
     rsx! {
         div { class: "space-y-6",
+            // T1.4: in-page red notice when the connected server reports
+            // `development_mode == true`. Complements the top-of-page
+            // banner so the warning is visible even after the operator
+            // scrolls past the header.
+            DevModeDashboardNotice {}
             div {
                 h1 { class: "text-2xl font-bold tracking-tight", {t("dashboard.title")} }
                 p { class: "text-muted-foreground", {t("dashboard.welcome")} }

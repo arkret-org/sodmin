@@ -4,6 +4,7 @@ use wasm_bindgen::closure::Closure;
 use web_sys::StorageEvent;
 
 use crate::api::auth;
+use crate::components::dev_mode_banner::DevModeBanner;
 use crate::components::header::AppHeader;
 use crate::components::keyboard_shortcuts::KeyboardShortcuts;
 use crate::components::sidebar::AppSidebar;
@@ -78,6 +79,11 @@ pub fn AppLayout(children: Element) -> Element {
                 mobile_open: mobile_sidebar_open,
             }
             div { class: "flex flex-1 flex-col overflow-hidden",
+                // T1.4: red, non-dismissible warning when the connected
+                // soland reports `development_mode == true`. Rendered
+                // ABOVE the header so it stays in the operator's eyeline
+                // no matter which page they're on.
+                DevModeBanner {}
                 AppHeader {
                     collapsed,
                     mobile_sidebar_open,

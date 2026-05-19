@@ -134,6 +134,42 @@ pub struct SpaceMember {
     pub role: Option<String>,
     #[serde(default)]
     pub joined_at: Option<String>,
+    /// Spec 0a5ab85 — `cx.member.state{join}.delivery_status`. Drives
+    /// the admin UI "routable" / "unroutable" indicator.
+    #[serde(default)]
+    pub delivery_status: Option<String>,
+    /// Per-Space delivery binding for this member. When present the
+    /// admin UI MUST surface recipient_service_did, binding_source,
+    /// expiry, and the rebind action.
+    #[serde(default)]
+    pub delivery_binding: Option<MemberDeliveryBinding>,
+}
+
+/// `member_delivery_binding` shape carried inside [`SpaceMember`].
+/// Mirrors `event-payload.schema.json#/$defs/member_delivery_binding`.
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct MemberDeliveryBinding {
+    #[serde(default)]
+    pub recipient_service_did: String,
+    #[serde(default)]
+    pub binding_source: String,
+    #[serde(default)]
+    pub delivery_modes: Vec<String>,
+    #[serde(default)]
+    pub resolved_at: Option<String>,
+    #[serde(default)]
+    pub expires_at: Option<String>,
+    #[serde(default)]
+    pub service_endpoint: Option<String>,
+    /// `cx:event:*` ref to the service_acceptance event the recipient
+    /// service signed for this binding (`explicit` / `invite` /
+    /// `organization_policy` sources).
+    #[serde(default)]
+    pub service_acceptance_ref: Option<String>,
+    /// Reference to the policy event that authorised this binding
+    /// (`join_policy` / `organization_policy` / `space_policy` sources).
+    #[serde(default)]
+    pub policy_ref: Option<String>,
 }
 
 // ── Device types ──
@@ -525,6 +561,21 @@ pub struct ServerDescribeResBody {
     pub registry: serde_json::Value,
     #[serde(default)]
     pub limits: serde_json::Value,
+    /// T1.4 — soland surfaces its dev-mode posture directly on
+    /// `/api/v1/server/describe` (and `/health`). Sodmin uses this to
+    /// render the red top-of-page banner. `None` for older servers that
+    /// predate the field.
+    #[serde(default)]
+    pub development_mode: Option<bool>,
+    /// T1.4 — `"development"` | `"production"`. Mirrors
+    /// [`Self::development_mode`]; when `development_mode == true`,
+    /// soland accepts unsigned / weakly-signed envelopes.
+    #[serde(default)]
+    pub proof_verifier_mode: Option<String>,
+    /// T1.4 — effective admin-API auth posture:
+    /// `"development"` | `"did_allowlist"` | `"oauth_introspection"` | `"closed"`.
+    #[serde(default)]
+    pub admin_auth_mode: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
