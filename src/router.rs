@@ -93,8 +93,22 @@ pub enum Route {
         #[route("/push-routes")]
         PushRouteList {},
 
+        // Realm-rework: the security boundary is now spelled "Realm"
+        // (`/realms/{id}/delivery-binding`); the old `/spaces/{id}/...`
+        // route is kept as an alias so existing bookmarks keep working.
+        // TODO(realm-rework): drop the SpaceDeliveryBinding alias once
+        // the old route is no longer linked anywhere.
+        #[route("/realms/:realm_id/delivery-binding")]
+        RealmDeliveryBinding { realm_id: String },
         #[route("/spaces/:space_id/delivery-binding")]
         SpaceDeliveryBinding { space_id: String },
+
+        // R5.2 — Realm link-graph admin page. Sits next to delivery
+        // binding because they share the same Realm-scoped /realms/:id/
+        // URL prefix and are conceptually a pair (binding policy +
+        // typed boundary edges).
+        #[route("/realms/:realm_id/links")]
+        RealmLinks { realm_id: String },
 
         #[route("/applets")]
         AppletList {},
@@ -375,8 +389,19 @@ fn PushRouteList() -> Element {
 }
 
 #[component]
+fn RealmDeliveryBinding(realm_id: String) -> Element {
+    rsx! { pages::delivery_binding::DeliveryBindingPolicy { realm_id } }
+}
+
+#[component]
 fn SpaceDeliveryBinding(space_id: String) -> Element {
-    rsx! { pages::delivery_binding::DeliveryBindingPolicy { space_id } }
+    // Legacy alias — forward to the realm-rework component.
+    rsx! { pages::delivery_binding::DeliveryBindingPolicy { realm_id: space_id } }
+}
+
+#[component]
+fn RealmLinks(realm_id: String) -> Element {
+    rsx! { pages::realm_links::RealmLinks { realm_id } }
 }
 
 #[component]

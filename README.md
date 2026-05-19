@@ -14,6 +14,21 @@ Contrix administrator web UI for Principal Server and coauth deployments. The ap
 
 `sodmin` does not implement Contrix reducers or authorization decisions. It consumes stable admin API contracts from `soland` and `coauth`.
 
+## Realm vs Space
+
+After the Phase 1–4 terminology inversion (Round R1.x):
+
+- **Realm:** security boundary — membership, capability, E2EE, and federation
+  policies are administered here. URL prefix `/realms/:id/...`. Old wire
+  name: `Space`.
+- **Space:** navigation container — board, list, section, calendar bucket.
+  Lives inside a Realm. Old wire name: `Place`.
+
+The admin pages under "Spaces" in the sidebar still drive the security
+boundary; the URL routes have been renamed to `/realms/:id/...` with
+`/spaces/:id/...` kept as a back-compat alias. The new **Realm links**
+page exposes the typed `cx.realm.link` edges between boundaries.
+
 ## Development
 
 ```bash

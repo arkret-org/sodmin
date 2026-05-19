@@ -1360,10 +1360,13 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("handles.audit_actor", "Actor"),
             ("handles.audit_reason", "Reason"),
 
-            // T6.2 §3 — delivery binding policy editor.
+            // T6.2 §3 — delivery binding policy editor (realm-rework:
+            // security boundary is now called "Realm").
             ("nav.delivery_binding", "Delivery binding"),
-            ("delivery_binding.title", "Delivery binding policy"),
-            ("delivery_binding.space", "Space"),
+            ("delivery_binding.title", "Realm delivery binding policy"),
+            ("delivery_binding.realm", "Realm"),
+            // Legacy key retained so any stale call site keeps rendering.
+            ("delivery_binding.space", "Realm"),
             ("delivery_binding.policy_title", "Effective policy"),
             (
                 "delivery_binding.policy_subtitle",
@@ -1394,13 +1397,51 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "delivery_binding.members_subtitle",
                 "Each member's effective recipient_service_did checked against the allow list above.",
             ),
-            ("delivery_binding.members_empty", "No members in this space."),
+            ("delivery_binding.members_empty", "No members in this realm."),
             ("delivery_binding.member_actor", "Actor"),
             ("delivery_binding.member_recipient", "Recipient service DID"),
             ("delivery_binding.member_status", "Delivery status"),
             ("delivery_binding.member_routability", "Routability"),
             ("delivery_binding.routable", "Routable"),
             ("delivery_binding.unroutable", "Not routable"),
+            ("delivery_binding.link_graph_title", "Realm link graph"),
+            (
+                "delivery_binding.link_graph_subtitle",
+                "Cross-realm trust edges and federated container Spaces.",
+            ),
+            (
+                "delivery_binding.link_graph_placeholder",
+                "Realm link graph coming soon.",
+            ),
+
+            // R5.2 — Realm link-graph admin page.
+            ("nav.realm_links", "Realm links"),
+            ("realm_links.title", "Realm link graph"),
+            ("realm_links.realm", "Realm"),
+            ("realm_links.outbound_title", "Outbound links"),
+            (
+                "realm_links.outbound_subtitle",
+                "Typed cx.realm.link edges from this Realm to others (governed_by / discoverable_from / mirror_of …).",
+            ),
+            ("realm_links.outbound_empty", "No outbound links from this Realm."),
+            ("realm_links.inbound_title", "Inbound links"),
+            (
+                "realm_links.inbound_subtitle",
+                "Typed cx.realm.link edges from other Realms pointing at this one.",
+            ),
+            ("realm_links.inbound_empty", "No inbound links to this Realm."),
+            ("realm_links.graph_title", "Graph visualisation"),
+            (
+                "realm_links.graph_subtitle",
+                "Spatial layout of the link rows above.",
+            ),
+            (
+                "realm_links.graph_placeholder",
+                "Interactive graph visualisation coming soon — for now use the lists above.",
+            ),
+            ("realm_links.kind.governed_by", "governed by"),
+            ("realm_links.kind.discoverable_from", "discoverable from"),
+            ("realm_links.kind.mirror_of", "mirror of"),
 
             // T6.2 §4 — push route / device route inspector.
             ("nav.push_routes", "Push routes"),
@@ -2083,10 +2124,12 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("handles.audit_actor", "执行者"),
             ("handles.audit_reason", "原因"),
 
-            // T6.2 §3 — Delivery binding policy 编辑器。
+            // T6.2 §3 — Delivery binding policy 编辑器（realm-rework：安全边界改称 Realm）。
             ("nav.delivery_binding", "投递绑定"),
-            ("delivery_binding.title", "投递绑定策略"),
-            ("delivery_binding.space", "Space"),
+            ("delivery_binding.title", "Realm 投递绑定策略"),
+            ("delivery_binding.realm", "Realm"),
+            // 保留旧 key，避免遗留调用点报错。
+            ("delivery_binding.space", "Realm"),
             ("delivery_binding.policy_title", "当前策略"),
             (
                 "delivery_binding.policy_subtitle",
@@ -2117,13 +2160,51 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "delivery_binding.members_subtitle",
                 "对照上方允许清单，逐个检查成员的 recipient_service_did。",
             ),
-            ("delivery_binding.members_empty", "此 Space 暂无成员。"),
+            ("delivery_binding.members_empty", "此 Realm 暂无成员。"),
             ("delivery_binding.member_actor", "成员"),
             ("delivery_binding.member_recipient", "Recipient 服务 DID"),
             ("delivery_binding.member_status", "投递状态"),
             ("delivery_binding.member_routability", "是否可达"),
             ("delivery_binding.routable", "可达"),
             ("delivery_binding.unroutable", "不可达"),
+            ("delivery_binding.link_graph_title", "Realm 链接图"),
+            (
+                "delivery_binding.link_graph_subtitle",
+                "跨 Realm 的信任边及联邦容器 Space。",
+            ),
+            (
+                "delivery_binding.link_graph_placeholder",
+                "Realm 链接图开发中。",
+            ),
+
+            // R5.2 — Realm 链接图管理页。
+            ("nav.realm_links", "Realm 链接"),
+            ("realm_links.title", "Realm 链接图"),
+            ("realm_links.realm", "Realm"),
+            ("realm_links.outbound_title", "出向链接"),
+            (
+                "realm_links.outbound_subtitle",
+                "从本 Realm 指向其他 Realm 的 cx.realm.link 类型边（governed_by / discoverable_from / mirror_of …）。",
+            ),
+            ("realm_links.outbound_empty", "本 Realm 没有出向链接。"),
+            ("realm_links.inbound_title", "入向链接"),
+            (
+                "realm_links.inbound_subtitle",
+                "其他 Realm 指向本 Realm 的 cx.realm.link 类型边。",
+            ),
+            ("realm_links.inbound_empty", "本 Realm 没有入向链接。"),
+            ("realm_links.graph_title", "图形可视化"),
+            (
+                "realm_links.graph_subtitle",
+                "上方链接行的空间布局视图。",
+            ),
+            (
+                "realm_links.graph_placeholder",
+                "交互式图形可视化开发中 — 暂请使用上方列表。",
+            ),
+            ("realm_links.kind.governed_by", "受治理于"),
+            ("realm_links.kind.discoverable_from", "可被发现于"),
+            ("realm_links.kind.mirror_of", "镜像自"),
 
             // T6.2 §4 — Push route inspector。
             ("nav.push_routes", "推送路由"),

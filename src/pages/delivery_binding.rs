@@ -1,13 +1,18 @@
-//! T6.2 §3 — Space delivery-binding-policy editor.
+//! T6.2 §3 — Realm delivery-binding-policy editor (post realm-rework).
 //!
 //! Renders the effective `delivery_binding_policy` cell for a single
-//! Space and lets the operator mutate the editable fields
+//! Realm (the security boundary; pre realm-rework these were "Spaces")
+//! and lets the operator mutate the editable fields
 //! (`allowed_recipient_services`, `binding_source_policy`).
 //! `policy_frontier` is reducer-owned and surfaced read-only.
 //!
-//! Below the editor the page lists each Space member with their
+//! Below the editor the page lists each Realm member with their
 //! effective `delivery_binding.recipient_service_did` and a routability
 //! check against the allowed list.
+//
+// TODO(realm-rework): once the Realm link-graph visualisation lands,
+// embed it under the routability table — for now a placeholder card
+// is rendered.
 
 use dioxus::prelude::*;
 
@@ -25,10 +30,10 @@ use crate::types::UpdateDeliveryBindingPolicyRequest;
 use crate::utils::i18n::t;
 
 #[component]
-pub fn DeliveryBindingPolicy(space_id: String) -> Element {
-    let id_for_policy = space_id.clone();
-    let id_for_members = space_id.clone();
-    let id_for_save = space_id.clone();
+pub fn DeliveryBindingPolicy(realm_id: String) -> Element {
+    let id_for_policy = realm_id.clone();
+    let id_for_members = realm_id.clone();
+    let id_for_save = realm_id.clone();
 
     let mut policy_data = use_resource(move || {
         let id = id_for_policy.clone();
@@ -59,7 +64,7 @@ pub fn DeliveryBindingPolicy(space_id: String) -> Element {
         div { class: "space-y-6",
             PageHeader {
                 title: t("delivery_binding.title"),
-                description: format!("{}: {}", t("delivery_binding.space"), space_id),
+                description: format!("{}: {}", t("delivery_binding.realm"), realm_id),
                 Button {
                     variant: ButtonVariant::Outline,
                     onclick: move |_| {
@@ -168,7 +173,7 @@ pub fn DeliveryBindingPolicy(space_id: String) -> Element {
                                             variant: ButtonVariant::Default,
                                             disabled: *saving.read(),
                                             onclick: {
-                                                let space_id = id_for_save.clone();
+                                                let realm_id = id_for_save.clone();
                                                 move |_| {
                                                     let list: Vec<String> = allowed_input
                                                         .read()
@@ -181,10 +186,10 @@ pub fn DeliveryBindingPolicy(space_id: String) -> Element {
                                                         allowed_recipient_services: Some(list),
                                                         binding_source_policy: if bsp_raw.is_empty() { None } else { Some(bsp_raw) },
                                                     };
-                                                    let space_id = space_id.clone();
+                                                    let realm_id = realm_id.clone();
                                                     saving.set(true);
                                                     spawn(async move {
-                                                        match delivery_binding::update_delivery_binding_policy(&space_id, &req).await {
+                                                        match delivery_binding::update_delivery_binding_policy(&realm_id, &req).await {
                                                             Ok(_) => {
                                                                 show_toast(&t("delivery_binding.save_ok"), ToastVariant::Success);
                                                                 hydrated.set(false);
@@ -268,6 +273,20 @@ pub fn DeliveryBindingPolicy(space_id: String) -> Element {
                             ErrorBanner { message: e.message.clone(), on_retry: move |_| members_data.restart() }
                         },
                         None => rsx! { PageSkeleton {} },
+                    }
+                }
+            }
+
+            // TODO(realm-rework): replace this placeholder with the real
+            // Realm link-graph visualisation once the data surface ships.
+            Card {
+                CardHeader {
+                    CardTitle { {t("delivery_binding.link_graph_title")} }
+                    CardDescription { {t("delivery_binding.link_graph_subtitle")} }
+                }
+                CardContent {
+                    p { class: "text-sm text-muted-foreground py-6 text-center",
+                        {t("delivery_binding.link_graph_placeholder")}
                     }
                 }
             }

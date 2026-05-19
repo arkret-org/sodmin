@@ -178,10 +178,22 @@ fn build_nav_sections() -> Vec<NavSection> {
                 ),
                 NavItem::new(
                     t("nav.delivery_binding"),
-                    Route::SpaceDeliveryBinding {
-                        space_id: "_".to_string(),
+                    // Realm-rework: link to the Realm-scoped editor.
+                    Route::RealmDeliveryBinding {
+                        realm_id: "_".to_string(),
                     },
                     "shield",
+                ),
+                // R5.2 — Realm link-graph (outbound / inbound
+                // `cx.realm.link` rows). Sits next to delivery binding
+                // so the operator can pivot from a single Realm's
+                // routing policy to its boundary topology.
+                NavItem::new(
+                    t("nav.realm_links"),
+                    Route::RealmLinks {
+                        realm_id: "_".to_string(),
+                    },
+                    "link",
                 ),
             ],
         )

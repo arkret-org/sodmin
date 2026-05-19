@@ -28,6 +28,7 @@ pub mod generated;
 pub mod invite_tokens;
 pub mod media;
 pub mod policy;
+pub mod realm_links;
 pub mod reports;
 pub mod server;
 pub mod spaces;

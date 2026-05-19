@@ -829,14 +829,17 @@ pub struct HandleReassignRequest {
 
 // ── Delivery binding policy (T6.2 §3) ──
 
-/// Effective `cx.cell.space.delivery_binding_policy` for a Space.
+/// Effective `cx.cell.realm.delivery_binding_policy` for a Realm
+/// (security boundary; pre realm-rework these were called Spaces).
 /// `allowed_recipient_services` and `binding_source_policy` are
 /// operator-mutable; `policy_frontier` is written by the soland
 /// reducer and is therefore read-only on the admin surface.
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct SpaceDeliveryBindingPolicy {
-    #[serde(default)]
-    pub space_id: String,
+pub struct RealmDeliveryBindingPolicy {
+    /// Realm identifier (security boundary). The legacy wire name
+    /// `space_id` is still accepted on the response shape.
+    #[serde(default, alias = "space_id")]
+    pub realm_id: String,
     #[serde(default)]
     pub allowed_recipient_services: Vec<String>,
     #[serde(default)]
@@ -846,6 +849,12 @@ pub struct SpaceDeliveryBindingPolicy {
     #[serde(default)]
     pub updated_at: Option<String>,
 }
+
+/// Back-compat type alias for callers that have not migrated to the
+/// realm-rework names yet.
+// TODO(realm-rework): drop this alias once every callsite uses
+// `RealmDeliveryBindingPolicy`.
+pub type SpaceDeliveryBindingPolicy = RealmDeliveryBindingPolicy;
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct UpdateDeliveryBindingPolicyRequest {
@@ -870,6 +879,37 @@ pub struct MemberRoutabilityRow {
     pub in_allowed_list: bool,
     #[serde(default)]
     pub delivery_status: Option<String>,
+}
+
+// ── Realm link graph (R5.2, Round R1.2 — cx.realm.link projection) ──
+
+/// One outbound / inbound typed link between two Realm boundaries.
+/// Backed by `cx.realm.link` reducer_input events. Common `link_kind`
+/// values include `governed_by`, `discoverable_from`, `mirror_of`.
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct RealmLinkRow {
+    /// Source Realm id (the "from" boundary).
+    #[serde(default)]
+    pub source_realm_id: String,
+    /// Target Realm id (the "to" boundary).
+    #[serde(default)]
+    pub target_realm_id: String,
+    /// Typed link kind. Free-form string at the wire layer; the UI
+    /// recognises a small set and renders the rest as `other`.
+    #[serde(default)]
+    pub link_kind: String,
+    /// Human-friendly label for the target Realm, if soland resolves it.
+    #[serde(default)]
+    pub target_display_name: Option<String>,
+    /// HLC / cell timestamp of the last event that established or
+    /// refreshed this link.
+    #[serde(default)]
+    pub updated_at: Option<String>,
+    /// Whether this row appears in the inbound list (vs outbound).
+    /// Surface-level convenience; the server fills it when the response
+    /// covers both directions in a single payload.
+    #[serde(default)]
+    pub inbound: bool,
 }
 
 // ── Push route / device route (T6.2 §4) ──
