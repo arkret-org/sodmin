@@ -249,12 +249,8 @@ pub fn AnchorerPage(space_id: String) -> Element {
                 let snapshot = last_response.read().clone();
                 if let Some(resp) = snapshot {
                     let move_id = resp.move_id.clone();
-                    let pretty = resp
-                        .move_body
-                        .as_ref()
-                        .map(|v| serde_json::to_string_pretty(v)
-                            .unwrap_or_else(|_| "(failed to render move_body)".to_string()))
-                        .unwrap_or_else(|| "(soland did not return a move_body)".to_string());
+                    let pretty = serde_json::to_string_pretty(&resp.move_body)
+                        .unwrap_or_else(|_| "(failed to render move_body)".to_string());
                     rsx! {
                         Card {
                             CardHeader { CardTitle { "Last submitted Move body" } }

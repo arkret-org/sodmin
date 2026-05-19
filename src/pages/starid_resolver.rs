@@ -224,12 +224,7 @@ enum StatusClass {
 }
 
 fn status_class(describe: &StaridDescribe) -> StatusClass {
-    let has_head = describe
-        .head_version_id
-        .as_deref()
-        .map(|s| !s.is_empty())
-        .unwrap_or(false);
-    match (has_head, describe.witness_count) {
+    match (describe.head_version_id.is_some(), describe.witness_count) {
         (true, n) if n > 0 => StatusClass::Healthy,
         (true, _) => StatusClass::PendingWitnesses,
         (false, _) => StatusClass::Idle,
@@ -280,15 +275,5 @@ mod tests {
     fn head_with_witness_is_healthy() {
         let d = populated_describe();
         assert_eq!(status_class(&d), StatusClass::Healthy);
-    }
-
-    #[test]
-    fn empty_head_string_does_not_count_as_head() {
-        // Belt-and-suspenders: starid serializes a missing head as
-        // `null` (skip_serializing_if), but an older client that
-        // serialized it as `""` should still classify as Idle.
-        let mut d = empty_describe();
-        d.head_version_id = Some(String::new());
-        assert_eq!(status_class(&d), StatusClass::Idle);
     }
 }

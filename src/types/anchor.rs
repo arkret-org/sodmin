@@ -299,11 +299,8 @@ pub struct SubmitMoveResponse {
     pub accepted: bool,
     #[serde(default)]
     pub reason: Option<String>,
-    /// Canonical signed Move body returned by soland. Optional because
-    /// older soland builds may omit it; sodmin gracefully falls back
-    /// to "no body returned" when absent.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub move_body: Option<serde_json::Value>,
+    /// Canonical signed Move body returned by soland.
+    pub move_body: serde_json::Value,
 }
 
 // ── Bottom diagnostics ───────────────────────────────────────────────────

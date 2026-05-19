@@ -94,7 +94,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     needs: wasm-build
-    if: false  # gated until e2e/ has been migrated off the legacy stack (see _todos Q8)
     steps:
       - name: Check out source
         uses: actions/checkout@v4
@@ -108,4 +107,4 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
       - name: Run Playwright smoke
-        run: npm run test:app -- --reporter=line
+        run: npm test -- --reporter=line

@@ -56,14 +56,12 @@ docker run -p 9090:80 \
 
 环境变量：
 
-| 变量 | 必填 | 用途 | 兼容旧名 |
-| --- | --- | --- | --- |
-| `SOLAND_URL` | 是 | soland Principal Server 内网 URL，同时用于兼容旧版代理路径。 | `PALPO_URL`、`MATRIX_URL` |
-| `COAUTH_URL` | 推荐 | coauth admin 服务的内网 URL，开启 `/auth/`、`/api/v1/auth/`、`/api/admin/`、`/authorize`、`/oauth2/`、`/.well-known/` 代理。 | `PASION_URL` |
-| `COAUTH_PUBLIC_URL` | 推荐 | 浏览器侧能访问的 coauth origin，写入 `/config.json`，OAuth2 PKCE 重定向需要。 | `PASION_PUBLIC_URL` |
-| `SODMIN_PORT` | 否 | nginx 监听端口（默认 `80`）。 | `PADMIN_PORT` |
-
-旧名变量保留一个 release 周期。
+| 变量 | 必填 | 用途 |
+| --- | --- | --- |
+| `SOLAND_URL` | 是 | soland Principal Server 内网 URL。 |
+| `COAUTH_URL` | 推荐 | coauth admin 服务的内网 URL，开启 `/auth/`、`/api/v1/auth/`、`/api/admin/`、`/authorize`、`/oauth2/`、`/.well-known/` 代理。 |
+| `COAUTH_PUBLIC_URL` | 推荐 | 浏览器侧能访问的 coauth origin，写入 `/config.json`，OAuth2 PKCE 重定向需要。 |
+| `SODMIN_PORT` | 否 | nginx 监听端口（默认 `80`）。 |
 
 生成的 nginx 配置默认下发紧的 Content-Security-Policy
 （`default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; ...`）、
@@ -79,9 +77,6 @@ camera / microphone / geolocation / payment 的 `Permissions-Policy`。
   "coauth_public_url": "https://auth.example.com"
 }
 ```
-
-为兼容老构建，运行时同时接受 `pasion_public_url` 字段。新部署应使用
-`coauth_public_url`。
 
 ## API Contract
 

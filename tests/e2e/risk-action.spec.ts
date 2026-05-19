@@ -6,11 +6,6 @@
 // page, kicks off the risk-action flow, and asserts that an audit row
 // appears for the action.
 //
-// This file co-exists with the legacy `e2e/` test suite (which targets
-// the older compatibility example stack). New round-26+ specs land
-// under `tests/e2e/` so we can break cleanly from the legacy harness
-// without disturbing it.
-//
 // Skip behaviour: if the env vars `SODMIN_E2E_BASE_URL`,
 // `SODMIN_E2E_ADMIN_EMAIL`, `SODMIN_E2E_ADMIN_PASSWORD`, or
 // `SODMIN_E2E_ACCOUNT_ID` are unset, the test calls `test.skip()` so a

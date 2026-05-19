@@ -57,14 +57,12 @@ configured with sane security headers.
 
 Required and optional environment variables:
 
-| Variable | Required | Purpose | Legacy alias |
-| --- | --- | --- | --- |
-| `SOLAND_URL` | yes | Internal URL of the soland Principal Server reached by the proxy. Also backs legacy compatibility proxy paths. | `PALPO_URL`, `MATRIX_URL` |
-| `COAUTH_URL` | recommended | Internal URL of the coauth admin service. Enables the `/auth/`, `/api/v1/auth/`, `/api/admin/`, `/authorize`, `/oauth2/`, `/.well-known/` proxy locations. | `PASION_URL` |
-| `COAUTH_PUBLIC_URL` | recommended | Browser-facing coauth origin. Written to `/config.json` for the OAuth2 PKCE redirect. | `PASION_PUBLIC_URL` |
-| `SODMIN_PORT` | no | nginx listen port (default `80`). | `PADMIN_PORT` |
-
-Legacy aliases continue to work for one release cycle.
+| Variable | Required | Purpose |
+| --- | --- | --- |
+| `SOLAND_URL` | yes | Internal URL of the soland Principal Server reached by the proxy. |
+| `COAUTH_URL` | recommended | Internal URL of the coauth admin service. Enables the `/auth/`, `/api/v1/auth/`, `/api/admin/`, `/authorize`, `/oauth2/`, `/.well-known/` proxy locations. |
+| `COAUTH_PUBLIC_URL` | recommended | Browser-facing coauth origin. Written to `/config.json` for the OAuth2 PKCE redirect. |
+| `SODMIN_PORT` | no | nginx listen port (default `80`). |
 
 The rendered nginx config sets a tight default Content-Security-Policy
 (`default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; ...`),
@@ -80,10 +78,6 @@ party auth), edit `connect-src` in `docker-entrypoint.sh` accordingly.
   "coauth_public_url": "https://auth.example.com"
 }
 ```
-
-The Dioxus runtime currently also accepts `pasion_public_url` as an
-alias for backwards compatibility. New deployments should use
-`coauth_public_url`.
 
 ## API Contract
 

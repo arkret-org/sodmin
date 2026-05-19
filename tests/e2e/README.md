@@ -1,8 +1,6 @@
-# tests/e2e — round 26+ Playwright suite
+# tests/e2e — Playwright suite
 
-This directory holds the round-26+ Playwright e2e tests for sodmin. It
-is **separate** from the legacy `e2e/` directory at the repo root,
-which still targets the older compatibility example stack.
+This directory holds the Playwright e2e tests for sodmin.
 
 ## Q2 — happy-path risk-action
 
@@ -38,15 +36,6 @@ npx playwright test -c tests/e2e/playwright.config.ts
 If any of the four env vars is missing, the spec self-skips so a
 plain `playwright test` against this config in CI still passes
 without a wired dev stack.
-
-## Why a separate config file?
-
-The root `playwright.config.ts` runs a `global-setup.ts` hook that
-provisions compatibility-stack accounts and wires up an `admin.json`
-storageState file. The round-26 spec doesn't need any of that — it
-authenticates through the sodmin SPA login form directly. Mixing the
-two would cause the legacy setup hook to run for the round-26 spec
-too, which would hang on services that aren't running.
 
 ## Skip behaviour summary
 

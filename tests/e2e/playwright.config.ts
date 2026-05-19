@@ -1,15 +1,10 @@
-// Round 26 Q2 — Playwright config for the round-26+ tests/e2e/ suite.
-//
-// Why this is separate from the root `playwright.config.ts`: the root
-// config targets the legacy compatibility example stack. The round-26
-// risk-action spec assumes a different shape — it talks to a sodmin dev
-// instance backed by a coauth + soland stack. Keeping them in distinct
-// configs avoids cross-shaped `globalSetup` collisions while we evolve the harness.
+// Playwright config for the sodmin tests/e2e/ suite. The specs talk to
+// a sodmin dev instance backed by a coauth + soland stack.
 //
 // Run from the sodmin repo root:
 //   npx playwright test -c tests/e2e/playwright.config.ts
 //
-// The spec self-skips if the required env vars are unset, so this is
+// The specs self-skip if the required env vars are unset, so this is
 // safe to invoke in a CI that hasn't yet wired the dev stack.
 
 import { defineConfig, devices } from "@playwright/test";
