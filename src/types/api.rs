@@ -490,7 +490,7 @@ pub struct ServerInfo {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct ServerDescribeResponse {
+pub struct ServerDescribeResBody {
     #[serde(default)]
     pub service_did: String,
     #[serde(default)]
@@ -608,7 +608,7 @@ pub struct ServerStatusResponse {
 // ── Auth types ──
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct LoginRequest {
+pub struct LoginReqBody {
     #[serde(default)]
     pub username: String,
     #[serde(default)]
@@ -628,7 +628,7 @@ pub struct LoginResponse {
 // ── Profile types ──
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct ProfileResponse {
+pub struct ProfileResBody {
     #[serde(default)]
     pub display_name: Option<String>,
     #[serde(default)]
@@ -647,12 +647,12 @@ pub struct HandleAvailabilityResult {
 
 #[cfg(test)]
 mod tests {
-    use super::ServerDescribeResponse;
+    use super::ServerDescribeResBody;
     use serde_json::json;
 
     #[test]
     fn server_describe_accepts_principal_server_profile_status() {
-        let describe: ServerDescribeResponse = serde_json::from_value(json!({
+        let describe: ServerDescribeResBody = serde_json::from_value(json!({
             "service_did": "did:web:soland.local",
             "service_type": "principal_server",
             "protocol_version": "1.0",
@@ -685,7 +685,7 @@ mod tests {
 
     #[test]
     fn server_describe_accepts_coauth_issuer_and_registry() {
-        let describe: ServerDescribeResponse = serde_json::from_value(json!({
+        let describe: ServerDescribeResBody = serde_json::from_value(json!({
             "service_did": "did:web:auth.example.com",
             "service_type": "auth_account_server",
             "protocol_version": "1.0",
@@ -724,7 +724,7 @@ mod tests {
 
     #[test]
     fn server_describe_reads_supported_profiles() {
-        let describe: ServerDescribeResponse = serde_json::from_value(json!({
+        let describe: ServerDescribeResBody = serde_json::from_value(json!({
             "service_did": "did:web:identity.example",
             "supported_profiles": ["cx.profile.identity_registry.v1"]
         }))

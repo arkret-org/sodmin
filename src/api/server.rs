@@ -6,11 +6,11 @@ pub async fn get_server_info() -> Result<ServerInfo, HttpError> {
     api_client("/api/admin/v1/server/info", "GET", None).await
 }
 
-pub async fn get_server_describe() -> Result<ServerDescribeResponse, HttpError> {
+pub async fn get_server_describe() -> Result<ServerDescribeResBody, HttpError> {
     api_client("/api/v1/server/describe", "GET", None).await
 }
 
-pub async fn get_coauth_server_describe() -> Result<ServerDescribeResponse, HttpError> {
+pub async fn get_coauth_server_describe() -> Result<ServerDescribeResBody, HttpError> {
     let url = crate::utils::session::coauth_public_url()
         .map(|base| format!("{}/api/v1/server/describe", base.trim_end_matches('/')))
         .unwrap_or_else(|| "/api/v1/server/describe".to_string());

@@ -6,7 +6,7 @@ use crate::components::ui::button::{Button, ButtonVariant};
 use crate::components::ui::card::*;
 use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
-use crate::types::ServerDescribeResponse;
+use crate::types::ServerDescribeResBody;
 use crate::utils::i18n::t;
 
 #[component]
@@ -164,7 +164,7 @@ fn info_cell(label: String, value: String) -> Element {
 fn service_describe_card(
     title: String,
     description: String,
-    describe: Option<&ServerDescribeResponse>,
+    describe: Option<&ServerDescribeResBody>,
     not_configured_label: Option<String>,
 ) -> Element {
     let badge = match (describe.is_some(), not_configured_label.is_some()) {
@@ -203,7 +203,7 @@ fn service_describe_card(
     }
 }
 
-fn describe_body(describe: &ServerDescribeResponse) -> Element {
+fn describe_body(describe: &ServerDescribeResBody) -> Element {
     let did = if describe.service_did.is_empty() {
         "-".to_string()
     } else {
