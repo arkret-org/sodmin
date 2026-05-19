@@ -113,6 +113,8 @@ fn build_nav_sections() -> Vec<NavSection> {
             vec![
                 NavItem::new(t("nav.actors"), Route::ActorList {}, "users"),
                 NavItem::new(t("nav.devices"), Route::DeviceList {}, "smartphone"),
+                NavItem::new(t("nav.handles"), Route::HandleList {}, "fingerprint"),
+                NavItem::new(t("nav.push_routes"), Route::PushRouteList {}, "smartphone"),
                 NavItem::new(t("nav.capabilities"), Route::CapabilityList {}, "shield"),
                 NavItem::new(
                     t("nav.coauth_capabilities"),
@@ -174,6 +176,13 @@ fn build_nav_sections() -> Vec<NavSection> {
                     },
                     "file-text",
                 ),
+                NavItem::new(
+                    t("nav.delivery_binding"),
+                    Route::SpaceDeliveryBinding {
+                        space_id: "_".to_string(),
+                    },
+                    "shield",
+                ),
             ],
         )
         .bridge(bridge::SOLAND)
@@ -186,6 +195,11 @@ fn build_nav_sections() -> Vec<NavSection> {
             vec![
                 NavItem::new(t("nav.policy"), Route::PolicyList {}, "file-text"),
                 NavItem::new(t("nav.server_status"), Route::ServerStatus {}, "activity"),
+                NavItem::new(
+                    "Hardening".to_string(),
+                    Route::HardeningDashboard {},
+                    "shield",
+                ),
                 NavItem::new(
                     t("nav.starid_resolver"),
                     Route::StaridResolver {},
@@ -422,6 +436,7 @@ fn is_route_active(current: &Route, target: &Route) -> bool {
             current,
             Route::ActorList {} | Route::ActorShow { .. } | Route::ActorCreate {}
         ),
+        Route::HandleList {} => matches!(current, Route::HandleList {} | Route::HandleShow { .. }),
         Route::SpaceList {} => matches!(current, Route::SpaceList {} | Route::SpaceShow { .. }),
         Route::SpaceAdminList {} => matches!(
             current,

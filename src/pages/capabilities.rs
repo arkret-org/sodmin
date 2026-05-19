@@ -11,7 +11,7 @@ use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::pagination::Pagination;
 use crate::components::ui::table::*;
 use crate::components::ui::toast::{ToastVariant, show_toast};
-use crate::types::GrantCapabilityRequest;
+use crate::types::{GrantCapabilityRequest, UpdateCapabilityRequest};
 use crate::utils::i18n::t;
 
 const PAGE_SIZE: u64 = 25;
@@ -21,11 +21,19 @@ pub fn CapabilityList() -> Element {
     let mut page = use_signal(|| 1u64);
     let mut show_grant_dialog = use_signal(|| false);
     let mut show_revoke_dialog = use_signal(|| None::<String>);
+    let mut show_edit_dialog = use_signal(|| None::<String>);
     let mut grantee_id = use_signal(String::new);
     let mut capability_name = use_signal(String::new);
     let mut scope = use_signal(String::new);
     let mut expires_at = use_signal(String::new);
     let mut grant_loading = use_signal(|| false);
+
+    // T6.2 §5 — constraint editor signals.
+    let mut edit_expires_at = use_signal(String::new);
+    let mut edit_fields_write_allow = use_signal(String::new);
+    let mut edit_facets_allow = use_signal(String::new);
+    let mut edit_approval_required = use_signal(|| false);
+    let mut edit_loading = use_signal(|| false);
 
     let page_val = *page.read();
 
@@ -100,7 +108,44 @@ pub fn CapabilityList() -> Element {
                                                             Badge { variant: BadgeVariant::Success, {t("capabilities.active")} }
                                                         }
                                                     }
-                                                    TableCell { class: "text-right".to_string(),
+                                                    TableCell { class: "text-right space-x-1".to_string(),
+                                                        Button {
+                                                            variant: ButtonVariant::Ghost,
+                                                            size: ButtonSize::Sm,
+                                                            disabled: is_revoked,
+                                                            onclick: {
+                                                                let id = id_for_revoke.clone();
+                                                                let constraints = cap.constraints.clone();
+                                                                let exp = cap.expires_at.clone().unwrap_or_default();
+                                                                move |_| {
+                                                                    // Hydrate edit signals from the
+                                                                    // existing grant. `constraints`
+                                                                    // is a free-form `serde_json::Value`,
+                                                                    // so we pluck the common keys we
+                                                                    // surface in the form.
+                                                                    edit_expires_at.set(exp.clone());
+                                                                    let mut fields = Vec::<String>::new();
+                                                                    let mut facets = Vec::<String>::new();
+                                                                    let mut approval = false;
+                                                                    if let Some(serde_json::Value::Object(map)) = constraints.as_ref() {
+                                                                        if let Some(serde_json::Value::Array(arr)) = map.get("fields_write_allow") {
+                                                                            fields = arr.iter().filter_map(|v| v.as_str().map(|s| s.to_string())).collect();
+                                                                        }
+                                                                        if let Some(serde_json::Value::Array(arr)) = map.get("facets_allow") {
+                                                                            facets = arr.iter().filter_map(|v| v.as_str().map(|s| s.to_string())).collect();
+                                                                        }
+                                                                        if let Some(serde_json::Value::Bool(b)) = map.get("approval_required") {
+                                                                            approval = *b;
+                                                                        }
+                                                                    }
+                                                                    edit_fields_write_allow.set(fields.join(", "));
+                                                                    edit_facets_allow.set(facets.join(", "));
+                                                                    edit_approval_required.set(approval);
+                                                                    show_edit_dialog.set(Some(id.clone()));
+                                                                }
+                                                            },
+                                                            {t("common.edit")}
+                                                        }
                                                         Button {
                                                             variant: ButtonVariant::Ghost,
                                                             size: ButtonSize::Sm,
@@ -210,6 +255,100 @@ pub fn CapabilityList() -> Element {
                     }
                 }
             }
+
+        if show_edit_dialog.read().is_some() {
+            div { class: "fixed inset-0 z-50 flex items-center justify-center",
+                div { class: "fixed inset-0 bg-black/80", onclick: move |_| show_edit_dialog.set(None) }
+                div { class: "relative z-50 w-full max-w-md rounded-lg border glass-panel p-6 shadow-lg space-y-4",
+                    h2 { class: "text-lg font-semibold", {t("capabilities.edit_title")} }
+                    div { class: "space-y-3",
+                        div { class: "space-y-1",
+                            Label { r#for: "cap-edit-expires".to_string(), {t("capabilities.expires_at")} }
+                            Input {
+                                r#type: "datetime-local".to_string(),
+                                value: edit_expires_at.read().clone(),
+                                oninput: move |evt: FormEvent| edit_expires_at.set(evt.value()),
+                            }
+                        }
+                        div { class: "space-y-1",
+                            Label { r#for: "cap-edit-fields".to_string(), {t("capabilities.fields_write_allow")} }
+                            Input {
+                                value: edit_fields_write_allow.read().clone(),
+                                oninput: move |evt: FormEvent| edit_fields_write_allow.set(evt.value()),
+                            }
+                            p { class: "text-xs text-muted-foreground", {t("capabilities.csv_hint")} }
+                        }
+                        div { class: "space-y-1",
+                            Label { r#for: "cap-edit-facets".to_string(), {t("capabilities.facets_allow")} }
+                            Input {
+                                value: edit_facets_allow.read().clone(),
+                                oninput: move |evt: FormEvent| edit_facets_allow.set(evt.value()),
+                            }
+                            p { class: "text-xs text-muted-foreground", {t("capabilities.csv_hint")} }
+                        }
+                        label {
+                            class: "flex items-center gap-2 text-sm",
+                            input {
+                                r#type: "checkbox",
+                                checked: *edit_approval_required.read(),
+                                oninput: move |evt: FormEvent| {
+                                    edit_approval_required.set(evt.value() == "true");
+                                },
+                            }
+                            span { {t("capabilities.approval_required")} }
+                        }
+                    }
+                    div { class: "flex justify-end gap-2",
+                        Button {
+                            variant: ButtonVariant::Outline,
+                            onclick: move |_| show_edit_dialog.set(None),
+                            {t("common.cancel")}
+                        }
+                        Button {
+                            variant: ButtonVariant::Default,
+                            disabled: *edit_loading.read(),
+                            onclick: move |_| {
+                                if let Some(id) = show_edit_dialog.read().clone() {
+                                    let exp_raw = edit_expires_at.read().trim().to_string();
+                                    let fields: Vec<String> = edit_fields_write_allow
+                                        .read()
+                                        .split(',')
+                                        .map(|s| s.trim().to_string())
+                                        .filter(|s| !s.is_empty())
+                                        .collect();
+                                    let facets: Vec<String> = edit_facets_allow
+                                        .read()
+                                        .split(',')
+                                        .map(|s| s.trim().to_string())
+                                        .filter(|s| !s.is_empty())
+                                        .collect();
+                                    let approval = *edit_approval_required.read();
+                                    let req = UpdateCapabilityRequest {
+                                        expires_at: if exp_raw.is_empty() { None } else { Some(exp_raw) },
+                                        fields_write_allow: Some(fields),
+                                        facets_allow: Some(facets),
+                                        approval_required: Some(approval),
+                                    };
+                                    edit_loading.set(true);
+                                    spawn(async move {
+                                        match capabilities::update_capability(&id, &req).await {
+                                            Ok(_) => {
+                                                show_toast(&t("capabilities.edit_ok"), ToastVariant::Success);
+                                                show_edit_dialog.set(None);
+                                                data.restart();
+                                            }
+                                            Err(e) => show_toast(&format!("{}: {}", t("capabilities.edit_fail"), e.message), ToastVariant::Error),
+                                        }
+                                        edit_loading.set(false);
+                                    });
+                                }
+                            },
+                            {t("common.save")}
+                        }
+                    }
+                }
+            }
+        }
 
         ConfirmDialog {
             open: show_revoke_dialog.read().is_some(),

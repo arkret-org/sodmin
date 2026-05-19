@@ -220,6 +220,9 @@ pub mod starid {
         pub witness_count: u64,
         #[serde(default)]
         pub freshness: Option<DateTime<Utc>>,
+        /// T8.3 — production hardening checklist snapshot.
+        #[serde(default)]
+        pub hardening: Option<crate::types::api::HardeningStatus>,
     }
 }
 

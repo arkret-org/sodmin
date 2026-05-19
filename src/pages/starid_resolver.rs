@@ -255,6 +255,7 @@ mod tests {
                     .with_ymd_and_hms(2026, 5, 9, 10, 11, 12)
                     .unwrap(),
             ),
+            hardening: None,
         }
     }
 

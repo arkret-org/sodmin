@@ -85,6 +85,17 @@ pub enum Route {
         #[route("/capabilities")]
         CapabilityList {},
 
+        #[route("/handles")]
+        HandleList {},
+        #[route("/handles/:handle_id")]
+        HandleShow { handle_id: String },
+
+        #[route("/push-routes")]
+        PushRouteList {},
+
+        #[route("/spaces/:space_id/delivery-binding")]
+        SpaceDeliveryBinding { space_id: String },
+
         #[route("/applets")]
         AppletList {},
         #[route("/applets/admin")]
@@ -111,6 +122,9 @@ pub enum Route {
 
         #[route("/server-status")]
         ServerStatus {},
+
+        #[route("/hardening")]
+        HardeningDashboard {},
 
         #[route("/starid/resolver")]
         StaridResolver {},
@@ -346,6 +360,26 @@ fn CapabilityList() -> Element {
 }
 
 #[component]
+fn HandleList() -> Element {
+    rsx! { pages::handles::HandleList {} }
+}
+
+#[component]
+fn HandleShow(handle_id: String) -> Element {
+    rsx! { pages::handles::HandleShow { handle_id } }
+}
+
+#[component]
+fn PushRouteList() -> Element {
+    rsx! { pages::push_routes::PushRoutes {} }
+}
+
+#[component]
+fn SpaceDeliveryBinding(space_id: String) -> Element {
+    rsx! { pages::delivery_binding::DeliveryBindingPolicy { space_id } }
+}
+
+#[component]
 fn AppletList() -> Element {
     rsx! { pages::applets::AppletList {} }
 }
@@ -403,6 +437,11 @@ fn PolicyList() -> Element {
 #[component]
 fn ServerStatus() -> Element {
     rsx! { pages::server_status::ServerStatus {} }
+}
+
+#[component]
+fn HardeningDashboard() -> Element {
+    rsx! { pages::hardening::HardeningDashboard {} }
 }
 
 #[component]

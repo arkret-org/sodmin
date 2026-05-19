@@ -232,6 +232,21 @@ pub struct GrantCapabilityRequest {
     pub expires_at: Option<String>,
 }
 
+/// PATCH body for `/api/admin/v1/capabilities/{id}` — fine-grained
+/// edits to an existing grant's constraints. All fields optional; the
+/// admin only sends the keys that actually changed.
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct UpdateCapabilityRequest {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub expires_at: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub fields_write_allow: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub facets_allow: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub approval_required: Option<bool>,
+}
+
 // ── Federation types ──
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -576,6 +591,66 @@ pub struct ServerDescribeResBody {
     /// `"development"` | `"did_allowlist"` | `"oauth_introspection"` | `"closed"`.
     #[serde(default)]
     pub admin_auth_mode: Option<String>,
+    /// T6.1 — profiles the server has been independently verified to
+    /// implement against the spec test suite. Rendered as green
+    /// "verified" chips.
+    #[serde(default)]
+    pub verified_profiles: Vec<String>,
+    /// T6.1 — profiles the operator self-claims support for. Rendered
+    /// as yellow "self-claimed" chips because they lack third-party
+    /// verification.
+    #[serde(default)]
+    pub claimed_profiles: Vec<String>,
+    /// T6.1 — experimental features the server exposes. Rendered as
+    /// blue chips with an "unstable" warning.
+    #[serde(default)]
+    pub experimental_features: Vec<String>,
+    /// T6.1 — compatibility surfaces (legacy / shim endpoints). Grey
+    /// chips.
+    #[serde(default)]
+    pub compat_surfaces: Vec<String>,
+    /// T1.4 / S5 — services whose plaintext bodies remain readable on
+    /// this deployment (intentionally weak posture, dev-only).
+    #[serde(default)]
+    pub plaintext_visible_services: Vec<String>,
+    /// T8.3 — production hardening checklist snapshot, mirrored from
+    /// `/health`. Older servers that predate the field omit it.
+    #[serde(default)]
+    pub hardening: Option<HardeningStatus>,
+}
+
+/// T8.3 — production deployment hardening checklist snapshot.
+///
+/// Surfaced by every Contrix service (`soland`, `coauth`, `floria`,
+/// `starid`, `teabay`) on `/health` and the corresponding describe
+/// endpoint. The sodmin `/hardening` dashboard aggregates these into a
+/// single board with green/red chips per check.
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct HardeningStatus {
+    #[serde(default)]
+    pub development_mode: bool,
+    #[serde(default)]
+    pub tls_enabled: bool,
+    #[serde(default)]
+    pub csp_header_configured: bool,
+    #[serde(default)]
+    pub cors_strict: bool,
+    #[serde(default)]
+    pub secret_manager_in_use: bool,
+    #[serde(default)]
+    pub log_redaction_enabled: bool,
+    #[serde(default)]
+    pub admin_auth_mode: Option<String>,
+    #[serde(default)]
+    pub rate_limit_enabled: bool,
+    #[serde(default)]
+    pub provider_credential_rotation: Option<String>,
+    #[serde(default)]
+    pub checklist_score: u32,
+    #[serde(default)]
+    pub checklist_max: u32,
+    #[serde(default)]
+    pub warnings: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -696,9 +771,143 @@ pub struct HandleAvailabilityResult {
     pub error: Option<String>,
 }
 
+// ── Handle management (T6.2 §2) ──
+
+/// One row in `GET /api/admin/v1/handles`. Mirrors the `cx.handle.*` cell
+/// projection — `canonical_uri` is the cell subject, `aliases` is the
+/// projected handle set, `issuer_did` is the principal that signed the
+/// most recent assignment Move.
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct HandleRecord {
+    #[serde(default)]
+    pub id: String,
+    #[serde(default)]
+    pub canonical_uri: String,
+    #[serde(default)]
+    pub aliases: Vec<String>,
+    #[serde(default)]
+    pub issuer_did: Option<String>,
+    #[serde(default)]
+    pub subject_did: Option<String>,
+    #[serde(default)]
+    pub assigned_at: Option<String>,
+    #[serde(default)]
+    pub expires_at: Option<String>,
+    #[serde(default)]
+    pub last_reassignment_at: Option<String>,
+    #[serde(default)]
+    pub status: Option<String>,
+}
+
+/// Single audit event for `GET /api/admin/v1/handles/{id}/audit`. The
+/// audit table is what T3.2 created — we surface the minimum the
+/// operator needs to triage.
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct HandleAuditEvent {
+    #[serde(default)]
+    pub id: String,
+    #[serde(default)]
+    pub action: String,
+    #[serde(default)]
+    pub actor_did: Option<String>,
+    #[serde(default)]
+    pub timestamp: Option<String>,
+    #[serde(default)]
+    pub reason: Option<String>,
+    #[serde(default)]
+    pub previous_subject_did: Option<String>,
+    #[serde(default)]
+    pub new_subject_did: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct HandleReassignRequest {
+    pub new_subject_did: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub reason: Option<String>,
+}
+
+// ── Delivery binding policy (T6.2 §3) ──
+
+/// Effective `cx.cell.space.delivery_binding_policy` for a Space.
+/// `allowed_recipient_services` and `binding_source_policy` are
+/// operator-mutable; `policy_frontier` is written by the soland
+/// reducer and is therefore read-only on the admin surface.
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct SpaceDeliveryBindingPolicy {
+    #[serde(default)]
+    pub space_id: String,
+    #[serde(default)]
+    pub allowed_recipient_services: Vec<String>,
+    #[serde(default)]
+    pub binding_source_policy: Option<String>,
+    #[serde(default)]
+    pub policy_frontier: Option<String>,
+    #[serde(default)]
+    pub updated_at: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct UpdateDeliveryBindingPolicyRequest {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub allowed_recipient_services: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub binding_source_policy: Option<String>,
+}
+
+/// One row in the per-Space "is each member routable?" check table. We
+/// pull this straight from the Space members projection plus the
+/// effective delivery_binding_policy.
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct MemberRoutabilityRow {
+    #[serde(default)]
+    pub actor_id: String,
+    #[serde(default)]
+    pub display_name: Option<String>,
+    #[serde(default)]
+    pub recipient_service_did: Option<String>,
+    #[serde(default)]
+    pub in_allowed_list: bool,
+    #[serde(default)]
+    pub delivery_status: Option<String>,
+}
+
+// ── Push route / device route (T6.2 §4) ──
+
+/// Surface for `cx.device.push_route` cells, grouped by principal so
+/// the operator can inspect what each user is currently subscribed to
+/// without leaking the raw `push_target_id`.
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct PushRouteRow {
+    #[serde(default)]
+    pub principal_id: String,
+    #[serde(default)]
+    pub device_id: String,
+    #[serde(default)]
+    pub cell_subject: String,
+    /// The 4-tuple `(principal_id, device_id, transport, route_id)`
+    /// formatted for human display. Soland already emits this.
+    #[serde(default)]
+    pub cell_subject_tuple: Vec<String>,
+    #[serde(default)]
+    pub transport: Option<String>,
+    #[serde(default)]
+    pub status: Option<String>,
+    /// Opaque, sensitive. The UI must keep this collapsed by default.
+    #[serde(default)]
+    pub push_target_id: Option<String>,
+    #[serde(default)]
+    pub last_rotation_at: Option<String>,
+    #[serde(default)]
+    pub created_at: Option<String>,
+}
+
 #[cfg(test)]
 mod tests {
-    use super::ServerDescribeResBody;
+    use super::{
+        HandleRecord, ServerDescribeResBody, UpdateCapabilityRequest,
+        UpdateDeliveryBindingPolicyRequest,
+    };
     use serde_json::json;
 
     #[test]
@@ -785,5 +994,82 @@ mod tests {
             describe.supported_profiles,
             vec!["cx.profile.identity_registry.v1".to_string()]
         );
+    }
+
+    #[test]
+    fn server_describe_reads_conformance_buckets() {
+        let describe: ServerDescribeResBody = serde_json::from_value(json!({
+            "service_did": "did:web:soland.local",
+            "verified_profiles": ["cx.profile.principal_server.v1"],
+            "claimed_profiles": ["cx.profile.identity_registry.v1"],
+            "experimental_features": ["events.replay.v2"],
+            "compat_surfaces": ["legacy.federation.v0"],
+            "plaintext_visible_services": ["floria"],
+        }))
+        .expect("conformance buckets should deserialize");
+
+        assert_eq!(
+            describe.verified_profiles,
+            vec!["cx.profile.principal_server.v1".to_string()]
+        );
+        assert_eq!(
+            describe.claimed_profiles,
+            vec!["cx.profile.identity_registry.v1".to_string()]
+        );
+        assert_eq!(
+            describe.experimental_features,
+            vec!["events.replay.v2".to_string()]
+        );
+        assert_eq!(
+            describe.compat_surfaces,
+            vec!["legacy.federation.v0".to_string()]
+        );
+        assert_eq!(
+            describe.plaintext_visible_services,
+            vec!["floria".to_string()]
+        );
+    }
+
+    #[test]
+    fn handle_record_round_trip() {
+        let record: HandleRecord = serde_json::from_value(json!({
+            "id": "h-1",
+            "canonical_uri": "cx:handle:@alice",
+            "aliases": ["@alice", "@alice.example"],
+            "issuer_did": "did:web:auth.example.com",
+            "subject_did": "did:key:zABC",
+            "status": "active"
+        }))
+        .expect("handle record should deserialize");
+
+        assert_eq!(record.canonical_uri, "cx:handle:@alice");
+        assert_eq!(record.aliases.len(), 2);
+        assert_eq!(record.status.as_deref(), Some("active"));
+    }
+
+    #[test]
+    fn delivery_binding_policy_request_omits_none() {
+        let req = UpdateDeliveryBindingPolicyRequest {
+            allowed_recipient_services: Some(vec!["did:web:floria.example".to_string()]),
+            binding_source_policy: None,
+        };
+        let serialized = serde_json::to_string(&req).expect("serializes");
+        assert!(serialized.contains("allowed_recipient_services"));
+        assert!(!serialized.contains("binding_source_policy"));
+    }
+
+    #[test]
+    fn update_capability_request_serializes_only_set_fields() {
+        let req = UpdateCapabilityRequest {
+            expires_at: Some("2027-01-01T00:00:00Z".to_string()),
+            fields_write_allow: Some(vec!["body.text".to_string()]),
+            facets_allow: None,
+            approval_required: Some(true),
+        };
+        let serialized = serde_json::to_string(&req).expect("serializes");
+        assert!(serialized.contains("expires_at"));
+        assert!(serialized.contains("fields_write_allow"));
+        assert!(serialized.contains("approval_required"));
+        assert!(!serialized.contains("facets_allow"));
     }
 }
