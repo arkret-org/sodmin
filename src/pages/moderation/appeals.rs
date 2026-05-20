@@ -33,6 +33,7 @@
 
 use dioxus::prelude::*;
 
+use crate::api::moderation_admin;
 use crate::components::ui::badge::{Badge, BadgeVariant};
 use crate::components::ui::button::{Button, ButtonSize, ButtonVariant};
 use crate::components::ui::card::*;
@@ -150,43 +151,41 @@ struct AppealRow {
     decisions: Vec<DecisionEntry>,
 }
 
-fn placeholder_appeals() -> Vec<AppealRow> {
-    vec![
-        AppealRow {
-            appeal_id: "cx:appeal:01904100-0000-7000-8000-000000000001".into(),
-            decision_ref: "cx:event:01904100-0000-7000-8000-0000000000a1".into(),
-            target_ref: "cx:message:01904100-0000-7000-8000-0000000000b1".into(),
-            original_issuer_did: "did:web:alice.example".into(),
-            appellant_did: "did:web:bob.example".into(),
-            reason_text_ref: "blob:reason:01904100-0000-7000-8000-0000000000c1".into(),
-            evidence_refs: vec![
-                "blob:evidence:01904100-0000-7000-8000-0000000000d1".into(),
-            ],
-            submitted_at: "2026-05-12T10:14:00Z".into(),
-            days_until_auto_close: 22,
-            lifecycle: AppealLifecycle::Submitted,
-            reviews: vec![],
-            decisions: vec![],
-        },
-        AppealRow {
-            appeal_id: "cx:appeal:01904100-0000-7000-8000-000000000002".into(),
-            decision_ref: "cx:event:01904100-0000-7000-8000-0000000000a2".into(),
-            target_ref: "cx:message:01904100-0000-7000-8000-0000000000b2".into(),
-            original_issuer_did: "did:web:carol.example".into(),
-            appellant_did: "did:web:dave.example".into(),
-            reason_text_ref: "blob:reason:01904100-0000-7000-8000-0000000000c2".into(),
-            evidence_refs: vec![],
-            submitted_at: "2026-04-25T18:02:00Z".into(),
-            days_until_auto_close: 4,
-            lifecycle: AppealLifecycle::UnderReview,
-            reviews: vec![ReviewerNote {
-                reviewer_did: "did:web:erin.example".into(),
-                reviewed_at: "2026-04-26T09:11:00Z".into(),
-                note: Some("Triaged; pulling context from upstream report.".into()),
-            }],
-            decisions: vec![],
-        },
-    ]
+/// Project a `moderation_admin::AppealRowDto` (one record per
+/// appeal_id, latest event) into the page-local [`AppealRow`] view
+/// model. Lifecycle is inferred from `appeal_state`; the per-appeal
+/// `history` for reviewer notes / decision entries is fetched lazily
+/// when the row is selected.
+fn project_appeal_row(dto: moderation_admin::AppealRowDto) -> AppealRow {
+    let lifecycle = match dto.appeal_state.as_deref() {
+        Some("under_review") => AppealLifecycle::UnderReview,
+        Some("decided") => AppealLifecycle::Decided,
+        Some("closed") => AppealLifecycle::Closed,
+        _ => AppealLifecycle::Submitted,
+    };
+    AppealRow {
+        appeal_id: dto.appeal_id,
+        decision_ref: dto.decision_ref.unwrap_or_default(),
+        target_ref: dto.target_ref.unwrap_or_default(),
+        // The backend list response does not yet ship the original
+        // decision issuer's DID. Until the soland describe contract
+        // joins decisions and appeals, leave this blank — the
+        // separation-of-duties UI guard then hides the Review button
+        // for everyone except development_mode admins, which is the
+        // conservative default.
+        original_issuer_did: String::new(),
+        appellant_did: dto.appellant.unwrap_or_default(),
+        reason_text_ref: dto.reason_text_ref.unwrap_or_default(),
+        evidence_refs: dto.evidence_refs,
+        submitted_at: dto.created_at.unwrap_or_default(),
+        // The 30-day countdown is server-derived. Until soland exposes
+        // it on the latest event, show 0 (rendered as "auto-closing
+        // soon") for under_review / submitted rows.
+        days_until_auto_close: 0,
+        lifecycle,
+        reviews: Vec::new(),
+        decisions: Vec::new(),
+    }
 }
 
 #[component]
@@ -194,8 +193,32 @@ pub fn ModerationAppealsPage() -> Element {
     let mut selected = use_signal::<Option<String>>(|| None);
     let mut verdict_picker = use_signal::<Option<Verdict>>(|| None);
     let mut confirm_open = use_signal(|| false);
+    let mut rows_state = use_signal::<Vec<AppealRow>>(Vec::new);
+    let mut load_error = use_signal::<Option<String>>(|| None);
+    let mut reload_token = use_signal::<u64>(|| 0);
 
-    let rows = placeholder_appeals();
+    // Fetch the live appeals list whenever the page mounts or reload
+    // is triggered. The `reload_token` signal is bumped after every
+    // successful review/decision/close action so the table refreshes.
+    use_effect(move || {
+        let token = reload_token.read().to_owned();
+        let _ = token; // explicit read so the effect re-runs on bump
+        spawn(async move {
+            match moderation_admin::list_appeals().await {
+                Ok(items) => {
+                    let projected: Vec<AppealRow> =
+                        items.into_iter().map(project_appeal_row).collect();
+                    rows_state.set(projected);
+                    load_error.set(None);
+                }
+                Err(err) => {
+                    load_error.set(Some(format!("Failed to load appeals: {err}")));
+                }
+            }
+        });
+    });
+
+    let rows = rows_state.read().clone();
     let pending_only: Vec<&AppealRow> = rows.iter().filter(|r| r.lifecycle.is_pending()).collect();
 
     // Snapshot the currently signed-in admin so we can apply the
@@ -277,9 +300,9 @@ pub fn ModerationAppealsPage() -> Element {
                 }
             }
 
-            if let Some(row) = selected_row {
+            if let Some(ref row) = selected_row {
                 {appeal_detail_card(
-                    &row,
+                    row,
                     &current_admin_did,
                     verdict_picker,
                     confirm_open,
@@ -307,18 +330,86 @@ pub fn ModerationAppealsPage() -> Element {
                             confirm_open.set(false);
                             verdict_picker.set(None);
                         },
-                        on_confirm: move |_| {
-                            // TODO(round23-T06): POST
-                            // `/api/admin/v1/moderation/appeals/{id}/decision`
-                            // with body `{verdict, reason_text_ref}`. For
-                            // overturn, the reducer pairs in
-                            // `cx.moderation.decision.lift` automatically.
-                            confirm_open.set(false);
-                            verdict_picker.set(None);
-                            show_toast(
-                                "Appeal verdict queued (placeholder; backend wiring pending).",
-                                ToastVariant::Success,
-                            );
+                        on_confirm: {
+                            let row = selected_row.clone();
+                            let pending_v = pending;
+                            move |_| {
+                                confirm_open.set(false);
+                                verdict_picker.set(None);
+                                let Some(row) = row.clone() else { return; };
+                                let Some(verdict) = pending_v else { return; };
+                                let appeal_id = row.appeal_id.clone();
+                                let original_decision_ref = row.decision_ref.clone();
+                                let reason_text_ref = row.reason_text_ref.clone();
+                                spawn(async move {
+                                    // Overturn requires a paired decision-lift; sodmin
+                                    // mints the lift via the dedicated admin endpoint
+                                    // and threads its identifier back to the appeal
+                                    // decision so the reducer's paired-batch check
+                                    // in `appeal_decision_overturn_paired_check`
+                                    // resolves cleanly.
+                                    let mut decision_lift_ref: Option<String> = None;
+                                    if matches!(verdict, Verdict::Overturn)
+                                        && !original_decision_ref.is_empty()
+                                    {
+                                        match moderation_admin::lift_decision(
+                                            &original_decision_ref,
+                                            &moderation_admin::LiftDecisionRequest {
+                                                reason_text_ref: Some(reason_text_ref.clone()),
+                                                appeal_ref: Some(appeal_id.clone()),
+                                            },
+                                        )
+                                        .await
+                                        {
+                                            Ok(lift_event) => {
+                                                decision_lift_ref = lift_event
+                                                    .get("decision_id")
+                                                    .and_then(|v| v.as_str())
+                                                    .map(ToOwned::to_owned);
+                                            }
+                                            Err(err) => {
+                                                show_toast(
+                                                    &format!(
+                                                        "Decision lift failed: {err}"
+                                                    ),
+                                                    ToastVariant::Error,
+                                                );
+                                                return;
+                                            }
+                                        }
+                                    }
+                                    let verdict_str = match verdict {
+                                        Verdict::Uphold => "uphold",
+                                        Verdict::Overturn => "overturn",
+                                        Verdict::Modify => "modify",
+                                    };
+                                    let body = moderation_admin::DecideAppealRequest {
+                                        verdict: verdict_str.to_owned(),
+                                        reason_text_ref,
+                                        modify_decision_ref: None,
+                                        decision_lift_ref,
+                                    };
+                                    match moderation_admin::decide_appeal(&appeal_id, &body).await {
+                                        Ok(_) => {
+                                            show_toast(
+                                                &format!(
+                                                    "Appeal {} recorded (verdict={verdict_str}).",
+                                                    appeal_id,
+                                                ),
+                                                ToastVariant::Success,
+                                            );
+                                            let next = *reload_token.read() + 1;
+                                            reload_token.set(next);
+                                        }
+                                        Err(err) => {
+                                            show_toast(
+                                                &format!("Appeal decision failed: {err}"),
+                                                ToastVariant::Error,
+                                            );
+                                        }
+                                    }
+                                });
+                            }
                         },
                     }
                 }
