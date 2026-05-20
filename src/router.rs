@@ -73,6 +73,10 @@ pub enum Route {
 
         #[route("/moderation/reports")]
         ModerationReports {},
+        // Round R2/R3 T06 — moderation appeal admin
+        // (`cx.moderation.appeal.*`).
+        #[route("/moderation/appeals")]
+        ModerationAppeals {},
 
         #[route("/federation")]
         FederationList {},
@@ -139,6 +143,23 @@ pub enum Route {
 
         #[route("/hardening")]
         HardeningDashboard {},
+
+        // Round R2/R3 T07 — deactivation 7-domain fanout review.
+        #[route("/deactivations/review")]
+        DeactivationReview {},
+        // Round R2/R3 T07 — realm destroy confirmation + post-anchor
+        // fanout + erasure receipt panel.
+        #[route("/realms/:realm_id/destroy")]
+        RealmDestroy { realm_id: String },
+        // Round R2/R3 T08 — deployment-wide trust_domain edit.
+        #[route("/server/trust-domain")]
+        TrustDomainConfig {},
+        // Round R2/R3 T09 — relaxed ephemeral window slider.
+        #[route("/server/relaxed-window")]
+        RelaxedWindow {},
+        // Round R2/R3 T10 — audit attestation evidence upload + review.
+        #[route("/audit/attestation")]
+        AuditAttestation {},
 
         #[route("/starid/resolver")]
         StaridResolver {},
@@ -351,6 +372,36 @@ fn ReportShow(report_id: String) -> Element {
 #[component]
 fn ModerationReports() -> Element {
     rsx! { pages::moderation::reports::ModerationReportsPage {} }
+}
+
+#[component]
+fn ModerationAppeals() -> Element {
+    rsx! { pages::moderation::appeals::ModerationAppealsPage {} }
+}
+
+#[component]
+fn DeactivationReview() -> Element {
+    rsx! { pages::deactivation_review::DeactivationReviewPage {} }
+}
+
+#[component]
+fn RealmDestroy(realm_id: String) -> Element {
+    rsx! { pages::realm_destroy::RealmDestroyPage { realm_id } }
+}
+
+#[component]
+fn TrustDomainConfig() -> Element {
+    rsx! { pages::trust_domain::TrustDomainConfigPage {} }
+}
+
+#[component]
+fn RelaxedWindow() -> Element {
+    rsx! { pages::relaxed_window::RelaxedWindowPage {} }
+}
+
+#[component]
+fn AuditAttestation() -> Element {
+    rsx! { pages::audit_attestation::AuditAttestationPage {} }
 }
 
 #[component]

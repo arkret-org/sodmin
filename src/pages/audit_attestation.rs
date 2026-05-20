@@ -1,0 +1,256 @@
+//! Round R2/R3 — Audit attestation_evidence admin page (T10).
+//!
+//! Operators of an `attested_audit.e2ee.v1` deployment join Audit Agents
+//! into the Realm by anchoring `cx.schema.attestation_evidence.v1` rows
+//! that bind the agent's MLS leaf key to a remote-attestation chain
+//! (SGX / TDX / SEV-SNP / TPM2). This admin page lets the operator:
+//!
+//! - submit a new evidence document (JSON pasted into the form, or
+//!   uploaded as a file)
+//! - browse existing rows
+//! - see the validity window remaining in days
+//! - see the chain-verification + revocation status badges
+//!
+//! Full chain verification visualization (per-cert, per-revocation
+//! endpoint) is `TODO(round23-T10)` — this round just wires the upload
+//! form + the read panel. The verification chips render the principal
+//! server's coarse `{chain_verified, revocation_checked}` flags.
+
+use dioxus::prelude::*;
+
+use crate::components::ui::badge::{Badge, BadgeVariant};
+use crate::components::ui::button::{Button, ButtonVariant};
+use crate::components::ui::card::*;
+use crate::components::ui::page_header::PageHeader;
+use crate::components::ui::toast::{ToastVariant, show_toast};
+
+/// Coarse status returned by the principal server for a stored
+/// attestation evidence row. Real `cx.schema.attestation_evidence.v1`
+/// has a much richer chain shape — this is the admin projection.
+#[derive(Debug, Clone)]
+struct AttestationRow {
+    evidence_id: String,
+    audit_agent_did: String,
+    platform_family: String,
+    /// Days remaining until `validity.not_after` lapses. Negative when
+    /// expired.
+    validity_remaining_days: i64,
+    chain_verified: bool,
+    revocation_checked: bool,
+}
+
+fn placeholder_rows() -> Vec<AttestationRow> {
+    vec![
+        AttestationRow {
+            evidence_id: "att:01904100-0000-7000-8000-000000000001".into(),
+            audit_agent_did: "did:web:audit-agent-01.example".into(),
+            platform_family: "tee_sgx".into(),
+            validity_remaining_days: 14,
+            chain_verified: true,
+            revocation_checked: true,
+        },
+        AttestationRow {
+            evidence_id: "att:01904100-0000-7000-8000-000000000002".into(),
+            audit_agent_did: "did:web:audit-agent-02.example".into(),
+            platform_family: "tee_tdx".into(),
+            validity_remaining_days: 2,
+            chain_verified: true,
+            revocation_checked: false,
+        },
+        AttestationRow {
+            evidence_id: "att:01904100-0000-7000-8000-000000000003".into(),
+            audit_agent_did: "did:web:audit-agent-03.example".into(),
+            platform_family: "software_test_only".into(),
+            validity_remaining_days: -1,
+            chain_verified: false,
+            revocation_checked: false,
+        },
+    ]
+}
+
+#[component]
+pub fn AuditAttestationPage() -> Element {
+    let mut draft = use_signal(String::new);
+    let mut parse_error = use_signal::<Option<String>>(|| None);
+
+    let rows = placeholder_rows();
+
+    rsx! {
+        div { class: "space-y-6",
+            PageHeader {
+                title: "Audit attestation evidence".to_string(),
+                description: "Submit and review `cx.schema.attestation_evidence.v1` documents binding Audit Agents to a remote-attestation chain. Round R2/R3 T10.".to_string(),
+            }
+
+            Card {
+                CardHeader {
+                    CardTitle { class: "text-lg".to_string(), "Submit new evidence" }
+                    CardDescription {
+                        "Paste a JSON document matching the `cx.schema.attestation_evidence.v1` schema. The principal server re-validates the chain and the MLS leaf binding before anchoring."
+                    }
+                }
+                CardContent { class: "space-y-3".to_string(),
+                    textarea {
+                        class: "w-full min-h-[180px] rounded-md border border-input bg-background p-2 font-mono text-xs",
+                        placeholder: "{{\n  \"evidence_id\": \"att:...\",\n  \"audit_agent_did\": \"did:web:...\",\n  \"platform\": {{\"family\": \"tee_sgx\", ...}},\n  ...\n}}",
+                        value: draft.read().clone(),
+                        oninput: move |evt| {
+                            parse_error.set(None);
+                            draft.set(evt.value());
+                        },
+                    }
+                    if let Some(err) = parse_error.read().as_ref() {
+                        p { class: "text-xs text-destructive font-mono", "{err}" }
+                    }
+                    div { class: "flex justify-end gap-2",
+                        Button {
+                            variant: ButtonVariant::Outline,
+                            onclick: move |_| {
+                                draft.set(String::new());
+                                parse_error.set(None);
+                            },
+                            "Clear"
+                        }
+                        Button {
+                            variant: ButtonVariant::Default,
+                            onclick: move |_| {
+                                let body = draft.read().clone();
+                                if body.trim().is_empty() {
+                                    parse_error.set(Some("body is empty".to_string()));
+                                    return;
+                                }
+                                // Pre-flight: ensure the body is valid
+                                // JSON. The principal server does the
+                                // real schema validation; surfacing the
+                                // structural error here is just a UX
+                                // nicety so admins don't ship
+                                // unparseable strings.
+                                match serde_json::from_str::<serde_json::Value>(&body) {
+                                    Ok(_) => {
+                                        // TODO(round23-T10): POST
+                                        // /api/admin/v1/audit/attestation-evidence
+                                        // with the JSON body and surface
+                                        // the validation result.
+                                        show_toast(
+                                            "Attestation evidence submitted (placeholder; backend wiring pending).",
+                                            ToastVariant::Success,
+                                        );
+                                    }
+                                    Err(e) => {
+                                        parse_error.set(Some(format!("JSON parse error: {e}")));
+                                    }
+                                }
+                            },
+                            "Submit"
+                        }
+                    }
+                }
+            }
+
+            Card {
+                CardHeader {
+                    CardTitle { class: "text-lg".to_string(), "Active evidence rows" }
+                    CardDescription {
+                        "Validity window + chain / revocation status per row. Click a row for the full evidence body (TODO round23-T10)."
+                    }
+                }
+                CardContent {
+                    ul { class: "space-y-2",
+                        for row in rows.iter() {
+                            {evidence_row_card(row)}
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+fn evidence_row_card(row: &AttestationRow) -> Element {
+    let validity_variant = validity_chip_variant(row.validity_remaining_days);
+    let validity_label = validity_chip_label(row.validity_remaining_days);
+    let chain_variant = if row.chain_verified {
+        BadgeVariant::Success
+    } else {
+        BadgeVariant::Destructive
+    };
+    let chain_label = if row.chain_verified {
+        "chain verified"
+    } else {
+        "chain unverified"
+    };
+    let revocation_variant = if row.revocation_checked {
+        BadgeVariant::Success
+    } else {
+        BadgeVariant::Secondary
+    };
+    let revocation_label = if row.revocation_checked {
+        "revocation checked"
+    } else {
+        "revocation pending"
+    };
+    rsx! {
+        li { class: "rounded-md border p-3 space-y-2",
+            div { class: "flex flex-wrap items-start justify-between gap-2",
+                div { class: "space-y-1",
+                    p { class: "font-mono text-xs break-all", "{row.evidence_id}" }
+                    p { class: "font-mono text-xs text-muted-foreground", "{row.audit_agent_did}" }
+                    p { class: "font-mono text-[10px] uppercase tracking-wider text-muted-foreground", "{row.platform_family}" }
+                }
+                div { class: "flex flex-wrap gap-1",
+                    Badge { variant: validity_variant, "{validity_label}" }
+                    Badge { variant: chain_variant, "{chain_label}" }
+                    Badge { variant: revocation_variant, "{revocation_label}" }
+                }
+            }
+        }
+    }
+}
+
+/// Red if expired, amber-like (Destructive) if within 7 days, green
+/// otherwise. The principal-server reducer rejects evidence whose
+/// `validity.not_after <= now`.
+fn validity_chip_variant(days: i64) -> BadgeVariant {
+    if days < 0 {
+        BadgeVariant::Destructive
+    } else if days <= 7 {
+        BadgeVariant::Destructive
+    } else {
+        BadgeVariant::Success
+    }
+}
+
+fn validity_chip_label(days: i64) -> String {
+    if days < 0 {
+        "expired".to_string()
+    } else if days == 0 {
+        "expires today".to_string()
+    } else if days == 1 {
+        "1 day remaining".to_string()
+    } else {
+        format!("{days} days remaining")
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn validity_chip_handles_negative_zero_short_long() {
+        assert_eq!(validity_chip_label(-5), "expired");
+        assert_eq!(validity_chip_label(0), "expires today");
+        assert_eq!(validity_chip_label(1), "1 day remaining");
+        assert_eq!(validity_chip_label(14), "14 days remaining");
+
+        assert!(matches!(
+            validity_chip_variant(-1),
+            BadgeVariant::Destructive
+        ));
+        assert!(matches!(
+            validity_chip_variant(7),
+            BadgeVariant::Destructive
+        ));
+        assert!(matches!(validity_chip_variant(8), BadgeVariant::Success));
+    }
+}

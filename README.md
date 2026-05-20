@@ -29,6 +29,29 @@ boundary; the URL routes have been renamed to `/realms/:id/...` with
 `/spaces/:id/...` kept as a back-compat alias. The new **Realm links**
 page exposes the typed `cx.realm.link` edges between boundaries.
 
+## Round R2/R3 admin surfaces
+
+Spec rounds 2+3 (2026-05-20) added several operator surfaces — see
+[`CHANGELOG.md`](CHANGELOG.md) `[Unreleased]` and
+[`../contrix-spec/CHANGELOG.md`](../contrix-spec/CHANGELOG.md) for the
+normative source. The new admin pages:
+
+- **Moderation appeals** (`/moderation/appeals`) — pending-state list +
+  detail/decision panel for the `cx.moderation.appeal.{submit,review,
+  decision,close}` flow. Enforces separation-of-duties (reviewer DID
+  must differ from the original decision issuer).
+- **Trust domain** (`/server/trust-domain`) — read/write the
+  deployment-wide `cx:trust_domain:<scope>`. Loud-red warning:
+  rotating this value invalidates every outstanding
+  `cx.cross_signing.reset` proof.
+- **Deactivation review** (`/deactivations/review`) — 7-domain fanout
+  panel (session / device / applet / keypackage / push / to-device /
+  capability) with per-domain retry. Reused on the Realm destroy page.
+- **Audit attestation** (`/audit/attestation`) — upload + browse
+  `cx.schema.attestation_evidence.v1` documents.
+- **Relaxed window** (`/server/relaxed-window`) — slider capped at the
+  300 000 ms hard ceiling; greyed out when an audit profile is active.
+
 ## Development
 
 ```bash

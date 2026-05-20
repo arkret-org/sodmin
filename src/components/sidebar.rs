@@ -144,7 +144,19 @@ fn build_nav_sections() -> Vec<NavSection> {
                     Route::ModerationReports {},
                     "flag",
                 ),
+                // Round R2/R3 T06 — moderation appeal admin.
+                NavItem::new(
+                    "Moderation appeals".to_string(),
+                    Route::ModerationAppeals {},
+                    "flag",
+                ),
                 NavItem::new(t("nav.audit"), Route::AuditLog {}, "scroll-text"),
+                // Round R2/R3 T10 — attestation evidence admin.
+                NavItem::new(
+                    "Audit attestation".to_string(),
+                    Route::AuditAttestation {},
+                    "shield",
+                ),
             ],
         )
         .bridge(bridge::SOLAND)
@@ -216,6 +228,24 @@ fn build_nav_sections() -> Vec<NavSection> {
                     t("nav.starid_resolver"),
                     Route::StaridResolver {},
                     "fingerprint",
+                ),
+                // Round R2/R3 T08 — deployment-wide trust_domain edit.
+                NavItem::new(
+                    "Trust domain".to_string(),
+                    Route::TrustDomainConfig {},
+                    "shield",
+                ),
+                // Round R2/R3 T09 — relaxed ephemeral window slider.
+                NavItem::new(
+                    "Relaxed window".to_string(),
+                    Route::RelaxedWindow {},
+                    "activity",
+                ),
+                // Round R2/R3 T07 — deactivation fanout review.
+                NavItem::new(
+                    "Deactivation review".to_string(),
+                    Route::DeactivationReview {},
+                    "alert-triangle",
                 ),
             ],
         )
