@@ -209,6 +209,13 @@ fn describe_body(describe: &ServerDescribeResBody) -> Element {
     } else {
         describe.service_did.clone()
     };
+    // Round 4 — `trust_domain` is a required ServerDescribe v2 field;
+    // an empty value means the server is pre-round-4 or misconfigured.
+    let trust_domain = describe
+        .trust_domain
+        .clone()
+        .filter(|s| !s.is_empty())
+        .unwrap_or_else(|| "-".to_string());
     let service_type = describe
         .service_type
         .clone()
@@ -232,6 +239,9 @@ fn describe_body(describe: &ServerDescribeResBody) -> Element {
 
     let profiles = describe.supported_profiles.clone();
     let features = describe.supported_features.clone();
+    let implemented = describe.implemented_features.clone();
+    let operations = describe.supported_operations.clone();
+    let bindings = describe.supported_bindings.clone();
 
     // T1.4 — surface the runtime posture. `development_mode` is rendered
     // separately below (with red styling) so the operator can't miss it.
@@ -249,9 +259,46 @@ fn describe_body(describe: &ServerDescribeResBody) -> Element {
         None => "-".to_string(),
     };
     let development_mode_is_dev = describe.development_mode.unwrap_or(false);
+    // Round 4 — when development_mode + verified_profiles both present,
+    // the server is making contradictory claims. Surface a loud red
+    // banner above the rest of the card.
+    let dev_with_verified = describe.dev_mode_with_verified_profiles();
+
+    // Round 4 — render the rate_limit oneOf as a pretty-printed JSON
+    // string. The wire shape is open (window / token-bucket / disabled),
+    // so the UI just shows the raw value for operator inspection.
+    // TODO(round4-rate-limit-chart) — render token bucket as a chart.
+    let rate_limit_text = if describe.rate_limit.is_null() {
+        "-".to_string()
+    } else {
+        serde_json::to_string_pretty(&describe.rate_limit)
+            .unwrap_or_else(|_| describe.rate_limit.to_string())
+    };
+    let limits_text = if describe.limits.is_null() {
+        "-".to_string()
+    } else {
+        serde_json::to_string_pretty(&describe.limits)
+            .unwrap_or_else(|_| describe.limits.to_string())
+    };
 
     rsx! {
         div { class: "space-y-4",
+            // Round 4 — verified-profiles-in-dev-mode contradiction
+            // banner. Renders ABOVE the dev-mode chip so operators can't
+            // miss the most important wire-correctness issue.
+            if dev_with_verified {
+                div {
+                    class: "rounded-md border-2 border-red-600 bg-red-600/15 px-3 py-2 text-sm font-semibold text-red-700 dark:text-red-200 space-y-1",
+                    role: "alert",
+                    p {
+                        span { class: "mr-2", "\u{26A0}" }
+                        {t("server_status.dev_with_verified_title")}
+                    }
+                    p { class: "text-xs font-normal",
+                        {t("server_status.dev_with_verified_detail")}
+                    }
+                }
+            }
             // Red posture chip — only renders when soland reports
             // `development_mode == true`. Production deployments see the
             // normal grid below with no extra chrome.
@@ -265,6 +312,7 @@ fn describe_body(describe: &ServerDescribeResBody) -> Element {
             }
             div { class: "grid gap-3 sm:grid-cols-2",
                 {info_cell(t("server_status.service_did"), did)}
+                {info_cell(t("server_status.trust_domain"), trust_domain)}
                 {info_cell(t("server_status.service_type"), service_type)}
                 {info_cell(t("server_status.protocol_version"), protocol)}
                 {info_cell(t("server_status.openapi_version"), openapi)}
@@ -274,32 +322,49 @@ fn describe_body(describe: &ServerDescribeResBody) -> Element {
                 {info_cell(t("server_status.admin_auth_mode"), admin_auth_mode)}
             }
 
-            div { class: "space-y-1",
-                p { class: "text-xs font-semibold uppercase tracking-wider text-muted-foreground",
-                    {t("server_status.profiles_label")}
-                }
-                if profiles.is_empty() {
-                    p { class: "text-xs text-muted-foreground", "-" }
-                } else {
-                    div { class: "flex flex-wrap gap-1",
-                        for p in profiles.iter() {
-                            Badge { variant: BadgeVariant::Secondary, class: "font-mono text-xs".to_string(), "{p}" }
-                        }
+            // Round 4 — chip lists for the four list-shaped ServerDescribe
+            // v2 fields: supported_profiles / supported_features /
+            // implemented_features / supported_operations. Each renders
+            // as a flat strip of mono chips; conformance buckets render
+            // separately below.
+            {chip_section(t("server_status.profiles_label"), &profiles)}
+            {chip_section(t("server_status.features_label"), &features)}
+            {chip_section(t("server_status.implemented_features"), &implemented)}
+            {chip_section(t("server_status.supported_operations"), &operations)}
+
+            // Round 4 — supported_bindings is the open transport-binding
+            // list (`[{type, ...}]`). Show the JSON for now; a structured
+            // chip view is TODO.
+            // TODO(round4-bindings-chip) — render each binding as a
+            // typed chip group instead of raw JSON.
+            if !bindings.is_empty() {
+                div { class: "space-y-1",
+                    p { class: "text-xs font-semibold uppercase tracking-wider text-muted-foreground",
+                        {t("server_status.supported_bindings")}
+                    }
+                    pre { class: "font-mono text-[11px] bg-muted/50 rounded p-2 overflow-x-auto",
+                        "{serde_json::to_string_pretty(&bindings).unwrap_or_default()}"
                     }
                 }
             }
 
-            div { class: "space-y-1",
-                p { class: "text-xs font-semibold uppercase tracking-wider text-muted-foreground",
-                    {t("server_status.features_label")}
+            // Round 4 — limits + rate_limit as raw JSON. Free-form per
+            // SDK; UI cannot assume a fixed key set.
+            div { class: "grid gap-3 sm:grid-cols-2",
+                div { class: "space-y-1",
+                    p { class: "text-xs font-semibold uppercase tracking-wider text-muted-foreground",
+                        {t("server_status.limits_label")}
+                    }
+                    pre { class: "font-mono text-[11px] bg-muted/50 rounded p-2 overflow-x-auto",
+                        "{limits_text}"
+                    }
                 }
-                if features.is_empty() {
-                    p { class: "text-xs text-muted-foreground", "-" }
-                } else {
-                    div { class: "flex flex-wrap gap-1",
-                        for f in features.iter() {
-                            Badge { variant: BadgeVariant::Secondary, class: "font-mono text-xs".to_string(), "{f}" }
-                        }
+                div { class: "space-y-1",
+                    p { class: "text-xs font-semibold uppercase tracking-wider text-muted-foreground",
+                        {t("server_status.rate_limit_label")}
+                    }
+                    pre { class: "font-mono text-[11px] bg-muted/50 rounded p-2 overflow-x-auto",
+                        "{rate_limit_text}"
                     }
                 }
             }
@@ -311,9 +376,38 @@ fn describe_body(describe: &ServerDescribeResBody) -> Element {
             {conformance_section(describe, development_mode_is_dev)}
 
             // T6.2 §6 — when dev posture is active, surface
-            // plaintext_visible_services in the same red card so the
-            // operator sees every weak knob in one place.
+            // plaintext_visibility in the same red card so the operator
+            // sees every weak knob in one place.
             {dev_posture_card(describe)}
+        }
+    }
+}
+
+/// Round 4 — uniform helper for the chip-list ServerDescribe v2 fields
+/// (supported_profiles / supported_features / implemented_features /
+/// supported_operations). Returns an empty fragment when the slice is
+/// empty so we don't clutter the card with `-` rows.
+fn chip_section(label: String, items: &[String]) -> Element {
+    if items.is_empty() {
+        return rsx! {
+            div { class: "space-y-1",
+                p { class: "text-xs font-semibold uppercase tracking-wider text-muted-foreground",
+                    "{label}"
+                }
+                p { class: "text-xs text-muted-foreground", "-" }
+            }
+        };
+    }
+    rsx! {
+        div { class: "space-y-1",
+            p { class: "text-xs font-semibold uppercase tracking-wider text-muted-foreground",
+                "{label}"
+            }
+            div { class: "flex flex-wrap gap-1",
+                for item in items.iter() {
+                    Badge { variant: BadgeVariant::Secondary, class: "font-mono text-xs".to_string(), "{item}" }
+                }
+            }
         }
     }
 }
@@ -439,7 +533,7 @@ fn dev_posture_card(describe: &ServerDescribeResBody) -> Element {
         .as_deref()
         .map(|m| m.eq_ignore_ascii_case("development"))
         .unwrap_or(false);
-    let plaintext = describe.plaintext_visible_services.clone();
+    let plaintext = describe.plaintext_visibility.clone();
 
     if !verifier_dev && !admin_dev && plaintext.is_empty() {
         return rsx! {};

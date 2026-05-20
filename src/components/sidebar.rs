@@ -122,6 +122,8 @@ fn build_nav_sections() -> Vec<NavSection> {
                     "shield",
                 ),
                 NavItem::new(t("nav.invite_tokens"), Route::InviteTokenList {}, "key"),
+                // Round 4 — 3PID third-party invite state-machine view.
+                NavItem::new(t("nav.invites_3pid"), Route::ThirdPartyInvites {}, "mail"),
             ],
         )
         .bridge(bridge::SOLAND)

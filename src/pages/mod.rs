@@ -14,6 +14,8 @@ pub mod federation;
 pub mod handles;
 pub mod hardening;
 pub mod invite_tokens;
+/// Round 4 — 3PID third-party-invite state-machine admin view.
+pub mod invites_3pid;
 pub mod login;
 pub mod media;
 pub mod moderation;

@@ -4,6 +4,8 @@ pub mod config;
 pub mod crypto;
 pub mod csp;
 pub mod date;
+/// Round 4 — DID input validation (tightened `^did:[a-z0-9]+:[^\s]+$`).
+pub mod did;
 pub mod error;
 pub mod i18n;
 pub mod password;

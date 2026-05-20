@@ -42,6 +42,26 @@ pub fn ActorShow(actor_id: String) -> Element {
                             title: actor.display_name.as_deref().unwrap_or(&actor.id).to_string(),
                         }
 
+                        // Round 4 — when the local 7-domain fanout
+                        // succeeded but federation peers have not all
+                        // confirmed, surface the in-progress state
+                        // explicitly. Silently rendering "Deactivated"
+                        // here would mislead operators into believing
+                        // the principal is fully gone everywhere.
+                        if actor.is_deactivated && actor.deactivation_federation_incomplete {
+                            div {
+                                class: "rounded-md border-2 border-amber-600 bg-amber-600/10 px-3 py-2 text-sm space-y-1",
+                                role: "alert",
+                                p { class: "font-semibold text-amber-700 dark:text-amber-200",
+                                    span { class: "mr-2", "\u{26A0}" }
+                                    {t("actors.deactivation_federation_incomplete")}
+                                }
+                                p { class: "text-xs text-amber-700/90 dark:text-amber-200/90",
+                                    {t("actors.deactivation_federation_incomplete_detail")}
+                                }
+                            }
+                        }
+
                         div { class: "grid gap-6 md:grid-cols-2",
                             Card {
                                 CardHeader { CardTitle { {t("actors.overview")} } }
@@ -51,7 +71,22 @@ pub fn ActorShow(actor_id: String) -> Element {
                                     {field_row(t("actors.did"), actor.did.clone())}
                                     {field_row(t("actors.handle"), actor.handle.as_deref().unwrap_or("-").to_string())}
                                     {field_row(t("actors.display_name"), actor.display_name.as_deref().unwrap_or("-").to_string())}
-                                    {field_row(t("actors.status"), if actor.is_suspended { t("actors.suspended") } else if actor.is_deactivated { t("actors.deactivated") } else { t("actors.active") })}
+                                    {field_row(
+                                        t("actors.status"),
+                                        if actor.is_suspended {
+                                            t("actors.suspended")
+                                        } else if actor.is_deactivated && actor.deactivation_federation_incomplete {
+                                            // Round 4 — DO NOT silently
+                                            // collapse to "Deactivated" while
+                                            // the federation fanout is still
+                                            // in-flight.
+                                            t("actors.deactivation_federation_incomplete")
+                                        } else if actor.is_deactivated {
+                                            t("actors.deactivated")
+                                        } else {
+                                            t("actors.active")
+                                        },
+                                    )}
                                     {field_row(t("actors.is_admin"), if actor.is_admin { t("common.yes") } else { t("common.no") })}
                                     {field_row(t("actors.created_at"), actor.created_at.as_deref().unwrap_or("-").to_string())}
                                     {field_row(t("actors.last_active"), actor.last_active_at.as_deref().unwrap_or("-").to_string())}

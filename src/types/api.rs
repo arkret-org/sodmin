@@ -36,6 +36,12 @@ pub struct Actor {
     pub is_suspended: bool,
     #[serde(default)]
     pub is_deactivated: bool,
+    /// Round 4 — `true` when the local 7-domain fanout completed but at
+    /// least one federated peer has NOT yet confirmed the deactivation.
+    /// The admin UI MUST NOT silently treat this principal as fully
+    /// deactivated — surface the incomplete state explicitly.
+    #[serde(default)]
+    pub deactivation_federation_incomplete: bool,
     #[serde(default)]
     pub created_at: Option<String>,
     #[serde(default)]
@@ -544,6 +550,11 @@ pub struct ServerInfo {
 pub struct ServerDescribeResBody {
     #[serde(default)]
     pub service_did: String,
+    /// Round 4 — required `trust_domain` per ServerDescribe v2 (spec
+    /// a77b995). Anchors `cx.cross_signing.publish` proofs and federation
+    /// canonical transcripts; mismatch is the wire-breaker.
+    #[serde(default)]
+    pub trust_domain: Option<String>,
     #[serde(default)]
     pub service_type: Option<String>,
     #[serde(default)]
@@ -576,6 +587,10 @@ pub struct ServerDescribeResBody {
     pub registry: serde_json::Value,
     #[serde(default)]
     pub limits: serde_json::Value,
+    /// Round 4 — `rate_limit` oneOf (window / token-bucket / disabled).
+    /// Free-form JSON because the SDK still exposes it as `Value`.
+    #[serde(default)]
+    pub rate_limit: serde_json::Value,
     /// T1.4 — soland surfaces its dev-mode posture directly on
     /// `/api/v1/server/describe` (and `/health`). Sodmin uses this to
     /// render the red top-of-page banner. `None` for older servers that
@@ -591,6 +606,11 @@ pub struct ServerDescribeResBody {
     /// `"development"` | `"did_allowlist"` | `"oauth_introspection"` | `"closed"`.
     #[serde(default)]
     pub admin_auth_mode: Option<String>,
+    /// Round 4 — concrete `implemented_features` list (subset of
+    /// supported_features that this build actually wires up). Distinct
+    /// from `supported_features` which advertises the capability surface.
+    #[serde(default)]
+    pub implemented_features: Vec<String>,
     /// T6.1 — profiles the server has been independently verified to
     /// implement against the spec test suite. Rendered as green
     /// "verified" chips.
@@ -609,14 +629,27 @@ pub struct ServerDescribeResBody {
     /// chips.
     #[serde(default)]
     pub compat_surfaces: Vec<String>,
-    /// T1.4 / S5 — services whose plaintext bodies remain readable on
-    /// this deployment (intentionally weak posture, dev-only).
-    #[serde(default)]
-    pub plaintext_visible_services: Vec<String>,
+    /// Round 4 — `plaintext_visibility` snapshot (services whose plaintext
+    /// bodies remain readable on this deployment). Renamed from the
+    /// pre-round-4 `plaintext_visible_services`; the legacy field name is
+    /// still accepted on the wire via `alias` for in-flight upgrades.
+    #[serde(default, alias = "plaintext_visible_services")]
+    pub plaintext_visibility: Vec<String>,
     /// T8.3 — production hardening checklist snapshot, mirrored from
     /// `/health`. Older servers that predate the field omit it.
     #[serde(default)]
     pub hardening: Option<HardeningStatus>,
+}
+
+impl ServerDescribeResBody {
+    /// Round 4 — render-time check used by the ServerDescribe v2 admin
+    /// view. When `development_mode == true` AND `verified_profiles` is
+    /// non-empty the server is making contradictory claims (relaxed
+    /// proof verifier breaks the verification chain). The UI surfaces a
+    /// red warning banner in this case.
+    pub fn dev_mode_with_verified_profiles(&self) -> bool {
+        self.development_mode.unwrap_or(false) && !self.verified_profiles.is_empty()
+    }
 }
 
 /// T8.3 — production deployment hardening checklist snapshot.
@@ -881,6 +914,180 @@ pub struct MemberRoutabilityRow {
     pub delivery_status: Option<String>,
 }
 
+// ── Round 4 — Delivery binding handover (error codes
+//     delivery_binding_stale / delivery_binding_handed_over /
+//     historical_only) ──────────────────────────────────────────────
+
+/// Round 4 — discriminated reason a delivery-binding handover row
+/// surfaces. The first two are wire-breaking failures the operator must
+/// act on; `HistoricalOnly` is a 200 diagnostic that documents a
+/// cached-replay response and MUST NOT be presented as a fresh action.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum DeliveryBindingHandoverReason {
+    /// `delivery_binding_stale` (HTTP 409). Recipient rejected the
+    /// envelope because its binding has moved on. Retry against
+    /// `new_recipient_service_did` at/after `handover_frontier`.
+    DeliveryBindingStale,
+    /// `delivery_binding_handed_over` (HTTP 409). Recipient has
+    /// permanently handed delivery off; submissions MUST switch to
+    /// `new_recipient_service_did`.
+    DeliveryBindingHandedOver,
+    /// `historical_only` (HTTP 200, diagnostic). Cached replay against a
+    /// prior key state. Information only — NOT a fresh action.
+    HistoricalOnly,
+}
+
+impl DeliveryBindingHandoverReason {
+    pub fn code(self) -> &'static str {
+        match self {
+            Self::DeliveryBindingStale => "delivery_binding_stale",
+            Self::DeliveryBindingHandedOver => "delivery_binding_handed_over",
+            Self::HistoricalOnly => "historical_only",
+        }
+    }
+
+    /// Returns `true` when this reason represents a wire-breaking
+    /// failure the operator must act on (vs. a diagnostic).
+    pub fn is_failure(self) -> bool {
+        matches!(self, Self::DeliveryBindingStale | Self::DeliveryBindingHandedOver)
+    }
+}
+
+/// Round 4 — one row in the delivery-binding handover panel. Surfaces
+/// the new error-code triple plus the redirect target + frontier the
+/// handover advertises.
+#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
+pub struct DeliveryBindingHandoverRow {
+    #[serde(default)]
+    pub realm_id: String,
+    #[serde(default)]
+    pub actor_id: String,
+    /// The previous (now-stale) recipient service DID, if known.
+    #[serde(default)]
+    pub previous_recipient_service_did: Option<String>,
+    /// `new_recipient_service_did` — the redirect target the recipient
+    /// service advertises in the `delivery_binding_stale` /
+    /// `delivery_binding_handed_over` 409 body.
+    #[serde(default)]
+    pub new_recipient_service_did: Option<String>,
+    /// `handover_frontier` — the frontier (vector of `cx:event:*` refs)
+    /// at/after which the new recipient takes effect.
+    #[serde(default)]
+    pub handover_frontier: Vec<String>,
+    #[serde(default)]
+    pub reason_code: Option<String>,
+    #[serde(default)]
+    pub observed_at: Option<String>,
+}
+
+impl DeliveryBindingHandoverRow {
+    pub fn classified_reason(&self) -> Option<DeliveryBindingHandoverReason> {
+        match self.reason_code.as_deref() {
+            Some("delivery_binding_stale") => Some(DeliveryBindingHandoverReason::DeliveryBindingStale),
+            Some("delivery_binding_handed_over") => {
+                Some(DeliveryBindingHandoverReason::DeliveryBindingHandedOver)
+            }
+            Some("historical_only") => Some(DeliveryBindingHandoverReason::HistoricalOnly),
+            _ => None,
+        }
+    }
+}
+
+// ── Round 4 — 3PID invite admin row ─────────────────────────────────
+
+/// Round 4 — OOB-code carrier mode for the third-party invite. Mirrors
+/// [`contrix_core::model::round4::ThirdPartyInviteOobKind`]; the wire
+/// shape is one of two discriminated variants and the plaintext
+/// 3PID (email / SMS) NEVER appears.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ThirdPartyInviteOobKind {
+    OfflineToken,
+    Lookup,
+}
+
+/// Round 4 — terminal state for an admin-visible 3PID invite. Every
+/// terminal value MUST be displayed truthfully; in particular
+/// `send_failed` is a permanent failure (the OOB code was never
+/// delivered) and the admin UI must not paper it over as success.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ThirdPartyInviteTerminalState {
+    Claimed,
+    SendFailed,
+    RevokedByCapabilityLoss,
+    RevokedByInviterLeft,
+    InvalidatedByRateLimit,
+}
+
+impl ThirdPartyInviteTerminalState {
+    pub fn slug(self) -> &'static str {
+        match self {
+            Self::Claimed => "claimed",
+            Self::SendFailed => "send_failed",
+            Self::RevokedByCapabilityLoss => "revoked_by_capability_loss",
+            Self::RevokedByInviterLeft => "revoked_by_inviter_left",
+            Self::InvalidatedByRateLimit => "invalidated_by_rate_limit",
+        }
+    }
+
+    /// Canonical ordering used for the placeholder fixture. Real
+    /// listings come from coauth.
+    pub fn all() -> [Self; 5] {
+        [
+            Self::Claimed,
+            Self::SendFailed,
+            Self::RevokedByCapabilityLoss,
+            Self::RevokedByInviterLeft,
+            Self::InvalidatedByRateLimit,
+        ]
+    }
+}
+
+/// Round 4 — admin-visible 3PID invite row. The plaintext 3PID is
+/// intentionally absent — the wire never carries it, and the admin UI
+/// never reconstructs it. `evidence` is opaque (commitment digest /
+/// lookup ref / pepper id) and stays untrusted on the client.
+#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
+pub struct ThirdPartyInviteRow {
+    #[serde(default)]
+    pub invite_id: String,
+    #[serde(default)]
+    pub oob_code_kind: Option<String>,
+    #[serde(default)]
+    pub verification_service_did: Option<String>,
+    /// Slug of the terminal state. Use [`Self::classified_state`] for
+    /// the strongly-typed enum.
+    #[serde(default)]
+    pub terminal_state: Option<String>,
+    /// Opaque inspection helper: token-commitment / lookup_table_ref /
+    /// pepper_id (whichever applies). Never the plaintext.
+    #[serde(default)]
+    pub evidence: Option<String>,
+    #[serde(default)]
+    pub observed_at: Option<String>,
+}
+
+impl ThirdPartyInviteRow {
+    pub fn classified_state(&self) -> Option<ThirdPartyInviteTerminalState> {
+        match self.terminal_state.as_deref() {
+            Some("claimed") => Some(ThirdPartyInviteTerminalState::Claimed),
+            Some("send_failed") => Some(ThirdPartyInviteTerminalState::SendFailed),
+            Some("revoked_by_capability_loss") => {
+                Some(ThirdPartyInviteTerminalState::RevokedByCapabilityLoss)
+            }
+            Some("revoked_by_inviter_left") => {
+                Some(ThirdPartyInviteTerminalState::RevokedByInviterLeft)
+            }
+            Some("invalidated_by_rate_limit") => {
+                Some(ThirdPartyInviteTerminalState::InvalidatedByRateLimit)
+            }
+            _ => None,
+        }
+    }
+}
+
 // ── Realm link graph (R5.2, Round R1.2 — cx.realm.link projection) ──
 
 /// One outbound / inbound typed link between two Realm boundaries.
@@ -1065,7 +1272,7 @@ mod tests {
             vec!["legacy.federation.v0".to_string()]
         );
         assert_eq!(
-            describe.plaintext_visible_services,
+            describe.plaintext_visibility,
             vec!["floria".to_string()]
         );
     }

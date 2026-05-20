@@ -1312,7 +1312,80 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "server_status.dev_posture_admin",
                 "admin_auth_mode = development (admin endpoints accept any authenticated session)",
             ),
-            ("server_status.dev_posture_plaintext", "plaintext_visible_services"),
+            ("server_status.dev_posture_plaintext", "plaintext_visibility"),
+
+            // Round 4 — ServerDescribe v2 additional field labels.
+            ("server_status.trust_domain", "Trust domain"),
+            ("server_status.supported_operations", "Supported operations"),
+            ("server_status.supported_bindings", "Supported bindings"),
+            ("server_status.implemented_features", "Implemented features"),
+            ("server_status.limits_label", "Limits"),
+            ("server_status.rate_limit_label", "Rate limit"),
+            (
+                "server_status.dev_with_verified_title",
+                "development_mode + verified_profiles is a contradiction",
+            ),
+            (
+                "server_status.dev_with_verified_detail",
+                "The relaxed dev-mode proof verifier voids every `verified_profiles` claim. The verification chain that backs those claims is unreachable while development_mode is on. Either clear verified_profiles or turn development_mode off.",
+            ),
+
+            // Round 4 — delivery-binding handover panel.
+            ("delivery_binding.handover.title", "Delivery binding handover"),
+            (
+                "delivery_binding.handover.subtitle",
+                "When a recipient service hands over its binding to another service, the reducer emits one of the round-4 error codes below.",
+            ),
+            ("delivery_binding.handover.new_recipient", "new_recipient_service_did"),
+            ("delivery_binding.handover.frontier", "handover_frontier"),
+            (
+                "delivery_binding.handover.stale_explainer",
+                "delivery_binding_stale (409): the recipient service rejected the envelope because its binding state has moved on. Retry against `new_recipient_service_did` at or after `handover_frontier`.",
+            ),
+            (
+                "delivery_binding.handover.handed_over_explainer",
+                "delivery_binding_handed_over (409): the recipient service has permanently handed delivery off. Submissions MUST be re-targeted to `new_recipient_service_did`.",
+            ),
+            (
+                "delivery_binding.handover.historical_only_explainer",
+                "historical_only (200 diagnostic): the response is a cached replay against a prior key state. It is informational only — NOT a fresh action.",
+            ),
+
+            // Round 4 — 3PID invite state machine.
+            ("nav.invites_3pid", "3PID invites"),
+            ("invites_3pid.title", "3PID invite state machine"),
+            (
+                "invites_3pid.subtitle",
+                "Round 4 — third-party invites carry only oob_code commitments / lookup refs on the wire. Plaintext email/SMS NEVER appears here. Each row shows the current terminal state.",
+            ),
+            ("invites_3pid.invite_id", "Invite id"),
+            ("invites_3pid.oob_mode", "OOB mode"),
+            ("invites_3pid.verifier", "verification_service_did"),
+            ("invites_3pid.terminal_state", "Terminal state"),
+            ("invites_3pid.evidence", "Evidence"),
+            ("invites_3pid.state_claimed", "claimed"),
+            ("invites_3pid.state_send_failed", "send_failed"),
+            ("invites_3pid.state_revoked_by_capability_loss", "revoked_by_capability_loss"),
+            ("invites_3pid.state_revoked_by_inviter_left", "revoked_by_inviter_left"),
+            ("invites_3pid.state_invalidated_by_rate_limit", "invalidated_by_rate_limit"),
+            (
+                "invites_3pid.send_failed_warning",
+                "send_failed is a TERMINAL state, not transient. The auth server never delivered the OOB code; the recipient cannot redeem this invite. Do not paper this over as a success.",
+            ),
+            ("invites_3pid.empty", "No 3PID invites in any terminal state."),
+
+            // Round 4 — DID input validation.
+            (
+                "did_input.invalid",
+                "Must match `^did:[a-z0-9]+:[^\\s]+$` (round-4 tightened method-name grammar — no `.`/`-`/`_`/`:` in the method segment).",
+            ),
+
+            // Round 4 — account deactivation federation status.
+            ("actors.deactivation_federation_incomplete", "Federation fanout incomplete"),
+            (
+                "actors.deactivation_federation_incomplete_detail",
+                "The 7-domain local fanout has completed but at least one federated peer has NOT confirmed deactivation. Do NOT treat this principal as fully deactivated until cross-PS receipts arrive.",
+            ),
 
             // T6.2 §2 — handle management.
             ("nav.handles", "Handles"),
@@ -2076,7 +2149,72 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "server_status.dev_posture_admin",
                 "admin_auth_mode = development（管理端点接受任何已认证会话）",
             ),
-            ("server_status.dev_posture_plaintext", "plaintext_visible_services"),
+            ("server_status.dev_posture_plaintext", "plaintext_visibility"),
+
+            // Round 4 — ServerDescribe v2 新增字段。
+            ("server_status.trust_domain", "Trust domain"),
+            ("server_status.supported_operations", "支持的 operation"),
+            ("server_status.supported_bindings", "支持的 binding"),
+            ("server_status.implemented_features", "已实现的特性"),
+            ("server_status.limits_label", "限制 (limits)"),
+            ("server_status.rate_limit_label", "限速 (rate_limit)"),
+            (
+                "server_status.dev_with_verified_title",
+                "development_mode 与 verified_profiles 同时为真——矛盾配置",
+            ),
+            (
+                "server_status.dev_with_verified_detail",
+                "dev 模式下宽松的 proof verifier 会作废所有 verified_profiles 声明。先清空 verified_profiles，或关闭 development_mode。",
+            ),
+            ("delivery_binding.handover.title", "Delivery binding handover"),
+            (
+                "delivery_binding.handover.subtitle",
+                "接收方服务把 delivery binding 移交给其它服务时，reducer 会发出下列 Round 4 错误码。",
+            ),
+            ("delivery_binding.handover.new_recipient", "new_recipient_service_did"),
+            ("delivery_binding.handover.frontier", "handover_frontier"),
+            (
+                "delivery_binding.handover.stale_explainer",
+                "delivery_binding_stale (409)：接收方因 binding 状态已推进而拒绝。重试请使用 new_recipient_service_did，且不早于 handover_frontier。",
+            ),
+            (
+                "delivery_binding.handover.handed_over_explainer",
+                "delivery_binding_handed_over (409)：接收方已永久移交 delivery，必须改投递到 new_recipient_service_did。",
+            ),
+            (
+                "delivery_binding.handover.historical_only_explainer",
+                "historical_only (200 diagnostic)：响应是针对旧 key state 的缓存回放，仅为信息——不代表新动作。",
+            ),
+            ("nav.invites_3pid", "3PID 邀请"),
+            ("invites_3pid.title", "3PID invite state machine"),
+            (
+                "invites_3pid.subtitle",
+                "Round 4 — 第三方邀请在 wire 上只携带 oob 承诺 / lookup ref，明文 email/SMS 永不出现。每行显示当前终态。",
+            ),
+            ("invites_3pid.invite_id", "Invite id"),
+            ("invites_3pid.oob_mode", "OOB 模式"),
+            ("invites_3pid.verifier", "verification_service_did"),
+            ("invites_3pid.terminal_state", "终态"),
+            ("invites_3pid.evidence", "证据"),
+            ("invites_3pid.state_claimed", "claimed"),
+            ("invites_3pid.state_send_failed", "send_failed"),
+            ("invites_3pid.state_revoked_by_capability_loss", "revoked_by_capability_loss"),
+            ("invites_3pid.state_revoked_by_inviter_left", "revoked_by_inviter_left"),
+            ("invites_3pid.state_invalidated_by_rate_limit", "invalidated_by_rate_limit"),
+            (
+                "invites_3pid.send_failed_warning",
+                "send_failed 是终态，不是临时状态。auth server 从未投递 OOB code，对方无法兑换此邀请。严禁伪装成功。",
+            ),
+            ("invites_3pid.empty", "目前没有处于任何终态的 3PID invite。"),
+            (
+                "did_input.invalid",
+                "必须匹配 `^did:[a-z0-9]+:[^\\s]+$`（Round 4 收紧后的 method-name，不允许 `.`/`-`/`_`/`:`）。",
+            ),
+            ("actors.deactivation_federation_incomplete", "联邦端注销未完成"),
+            (
+                "actors.deactivation_federation_incomplete_detail",
+                "本地 7 域 fanout 已完成，但仍有至少一个联邦对端未确认注销。在跨 PS 回执到齐前，不可将该 principal 视为已完全注销。",
+            ),
 
             // T6.2 §2 — Handle 管理。
             ("nav.handles", "Handle"),

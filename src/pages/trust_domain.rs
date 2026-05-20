@@ -1,10 +1,14 @@
-//! Round R2/R3 — Trust domain deployment setting (T08).
+//! Round R2/R3 + Round 4 — Trust domain deployment setting (T08).
 //!
 //! Edits the deployment-wide `cx:trust_domain:<scope>` value that
-//! enters every `cx.cross_signing.reset` proof's canonical transcript.
-//! Changing the trust_domain after the first set INVALIDATES every
-//! previously-issued cross-signing reset proof — proof bytes from one
-//! domain cannot be replayed into another. The page therefore:
+//! enters the canonical transcript of every `cx.cross_signing.publish`
+//! (and `cx.cross_signing.reset`) proof, plus every federation S2S
+//! signing transcript (`Source-Trust-Domain` / `Destination-Trust-Domain`
+//! per Round 4 spec a77b995).
+//!
+//! Changing the trust_domain after first set INVALIDATES every
+//! previously-issued cross-signing publish / reset proof — proof bytes
+//! from one domain cannot be replayed into another. The page therefore:
 //!
 //! 1. Shows the current value as read-only.
 //! 2. Requires the admin to flip a "re-confirm" toggle before the edit
@@ -53,7 +57,7 @@ pub fn TrustDomainConfigPage() -> Element {
         div { class: "space-y-6",
             PageHeader {
                 title: "Trust domain".to_string(),
-                description: "Edit the deployment-wide `cx:trust_domain:<scope>` value that anchors every cross-signing reset proof. Round R2/R3 T08.".to_string(),
+                description: "Edit the deployment-wide `cx:trust_domain:<scope>` value that anchors every cross-signing publish / reset proof and the round-4 federation `Source-Trust-Domain` / `Destination-Trust-Domain` headers.".to_string(),
             }
 
             // Big warning callout — the entire point of this page is
@@ -61,10 +65,10 @@ pub fn TrustDomainConfigPage() -> Element {
             div { class: "rounded-md border border-red-600/40 bg-red-600/10 p-4 text-sm space-y-1",
                 role: "alert",
                 p { class: "font-semibold text-red-700 dark:text-red-300",
-                    "Changing trust_domain INVALIDATES every existing `cx.cross_signing.reset` proof."
+                    "Old cross_signing.publish proofs not replayable across trust_domain change."
                 }
                 p { class: "text-red-700 dark:text-red-200",
-                    "The trust_domain enters each proof's canonical transcript. Proofs anchored under the previous domain cannot be replayed under the new one. Affected principals will be unable to verify previous resets and may need to issue fresh cross-signing keys."
+                    "The trust_domain enters the canonical transcript of every `cx.cross_signing.publish` / `cx.cross_signing.reset` proof and every federation S2S signature (round 4: `Source-Trust-Domain` / `Destination-Trust-Domain` / `Request-Canonical-Hash`). Proofs anchored under the previous domain CANNOT be replayed under the new one — they verify to bytes that include the old domain string. Affected principals will need to issue fresh cross-signing keys and re-publish; federated peers must be re-handshaked."
                 }
             }
 
@@ -113,7 +117,7 @@ pub fn TrustDomainConfigPage() -> Element {
                             },
                         }
                         span {
-                            "I understand changing this value invalidates every `cx.cross_signing.reset` proof anchored to date."
+                            "I understand changing this value invalidates every `cx.cross_signing.publish` and `cx.cross_signing.reset` proof anchored to date, and breaks federation signatures that were canonicalised under the previous domain."
                         }
                     }
                     Input {

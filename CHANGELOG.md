@@ -7,6 +7,31 @@ the SDK pins down its 1.0 contract.
 
 ## [Unreleased]
 
+### Round R4 — protocol review closures (2026-05-20, contrix-spec `2a4d39b..a77b995`)
+
+UI surfaces for the round-4 wire changes implemented in soland / coauth.
+See [`../_todos.md`](../_todos.md) for the workstream context.
+
+- **Added** `ServiceDescribe` v2 admin view — all 17 required fields
+  rendered; `development_mode=true` paired with non-empty
+  `verified_profiles` raises a red warning row.
+- **Added** `/server/trust-domain` config page now also surfaces the
+  Round R4 hardening — `trust_domain` immutability on existing Realms,
+  cross-domain replay defence, and the warning that rotating the value
+  invalidates outstanding `cx.cross_signing.reset` proofs.
+- **Added** delivery-binding handover panel rendering the new error codes
+  `delivery_binding_stale` / `delivery_binding_handed_over` /
+  `historical_only`. Stale entries surface `new_recipient_service_did` and
+  `handover_frontier`.
+- **Added** 3PID invite admin: the 5-terminal-state machine
+  (`claimed` / `send_failed` / `revoked_by_capability_loss` /
+  `revoked_by_inviter_left` / `invalidated_by_rate_limit`) is fully visible
+  and `send_failed` must render honestly (no fake-success states).
+- **Added** account-deactivation panel now shows the
+  `deactivation_federation_incomplete` banner state (federation fanout
+  cannot complete without a peer ack); silent "fully-deactivated"
+  rendering removed.
+
 ### Added — Round R2/R3 (contrix-spec rounds 2+3, 2026-05-20)
 
 - **Moderation appeals admin (T06)** — new `/moderation/appeals` route with a

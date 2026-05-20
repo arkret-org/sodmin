@@ -12,12 +12,13 @@
 use dioxus::prelude::*;
 
 use crate::api::handles;
+use crate::components::did_input::DidInput;
 use crate::components::ui::badge::{Badge, BadgeVariant};
 use crate::components::ui::button::{Button, ButtonSize, ButtonVariant};
 use crate::components::ui::card::*;
 use crate::components::ui::dialog::ConfirmDialog;
 use crate::components::ui::error_banner::ErrorBanner;
-use crate::components::ui::input::{Input, Label, SearchInput};
+use crate::components::ui::input::{Label, SearchInput};
 use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::pagination::Pagination;
@@ -25,6 +26,7 @@ use crate::components::ui::table::*;
 use crate::components::ui::toast::{ToastVariant, show_toast};
 use crate::router::Route;
 use crate::types::HandleReassignRequest;
+use crate::utils::did;
 use crate::utils::i18n::t;
 
 const PAGE_SIZE: u64 = 25;
@@ -200,45 +202,57 @@ pub fn HandleList() -> Element {
                     p { class: "text-sm text-muted-foreground", {t("handles.reassign_body")} }
                     div { class: "space-y-1",
                         Label { r#for: "handle-new-subject".to_string(), {t("handles.new_subject_did")} }
-                        Input {
+                        // Round 4 — DID input with inline regex
+                        // validation (`^did:[a-z0-9]+:[^\s]+$`).
+                        DidInput {
                             value: new_subject_did.read().clone(),
                             oninput: move |evt: FormEvent| new_subject_did.set(evt.value()),
                         }
                     }
-                    div { class: "flex justify-end gap-2",
-                        Button {
-                            variant: ButtonVariant::Outline,
-                            onclick: move |_| show_reassign.set(None),
-                            {t("common.cancel")}
-                        }
-                        Button {
-                            variant: ButtonVariant::Default,
-                            disabled: *reassign_loading.read() || new_subject_did.read().trim().is_empty(),
-                            onclick: move |_| {
-                                if let Some(id) = show_reassign.read().clone() {
-                                    let subject = new_subject_did.read().trim().to_string();
-                                    if subject.is_empty() {
-                                        return;
-                                    }
-                                    reassign_loading.set(true);
-                                    spawn(async move {
-                                        let req = HandleReassignRequest {
-                                            new_subject_did: subject,
-                                            reason: None,
-                                        };
-                                        match handles::reassign_handle(&id, &req).await {
-                                            Ok(_) => {
-                                                show_toast(&t("handles.reassign_ok"), ToastVariant::Success);
-                                                show_reassign.set(None);
-                                                data.restart();
-                                            }
-                                            Err(e) => show_toast(&format!("{}: {}", t("handles.reassign_fail"), e.message), ToastVariant::Error),
-                                        }
-                                        reassign_loading.set(false);
-                                    });
+                    {
+                        let subject = new_subject_did.read().trim().to_string();
+                        let subject_valid = did::is_valid_did(&subject);
+                        rsx! {
+                            div { class: "flex justify-end gap-2",
+                                Button {
+                                    variant: ButtonVariant::Outline,
+                                    onclick: move |_| show_reassign.set(None),
+                                    {t("common.cancel")}
                                 }
-                            },
-                            {t("handles.reassign")}
+                                Button {
+                                    variant: ButtonVariant::Default,
+                                    disabled: *reassign_loading.read() || !subject_valid,
+                                    onclick: move |_| {
+                                        if let Some(id) = show_reassign.read().clone() {
+                                            let subject = new_subject_did.read().trim().to_string();
+                                            // Round 4 — never submit a
+                                            // DID that fails local
+                                            // validation; the SDK would
+                                            // reject it on the wire.
+                                            if !did::is_valid_did(&subject) {
+                                                return;
+                                            }
+                                            reassign_loading.set(true);
+                                            spawn(async move {
+                                                let req = HandleReassignRequest {
+                                                    new_subject_did: subject,
+                                                    reason: None,
+                                                };
+                                                match handles::reassign_handle(&id, &req).await {
+                                                    Ok(_) => {
+                                                        show_toast(&t("handles.reassign_ok"), ToastVariant::Success);
+                                                        show_reassign.set(None);
+                                                        data.restart();
+                                                    }
+                                                    Err(e) => show_toast(&format!("{}: {}", t("handles.reassign_fail"), e.message), ToastVariant::Error),
+                                                }
+                                                reassign_loading.set(false);
+                                            });
+                                        }
+                                    },
+                                    {t("handles.reassign")}
+                                }
+                            }
                         }
                     }
                 }
@@ -429,45 +443,54 @@ pub fn HandleShow(handle_id: String) -> Element {
                     p { class: "text-sm text-muted-foreground", {t("handles.reassign_body")} }
                     div { class: "space-y-1",
                         Label { r#for: "handle-detail-new-subject".to_string(), {t("handles.new_subject_did")} }
-                        Input {
+                        // Round 4 — DID input with inline regex
+                        // validation.
+                        DidInput {
                             value: new_subject_did.read().clone(),
                             oninput: move |evt: FormEvent| new_subject_did.set(evt.value()),
                         }
                     }
-                    div { class: "flex justify-end gap-2",
-                        Button {
-                            variant: ButtonVariant::Outline,
-                            onclick: move |_| show_reassign.set(false),
-                            {t("common.cancel")}
-                        }
-                        Button {
-                            variant: ButtonVariant::Default,
-                            disabled: *reassign_loading.read() || new_subject_did.read().trim().is_empty(),
-                            onclick: move |_| {
-                                let subject = new_subject_did.read().trim().to_string();
-                                if subject.is_empty() {
-                                    return;
+                    {
+                        let subject_valid = did::is_valid_did(new_subject_did.read().trim());
+                        rsx! {
+                            div { class: "flex justify-end gap-2",
+                                Button {
+                                    variant: ButtonVariant::Outline,
+                                    onclick: move |_| show_reassign.set(false),
+                                    {t("common.cancel")}
                                 }
-                                let id = id_reassign.clone();
-                                reassign_loading.set(true);
-                                spawn(async move {
-                                    let req = HandleReassignRequest {
-                                        new_subject_did: subject,
-                                        reason: None,
-                                    };
-                                    match handles::reassign_handle(&id, &req).await {
-                                        Ok(_) => {
-                                            show_toast(&t("handles.reassign_ok"), ToastVariant::Success);
-                                            show_reassign.set(false);
-                                            handle_data.restart();
-                                            audit_data.restart();
+                                Button {
+                                    variant: ButtonVariant::Default,
+                                    disabled: *reassign_loading.read() || !subject_valid,
+                                    onclick: move |_| {
+                                        let subject = new_subject_did.read().trim().to_string();
+                                        // Round 4 — DID must match
+                                        // `^did:[a-z0-9]+:[^\s]+$`.
+                                        if !did::is_valid_did(&subject) {
+                                            return;
                                         }
-                                        Err(e) => show_toast(&format!("{}: {}", t("handles.reassign_fail"), e.message), ToastVariant::Error),
-                                    }
-                                    reassign_loading.set(false);
-                                });
-                            },
-                            {t("handles.reassign")}
+                                        let id = id_reassign.clone();
+                                        reassign_loading.set(true);
+                                        spawn(async move {
+                                            let req = HandleReassignRequest {
+                                                new_subject_did: subject,
+                                                reason: None,
+                                            };
+                                            match handles::reassign_handle(&id, &req).await {
+                                                Ok(_) => {
+                                                    show_toast(&t("handles.reassign_ok"), ToastVariant::Success);
+                                                    show_reassign.set(false);
+                                                    handle_data.restart();
+                                                    audit_data.restart();
+                                                }
+                                                Err(e) => show_toast(&format!("{}: {}", t("handles.reassign_fail"), e.message), ToastVariant::Error),
+                                            }
+                                            reassign_loading.set(false);
+                                        });
+                                    },
+                                    {t("handles.reassign")}
+                                }
+                            }
                         }
                     }
                 }

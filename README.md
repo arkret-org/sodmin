@@ -29,6 +29,30 @@ boundary; the URL routes have been renamed to `/realms/:id/...` with
 `/spaces/:id/...` kept as a back-compat alias. The new **Realm links**
 page exposes the typed `cx.realm.link` edges between boundaries.
 
+## Round R4 (protocol review closures)
+
+Spec round 4 (`contrix-spec` range `2a4d39b..a77b995`, 8 commits) lands
+fresh admin surfaces on top of R2/R3. See [`CHANGELOG.md`](CHANGELOG.md)
+`[Unreleased]` and [`../_todos.md`](../_todos.md) for the canonical
+wire-breaking list. New admin views:
+
+- **`ServiceDescribe` v2 detail** — all 17 fields rendered; the
+  combination `development_mode=true` + non-empty `verified_profiles`
+  paints red.
+- **Trust domain immutability** — the `/server/trust-domain` page now
+  also warns that `trust_domain` is locked once a Realm is created.
+- **Delivery-binding handover panel** — shows the new error codes
+  `delivery_binding_stale` / `delivery_binding_handed_over` /
+  `historical_only`, with `new_recipient_service_did` and
+  `handover_frontier` surfaced on stale rows.
+- **3PID invite 5-state UI** — `claimed` / `send_failed` /
+  `revoked_by_capability_loss` / `revoked_by_inviter_left` /
+  `invalidated_by_rate_limit` are all displayed honestly; `send_failed`
+  is never masked as success.
+- **`deactivation_federation_incomplete` banner** — account-deactivation
+  pages must surface this state instead of a silent "fully-deactivated"
+  rendering.
+
 ## Round R2/R3 admin surfaces
 
 Spec rounds 2+3 (2026-05-20) added several operator surfaces — see

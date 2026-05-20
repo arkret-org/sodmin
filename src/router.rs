@@ -135,6 +135,10 @@ pub enum Route {
         #[route("/invite-tokens")]
         InviteTokenList {},
 
+        // Round 4 — 3PID third-party-invite state-machine admin view.
+        #[route("/invites/3pid")]
+        ThirdPartyInvites {},
+
         #[route("/policy")]
         PolicyList {},
 
@@ -503,6 +507,11 @@ fn AuditLog() -> Element {
 #[component]
 fn InviteTokenList() -> Element {
     rsx! { pages::invite_tokens::InviteTokenList {} }
+}
+
+#[component]
+fn ThirdPartyInvites() -> Element {
+    rsx! { pages::invites_3pid::ThirdPartyInvitesPage {} }
 }
 
 #[component]

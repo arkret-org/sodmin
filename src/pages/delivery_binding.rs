@@ -17,6 +17,9 @@
 use dioxus::prelude::*;
 
 use crate::api::delivery_binding;
+use crate::components::delivery_binding_handover_panel::{
+    DeliveryBindingHandoverPanel, placeholder_handover_rows,
+};
 use crate::components::ui::badge::{Badge, BadgeVariant};
 use crate::components::ui::button::{Button, ButtonSize, ButtonVariant};
 use crate::components::ui::card::*;
@@ -275,6 +278,16 @@ pub fn DeliveryBindingPolicy(realm_id: String) -> Element {
                         None => rsx! { PageSkeleton {} },
                     }
                 }
+            }
+
+            // Round 4 — delivery-binding handover panel. Surfaces the
+            // round-4 error-code triple plus `new_recipient_service_did`
+            // + `handover_frontier`. Data source is a placeholder
+            // fixture until soland exposes the admin listing.
+            // TODO(round4-delivery-binding-handover-fetch) — wire to
+            // `/api/admin/v1/realms/{id}/delivery-binding/handovers`.
+            DeliveryBindingHandoverPanel {
+                rows: placeholder_handover_rows(realm_id.clone()),
             }
 
             // TODO(realm-rework): replace this placeholder with the real
