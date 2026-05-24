@@ -12,6 +12,9 @@
     "test:headed": "npx playwright test -c tests/e2e/playwright.config.ts --headed",
     "test:debug": "npx playwright test -c tests/e2e/playwright.config.ts --debug",
     "test:report": "npx playwright show-report",
+    "test:a11y": "npx playwright test -c tests/e2e/playwright.config.ts tests/e2e/a11y.spec.ts",
+    "test:keyboard": "npx playwright test -c tests/e2e/playwright.config.ts tests/e2e/keyboard-flows.spec.ts",
+    "lhci": "lhci autorun --config=./lighthouserc.json",
     "test:round26": "npx playwright test -c tests/e2e/playwright.config.ts",
     "test:round26:headed": "npx playwright test -c tests/e2e/playwright.config.ts --headed"
   },
@@ -28,6 +31,8 @@
   },
   "homepage": "https://github.com/contrix-dev/sodmin#readme",
   "devDependencies": {
+    "@axe-core/playwright": "^4.11.3",
+    "@lhci/cli": "^0.15.1",
     "@playwright/test": "^1.59.1",
     "pg": "^8.20.0"
   }
