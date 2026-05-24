@@ -163,6 +163,21 @@ party auth), edit `connect-src` in `docker-entrypoint.sh` accordingly.
 
 Generated/shared DTOs are consumed through `src/api/generated.rs`; API client code must preserve Contrix error envelopes, reject URL query credentials, propagate `X-Contrix-Request-Id`, send `Idempotency-Key` for mutations, and redact sensitive diagnostics.
 
+Phase 3 keeps API contract generation local-only. `coauth-admin-types`
+is consumed directly via the workspace path dependency, and soland DTOs
+remain in the typed facade until a `soland-admin-types` crate exists.
+To compare live local contracts without introducing a remote generator
+or publication flow, run:
+
+```bash
+SOLAND_URL=http://localhost:58787 \
+COAUTH_URL=http://localhost:57080 \
+  ./scripts/local-openapi-snapshot.sh
+```
+
+The script writes validated JSON snapshots under `target/openapi/`,
+which is build output and should not be committed.
+
 ## Dashboard Discovery
 
 The dashboard reads native Contrix discovery metadata from `/api/v1/server/describe` and `/api/admin/v1/server/info`. Discovery-backed fields currently rendered include service DID, coauth issuer DID, delegated/public DID resolver endpoint, supported profiles, reducer/schema profiles, event-kind registry version, OpenAPI version, health summary, and conformance declarations.

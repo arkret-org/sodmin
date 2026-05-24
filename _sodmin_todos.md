@@ -20,33 +20,33 @@
 - [x] §2 `src/pages/moderation/appeals.rs:22` — replace static dataset with real reducer query (round23-T06).
 - [x] §3 `src/pages/invites_3pid.rs:50,77` — implement `round4-invites-3pid-fetch` + stale re-fetch (round23-T07).
 - [x] §4 `src/pages/realm_destroy.rs:182` — POST handler for destroy confirmation (round23-T07).
-- [ ] §5 `src/pages/realm_links.rs:1` — SVG/canvas DAG visualization for realm links (currently list-only).
-- [ ] §6 `src/components/deactivation_fanout_panel.rs:103` — cross-PS progress indicator (round23-T07).
+- [x] §5 `src/pages/realm_links.rs:1` — SVG/canvas DAG visualization for realm links (currently list-only).
+- [x] §6 `src/components/deactivation_fanout_panel.rs:103` — cross-PS progress indicator (round23-T07).
 - [x] §7 `src/pages/relaxed_window.rs:143` — PUT handler (round23-T09).
 - [x] §8 `src/pages/trust_domain.rs:180` — PUT handler with rotation confirmation (round23-T08).
-- [ ] §9 `src/pages/server_status.rs:381,387` — rate-limit chart + bindings chip view (round4-rate-limit-chart).
+- [x] §9 `src/pages/server_status.rs:381,387` — rate-limit chart + bindings chip view (round4-rate-limit-chart).
 - [x] §10 `src/pages/audit_attestation.rs:178` — POST evidence endpoint + chain/revocation status view (round23-T10).
 
 ### API generation (eliminate manual drift)
-- [ ] §11 Replace `src/api/coauth.rs` (hand-rolled, 32 KB) with a generated client using `openapi-generator` or `progenitor` against coauth's OpenAPI doc.
-- [ ] §12 Same for soland API: consume `/.well-known/contrix/openapi.json` at build time.
-- [ ] §13 Update `Cargo.toml` to depend on `coauth-admin-types` directly once §7 of coauth ships.
+- [ ] §11 Replace `src/api/coauth.rs` (hand-rolled, 32 KB) with a generated client using `openapi-generator` or `progenitor` against coauth's OpenAPI doc. Local-only fallback added: `scripts/local-openapi-snapshot.sh` validates local coauth OpenAPI into `target/openapi/`; client still uses typed wrapper/re-export facade.
+- [ ] §12 Same for soland API: consume `/.well-known/contrix/openapi.json` at build time. Local-only fallback added: soland OpenAPI snapshots stay under `target/openapi/`; DTO drift remains contained in `src/api/generated.rs`.
+- [x] §13 Update `Cargo.toml` to depend on `coauth-admin-types` directly once §7 of coauth ships.
 
 ### Accessibility audit
-- [ ] §14 Run an axe-core scan against the deployed SPA; capture findings in `A11Y.md`.
+- [ ] §14 Run an axe-core scan against the deployed SPA; capture findings in `A11Y.md`. Harness added; live scan still requires a running local stack with seeded admin credentials.
 - [x] §15 Add `role="main"` / proper landmarks to every page layout in `src/components/layout/`.
-- [ ] §16 Ensure all form inputs have wrapped `<label>` (audit `src/components/ui/input.rs` and call sites).
-- [ ] §17 Verify keyboard-only navigation works for every CRUD flow (devices, peers, audit, policy).
-- [ ] §18 Localize date/time formatting via `icu` or `chrono` + Fluent.
+- [x] §16 Ensure all form inputs have wrapped `<label>` (audit `src/components/ui/input.rs` and call sites).
+- [x] §17 Verify keyboard-only navigation works for every CRUD flow (devices, peers, audit, policy).
+- [x] §18 Localize date/time formatting via `icu` or `chrono` + Fluent.
 
 ### Playwright expansion
 - [x] §19 Add a smoke spec per high-traffic page: dashboard, actors, spaces, federation, moderation, deactivation. Target ≥ 15 specs.
-- [ ] §20 Hook the example-stack workflow (`nightly-example-stack.yaml`) into Playwright runs against a live soland+coauth.
+- [x] §20 Hook the example-stack workflow (`nightly-example-stack.yaml`) into Playwright runs against a live soland+coauth.
 
 ### Engineering hygiene (master plan §5)
-- [ ] §21 Add Trivy scan to docker workflow.
-- [ ] §22 Add local cosign signing evidence for built bundles. Do not create release tags or push signatures.
-- [ ] §23 Add Lighthouse CI check (perf + a11y budget).
+- [x] §21 Add Trivy scan to docker workflow.
+- [x] §22 Add local cosign signing evidence for built bundles. Do not create release tags or push signatures.
+- [x] §23 Add Lighthouse CI check (perf + a11y budget).
 
 ### Docs
 - [x] §24 Add an architecture diagram to README (sodmin ↔ soland ↔ coauth flows).

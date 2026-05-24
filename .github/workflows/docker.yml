@@ -65,3 +65,13 @@ jobs:
           tags: sodmin:local
           cache-from: type=gha
           cache-to: type=gha,mode=max,ignore-error=true
+
+      - name: Trivy filesystem scan
+        uses: aquasecurity/trivy-action@0.33.1
+        with:
+          scan-type: fs
+          scan-ref: ./sodmin
+          format: table
+          severity: CRITICAL,HIGH
+          exit-code: "1"
+          ignore-unfixed: true
