@@ -68,7 +68,7 @@ pub fn TrustDomainConfigPage() -> Element {
                     "Old cross_signing.publish proofs not replayable across trust_domain change."
                 }
                 p { class: "text-red-700 dark:text-red-200",
-                    "The trust_domain enters the canonical transcript of every `cx.cross_signing.publish` / `cx.cross_signing.reset` proof and every federation S2S signature (round 4: `Source-Trust-Domain` / `Destination-Trust-Domain` / `Request-Canonical-Hash`). Proofs anchored under the previous domain CANNOT be replayed under the new one — they verify to bytes that include the old domain string. Affected principals will need to issue fresh cross-signing keys and re-publish; federated peers must be re-handshaked."
+                    "The trust_domain enters the canonical transcript of every `cx.cross_signing.publish` / `cx.cross_signing.reset` proof and every federation S2S signature (round 4: `Source-Trust-Domain` / `Destination-Trust-Domain` / `Request-Canonical-Digest`). Proofs anchored under the previous domain CANNOT be replayed under the new one — they verify to bytes that include the old domain string. Affected principals will need to issue fresh cross-signing keys and re-publish; federated peers must be re-handshaked."
                 }
             }
 
