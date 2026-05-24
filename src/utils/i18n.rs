@@ -2710,8 +2710,29 @@ pub fn t_with(key: &str, params: &[(&str, &str)]) -> String {
 pub fn set_language(lang: Language) {
     crate::utils::storage::set_item("language", lang.code());
     *CURRENT_LANG.write() = lang;
+    apply_document_language(lang);
 }
 
 pub fn current_language() -> Language {
     *CURRENT_LANG.read()
+}
+
+pub fn sync_document_language() {
+    let lang = crate::utils::storage::get_item("language")
+        .and_then(|s| Language::from_code(&s))
+        .unwrap_or(Language::En);
+    apply_document_language(lang);
+}
+
+fn apply_document_language(lang: Language) {
+    let Some(window) = web_sys::window() else {
+        return;
+    };
+    let Some(document) = window.document() else {
+        return;
+    };
+    let Some(root) = document.document_element() else {
+        return;
+    };
+    let _ = root.set_attribute("lang", lang.code());
 }

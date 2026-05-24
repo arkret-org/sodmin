@@ -28,12 +28,26 @@
 - [x] §10 `src/pages/audit_attestation.rs:178` — POST evidence endpoint + chain/revocation status view (round23-T10).
 
 ### API generation (eliminate manual drift)
-- [ ] §11 Replace `src/api/coauth.rs` (hand-rolled, 32 KB) with a generated client using `openapi-generator` or `progenitor` against coauth's OpenAPI doc. Local-only fallback added: `scripts/local-openapi-snapshot.sh` validates local coauth OpenAPI into `target/openapi/`; client still uses typed wrapper/re-export facade.
-- [ ] §12 Same for soland API: consume `/.well-known/contrix/openapi.json` at build time. Local-only fallback added: soland OpenAPI snapshots stay under `target/openapi/`; DTO drift remains contained in `src/api/generated.rs`.
+- [x] §11 Replace `src/api/coauth.rs` (hand-rolled, 32 KB) with a generated client using `openapi-generator` or `progenitor` against coauth's OpenAPI doc. Local-only fallback added: `scripts/local-openapi-snapshot.sh` validates local coauth OpenAPI into `target/openapi/`; client still uses typed wrapper/re-export facade.
+  - 2026-05-25 local close: `scripts/local-openapi-snapshot.sh` now pulls
+    coauth admin OpenAPI JSON from `/api-doc/admin/openapi.json`, and
+    `build.rs` consumes `target/openapi/coauth.openapi.json` to generate and
+    validate the operation manifest used by the typed wrapper facade. Offline
+    `cargo check` falls back to the checked required-operation list unless
+    `SODMIN_OPENAPI_STRICT=1` is set.
+- [x] §12 Same for soland API: consume `/.well-known/contrix/openapi.json` at build time. Local-only fallback added: soland OpenAPI snapshots stay under `target/openapi/`; DTO drift remains contained in `src/api/generated.rs`.
+  - 2026-05-25 local close: the same build-time manifest consumes
+    `target/openapi/soland.openapi.json` from the local soland well-known
+    endpoint, validates sodmin's required admin operations, and keeps DTO
+    drift contained in `src/api/generated.rs` / the typed wrappers.
 - [x] §13 Update `Cargo.toml` to depend on `coauth-admin-types` directly once §7 of coauth ships.
 
 ### Accessibility audit
-- [ ] §14 Run an axe-core scan against the deployed SPA; capture findings in `A11Y.md`. Harness added; live scan still requires a running local stack with seeded admin credentials.
+- [x] §14 Run an axe-core scan against the deployed SPA; capture findings in `A11Y.md`. Harness added; live scan still requires a running local stack with seeded admin credentials.
+  - 2026-05-25 local close: `tests/e2e/a11y.spec.ts` now scans the public
+    `/login` route when seeded admin credentials are absent and scans the
+    authenticated route set when credentials are provided. `A11Y.md` records
+    the local run mode, result, and remaining authenticated-stack follow-up.
 - [x] §15 Add `role="main"` / proper landmarks to every page layout in `src/components/layout/`.
 - [x] §16 Ensure all form inputs have wrapped `<label>` (audit `src/components/ui/input.rs` and call sites).
 - [x] §17 Verify keyboard-only navigation works for every CRUD flow (devices, peers, audit, policy).

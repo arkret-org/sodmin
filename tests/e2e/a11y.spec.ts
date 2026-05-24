@@ -4,16 +4,37 @@ import AxeBuilder from "@axe-core/playwright";
 const BASE_URL = process.env.SODMIN_E2E_BASE_URL || "";
 const ADMIN_EMAIL = process.env.SODMIN_E2E_ADMIN_EMAIL || "";
 const ADMIN_PASSWORD = process.env.SODMIN_E2E_ADMIN_PASSWORD || "";
+const HAS_ADMIN_CREDENTIALS = Boolean(ADMIN_EMAIL && ADMIN_PASSWORD);
 
 async function login(page: Page) {
-  await page.goto(`${BASE_URL}/login`);
+  await gotoReady(page, "/login");
   await page.getByLabel(/email/i).fill(ADMIN_EMAIL);
   await page.getByLabel(/password/i).fill(ADMIN_PASSWORD);
   await page.getByRole("button", { name: /sign in|log in|login/i }).click();
   await expect(page.locator("main")).toBeVisible({ timeout: 15_000 });
 }
 
-const routes = [
+async function gotoReady(page: Page, route: string) {
+  const appShell = page.locator("main, [role=main], form").first();
+  for (let attempt = 0; attempt < 8; attempt += 1) {
+    await page.goto(`${BASE_URL}${route}`, { waitUntil: "domcontentloaded" });
+    try {
+      await expect(appShell).toBeVisible({ timeout: 15_000 });
+      return;
+    } catch (error) {
+      const rebuilding = await page
+        .getByText("Your app is being rebuilt")
+        .isVisible()
+        .catch(() => false);
+      if (!rebuilding || attempt === 7) {
+        throw error;
+      }
+      await page.waitForTimeout(5_000);
+    }
+  }
+}
+
+const authenticatedRoutes = [
   "/",
   "/devices",
   "/federation",
@@ -21,22 +42,22 @@ const routes = [
   "/policy",
   "/server-status",
 ];
+const publicRoutes = ["/login"];
+const routes = HAS_ADMIN_CREDENTIALS ? authenticatedRoutes : publicRoutes;
 
 test.describe("axe accessibility audit", () => {
   test.beforeAll(async () => {
-    if (!BASE_URL || !ADMIN_EMAIL || !ADMIN_PASSWORD) {
-      test.skip(
-        true,
-        "SODMIN_E2E_BASE_URL / _ADMIN_EMAIL / _ADMIN_PASSWORD must be set",
-      );
+    if (!BASE_URL) {
+      test.skip(true, "SODMIN_E2E_BASE_URL must be set");
     }
   });
 
   for (const route of routes) {
     test(`${route} has no critical axe violations`, async ({ page }) => {
-      await login(page);
-      await page.goto(`${BASE_URL}${route}`);
-      await expect(page.locator("main")).toBeVisible({ timeout: 10_000 });
+      if (HAS_ADMIN_CREDENTIALS) {
+        await login(page);
+      }
+      await gotoReady(page, route);
 
       const results = await new AxeBuilder({ page })
         .disableRules(["color-contrast"])

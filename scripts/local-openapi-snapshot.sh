@@ -18,7 +18,17 @@ fetch() {
 }
 
 fetch "soland" "${soland_url%/}/.well-known/contrix/openapi.json" "${out_dir}/soland.openapi.json"
-fetch "coauth" "${coauth_url%/}/.well-known/contrix/openapi.json" "${out_dir}/coauth.openapi.json"
+
+coauth_admin_tmp="${out_dir}/coauth.admin.openapi.json.tmp"
+coauth_account_tmp="${out_dir}/coauth.account.openapi.json.tmp"
+fetch "coauth-admin" "${coauth_url%/}/api-doc/admin/openapi.json" "$coauth_admin_tmp"
+fetch "coauth-account" "${coauth_url%/}/api-doc/openapi.json" "$coauth_account_tmp"
+jq -s '.[0] + {paths: ((.[0].paths // {}) + (.[1].paths // {}))}' \
+  "$coauth_admin_tmp" \
+  "$coauth_account_tmp" \
+  > "${out_dir}/coauth.openapi.json"
+jq empty "${out_dir}/coauth.openapi.json" >/dev/null
+rm -f "$coauth_admin_tmp" "$coauth_account_tmp"
 
 cat > "${out_dir}/README.md" <<EOF
 # Local OpenAPI snapshots
@@ -26,10 +36,12 @@ cat > "${out_dir}/README.md" <<EOF
 Generated from local services only.
 
 - soland: \`${soland_url%/}/.well-known/contrix/openapi.json\`
-- coauth: \`${coauth_url%/}/.well-known/contrix/openapi.json\`
+- coauth-admin: \`${coauth_url%/}/api-doc/admin/openapi.json\`
+- coauth-account: \`${coauth_url%/}/api-doc/openapi.json\`
 
 These snapshots are intentionally written under \`target/openapi\` and
-must not be committed as generated client code. Sodmin currently consumes
-shared DTOs through \`src/api/generated.rs\`, with coauth types re-exported
-from \`coauth-admin-types\`.
+must not be committed as generated client code. \`build.rs\` consumes
+them to generate and validate \`sodmin_openapi_contracts.rs\` under
+\`OUT_DIR\`; typed wrappers keep DTO ownership in \`src/api/generated.rs\`
+and \`coauth-admin-types\`.
 EOF

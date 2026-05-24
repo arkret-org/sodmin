@@ -9,6 +9,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::api::client::{api_client, build_url};
+use crate::api::openapi_contract::coauth as coauth_paths;
 use crate::utils::error::HttpError;
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -327,7 +328,7 @@ type CoauthAdminDidBindingRecord = coauth_admin_types::AdminAccountDidBinding;
 // ── API methods ──
 
 pub async fn get_viewer() -> Result<CoauthViewer, HttpError> {
-    api_client("/api/v1/viewer", "GET", None).await
+    api_client(coauth_paths::VIEWER, "GET", None).await
 }
 
 /// Multi-dimensional filter for `/admin/v1/audit-feed` queries. Empty
@@ -378,7 +379,7 @@ pub async fn list_audit_feed(
     for (k, v) in owned.iter() {
         params.push((k, v.as_str()));
     }
-    let url = build_url("/api/admin/v1/audit-feed", &params)?;
+    let url = build_url(coauth_paths::AUDIT_FEED, &params)?;
     api_client(&url, "GET", None).await
 }
 
@@ -387,7 +388,7 @@ pub async fn list_oauth2_sessions(
     per_page: u64,
 ) -> Result<PaginatedResponse<CoauthOAuth2Session>, HttpError> {
     let url = build_url(
-        "/api/admin/v1/oauth2-sessions",
+        coauth_paths::OAUTH2_SESSIONS,
         &[
             ("page", &page.to_string()),
             ("per_page", &per_page.to_string()),
@@ -409,7 +410,7 @@ pub async fn list_personal_sessions(
     per_page: u64,
 ) -> Result<PaginatedResponse<CoauthPersonalSession>, HttpError> {
     let url = build_url(
-        "/api/admin/v1/personal-sessions",
+        coauth_paths::PERSONAL_SESSIONS,
         &[
             ("page", &page.to_string()),
             ("per_page", &per_page.to_string()),
@@ -449,7 +450,7 @@ pub async fn list_upstream_providers(
     per_page: u64,
 ) -> Result<PaginatedResponse<CoauthUpstreamProvider>, HttpError> {
     let url = build_url(
-        "/api/admin/v1/upstream-oauth-providers",
+        coauth_paths::UPSTREAM_OAUTH_PROVIDERS,
         &[
             ("page", &page.to_string()),
             ("per_page", &per_page.to_string()),
@@ -492,7 +493,7 @@ pub async fn list_upstream_links(
     per_page: u64,
 ) -> Result<PaginatedResponse<CoauthUpstreamLink>, HttpError> {
     let url = build_url(
-        "/api/admin/v1/upstream-oauth-links",
+        coauth_paths::UPSTREAM_OAUTH_LINKS,
         &[
             ("page", &page.to_string()),
             ("per_page", &per_page.to_string()),
@@ -514,7 +515,7 @@ pub async fn list_registration_tokens(
     per_page: u64,
 ) -> Result<PaginatedResponse<CoauthRegistrationToken>, HttpError> {
     let url = build_url(
-        "/api/admin/v1/user-registration-tokens",
+        coauth_paths::USER_REGISTRATION_TOKENS,
         &[
             ("page", &page.to_string()),
             ("per_page", &per_page.to_string()),
@@ -545,13 +546,13 @@ pub async fn revoke_registration_token(id: &str) -> Result<(), HttpError> {
 
 pub async fn get_connector_health() -> Result<Vec<CoauthConnectorHealth>, HttpError> {
     let resp: coauth_admin_types::ConnectorHealthResponse =
-        api_client("/api/admin/v1/connector-health", "GET", None).await?;
+        api_client(coauth_paths::CONNECTOR_HEALTH, "GET", None).await?;
     Ok(resp.providers)
 }
 
 pub async fn list_notification_channels() -> Result<Vec<CoauthNotificationChannel>, HttpError> {
     let resp: coauth_admin_types::NotificationChannelsResponse =
-        api_client("/api/admin/v1/notification-channels", "GET", None).await?;
+        api_client(coauth_paths::NOTIFICATION_CHANNELS, "GET", None).await?;
     Ok(resp.channels)
 }
 
@@ -561,7 +562,7 @@ pub async fn list_notification_channels() -> Result<Vec<CoauthNotificationChanne
 /// instead of pretending there's a paging cursor.
 pub async fn list_notification_templates() -> Result<Vec<CoauthNotificationTemplate>, HttpError> {
     let resp: coauth_admin_types::NotificationTemplatesResponse =
-        api_client("/api/admin/v1/notification-templates", "GET", None).await?;
+        api_client(coauth_paths::NOTIFICATION_TEMPLATES, "GET", None).await?;
     Ok(resp.templates)
 }
 
@@ -579,7 +580,7 @@ pub async fn publish_notification_template(
         retry_after_ms: None,
     })?;
     api_client(
-        "/api/admin/v1/notification-templates/publish",
+        coauth_paths::NOTIFICATION_TEMPLATES_PUBLISH,
         "POST",
         Some(body),
     )
@@ -610,7 +611,7 @@ pub async fn list_accounts_cursor(
     if let Some(cursor) = cursor.filter(|c| !c.is_empty()) {
         params.push(("cursor", cursor));
     }
-    let url = build_url("/api/admin/v1/accounts", &params)?;
+    let url = build_url(coauth_paths::ACCOUNTS, &params)?;
     let resp: CoauthAdminPaginatedEnvelope<CoauthAdminAccountRecord> =
         api_client(&url, "GET", None).await?;
     let summaries: Vec<CoauthAccountSummary> = resp
@@ -630,17 +631,11 @@ pub async fn list_accounts_cursor(
 }
 
 pub async fn get_account_detail(id: &str) -> Result<CoauthAccountDetail, HttpError> {
-    let bridge_url = "/api/admin/v1/bridge/describe";
-    let integration_manifest_url = "/contrix/api/v1/integration/describe";
+    let bridge_url = coauth_paths::BRIDGE_DESCRIBE;
+    let integration_manifest_url = coauth_paths::INTEGRATION_DESCRIBE;
     let summary_url = format!("/api/admin/v1/accounts/{}", urlencoding::encode(id));
-    let dids_url = format!(
-        "/api/admin/v1/accounts/{}/dids",
-        urlencoding::encode(id)
-    );
-    let claims_url = format!(
-        "/api/admin/v1/accounts/{}/claims",
-        urlencoding::encode(id)
-    );
+    let dids_url = format!("/api/admin/v1/accounts/{}/dids", urlencoding::encode(id));
+    let claims_url = format!("/api/admin/v1/accounts/{}/claims", urlencoding::encode(id));
     let grants_url = format!(
         "/api/admin/v1/accounts/{}/session-grants",
         urlencoding::encode(id)
@@ -793,28 +788,19 @@ pub async fn execute_account_risk_action(
 }
 
 pub async fn lock_account(id: &str) -> Result<(), HttpError> {
-    let url = format!(
-        "/api/admin/v1/accounts/{}/lock",
-        urlencoding::encode(id)
-    );
+    let url = format!("/api/admin/v1/accounts/{}/lock", urlencoding::encode(id));
     let _: serde_json::Value = api_client(&url, "POST", None).await?;
     Ok(())
 }
 
 pub async fn disable_account(id: &str) -> Result<(), HttpError> {
-    let url = format!(
-        "/api/admin/v1/accounts/{}/disable",
-        urlencoding::encode(id)
-    );
+    let url = format!("/api/admin/v1/accounts/{}/disable", urlencoding::encode(id));
     let _: serde_json::Value = api_client(&url, "POST", None).await?;
     Ok(())
 }
 
 pub async fn erase_account(id: &str) -> Result<(), HttpError> {
-    let url = format!(
-        "/api/admin/v1/accounts/{}/erase",
-        urlencoding::encode(id)
-    );
+    let url = format!("/api/admin/v1/accounts/{}/erase", urlencoding::encode(id));
     let _: serde_json::Value = api_client(&url, "POST", None).await?;
     Ok(())
 }

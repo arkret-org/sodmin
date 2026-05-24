@@ -1,13 +1,14 @@
 use crate::api::client::api_client;
+use crate::api::openapi_contract::soland as soland_paths;
 use crate::types::*;
 use crate::utils::error::HttpError;
 
 pub async fn get_server_info() -> Result<ServerInfo, HttpError> {
-    api_client("/api/admin/v1/server/info", "GET", None).await
+    api_client(soland_paths::SERVER_INFO, "GET", None).await
 }
 
 pub async fn get_server_describe() -> Result<ServerDescribeResBody, HttpError> {
-    api_client("/api/v1/server/describe", "GET", None).await
+    api_client(soland_paths::SERVER_DESCRIBE, "GET", None).await
 }
 
 pub async fn get_coauth_server_describe() -> Result<ServerDescribeResBody, HttpError> {
@@ -18,11 +19,11 @@ pub async fn get_coauth_server_describe() -> Result<ServerDescribeResBody, HttpE
 }
 
 pub async fn get_server_stats() -> Result<ServerStats, HttpError> {
-    api_client("/api/admin/v1/server/stats", "GET", None).await
+    api_client(soland_paths::SERVER_STATS, "GET", None).await
 }
 
 pub async fn get_server_status() -> Result<ServerStatusResponse, HttpError> {
-    api_client("/api/admin/v1/server/status", "GET", None).await
+    api_client(soland_paths::SERVER_STATUS, "GET", None).await
 }
 
 #[derive(Debug, Clone, serde::Deserialize, Default)]

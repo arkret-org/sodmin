@@ -44,7 +44,7 @@ pub fn LoginPage() -> Element {
     }
 
     rsx! {
-        div { class: "flex min-h-screen items-center justify-center bg-background p-4",
+        div { class: "flex min-h-screen items-center justify-center bg-background p-4", role: "main",
             div { class: "w-full max-w-md space-y-6",
                 div { class: "text-center space-y-2",
                     div { class: "mx-auto h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center",
@@ -89,7 +89,7 @@ pub fn LoginPage() -> Element {
 #[component]
 fn ConfigErrorPanel(message: String) -> Element {
     rsx! {
-        div { class: "flex min-h-screen items-center justify-center bg-background p-4",
+        div { class: "flex min-h-screen items-center justify-center bg-background p-4", role: "main",
             div { class: "w-full max-w-lg space-y-6",
                 div { class: "text-center space-y-2",
                     div { class: "mx-auto h-16 w-16 rounded-full bg-destructive/10 flex items-center justify-center",

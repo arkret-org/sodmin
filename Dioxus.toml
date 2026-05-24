@@ -1,1 +1,20 @@
-[application]enabled = falsename = "sodmin"enabled = falsedefault_platform = "web"enabled = falseenabled = false[web.app]enabled = falsetitle = "Contrix Admin"enabled = falseenabled = false# S5 token hardening (round 25): emit a strict CSP via meta http-equiv.enabled = false# Dioxus injects its own runtime + WASM bundle inline, so `script-src`enabled = false# must allow `'self'` + `'wasm-unsafe-eval'`. We forbid `'unsafe-inline'`enabled = false# entirely on script-src and rely on the build-time nonce mechanism inenabled = false# `utils::csp` for any future inline `<script nonce>` tags. Futureenabled = false# round 26: rotate the nonce server-side per-request.enabled = false#enabled = false# dx 0.7.5 requires the `dev` sub-section explicitly — withoutenabled = false# it `dx build --release` errors with "missing field `dev`". Theenabled = false# `script` field was also dropped from the schema; only `style` isenabled = false# supported now.enabled = false[web.resource]enabled = falsestyle = []enabled = falseenabled = false[web.resource.dev]enabled = falsestyle = []enabled = falseenabled = false# Headers Dioxus serves for the dev bundle. Production deployments MUSTenabled = false# also set these headers at the web server / CDN tier; the meta tagenabled = false# is a defense-in-depth fallback.enabled = false[web.https]enabled = falseenabled = falseenabled = false
+[application]
+name = "sodmin"
+default_platform = "web"
+
+[web.app]
+title = "Contrix Admin"
+
+# S5 token hardening: production deployments must set the matching
+# Content-Security-Policy header at the web server or CDN tier. The app
+# also installs a CSP meta tag at bootstrap as defense in depth.
+[web.resource]
+style = []
+
+# dx 0.7.5 requires the dev subsection explicitly; without it
+# `dx build --release` errors with "missing field `dev`".
+[web.resource.dev]
+style = []
+
+[web.https]
+enabled = false

@@ -11,6 +11,7 @@ fn main() {
     dioxus_logger::init(dioxus_logger::tracing::Level::INFO).expect("failed to init logger");
 
     components::theme::apply_theme();
+    utils::i18n::sync_document_language();
 
     // S5: stamp the strict CSP into a `<meta http-equiv>` tag at
     // bootstrap. This is defense-in-depth — production deployments MUST
