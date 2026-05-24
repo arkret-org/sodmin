@@ -55,3 +55,13 @@ pub async fn list_member_routability(
     );
     api_client(&url, "GET", None).await
 }
+
+pub async fn list_delivery_binding_handovers(
+    realm_id: &str,
+) -> Result<ListResponse<DeliveryBindingHandoverRow>, HttpError> {
+    let url = format!(
+        "/api/admin/v1/realms/{}/delivery-binding/handovers",
+        urlencoding::encode(realm_id)
+    );
+    api_client(&url, "GET", None).await
+}

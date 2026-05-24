@@ -1,15 +1,19 @@
-name: Release
+name: Local bundle
 
 on:
   push:
-    tags:
-      - "v*"
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
-  group: release-${{ github.ref }}
+  group: local-bundle-${{ github.ref }}
   cancel-in-progress: false
 
 env:
@@ -57,8 +61,8 @@ jobs:
           test -n "$dist_dir"
           test -f "$dist_dir/index.html"
           echo "dir=$dist_dir" >> "$GITHUB_OUTPUT"
-          tag="${GITHUB_REF_NAME}"
-          archive="sodmin-${tag}-web-public.tar.gz"
+          ref_name="${GITHUB_REF_NAME:-local}"
+          archive="sodmin-${ref_name}-web-public.tar.gz"
           tar -czf "$archive" -C "$dist_dir" .
           echo "archive=$archive" >> "$GITHUB_OUTPUT"
 
@@ -67,10 +71,10 @@ jobs:
           set -euo pipefail
           sha256sum "${{ steps.artifact.outputs.archive }}" > "${{ steps.artifact.outputs.archive }}.sha256"
 
-      - name: Upload release artifact
-        uses: softprops/action-gh-release@v2
+      - name: Upload local bundle artifact
+        uses: actions/upload-artifact@v4
         with:
-          files: |
+          name: sodmin-web-public
+          path: |
             ${{ steps.artifact.outputs.archive }}
             ${{ steps.artifact.outputs.archive }}.sha256
-          generate_release_notes: true

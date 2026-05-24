@@ -26,6 +26,7 @@ pub mod push_routes;
 pub mod federation;
 pub mod generated;
 pub mod invite_tokens;
+pub mod invites_3pid;
 pub mod media;
 pub mod policy;
 pub mod realm_links;

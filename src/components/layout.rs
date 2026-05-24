@@ -88,7 +88,7 @@ pub fn AppLayout(children: Element) -> Element {
                     collapsed,
                     mobile_sidebar_open,
                 }
-                main { class: "flex-1 overflow-auto p-4 md:p-6",
+                main { class: "flex-1 overflow-auto p-4 md:p-6", role: "main",
                     {children}
                 }
             }

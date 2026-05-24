@@ -14,6 +14,7 @@
 
 use dioxus::prelude::*;
 
+use crate::api::server;
 use crate::components::ui::badge::{Badge, BadgeVariant};
 use crate::components::ui::button::{Button, ButtonVariant};
 use crate::components::ui::card::*;
@@ -32,20 +33,28 @@ pub const RELAXED_WINDOW_FLOOR_MS: u32 = 1_000;
 /// is active, the relaxed profile toggle is disabled.
 const AUDIT_PROFILES: [&str; 2] = ["attested_audit.e2ee.v1", "disclosed_audit.e2ee.v1"];
 
-/// Placeholder for the active deployment profile id. Real wiring reads
-/// the value from `/api/admin/v1/server/describe` or similar.
-fn placeholder_active_profile() -> String {
-    // Flip this between AUDIT_PROFILES[..] and "default" to preview
-    // the disabled vs. enabled state during development.
-    "default".to_string()
-}
-
 #[component]
 pub fn RelaxedWindowPage() -> Element {
     let mut relaxed_ms = use_signal(|| 60_000u32);
     let mut relaxed_enabled = use_signal(|| true);
+    let mut hydrated = use_signal(|| false);
+    let mut saving = use_signal(|| false);
+    let mut setting_data = use_resource(|| async { server::get_relaxed_window().await });
 
-    let active_profile = placeholder_active_profile();
+    if !*hydrated.read() {
+        if let Some(Ok(setting)) = setting_data.read().as_ref() {
+            relaxed_ms.set(clamp_relaxed_window(setting.window_ms));
+            relaxed_enabled.set(setting.enabled);
+            hydrated.set(true);
+        }
+    }
+
+    let active_profile = setting_data
+        .read()
+        .as_ref()
+        .and_then(|result| result.as_ref().ok())
+        .and_then(|setting| setting.active_profile.clone())
+        .unwrap_or_else(|| "default".to_string());
     let audited = is_audit_profile(&active_profile);
     let value = *relaxed_ms.read();
     let enabled = *relaxed_enabled.read();
@@ -145,13 +154,28 @@ pub fn RelaxedWindowPage() -> Element {
                             onclick: move |_| {
                                 let v = clamp_relaxed_window(*relaxed_ms.read());
                                 relaxed_ms.set(v);
-                                // TODO(round23-T09): PUT
-                                // /api/admin/v1/server/relaxed-window
-                                // with body `{enabled, window_ms: v}`.
-                                show_toast(
-                                    &format!("Relaxed window set to {v} ms (placeholder)."),
-                                    ToastVariant::Success,
-                                );
+                                saving.set(true);
+                                spawn(async move {
+                                    let body = server::UpdateRelaxedWindowRequest {
+                                        enabled: true,
+                                        window_ms: v,
+                                    };
+                                    match server::update_relaxed_window(&body).await {
+                                        Ok(_) => {
+                                            show_toast(
+                                                &format!("Relaxed window set to {v} ms."),
+                                                ToastVariant::Success,
+                                            );
+                                            hydrated.set(false);
+                                            setting_data.restart();
+                                        }
+                                        Err(err) => show_toast(
+                                            &format!("Relaxed window update failed: {err}"),
+                                            ToastVariant::Error,
+                                        ),
+                                    }
+                                    saving.set(false);
+                                });
                             },
                             "Save"
                         }

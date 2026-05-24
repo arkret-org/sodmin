@@ -68,6 +68,17 @@ Required env vars (in addition to the shared `SODMIN_E2E_BASE_URL` /
 
 If unset, the spec self-skips.
 
+## Phase 3 — high-traffic page smoke
+
+`high-traffic-pages.spec.ts` adds twelve authenticated route-level
+smokes for dashboard, actors, spaces, federation, moderation,
+deactivation, audit, policy, server status, trust domain, and 3PID
+invites. Together with the existing dev-mode, device-revoke, and
+risk-action specs this brings the local Playwright suite to 15
+scenarios. These tests use the shared `SODMIN_E2E_BASE_URL`,
+`SODMIN_E2E_ADMIN_EMAIL`, and `SODMIN_E2E_ADMIN_PASSWORD` env vars and
+self-skip when the local stack is not configured.
+
 ## Q9 — happy-path device revoke + cascade audit (round 27)
 
 `device-revoke.spec.ts` revokes a device on a target account, asserts

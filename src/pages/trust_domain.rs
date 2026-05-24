@@ -20,6 +20,7 @@
 
 use dioxus::prelude::*;
 
+use crate::api::server;
 use crate::components::ui::badge::{Badge, BadgeVariant};
 use crate::components::ui::button::{Button, ButtonVariant};
 use crate::components::ui::card::*;
@@ -33,21 +34,22 @@ const TRUST_DOMAIN_PREFIX: &str = "cx:trust_domain:";
 /// (`TypedTrustDomainId::new` rejects > 128 chars after the prefix).
 const TRUST_DOMAIN_MAX_SUFFIX_LEN: usize = 128;
 
-/// Placeholder for the live deployment-wide setting. The real
-/// integration fetches from `/api/admin/v1/server/trust-domain` (which
-/// returns the current value + a flag telling us whether it has been
-/// set yet). Today the page renders against a hard-coded value so the
-/// edit flow is visible.
-fn placeholder_current_value() -> String {
-    "cx:trust_domain:example.net".to_string()
-}
-
 #[component]
 pub fn TrustDomainConfigPage() -> Element {
-    let current = use_signal(placeholder_current_value);
+    let mut current = use_signal(String::new);
     let mut draft = use_signal(|| current.read().clone());
     let mut unlocked = use_signal(|| false);
     let mut validation_error = use_signal::<Option<String>>(|| None);
+    let mut hydrated = use_signal(|| false);
+    let mut setting_data = use_resource(|| async { server::get_trust_domain().await });
+
+    if !*hydrated.read() {
+        if let Some(Ok(setting)) = setting_data.read().as_ref() {
+            current.set(setting.value.clone());
+            draft.set(setting.value.clone());
+            hydrated.set(true);
+        }
+    }
 
     let current_value = current.read().clone();
     let draft_value = draft.read().clone();
@@ -156,15 +158,24 @@ pub fn TrustDomainConfigPage() -> Element {
                                             ));
                                             return;
                                         }
-                                        // TODO(round23-T08): PUT
-                                        // /api/admin/v1/server/trust-domain
-                                        // with body `{value: ..., reconfirm: true}`.
-                                        // On success, refresh the current
-                                        // signal from the server response.
-                                        show_toast(
-                                            "Trust domain submitted (placeholder; backend wiring pending).",
-                                            ToastVariant::Success,
-                                        );
+                                        spawn(async move {
+                                            let body = server::UpdateTrustDomainRequest {
+                                                value: new_value,
+                                                reconfirm: true,
+                                            };
+                                            match server::update_trust_domain(&body).await {
+                                                Ok(updated) => {
+                                                    current.set(updated.value.clone());
+                                                    draft.set(updated.value);
+                                                    unlocked.set(false);
+                                                    validation_error.set(None);
+                                                    hydrated.set(false);
+                                                    setting_data.restart();
+                                                    show_toast("Trust domain updated.", ToastVariant::Success);
+                                                }
+                                                Err(err) => validation_error.set(Some(format!("{err}"))),
+                                            }
+                                        });
                                     }
                                     Err(e) => {
                                         validation_error.set(Some(e));

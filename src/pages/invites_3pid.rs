@@ -23,12 +23,9 @@
 //!    `send_failed` would be lying to the operator about a permanent
 //!    delivery failure.
 //!
-//! Backend wiring (admin coauth listing) is pending — the page renders
-//! a placeholder fixture so the state-machine UX is reviewable today.
-//! `TODO(round4-invites-3pid-fetch)` markers the call sites.
-
 use dioxus::prelude::*;
 
+use crate::api::invites_3pid;
 use crate::components::ui::badge::{Badge, BadgeVariant};
 use crate::components::ui::button::{Button, ButtonVariant};
 use crate::components::ui::card::*;
@@ -39,11 +36,7 @@ use crate::utils::i18n::t;
 
 #[component]
 pub fn ThirdPartyInvitesPage() -> Element {
-    // TODO(round4-invites-3pid-fetch) — replace with a coauth admin
-    // listing once the endpoint lands. The placeholder fixture
-    // intentionally includes every one of the five terminal states so
-    // the UI is reviewable in isolation.
-    let mut rows = use_signal(placeholder_third_party_invites);
+    let mut rows_data = use_resource(|| async { invites_3pid::list_third_party_invites().await });
 
     rsx! {
         div { class: "space-y-6",
@@ -52,10 +45,7 @@ pub fn ThirdPartyInvitesPage() -> Element {
                 description: t("invites_3pid.subtitle"),
                 Button {
                     variant: ButtonVariant::Outline,
-                    onclick: move |_| {
-                        // TODO(round4-invites-3pid-fetch) — re-fetch.
-                        rows.set(placeholder_third_party_invites());
-                    },
+                    onclick: move |_| rows_data.restart(),
                     {t("common.refresh")}
                 }
             }
@@ -74,27 +64,40 @@ pub fn ThirdPartyInvitesPage() -> Element {
 
             Card {
                 CardContent {
-                    if rows.read().is_empty() {
-                        p { class: "py-8 text-center text-sm text-muted-foreground",
-                            {t("invites_3pid.empty")}
-                        }
-                    } else {
-                        Table {
-                            TableHeader {
-                                TableRow {
-                                    TableHead { {t("invites_3pid.invite_id")} }
-                                    TableHead { {t("invites_3pid.oob_mode")} }
-                                    TableHead { {t("invites_3pid.verifier")} }
-                                    TableHead { {t("invites_3pid.terminal_state")} }
-                                    TableHead { {t("invites_3pid.evidence")} }
+                    match &*rows_data.read() {
+                        Some(Ok(resp)) => rsx! {
+                            if resp.data.is_empty() {
+                                p { class: "py-8 text-center text-sm text-muted-foreground",
+                                    {t("invites_3pid.empty")}
+                                }
+                            } else {
+                                Table {
+                                    TableHeader {
+                                        TableRow {
+                                            TableHead { {t("invites_3pid.invite_id")} }
+                                            TableHead { {t("invites_3pid.oob_mode")} }
+                                            TableHead { {t("invites_3pid.verifier")} }
+                                            TableHead { {t("invites_3pid.terminal_state")} }
+                                            TableHead { {t("invites_3pid.evidence")} }
+                                        }
+                                    }
+                                    TableBody {
+                                        for row in resp.data.iter() {
+                                            {render_invite_row(row)}
+                                        }
+                                    }
                                 }
                             }
-                            TableBody {
-                                for row in rows.read().iter() {
-                                    {render_invite_row(row)}
-                                }
+                        },
+                        Some(Err(err)) => rsx! {
+                            div { class: "rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm",
+                                p { class: "font-semibold", "Failed to load third-party invites" }
+                                p { class: "font-mono text-xs", "{err}" }
                             }
-                        }
+                        },
+                        None => rsx! {
+                            p { class: "py-8 text-center text-sm text-muted-foreground", "Loading..." }
+                        },
                     }
                 }
             }

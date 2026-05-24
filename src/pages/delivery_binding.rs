@@ -17,9 +17,7 @@
 use dioxus::prelude::*;
 
 use crate::api::delivery_binding;
-use crate::components::delivery_binding_handover_panel::{
-    DeliveryBindingHandoverPanel, placeholder_handover_rows,
-};
+use crate::components::delivery_binding_handover_panel::DeliveryBindingHandoverPanel;
 use crate::components::ui::badge::{Badge, BadgeVariant};
 use crate::components::ui::button::{Button, ButtonSize, ButtonVariant};
 use crate::components::ui::card::*;
@@ -36,6 +34,7 @@ use crate::utils::i18n::t;
 pub fn DeliveryBindingPolicy(realm_id: String) -> Element {
     let id_for_policy = realm_id.clone();
     let id_for_members = realm_id.clone();
+    let id_for_handovers = realm_id.clone();
     let id_for_save = realm_id.clone();
 
     let mut policy_data = use_resource(move || {
@@ -45,6 +44,10 @@ pub fn DeliveryBindingPolicy(realm_id: String) -> Element {
     let mut members_data = use_resource(move || {
         let id = id_for_members.clone();
         async move { delivery_binding::list_member_routability(&id).await }
+    });
+    let mut handovers_data = use_resource(move || {
+        let id = id_for_handovers.clone();
+        async move { delivery_binding::list_delivery_binding_handovers(&id).await }
     });
 
     let mut allowed_input = use_signal(String::new);
@@ -74,6 +77,7 @@ pub fn DeliveryBindingPolicy(realm_id: String) -> Element {
                         hydrated.set(false);
                         policy_data.restart();
                         members_data.restart();
+                        handovers_data.restart();
                     },
                     {t("common.refresh")}
                 }
@@ -280,14 +284,14 @@ pub fn DeliveryBindingPolicy(realm_id: String) -> Element {
                 }
             }
 
-            // Round 4 — delivery-binding handover panel. Surfaces the
-            // round-4 error-code triple plus `new_recipient_service_did`
-            // + `handover_frontier`. Data source is a placeholder
-            // fixture until soland exposes the admin listing.
-            // TODO(round4-delivery-binding-handover-fetch) — wire to
-            // `/api/admin/v1/realms/{id}/delivery-binding/handovers`.
-            DeliveryBindingHandoverPanel {
-                rows: placeholder_handover_rows(realm_id.clone()),
+            match &*handovers_data.read() {
+                Some(Ok(resp)) => rsx! {
+                    DeliveryBindingHandoverPanel { rows: resp.data.clone() }
+                },
+                Some(Err(e)) => rsx! {
+                    ErrorBanner { message: e.message.clone(), on_retry: move |_| handovers_data.restart() }
+                },
+                None => rsx! { PageSkeleton {} },
             }
 
             // TODO(realm-rework): replace this placeholder with the real

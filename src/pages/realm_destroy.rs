@@ -9,9 +9,9 @@
 
 use dioxus::prelude::*;
 
+use crate::api::server;
 use crate::components::deactivation_fanout_panel::{
-    DeactivationFanoutPanel, ErasureReceiptStatus, FanoutDomain, FanoutState,
-    placeholder_snapshot,
+    DeactivationFanoutPanel, ErasureReceiptStatus, FanoutDomain, FanoutState, placeholder_snapshot,
 };
 use crate::components::realm_destroy_dialog::RealmDestroyDialog;
 use crate::components::ui::button::{Button, ButtonVariant};
@@ -53,13 +53,22 @@ pub fn RealmDestroyPage(realm_id: String) -> Element {
                         DeactivationFanoutPanel {
                             snapshot: snap,
                             on_retry: move |domain: FanoutDomain| {
-                                // TODO(round23-T07): POST
-                                // /api/admin/v1/realms/{id}/destroy/retry
-                                // with body `{domain: "<slug>"}`.
-                                show_toast(
-                                    &format!("Retry queued for `{}` (placeholder).", domain.slug()),
-                                    ToastVariant::Default,
-                                );
+                                let realm_id = realm_id_for_panel.clone();
+                                spawn(async move {
+                                    let body = server::RetryRealmDestroyRequest {
+                                        domain: domain.slug().to_string(),
+                                    };
+                                    match server::retry_realm_destroy(&realm_id, &body).await {
+                                        Ok(_) => show_toast(
+                                            &format!("Retry queued for `{}`.", domain.slug()),
+                                            ToastVariant::Success,
+                                        ),
+                                        Err(err) => show_toast(
+                                            &format!("Retry failed: {err}"),
+                                            ToastVariant::Error,
+                                        ),
+                                    }
+                                });
                             }
                         }
                     }
@@ -75,15 +84,23 @@ pub fn RealmDestroyPage(realm_id: String) -> Element {
                 realm_id: realm_id_for_dialog,
                 on_cancel: move |_| dialog_open.set(false),
                 on_confirm: move |_| {
-                    // TODO(round23-T07): POST
-                    // /api/admin/v1/realms/{id}/destroy with the proof
-                    // bundle. On 202, watch the fanout describe surface.
-                    dialog_open.set(false);
-                    destroyed.set(true);
-                    show_toast(
-                        "cx.realm.destroy queued (placeholder; backend wiring pending).",
-                        ToastVariant::Success,
-                    );
+                    let realm_id = realm_id.clone();
+                    spawn(async move {
+                        let body = server::DestroyRealmRequest {
+                            confirmation: "DESTROY".to_string(),
+                        };
+                        match server::destroy_realm(&realm_id, &body).await {
+                            Ok(_) => {
+                                dialog_open.set(false);
+                                destroyed.set(true);
+                                show_toast("cx.realm.destroy queued.", ToastVariant::Success);
+                            }
+                            Err(err) => show_toast(
+                                &format!("Realm destroy failed: {err}"),
+                                ToastVariant::Error,
+                            ),
+                        }
+                    });
                 },
             }
         }

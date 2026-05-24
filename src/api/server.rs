@@ -25,6 +25,102 @@ pub async fn get_server_status() -> Result<ServerStatusResponse, HttpError> {
     api_client("/api/admin/v1/server/status", "GET", None).await
 }
 
+#[derive(Debug, Clone, serde::Deserialize, Default)]
+pub struct TrustDomainSetting {
+    #[serde(default)]
+    pub value: String,
+}
+
+#[derive(Debug, Clone, serde::Serialize)]
+pub struct UpdateTrustDomainRequest {
+    pub value: String,
+    pub reconfirm: bool,
+}
+
+pub async fn get_trust_domain() -> Result<TrustDomainSetting, HttpError> {
+    api_client("/api/admin/v1/server/trust-domain", "GET", None).await
+}
+
+pub async fn update_trust_domain(
+    body: &UpdateTrustDomainRequest,
+) -> Result<TrustDomainSetting, HttpError> {
+    let payload = serde_json::to_string(body).unwrap_or_default();
+    api_client("/api/admin/v1/server/trust-domain", "PUT", Some(payload)).await
+}
+
+#[derive(Debug, Clone, serde::Deserialize, Default)]
+pub struct RelaxedWindowSetting {
+    #[serde(default)]
+    pub enabled: bool,
+    #[serde(default)]
+    pub window_ms: u32,
+    #[serde(default)]
+    pub active_profile: Option<String>,
+}
+
+#[derive(Debug, Clone, serde::Serialize)]
+pub struct UpdateRelaxedWindowRequest {
+    pub enabled: bool,
+    pub window_ms: u32,
+}
+
+pub async fn get_relaxed_window() -> Result<RelaxedWindowSetting, HttpError> {
+    api_client("/api/admin/v1/server/relaxed-window", "GET", None).await
+}
+
+pub async fn update_relaxed_window(
+    body: &UpdateRelaxedWindowRequest,
+) -> Result<RelaxedWindowSetting, HttpError> {
+    let payload = serde_json::to_string(body).unwrap_or_default();
+    api_client("/api/admin/v1/server/relaxed-window", "PUT", Some(payload)).await
+}
+
+pub async fn submit_attestation_evidence(
+    body: &serde_json::Value,
+) -> Result<serde_json::Value, HttpError> {
+    let payload = serde_json::to_string(body).unwrap_or_default();
+    api_client(
+        "/api/admin/v1/audit/attestation-evidence",
+        "POST",
+        Some(payload),
+    )
+    .await
+}
+
+#[derive(Debug, Clone, serde::Serialize)]
+pub struct DestroyRealmRequest {
+    pub confirmation: String,
+}
+
+#[derive(Debug, Clone, serde::Serialize)]
+pub struct RetryRealmDestroyRequest {
+    pub domain: String,
+}
+
+pub async fn destroy_realm(
+    realm_id: &str,
+    body: &DestroyRealmRequest,
+) -> Result<serde_json::Value, HttpError> {
+    let url = format!(
+        "/api/admin/v1/realms/{}/destroy",
+        urlencoding::encode(realm_id)
+    );
+    let payload = serde_json::to_string(body).unwrap_or_default();
+    api_client(&url, "POST", Some(payload)).await
+}
+
+pub async fn retry_realm_destroy(
+    realm_id: &str,
+    body: &RetryRealmDestroyRequest,
+) -> Result<serde_json::Value, HttpError> {
+    let url = format!(
+        "/api/admin/v1/realms/{}/destroy/retry",
+        urlencoding::encode(realm_id)
+    );
+    let payload = serde_json::to_string(body).unwrap_or_default();
+    api_client(&url, "POST", Some(payload)).await
+}
+
 /// T8.3 — `/health` envelope deserialized for the hardening dashboard.
 /// Each service exposes a `hardening` block (see `HardeningStatus`).
 #[derive(Debug, Clone, serde::Deserialize, Default)]

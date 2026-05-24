@@ -18,6 +18,7 @@
 
 use dioxus::prelude::*;
 
+use crate::api::server;
 use crate::components::ui::badge::{Badge, BadgeVariant};
 use crate::components::ui::button::{Button, ButtonVariant};
 use crate::components::ui::card::*;
@@ -126,15 +127,19 @@ pub fn AuditAttestationPage() -> Element {
                                 // nicety so admins don't ship
                                 // unparseable strings.
                                 match serde_json::from_str::<serde_json::Value>(&body) {
-                                    Ok(_) => {
-                                        // TODO(round23-T10): POST
-                                        // /api/admin/v1/audit/attestation-evidence
-                                        // with the JSON body and surface
-                                        // the validation result.
-                                        show_toast(
-                                            "Attestation evidence submitted (placeholder; backend wiring pending).",
-                                            ToastVariant::Success,
-                                        );
+                                    Ok(value) => {
+                                        spawn(async move {
+                                            match server::submit_attestation_evidence(&value).await {
+                                                Ok(_) => show_toast(
+                                                    "Attestation evidence submitted.",
+                                                    ToastVariant::Success,
+                                                ),
+                                                Err(err) => show_toast(
+                                                    &format!("Attestation evidence submit failed: {err}"),
+                                                    ToastVariant::Error,
+                                                ),
+                                            }
+                                        });
                                     }
                                     Err(e) => {
                                         parse_error.set(Some(format!("JSON parse error: {e}")));

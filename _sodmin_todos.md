@@ -16,16 +16,16 @@
 ## Phase 3 tasks
 
 ### API stub completion (top 10)
-- [ ] §1 `src/pages/delivery_binding.rs:178` — wire `round4-delivery-binding-handover-fetch` against soland endpoint.
-- [ ] §2 `src/pages/moderation/appeals.rs:22` — replace static dataset with real reducer query (round23-T06).
-- [ ] §3 `src/pages/invites_3pid.rs:50,77` — implement `round4-invites-3pid-fetch` + stale re-fetch (round23-T07).
-- [ ] §4 `src/pages/realm_destroy.rs:182` — POST handler for destroy confirmation (round23-T07).
+- [x] §1 `src/pages/delivery_binding.rs:178` — wire `round4-delivery-binding-handover-fetch` against soland endpoint.
+- [x] §2 `src/pages/moderation/appeals.rs:22` — replace static dataset with real reducer query (round23-T06).
+- [x] §3 `src/pages/invites_3pid.rs:50,77` — implement `round4-invites-3pid-fetch` + stale re-fetch (round23-T07).
+- [x] §4 `src/pages/realm_destroy.rs:182` — POST handler for destroy confirmation (round23-T07).
 - [ ] §5 `src/pages/realm_links.rs:1` — SVG/canvas DAG visualization for realm links (currently list-only).
 - [ ] §6 `src/components/deactivation_fanout_panel.rs:103` — cross-PS progress indicator (round23-T07).
-- [ ] §7 `src/pages/relaxed_window.rs:143` — PUT handler (round23-T09).
-- [ ] §8 `src/pages/trust_domain.rs:180` — PUT handler with rotation confirmation (round23-T08).
+- [x] §7 `src/pages/relaxed_window.rs:143` — PUT handler (round23-T09).
+- [x] §8 `src/pages/trust_domain.rs:180` — PUT handler with rotation confirmation (round23-T08).
 - [ ] §9 `src/pages/server_status.rs:381,387` — rate-limit chart + bindings chip view (round4-rate-limit-chart).
-- [ ] §10 `src/pages/audit_attestation.rs:178` — POST evidence endpoint + chain/revocation status view (round23-T10).
+- [x] §10 `src/pages/audit_attestation.rs:178` — POST evidence endpoint + chain/revocation status view (round23-T10).
 
 ### API generation (eliminate manual drift)
 - [ ] §11 Replace `src/api/coauth.rs` (hand-rolled, 32 KB) with a generated client using `openapi-generator` or `progenitor` against coauth's OpenAPI doc.
@@ -34,13 +34,13 @@
 
 ### Accessibility audit
 - [ ] §14 Run an axe-core scan against the deployed SPA; capture findings in `A11Y.md`.
-- [ ] §15 Add `role="main"` / proper landmarks to every page layout in `src/components/layout/`.
+- [x] §15 Add `role="main"` / proper landmarks to every page layout in `src/components/layout/`.
 - [ ] §16 Ensure all form inputs have wrapped `<label>` (audit `src/components/ui/input.rs` and call sites).
 - [ ] §17 Verify keyboard-only navigation works for every CRUD flow (devices, peers, audit, policy).
 - [ ] §18 Localize date/time formatting via `icu` or `chrono` + Fluent.
 
 ### Playwright expansion
-- [ ] §19 Add a smoke spec per high-traffic page: dashboard, actors, spaces, federation, moderation, deactivation. Target ≥ 15 specs.
+- [x] §19 Add a smoke spec per high-traffic page: dashboard, actors, spaces, federation, moderation, deactivation. Target ≥ 15 specs.
 - [ ] §20 Hook the example-stack workflow (`nightly-example-stack.yaml`) into Playwright runs against a live soland+coauth.
 
 ### Engineering hygiene (master plan §5)
@@ -49,11 +49,16 @@
 - [ ] §23 Add Lighthouse CI check (perf + a11y budget).
 
 ### Docs
-- [ ] §24 Add an architecture diagram to README (sodmin ↔ soland ↔ coauth flows).
-- [ ] §25 Add `DEPLOYMENT.md` documenting nginx upstream env vars (`SOLAND_URL`, `COAUTH_URL`, `COAUTH_PUBLIC_URL`, `SODMIN_PORT`).
+- [x] §24 Add an architecture diagram to README (sodmin ↔ soland ↔ coauth flows).
+- [x] §25 Add `DEPLOYMENT.md` documenting nginx upstream env vars (`SOLAND_URL`, `COAUTH_URL`, `COAUTH_PUBLIC_URL`, `SODMIN_PORT`).
 
 ### Stale concepts
-- [ ] §26 Confirm zero leakage of "Place"/"chadex" in user-visible strings (i18n.rs scan + page titles).
+- [x] §26 Confirm zero leakage of "Place"/"chadex" in user-visible strings (i18n.rs scan + page titles).
+
+## Local-only workflow notes
+
+- 2026-05-25: `.github/workflows/release.yml` now builds and uploads a local bundle artifact only; it no longer runs on tags or creates GitHub releases.
+- 2026-05-25: `.github/workflows/docker.yml` now builds locally with `push: false` and no registry login/package write permission.
 
 ## Exit gate (phase 3)
 

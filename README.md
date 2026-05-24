@@ -14,6 +14,19 @@ Contrix administrator web UI for Principal Server and coauth deployments. The ap
 
 `sodmin` does not implement Contrix reducers or authorization decisions. It consumes stable admin API contracts from `soland` and `coauth`.
 
+## Architecture
+
+```mermaid
+flowchart LR
+  Browser["Admin browser"] --> Sodmin["sodmin Dioxus/WASM"]
+  Sodmin --> Nginx["nginx static host + proxy"]
+  Nginx --> Soland["soland Principal Server admin API"]
+  Nginx --> Coauth["coauth auth/account admin API"]
+  Coauth --> OAuth["OAuth2 / PKCE session"]
+  Soland --> Reducers["Contrix reducers + admin projections"]
+  Soland --> Audit["Audit / attestation evidence"]
+```
+
 ## Realm vs Space
 
 After the Phase 1–4 terminology inversion (Round R1.x):
