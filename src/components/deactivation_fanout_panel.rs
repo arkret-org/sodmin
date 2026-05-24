@@ -17,14 +17,14 @@
 //! 7. `capability`    — capability-cache invalidation
 //!
 //! For `cx.realm.destroy` the same panel is reused; in addition the
-//! caller wires an "erasure receipt" cross-PS bar. Cross-PS visibility
-//! is `TODO(round23-T07)` — the panel only shows the local PS result.
+//! caller wires an "erasure receipt" cross-PS bar.
 
 use dioxus::prelude::*;
 
 use crate::components::ui::badge::{Badge, BadgeVariant};
 use crate::components::ui::button::{Button, ButtonSize, ButtonVariant};
 use crate::components::ui::card::*;
+use crate::utils::date::format_optional_iso_datetime;
 
 /// Stable identifier for each of the seven local fanout domains.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -133,10 +133,19 @@ pub struct FanoutSnapshot {
 pub struct ErasureReceiptStatus {
     pub receipt_id: String,
     pub local_state: FanoutState,
-    /// Cross-PS aggregate state. Always `None` in this round — the
-    /// principal server does not yet expose this surface; the panel
-    /// renders a TODO placeholder.
+    /// Cross-PS aggregate state when the principal server exposes it.
     pub cross_ps_state: Option<FanoutState>,
+    /// Per-peer receipt acknowledgements. Empty means the backend did
+    /// not include peer-level fanout evidence for this invocation.
+    pub cross_ps_peers: Vec<CrossPsFanoutResult>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CrossPsFanoutResult {
+    pub service_did: String,
+    pub state: FanoutState,
+    pub error_code: Option<String>,
+    pub observed_at: Option<String>,
 }
 
 impl FanoutSnapshot {
@@ -287,19 +296,75 @@ pub fn DeactivationFanoutPanel(props: DeactivationFanoutPanelProps) -> Element {
 fn erasure_receipt_block(receipt: &ErasureReceiptStatus) -> Element {
     let local_variant = receipt.local_state.badge_variant();
     let local_label = receipt.local_state.label();
+    let cross_ps_label = receipt
+        .cross_ps_state
+        .map(|s| s.label().to_string())
+        .unwrap_or_else(|| "not reported".to_string());
+    let cross_ps_variant = receipt
+        .cross_ps_state
+        .map(|s| s.badge_variant())
+        .unwrap_or(BadgeVariant::Secondary);
+    let total = receipt.cross_ps_peers.len();
+    let done = receipt
+        .cross_ps_peers
+        .iter()
+        .filter(|peer| matches!(peer.state, FanoutState::Succeeded))
+        .count();
+    let progress = if total == 0 { 0 } else { (done * 100) / total };
+
     rsx! {
         div { class: "rounded-md border p-3 space-y-2",
             div { class: "flex items-center justify-between gap-2",
                 p { class: "text-sm font-semibold", "Erasure receipt" }
-                Badge { variant: local_variant, "{local_label} (local)" }
+                div { class: "flex flex-wrap items-center gap-2",
+                    Badge { variant: local_variant, "{local_label} (local)" }
+                    Badge { variant: cross_ps_variant, "{cross_ps_label} (cross-PS)" }
+                }
             }
             p { class: "text-xs font-mono break-all", "receipt_id: {receipt.receipt_id}" }
-            // TODO(round23-T07): cross-PS visualization — fan out to
-            // each federated principal server and render their erasure
-            // receipt aggregation here. Today we only show the local PS
-            // result.
-            p { class: "text-xs text-muted-foreground",
-                "Cross-PS progress is not yet wired into sodmin; only the local principal server's erasure receipt is shown. (TODO round23-T07)"
+            div { class: "space-y-1",
+                div { class: "flex items-center justify-between text-[11px] text-muted-foreground",
+                    span { "Cross-PS acknowledgements" }
+                    span { "{done}/{total}" }
+                }
+                div {
+                    class: "h-2 overflow-hidden rounded-full bg-muted",
+                    role: "progressbar",
+                    aria_valuemin: "0",
+                    aria_valuemax: "100",
+                    aria_valuenow: "{progress}",
+                    aria_label: "Cross-principal-server deactivation fanout progress",
+                    div {
+                        class: "h-full rounded-full bg-primary transition-all",
+                        style: "width: {progress}%;"
+                    }
+                }
+            }
+            if receipt.cross_ps_peers.is_empty() {
+                p { class: "text-xs text-muted-foreground",
+                    "No peer-level cross-PS receipt evidence was returned by the principal server."
+                }
+            } else {
+                ul { class: "space-y-1",
+                    for peer in receipt.cross_ps_peers.iter() {
+                        {
+                            let state = peer.state;
+                            let variant = state.badge_variant();
+                            let label = state.label();
+                            let observed = format_optional_iso_datetime(peer.observed_at.as_deref());
+                            rsx! {
+                                li { class: "flex flex-wrap items-center gap-2 rounded-md border px-2 py-1 text-xs",
+                                    span { class: "font-mono break-all", "{peer.service_did}" }
+                                    Badge { variant: variant, "{label}" }
+                                    span { class: "ml-auto text-muted-foreground", "{observed}" }
+                                    if let Some(code) = peer.error_code.as_ref() {
+                                        span { class: "basis-full font-mono text-[10px] text-destructive", "error_code={code}" }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
     }

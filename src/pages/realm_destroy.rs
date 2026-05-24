@@ -42,12 +42,13 @@ pub fn RealmDestroyPage(realm_id: String) -> Element {
                 {
                     let mut snap = placeholder_snapshot(realm_id_for_panel.clone());
                     // For `cx.realm.destroy` the panel renders the
-                    // erasure-receipt block as well; the cross-PS
-                    // bar is the TODO covered inside the panel.
+                    // erasure-receipt block as well. The placeholder
+                    // stays local-only until soland returns peer evidence.
                     snap.erasure_receipt = Some(ErasureReceiptStatus {
                         receipt_id: "receipt:01904100-0000-7000-8000-0000000000ff".into(),
                         local_state: FanoutState::Succeeded,
                         cross_ps_state: None,
+                        cross_ps_peers: Vec::new(),
                     });
                     rsx! {
                         DeactivationFanoutPanel {

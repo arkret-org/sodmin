@@ -1,4 +1,4 @@
-//! R5.2 — Realm link-graph admin page (simple list view).
+//! R5.2 — Realm link-graph admin page.
 //!
 //! Renders the outbound (`this Realm → others`) and inbound
 //! (`others → this Realm`) `cx.realm.link` rows for a single Realm.
@@ -6,10 +6,6 @@
 //! (`governed_by`, `discoverable_from`, `mirror_of`, …) and the
 //! target Realm identifier.
 //!
-//! This is intentionally the "list + chip" version of the feature.
-//! TODO(realm-rework): replace the lists with an SVG / canvas
-//! link-graph visualisation once the graph layout component lands.
-
 use dioxus::prelude::*;
 
 use crate::api::realm_links::{self, LinkDirection};
@@ -20,6 +16,7 @@ use crate::components::ui::error_banner::ErrorBanner;
 use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
 use crate::types::RealmLinkRow;
+use crate::utils::date::format_optional_iso_datetime;
 use crate::utils::i18n::t;
 
 /// Map a free-form `link_kind` to the badge variant used to colour the
@@ -98,18 +95,13 @@ pub fn RealmLinks(realm_id: String) -> Element {
                 }
             }
 
-            // Placeholder for the future graph visualisation. We keep
-            // it here so the page layout stays consistent with the
-            // eventual richer view.
             Card {
                 CardHeader {
                     CardTitle { {t("realm_links.graph_title")} }
                     CardDescription { {t("realm_links.graph_subtitle")} }
                 }
                 CardContent {
-                    p { class: "text-sm text-muted-foreground py-6 text-center",
-                        {t("realm_links.graph_placeholder")}
-                    }
+                    {render_link_graph(&realm_id, &*outbound.read(), &*inbound.read())}
                 }
             }
         }
@@ -162,7 +154,7 @@ fn render_link_row(row: &RealmLinkRow, outbound: bool) -> Element {
     };
     let label = link_kind_label(&row.link_kind);
     let variant = link_kind_variant(&row.link_kind);
-    let updated = row.updated_at.clone().unwrap_or_else(|| "-".to_string());
+    let updated = format_optional_iso_datetime(row.updated_at.as_deref());
     let display_name = row.target_display_name.clone();
 
     rsx! {
@@ -178,6 +170,174 @@ fn render_link_row(row: &RealmLinkRow, outbound: bool) -> Element {
                 span { class: "text-xs text-muted-foreground", "({name})" }
             }
             span { class: "ml-auto text-xs text-muted-foreground", "{updated}" }
+        }
+    }
+}
+
+fn render_link_graph(
+    realm_id: &str,
+    outbound: &Option<
+        Result<crate::types::ListResponse<RealmLinkRow>, crate::utils::error::HttpError>,
+    >,
+    inbound: &Option<
+        Result<crate::types::ListResponse<RealmLinkRow>, crate::utils::error::HttpError>,
+    >,
+) -> Element {
+    let outbound_rows = match outbound {
+        Some(Ok(resp)) => resp.data.clone(),
+        _ => Vec::new(),
+    };
+    let inbound_rows = match inbound {
+        Some(Ok(resp)) => resp.data.clone(),
+        _ => Vec::new(),
+    };
+
+    if outbound_rows.is_empty() && inbound_rows.is_empty() {
+        return rsx! {
+            p { class: "text-sm text-muted-foreground py-6 text-center",
+                {t("realm_links.graph_placeholder")}
+            }
+        };
+    }
+
+    let outbound_count = outbound_rows.len().max(1);
+    let inbound_count = inbound_rows.len().max(1);
+
+    rsx! {
+        div {
+            class: "overflow-x-auto rounded-md border border-border bg-muted/20 p-3",
+            role: "img",
+            aria_label: format!("{} {}", t("realm_links.graph_title"), realm_id),
+            svg {
+                class: "min-w-[720px] w-full h-[360px]",
+                view_box: "0 0 720 360",
+                xmlns: "http://www.w3.org/2000/svg",
+                defs {
+                    marker {
+                        id: "realm-link-arrow",
+                        marker_width: "10",
+                        marker_height: "10",
+                        ref_x: "8",
+                        ref_y: "3",
+                        orient: "auto",
+                        marker_units: "strokeWidth",
+                        path { d: "M0,0 L0,6 L9,3 z", fill: "currentColor" }
+                    }
+                }
+                for (idx, row) in inbound_rows.iter().enumerate() {
+                    {
+                        let y = lane_y(idx, inbound_count);
+                        let label = link_kind_label(&row.link_kind);
+                        let source = row.source_realm_id.clone();
+                        let display = compact_realm_label(&source);
+                        rsx! {
+                            line {
+                                x1: "160",
+                                y1: "{y}",
+                                x2: "330",
+                                y2: "180",
+                                stroke: "currentColor",
+                                stroke_width: "2",
+                                stroke_opacity: "0.55",
+                                marker_end: "url(#realm-link-arrow)"
+                            }
+                            {graph_node(90, y, &display, "bg-source")}
+                            text {
+                                x: "225",
+                                y: "{y - 8}",
+                                class: "fill-current text-[10px] text-muted-foreground",
+                                text_anchor: "middle",
+                                "{label}"
+                            }
+                        }
+                    }
+                }
+                for (idx, row) in outbound_rows.iter().enumerate() {
+                    {
+                        let y = lane_y(idx, outbound_count);
+                        let label = link_kind_label(&row.link_kind);
+                        let target = row.target_realm_id.clone();
+                        let display = compact_realm_label(&target);
+                        rsx! {
+                            line {
+                                x1: "390",
+                                y1: "180",
+                                x2: "560",
+                                y2: "{y}",
+                                stroke: "currentColor",
+                                stroke_width: "2",
+                                stroke_opacity: "0.55",
+                                marker_end: "url(#realm-link-arrow)"
+                            }
+                            {graph_node(630, y, &display, "bg-target")}
+                            text {
+                                x: "495",
+                                y: "{y - 8}",
+                                class: "fill-current text-[10px] text-muted-foreground",
+                                text_anchor: "middle",
+                                "{label}"
+                            }
+                        }
+                    }
+                }
+                {graph_node(360, 180, &compact_realm_label(realm_id), "bg-current")}
+            }
+        }
+    }
+}
+
+fn lane_y(index: usize, total: usize) -> i32 {
+    let step = 260 / (total + 1);
+    50 + (step * (index + 1)) as i32
+}
+
+fn compact_realm_label(realm_id: &str) -> String {
+    const MAX: usize = 26;
+    if realm_id.chars().count() <= MAX {
+        return realm_id.to_string();
+    }
+    let prefix: String = realm_id.chars().take(12).collect();
+    let suffix: String = realm_id
+        .chars()
+        .rev()
+        .take(10)
+        .collect::<Vec<_>>()
+        .into_iter()
+        .rev()
+        .collect();
+    format!("{prefix}...{suffix}")
+}
+
+fn graph_node(x: i32, y: i32, label: &str, tone: &str) -> Element {
+    let class = match tone {
+        "bg-current" => "fill-primary stroke-primary",
+        "bg-source" => "fill-blue-600 stroke-blue-700",
+        "bg-target" => "fill-green-600 stroke-green-700",
+        _ => "fill-muted stroke-border",
+    };
+    let text_color = if tone == "bg-current" {
+        "fill-primary-foreground"
+    } else {
+        "fill-white"
+    };
+    rsx! {
+        g {
+            rect {
+                x: "{x - 70}",
+                y: "{y - 22}",
+                width: "140",
+                height: "44",
+                rx: "8",
+                class: "{class}",
+                stroke_width: "1"
+            }
+            text {
+                x: "{x}",
+                y: "{y + 4}",
+                class: "{text_color} text-[11px] font-mono",
+                text_anchor: "middle",
+                "{label}"
+            }
         }
     }
 }

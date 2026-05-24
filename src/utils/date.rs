@@ -8,6 +8,33 @@ pub fn format_timestamp(ts_ms: u64) -> String {
         .unwrap_or_else(|| "-".to_string())
 }
 
+pub fn format_iso_datetime(value: &str) -> String {
+    if value.trim().is_empty() {
+        return "-".to_string();
+    }
+
+    let parsed = chrono::DateTime::parse_from_rfc3339(value)
+        .map(|dt| dt.with_timezone(&chrono::Local))
+        .or_else(|_| {
+            chrono::DateTime::parse_from_rfc3339(&format!("{value}Z"))
+                .map(|dt| dt.with_timezone(&chrono::Local))
+        });
+
+    match parsed {
+        Ok(dt) => match crate::utils::i18n::current_language() {
+            crate::utils::i18n::Language::ZhCn => dt.format("%Y年%m月%d日 %H:%M:%S").to_string(),
+            crate::utils::i18n::Language::En => dt.format("%b %-d, %Y, %-I:%M:%S %p").to_string(),
+        },
+        Err(_) => value.to_string(),
+    }
+}
+
+pub fn format_optional_iso_datetime(value: Option<&str>) -> String {
+    value
+        .map(format_iso_datetime)
+        .unwrap_or_else(|| "-".to_string())
+}
+
 pub fn format_date(ts_ms: u64) -> String {
     if ts_ms == 0 {
         return "-".to_string();

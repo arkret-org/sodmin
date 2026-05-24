@@ -264,10 +264,6 @@ fn describe_body(describe: &ServerDescribeResBody) -> Element {
     // banner above the rest of the card.
     let dev_with_verified = describe.dev_mode_with_verified_profiles();
 
-    // Round 4 — render the rate_limit oneOf as a pretty-printed JSON
-    // string. The wire shape is open (window / token-bucket / disabled),
-    // so the UI just shows the raw value for operator inspection.
-    // TODO(round4-rate-limit-chart) — render token bucket as a chart.
     let rate_limit_text = if describe.rate_limit.is_null() {
         "-".to_string()
     } else {
@@ -332,21 +328,7 @@ fn describe_body(describe: &ServerDescribeResBody) -> Element {
             {chip_section(t("server_status.implemented_features"), &implemented)}
             {chip_section(t("server_status.supported_operations"), &operations)}
 
-            // Round 4 — supported_bindings is the open transport-binding
-            // list (`[{type, ...}]`). Show the JSON for now; a structured
-            // chip view is TODO.
-            // TODO(round4-bindings-chip) — render each binding as a
-            // typed chip group instead of raw JSON.
-            if !bindings.is_empty() {
-                div { class: "space-y-1",
-                    p { class: "text-xs font-semibold uppercase tracking-wider text-muted-foreground",
-                        {t("server_status.supported_bindings")}
-                    }
-                    pre { class: "font-mono text-[11px] bg-muted/50 rounded p-2 overflow-x-auto",
-                        "{serde_json::to_string_pretty(&bindings).unwrap_or_default()}"
-                    }
-                }
-            }
+            {binding_chip_section(t("server_status.supported_bindings"), &bindings)}
 
             // Round 4 — limits + rate_limit as raw JSON. Free-form per
             // SDK; UI cannot assume a fixed key set.
@@ -359,14 +341,7 @@ fn describe_body(describe: &ServerDescribeResBody) -> Element {
                         "{limits_text}"
                     }
                 }
-                div { class: "space-y-1",
-                    p { class: "text-xs font-semibold uppercase tracking-wider text-muted-foreground",
-                        {t("server_status.rate_limit_label")}
-                    }
-                    pre { class: "font-mono text-[11px] bg-muted/50 rounded p-2 overflow-x-auto",
-                        "{rate_limit_text}"
-                    }
-                }
+                {rate_limit_panel(t("server_status.rate_limit_label"), &describe.rate_limit, rate_limit_text)}
             }
 
             // T6.2 §1 — conformance posture grouped into four buckets.
@@ -380,6 +355,177 @@ fn describe_body(describe: &ServerDescribeResBody) -> Element {
             // sees every weak knob in one place.
             {dev_posture_card(describe)}
         }
+    }
+}
+
+fn binding_chip_section(label: String, bindings: &[serde_json::Value]) -> Element {
+    if bindings.is_empty() {
+        return rsx! {
+            div { class: "space-y-1",
+                p { class: "text-xs font-semibold uppercase tracking-wider text-muted-foreground",
+                    "{label}"
+                }
+                p { class: "text-xs text-muted-foreground", "-" }
+            }
+        };
+    }
+
+    rsx! {
+        div { class: "space-y-1",
+            p { class: "text-xs font-semibold uppercase tracking-wider text-muted-foreground",
+                "{label}"
+            }
+            div { class: "flex flex-wrap gap-1",
+                for binding in bindings.iter() {
+                    {
+                        let binding_type = binding
+                            .get("type")
+                            .or_else(|| binding.get("kind"))
+                            .and_then(|v| v.as_str())
+                            .unwrap_or("binding");
+                        let endpoint = binding
+                            .get("endpoint")
+                            .or_else(|| binding.get("url"))
+                            .or_else(|| binding.get("service_endpoint"))
+                            .and_then(|v| v.as_str());
+                        let label = endpoint
+                            .map(|e| format!("{binding_type}: {e}"))
+                            .unwrap_or_else(|| binding_type.to_string());
+                        rsx! {
+                            Badge {
+                                variant: BadgeVariant::Secondary,
+                                class: "font-mono text-xs max-w-full truncate".to_string(),
+                                "{label}"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+fn rate_limit_panel(
+    label: String,
+    rate_limit: &serde_json::Value,
+    fallback_text: String,
+) -> Element {
+    let bars = rate_limit_bars(rate_limit);
+
+    rsx! {
+        div { class: "space-y-2",
+            p { class: "text-xs font-semibold uppercase tracking-wider text-muted-foreground",
+                "{label}"
+            }
+            if bars.is_empty() {
+                pre { class: "font-mono text-[11px] bg-muted/50 rounded p-2 overflow-x-auto",
+                    "{fallback_text}"
+                }
+            } else {
+                div { class: "space-y-2 rounded-md bg-muted/50 p-2",
+                    for bar in bars.iter() {
+                        {
+                            let width = bar.percent.clamp(4, 100);
+                            rsx! {
+                                div { class: "space-y-1",
+                                    div { class: "flex items-center justify-between gap-2 text-[11px]",
+                                        span { class: "font-mono", "{bar.label}" }
+                                        span { class: "text-muted-foreground", "{bar.value}" }
+                                    }
+                                    div {
+                                        class: "h-2 overflow-hidden rounded-full bg-background",
+                                        role: "meter",
+                                        aria_valuemin: "0",
+                                        aria_valuemax: "100",
+                                        aria_valuenow: "{bar.percent}",
+                                        aria_label: format!("rate limit {}", bar.label),
+                                        div {
+                                            class: "h-full rounded-full bg-primary",
+                                            style: "width: {width}%;"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+struct RateLimitBar {
+    label: String,
+    value: String,
+    percent: i32,
+}
+
+fn rate_limit_bars(rate_limit: &serde_json::Value) -> Vec<RateLimitBar> {
+    let Some(obj) = rate_limit.as_object() else {
+        return Vec::new();
+    };
+    if obj
+        .get("disabled")
+        .and_then(|v| v.as_bool())
+        .unwrap_or(false)
+    {
+        return vec![RateLimitBar {
+            label: "disabled".to_string(),
+            value: "off".to_string(),
+            percent: 100,
+        }];
+    }
+
+    let mut bars = Vec::new();
+    for key in [
+        "limit",
+        "burst",
+        "capacity",
+        "tokens",
+        "remaining",
+        "requests",
+    ] {
+        if let Some(value) = obj.get(key).and_then(number_value) {
+            let base = obj
+                .get("limit")
+                .and_then(number_value)
+                .or_else(|| obj.get("capacity").and_then(number_value))
+                .unwrap_or(value)
+                .max(1.0);
+            bars.push(RateLimitBar {
+                label: key.to_string(),
+                value: format_number(value),
+                percent: ((value / base) * 100.0).round() as i32,
+            });
+        }
+    }
+    if let Some(window) = obj
+        .get("window")
+        .or_else(|| obj.get("window_seconds"))
+        .or_else(|| obj.get("refill_interval_seconds"))
+        .and_then(number_value)
+    {
+        bars.push(RateLimitBar {
+            label: "window".to_string(),
+            value: format!("{}s", format_number(window)),
+            percent: 100,
+        });
+    }
+    bars
+}
+
+fn number_value(value: &serde_json::Value) -> Option<f64> {
+    value
+        .as_f64()
+        .or_else(|| value.as_str().and_then(|s| s.parse::<f64>().ok()))
+}
+
+fn format_number(value: f64) -> String {
+    if (value.fract()).abs() < f64::EPSILON {
+        format!("{}", value as u64)
+    } else {
+        format!("{value:.2}")
     }
 }
 
