@@ -15,6 +15,15 @@
 //! definitions there). Lifecycle state strings track the spec's
 //! `cx.circle.state` registry — see
 //! `contrix-spec/spec/v1/artifacts/registry/circle-state-registry.json`.
+//!
+//! P3A.7 naming rule: typed entity references inside this crate use
+//! the `_id` suffix (`realm_id`, `circle_id`, `scope_circle_id`)
+//! matching the SDK §1.6 convention. Membership keys that are signed
+//! into the wire as DIDs use `_did` (`actor_did`) because the
+//! reducer keys Circle membership on DID, not on internal actor ids.
+//! The legacy `_ref` suffix is reserved for `allowed_circle_refs`
+//! (a plural list of typed refs inside a GrantConstraint) — the only
+//! place the SDK still uses that token.
 
 use serde::{Deserialize, Serialize};
 
