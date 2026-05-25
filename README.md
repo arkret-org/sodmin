@@ -200,3 +200,10 @@ examples/       Local deployment examples, pending Contrix stack refresh
 ## Current Gaps
 
 See the cross-project [`../_todos.md`](../_todos.md). Remaining deferred work includes the docs site/user guide, example-stack cold image verification, and cleanup of pre-existing dead-code warnings.
+
+---
+
+<!-- circle-rollout milestone pointer -->
+> **Active milestone tracking** (local-only, gitignored): see
+> `_sodmin_todos.md` in the parent `contrix-dev/` directory for the
+> circle-rollout (CXP-0007) work item list and per-stage checkpoints.
