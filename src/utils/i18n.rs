@@ -1842,6 +1842,186 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "directory_admin.reject_confirm_body",
                 "Rejects the directory entry — it will not be listed publicly. Audit-logged.",
             ),
+
+            // ── CXP-0007 Circle admin (P3A.3 / P3A.6 / P3A.8) ─────────
+            ("nav.circles", "Circles"),
+            ("nav.section_circles", "Circles"),
+            ("circle.list_title", "Circles"),
+            (
+                "circle.list_description",
+                "Encrypted sub-boundaries scoped inside a Realm. Each Circle carries its own MLS group and a member list that is a strict subset of the parent Realm's membership.",
+            ),
+            ("circle.create", "Create Circle"),
+            (
+                "circle.create_description",
+                "Create a new Circle inside an existing Realm. The parent Realm is immutable once set.",
+            ),
+            ("circle.id", "Circle ID"),
+            ("circle.title", "Title"),
+            ("circle.title_placeholder", "Trust & Safety"),
+            ("circle.summary", "Summary"),
+            ("circle.realm_id", "Realm"),
+            ("circle.realm_id_hint", "cx:realm:... identifier of the parent security boundary. Required."),
+            ("circle.filter_realm", "Filter by realm"),
+            (
+                "circle.filter_realm_hint",
+                "Circles are scoped to a single Realm. Paste a cx:realm:... id to load its Circles.",
+            ),
+            ("circle.filter_apply", "Apply"),
+            ("circle.directory_visibility", "Directory visibility"),
+            ("circle.join_rule", "Join rule"),
+            ("circle.history_visibility", "History visibility"),
+            ("circle.encryption_profile", "Encryption profile"),
+            ("circle.mls_group_ref", "MLS group ref"),
+            ("circle.member_count", "Members"),
+            ("circle.members_total", "Total members:"),
+            ("circle.created_at", "Created"),
+            ("circle.created_by", "Created by"),
+            ("circle.updated_at", "Updated"),
+            ("circle.state", "State"),
+            ("circle.state_active", "Active"),
+            ("circle.state_archived", "Archived"),
+            ("circle.state_tombstoned", "Tombstoned"),
+            ("circle.state_unknown", "Unknown"),
+            ("circle.overview", "Overview"),
+            ("circle.actions", "Actions"),
+            ("circle.manage_members", "Manage members"),
+            ("circle.manage_scope", "Manage scope"),
+            ("circle.scope_description", "Rotate the bound MLS group for this Circle. Receipts fan out into the audit log even when no membership changes accompany the rotation."),
+            ("circle.scope_hint", "Full MLS-key rotation lands when soland P2A.4 is complete. Today this emits a cx.circle.update Move so authz hooks fire."),
+            ("circle.rotate_scope", "Rotate MLS scope"),
+            ("circle.archive", "Archive"),
+            ("circle.tombstone", "Tombstone"),
+            ("circle.add_member", "Add member"),
+            ("circle.remove_member", "Remove"),
+            ("circle.actor_did", "Actor DID"),
+            ("circle.member_state", "State"),
+            ("circle.empty_members", "No members yet."),
+            ("circle.empty_title", "No Circles in this Realm"),
+            (
+                "circle.empty_description",
+                "Use Create Circle to add the first encrypted sub-boundary.",
+            ),
+            ("circle.empty_no_realm_title", "Pick a Realm to inspect"),
+            (
+                "circle.empty_no_realm_description",
+                "Circles are always scoped to a single Realm. Enter a cx:realm:... id above to load its Circles.",
+            ),
+            (
+                "circle.subset_hint",
+                "Members must already belong to the parent Realm. soland rejects out-of-subset adds with `circle_member_must_be_realm_member`.",
+            ),
+            ("circle.error_required", "realm_id and title are required."),
+            ("circle.error_actor_required", "actor_did is required."),
+            ("circle.created_toast", "Circle created."),
+            ("circle.archived_toast", "Circle archived."),
+            ("circle.tombstoned_toast", "Circle tombstoned. Terminal state."),
+            ("circle.scope_rotated_toast", "Circle scope rotation acknowledged."),
+            ("circle.member_added_toast", "Member added to Circle."),
+            ("circle.member_removed_toast", "Member removed from Circle."),
+            (
+                "circle.confirm_archive_title",
+                "Archive this Circle?",
+            ),
+            (
+                "circle.confirm_archive_body",
+                "Archived Circles reject all member changes and ordinary writes. Scope rotation is still allowed. Reversible while inside the soft-delete window.",
+            ),
+            (
+                "circle.confirm_tombstone_title",
+                "Tombstone this Circle?",
+            ),
+            (
+                "circle.confirm_tombstone_body",
+                "Tombstoned Circles are terminal: no further admin actions are accepted and member state is forever frozen. Erasure receipts fan out per CXP-0007.",
+            ),
+
+            // P3A.6 — Principal Control vs Collaboration Realm
+            (
+                "realm.principal_control",
+                "Principal control",
+            ),
+            (
+                "realm.collaboration",
+                "Collaboration",
+            ),
+            (
+                "realm.classification",
+                "Realm classification",
+            ),
+            (
+                "realm.classification_hint",
+                "Principal-control Realms back DID issuance and recovery; Collaboration Realms scope content. The class is immutable after create per CXP-0007.",
+            ),
+
+            // P3A.5 — audit effective scope + Circle event filters
+            ("audit.effective_scope", "Effective scope"),
+            ("audit.scope_realm", "Realm"),
+            ("audit.scope_circle", "Circle"),
+            ("audit.scope_jump", "Jump to scope"),
+            ("audit.filter_event_kind", "Event kind"),
+            ("audit.filter_event_kind_circle_create", "cx.circle.create"),
+            ("audit.filter_event_kind_circle_update", "cx.circle.update"),
+            ("audit.filter_event_kind_circle_archive", "cx.circle.archive"),
+            ("audit.filter_event_kind_circle_tombstone", "cx.circle.tombstone"),
+            (
+                "audit.filter_event_kind_circle_member_state",
+                "cx.circle.member.state",
+            ),
+            (
+                "audit.filter_event_kind_circle_capability_grant",
+                "cx.circle.capability.grant",
+            ),
+            (
+                "audit.filter_event_kind_circle_capability_revoke",
+                "cx.circle.capability.revoke",
+            ),
+
+            // P3A.4 — capability editor (cx.circle.*) labels
+            ("capability.cx_circle_create", "cx.circle.create"),
+            ("capability.cx_circle_manage", "cx.circle.manage"),
+            ("capability.cx_circle_member_add", "cx.circle.member.add"),
+            ("capability.cx_circle_member_manage", "cx.circle.member.manage"),
+            (
+                "capability.cx_circle_member_add_others",
+                "cx.circle.member.add.others",
+            ),
+            ("capability.cx_circle_audit", "cx.circle.audit"),
+            ("capability.cx_circle_section", "Circle capabilities (CXP-0007)"),
+            (
+                "capability.allowed_circle_refs",
+                "Allowed circle refs",
+            ),
+            (
+                "capability.allowed_circle_refs_hint",
+                "Comma-separated cx:circle:... ids. Required for cx.circle.manage, cx.circle.member.manage, and cx.circle.member.add.others.",
+            ),
+
+            // P3A.8 — CXP-0007 error codes (returned by reducer)
+            (
+                "error.circle_realm_mismatch",
+                "Circle realm mismatch — the requested action targets a different Realm than the Circle is bound to.",
+            ),
+            (
+                "error.circle_member_must_be_realm_member",
+                "Member must already belong to the parent Realm.",
+            ),
+            (
+                "error.circle_not_active",
+                "Circle is not active — archived or tombstoned Circles reject this action.",
+            ),
+            (
+                "error.circle_already_terminal",
+                "Circle is already in a terminal state (archived or tombstoned).",
+            ),
+            (
+                "error.circle_capability_denied",
+                "Required cx.circle.* capability is missing or scoped to a different Circle ref.",
+            ),
+            (
+                "error.circle_scope_rotation_in_progress",
+                "Another scope rotation is in flight for this Circle.",
+            ),
         ],
         Language::ZhCn => &[
             ("nav.actors", "Actor"),
@@ -2664,6 +2844,186 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             (
                 "directory_admin.reject_confirm_body",
                 "驳回该目录条目——不会被公开列出。该操作记入审计。",
+            ),
+
+            // ── CXP-0007 Circle 管理（P3A.3 / P3A.6 / P3A.8） ─────────
+            ("nav.circles", "Circle"),
+            ("nav.section_circles", "Circle"),
+            ("circle.list_title", "Circle 列表"),
+            (
+                "circle.list_description",
+                "Realm 内的加密子边界。每个 Circle 携带自己的 MLS 组，其成员必须是父 Realm 成员的严格子集。",
+            ),
+            ("circle.create", "创建 Circle"),
+            (
+                "circle.create_description",
+                "在已存在的 Realm 中创建新的 Circle。父 Realm 在创建后不可修改。",
+            ),
+            ("circle.id", "Circle ID"),
+            ("circle.title", "标题"),
+            ("circle.title_placeholder", "信任与安全"),
+            ("circle.summary", "摘要"),
+            ("circle.realm_id", "Realm"),
+            ("circle.realm_id_hint", "父 Realm 的 cx:realm:... 标识符。必填。"),
+            ("circle.filter_realm", "按 Realm 过滤"),
+            (
+                "circle.filter_realm_hint",
+                "Circle 始终归属单个 Realm。粘贴 cx:realm:... 以加载该 Realm 下的所有 Circle。",
+            ),
+            ("circle.filter_apply", "应用"),
+            ("circle.directory_visibility", "目录可见性"),
+            ("circle.join_rule", "加入规则"),
+            ("circle.history_visibility", "历史可见性"),
+            ("circle.encryption_profile", "加密配置"),
+            ("circle.mls_group_ref", "MLS 组引用"),
+            ("circle.member_count", "成员数"),
+            ("circle.members_total", "成员总数："),
+            ("circle.created_at", "创建时间"),
+            ("circle.created_by", "创建者"),
+            ("circle.updated_at", "更新时间"),
+            ("circle.state", "状态"),
+            ("circle.state_active", "活跃"),
+            ("circle.state_archived", "已归档"),
+            ("circle.state_tombstoned", "已墓碑"),
+            ("circle.state_unknown", "未知"),
+            ("circle.overview", "概览"),
+            ("circle.actions", "操作"),
+            ("circle.manage_members", "管理成员"),
+            ("circle.manage_scope", "管理域（MLS scope）"),
+            ("circle.scope_description", "轮换 Circle 绑定的 MLS 组。即使本次没有成员变更，回执也会进入审计日志。"),
+            ("circle.scope_hint", "完整的 MLS 密钥轮换将随 soland P2A.4 上线。目前仅发送 cx.circle.update Move 以触发授权挂钩。"),
+            ("circle.rotate_scope", "轮换 MLS 域"),
+            ("circle.archive", "归档"),
+            ("circle.tombstone", "墓碑（不可逆）"),
+            ("circle.add_member", "添加成员"),
+            ("circle.remove_member", "移除"),
+            ("circle.actor_did", "Actor DID"),
+            ("circle.member_state", "状态"),
+            ("circle.empty_members", "暂无成员。"),
+            ("circle.empty_title", "此 Realm 暂无 Circle"),
+            (
+                "circle.empty_description",
+                "点击「创建 Circle」以添加第一个加密子边界。",
+            ),
+            ("circle.empty_no_realm_title", "请选择 Realm"),
+            (
+                "circle.empty_no_realm_description",
+                "Circle 始终归属单个 Realm。请在上方输入 cx:realm:... 以加载该 Realm 下的 Circle。",
+            ),
+            (
+                "circle.subset_hint",
+                "成员必须已属于父 Realm。soland 会以 `circle_member_must_be_realm_member` 拒绝越界添加。",
+            ),
+            ("circle.error_required", "realm_id 与 title 均为必填。"),
+            ("circle.error_actor_required", "actor_did 必填。"),
+            ("circle.created_toast", "Circle 已创建。"),
+            ("circle.archived_toast", "Circle 已归档。"),
+            ("circle.tombstoned_toast", "Circle 已墓碑（终态）。"),
+            ("circle.scope_rotated_toast", "已确认 Circle 域轮换。"),
+            ("circle.member_added_toast", "成员已加入 Circle。"),
+            ("circle.member_removed_toast", "成员已从 Circle 移除。"),
+            (
+                "circle.confirm_archive_title",
+                "归档此 Circle？",
+            ),
+            (
+                "circle.confirm_archive_body",
+                "归档后将拒绝所有成员变更与常规写入。仍可进行域轮换。软删窗口内可恢复。",
+            ),
+            (
+                "circle.confirm_tombstone_title",
+                "墓碑此 Circle？",
+            ),
+            (
+                "circle.confirm_tombstone_body",
+                "墓碑为终态：不再接受任何管理操作，成员状态永久冻结。CXP-0007 会发出擦除回执。",
+            ),
+
+            // P3A.6 — Principal Control vs Collaboration Realm
+            (
+                "realm.principal_control",
+                "主体控制（Principal Control）",
+            ),
+            (
+                "realm.collaboration",
+                "协作（Collaboration）",
+            ),
+            (
+                "realm.classification",
+                "Realm 类别",
+            ),
+            (
+                "realm.classification_hint",
+                "主体控制 Realm 承担 DID 颁发与恢复；协作 Realm 仅作内容范围。CXP-0007 规定该分类在创建后不可变更。",
+            ),
+
+            // P3A.5 — audit effective_scope + Circle 事件筛选
+            ("audit.effective_scope", "有效范围"),
+            ("audit.scope_realm", "Realm"),
+            ("audit.scope_circle", "Circle"),
+            ("audit.scope_jump", "跳转到该范围"),
+            ("audit.filter_event_kind", "事件类型"),
+            ("audit.filter_event_kind_circle_create", "cx.circle.create"),
+            ("audit.filter_event_kind_circle_update", "cx.circle.update"),
+            ("audit.filter_event_kind_circle_archive", "cx.circle.archive"),
+            ("audit.filter_event_kind_circle_tombstone", "cx.circle.tombstone"),
+            (
+                "audit.filter_event_kind_circle_member_state",
+                "cx.circle.member.state",
+            ),
+            (
+                "audit.filter_event_kind_circle_capability_grant",
+                "cx.circle.capability.grant",
+            ),
+            (
+                "audit.filter_event_kind_circle_capability_revoke",
+                "cx.circle.capability.revoke",
+            ),
+
+            // P3A.4 — capability 编辑器（cx.circle.*）标签
+            ("capability.cx_circle_create", "cx.circle.create"),
+            ("capability.cx_circle_manage", "cx.circle.manage"),
+            ("capability.cx_circle_member_add", "cx.circle.member.add"),
+            ("capability.cx_circle_member_manage", "cx.circle.member.manage"),
+            (
+                "capability.cx_circle_member_add_others",
+                "cx.circle.member.add.others",
+            ),
+            ("capability.cx_circle_audit", "cx.circle.audit"),
+            ("capability.cx_circle_section", "Circle 能力（CXP-0007）"),
+            (
+                "capability.allowed_circle_refs",
+                "受限 Circle 列表",
+            ),
+            (
+                "capability.allowed_circle_refs_hint",
+                "逗号分隔的 cx:circle:... 标识符。cx.circle.manage、cx.circle.member.manage、cx.circle.member.add.others 必填。",
+            ),
+
+            // P3A.8 — CXP-0007 错误码（来自 reducer）
+            (
+                "error.circle_realm_mismatch",
+                "Circle 与 Realm 不匹配——请求的操作目标 Realm 与 Circle 所绑定的 Realm 不一致。",
+            ),
+            (
+                "error.circle_member_must_be_realm_member",
+                "成员必须已属于父 Realm。",
+            ),
+            (
+                "error.circle_not_active",
+                "Circle 处于非活跃状态——已归档或已墓碑的 Circle 拒绝此操作。",
+            ),
+            (
+                "error.circle_already_terminal",
+                "Circle 已处于终态（已归档或已墓碑）。",
+            ),
+            (
+                "error.circle_capability_denied",
+                "缺少所需的 cx.circle.* 能力，或能力仅授予不同的 Circle。",
+            ),
+            (
+                "error.circle_scope_rotation_in_progress",
+                "另一次域轮换正在进行中。",
             ),
         ],
     };

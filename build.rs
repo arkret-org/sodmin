@@ -98,6 +98,17 @@ const REQUIRED_SOLAND: &[(&str, &str)] = &[
     ),
     ("POST", "/api/admin/v1/realms/{id}/destroy"),
     ("POST", "/api/admin/v1/realms/{id}/destroy/retry"),
+    // CXP-0007 Circle admin (P3A.3) — sodmin consumes the full
+    // `/api/v1/circles/*` surface. Missing any route here is treated
+    // as a contract break and fails the wasm build at build.rs time.
+    ("GET", "/api/v1/circles"),
+    ("POST", "/api/v1/circles"),
+    ("GET", "/api/v1/circles/{circle_id}"),
+    ("POST", "/api/v1/circles/{circle_id}/members"),
+    ("DELETE", "/api/v1/circles/{circle_id}/members/{actor_did}"),
+    ("POST", "/api/v1/circles/{circle_id}/scope-rotate"),
+    ("POST", "/api/v1/circles/{circle_id}/archive"),
+    ("POST", "/api/v1/circles/{circle_id}/tombstone"),
 ];
 
 fn main() {
