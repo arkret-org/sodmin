@@ -40,6 +40,37 @@ impl fmt::Display for HttpError {
 impl std::error::Error for HttpError {}
 
 pub fn display_error(errcode: &str, status: u16, message: &str) -> String {
+    // P3A.8 — the soland reducer surfaces canonical CXP-0007 reason
+    // strings (e.g. `circle_realm_mismatch`,
+    // `circle_member_must_be_realm_member`) as the `errcode` field on
+    // 422 responses. These six are the spec's
+    // capability-action-registry reason codes; the SDK ships them as
+    // public constants and the admin UI maps them straight to the
+    // matching i18n key (`error.<reason>`). When an i18n string is
+    // present we render it; otherwise we fall back to the in-line
+    // English literal so brand-new codes still surface usefully.
+    let circle_reason: Option<&'static str> = match errcode {
+        "circle_realm_mismatch" => Some("error.circle_realm_mismatch"),
+        "circle_member_must_be_realm_member" => {
+            Some("error.circle_member_must_be_realm_member")
+        }
+        "circle_not_active" => Some("error.circle_not_active"),
+        "circle_already_terminal" => Some("error.circle_already_terminal"),
+        "circle_capability_denied" => Some("error.circle_capability_denied"),
+        "circle_scope_rotation_in_progress" => {
+            Some("error.circle_scope_rotation_in_progress")
+        }
+        _ => None,
+    };
+    if let Some(key) = circle_reason {
+        let localised = crate::utils::i18n::t(key);
+        let safe_message = redact_pii(message);
+        if safe_message.is_empty() || localised.contains(&safe_message) {
+            return format!("{errcode} ({status}): {localised}");
+        }
+        return format!("{errcode} ({status}): {localised}: {safe_message}");
+    }
+
     let fallback = match errcode {
         "cx.error.not_found" | "not_found" => "Resource not found",
         "cx.error.unauthenticated" | "unauthenticated" => "Authentication required",
