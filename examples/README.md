@@ -123,14 +123,14 @@ work):
 
 ### Image overrides
 
-Every `image:` is `${SVC_IMAGE:-svc:dev}`, so you can pin published
-nightly tags instead of building locally:
+Every `image:` is `${SVC_IMAGE:-svc:dev}`, so you can pin local image tags
+instead of rebuilding each service:
 
 ```bash
-COAUTH_IMAGE=ghcr.io/contrix/coauth:nightly \
-SOLAND_IMAGE=ghcr.io/contrix/soland:nightly \
-FLORIA_IMAGE=ghcr.io/contrix/floria:nightly \
-SODMIN_IMAGE=ghcr.io/contrix/sodmin:nightly \
+COAUTH_IMAGE=coauth:dev \
+SOLAND_IMAGE=soland:dev \
+FLORIA_IMAGE=floria:dev \
+SODMIN_IMAGE=sodmin:dev \
     ./examples/up.sh --no-build
 ```
 

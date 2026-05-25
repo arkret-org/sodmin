@@ -125,7 +125,7 @@ docker run -p 9090:80 \
 
 ## Deployment
 
-The published image bundles a static Dioxus/WASM build behind nginx. At
+The local image bundles a static Dioxus/WASM build behind nginx. At
 container start, `docker-entrypoint.sh` reads the runtime environment
 and emits `/usr/share/nginx/html/config.json` plus an nginx vhost
 configured with sane security headers.
