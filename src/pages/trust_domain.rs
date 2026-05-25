@@ -197,9 +197,7 @@ pub fn TrustDomainConfigPage() -> Element {
 /// the round-trip.
 fn validate_trust_domain(value: &str) -> Result<(), String> {
     if !value.starts_with(TRUST_DOMAIN_PREFIX) {
-        return Err(format!(
-            "must start with `{TRUST_DOMAIN_PREFIX}`"
-        ));
+        return Err(format!("must start with `{TRUST_DOMAIN_PREFIX}`"));
     }
     let suffix = &value[TRUST_DOMAIN_PREFIX.len()..];
     if suffix.is_empty() {
@@ -213,13 +211,9 @@ fn validate_trust_domain(value: &str) -> Result<(), String> {
     }
     // Lowercase alpha-num + `.` / `-` / `_`. The SDK's grammar is
     // stricter — we mirror it here so the admin gets local feedback.
-    let ok = suffix.chars().all(|c| {
-        c.is_ascii_digit()
-            || c.is_ascii_lowercase()
-            || c == '.'
-            || c == '-'
-            || c == '_'
-    });
+    let ok = suffix
+        .chars()
+        .all(|c| c.is_ascii_digit() || c.is_ascii_lowercase() || c == '.' || c == '-' || c == '_');
     if !ok {
         return Err(
             "scope must be lowercase ASCII alphanum plus `.`, `-`, `_` (no upper-case letters)"

@@ -89,6 +89,20 @@ pub enum Route {
         #[route("/capabilities")]
         CapabilityList {},
 
+        // CXP-0007 Circle admin (P3A.3). Circles are encrypted
+        // sub-boundaries inside a Realm; full CRUD + member +
+        // scope-rotation surface lives under `/circles/*`.
+        #[route("/circles")]
+        CircleList {},
+        #[route("/circles/new")]
+        CircleCreate {},
+        #[route("/circles/:circle_id")]
+        CircleShow { circle_id: String },
+        #[route("/circles/:circle_id/members")]
+        CircleMembers { circle_id: String },
+        #[route("/circles/:circle_id/scope")]
+        CircleScope { circle_id: String },
+
         #[route("/handles")]
         HandleList {},
         #[route("/handles/:handle_id")]
@@ -426,6 +440,31 @@ fn DeviceList() -> Element {
 #[component]
 fn CapabilityList() -> Element {
     rsx! { pages::capabilities::CapabilityList {} }
+}
+
+#[component]
+fn CircleList() -> Element {
+    rsx! { pages::circles::list::CircleList {} }
+}
+
+#[component]
+fn CircleCreate() -> Element {
+    rsx! { pages::circles::create::CircleCreate {} }
+}
+
+#[component]
+fn CircleShow(circle_id: String) -> Element {
+    rsx! { pages::circles::show::CircleShow { circle_id } }
+}
+
+#[component]
+fn CircleMembers(circle_id: String) -> Element {
+    rsx! { pages::circles::members::CircleMembers { circle_id } }
+}
+
+#[component]
+fn CircleScope(circle_id: String) -> Element {
+    rsx! { pages::circles::scope::CircleScope { circle_id } }
 }
 
 #[component]

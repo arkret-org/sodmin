@@ -265,11 +265,10 @@ pub fn HandleList() -> Element {
 pub fn HandleShow(handle_id: String) -> Element {
     let id = handle_id.clone();
     let id_audit = handle_id.clone();
-    let mut handle_data =
-        use_resource(move || {
-            let id = id.clone();
-            async move { handles::get_handle(&id).await }
-        });
+    let mut handle_data = use_resource(move || {
+        let id = id.clone();
+        async move { handles::get_handle(&id).await }
+    });
     let mut audit_data = use_resource(move || {
         let id = id_audit.clone();
         async move { handles::get_handle_audit(&id).await }

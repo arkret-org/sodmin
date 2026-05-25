@@ -130,6 +130,22 @@ fn build_nav_sections() -> Vec<NavSection> {
         .scope(scope::IDENTITY),
     );
 
+    // CXP-0007 Circles — encrypted sub-boundary admin (P3A.3).
+    // Pinned right under Identity so operators see Circles next to
+    // the Realm membership surfaces they extend.
+    sections.push(
+        NavSection::new(
+            t("nav.section_circles"),
+            vec![NavItem::new(
+                t("nav.circles"),
+                Route::CircleList {},
+                "users",
+            )],
+        )
+        .bridge(bridge::SOLAND)
+        .scope(scope::IDENTITY),
+    );
+
     sections.push(
         NavSection::new(
             t("nav.section_moderation"),

@@ -7,6 +7,7 @@ pub mod audit;
 pub mod auth;
 pub mod authz_admin;
 pub mod capabilities;
+pub mod circles;
 pub mod client;
 pub mod coauth;
 pub mod coauth_devices_admin;

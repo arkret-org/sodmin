@@ -1,5 +1,6 @@
 /target
 /dist
+**/dist/
 *.swp
 *.swo
 .DS_Store
@@ -12,6 +13,10 @@ test-results/
 tmp*
 *.map
 *.log
+# Explicit pins for build artifacts that historically slipped past the
+# wildcard rules above and got committed at the project root.
+/bundle.js.map
+/docker-build.log
 .vscode
 .claude
 

@@ -19,17 +19,11 @@ pub async fn get_agent(id: &str) -> Result<Agent, HttpError> {
 }
 
 pub async fn disable_agent(id: &str) -> Result<(), HttpError> {
-    let url = format!(
-        "/api/admin/v1/agents/{}/disable",
-        urlencoding::encode(id)
-    );
+    let url = format!("/api/admin/v1/agents/{}/disable", urlencoding::encode(id));
     api_client(&url, "POST", None).await
 }
 
 pub async fn enable_agent(id: &str) -> Result<(), HttpError> {
-    let url = format!(
-        "/api/admin/v1/agents/{}/enable",
-        urlencoding::encode(id)
-    );
+    let url = format!("/api/admin/v1/agents/{}/enable", urlencoding::encode(id));
     api_client(&url, "POST", None).await
 }

@@ -8,6 +8,8 @@ use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::pagination::Pagination;
 use crate::components::ui::table::*;
+use crate::router::Route;
+use crate::types::AuditScopeKind;
 use crate::utils::i18n::t;
 
 const PAGE_SIZE: u64 = 25;
@@ -20,6 +22,8 @@ struct DraftFilter {
     target_id: String,
     since: String,
     until: String,
+    /// P3A.5 — CXP-0007 event kind filter. Empty = no filter.
+    event_kind: String,
 }
 
 impl DraftFilter {
@@ -31,6 +35,8 @@ impl DraftFilter {
             target_id: trim_to_option(&self.target_id),
             since: trim_to_option(&self.since),
             until: trim_to_option(&self.until),
+            event_kind: trim_to_option(&self.event_kind),
+            effective_scope: None,
         }
     }
 
@@ -41,6 +47,7 @@ impl DraftFilter {
             && self.target_id.trim().is_empty()
             && self.since.trim().is_empty()
             && self.until.trim().is_empty()
+            && self.event_kind.trim().is_empty()
     }
 }
 
@@ -137,6 +144,27 @@ pub fn AuditLog() -> Element {
                             },
                         }
                     }
+                    // P3A.5 — CXP-0007 event-kind filter dropdown.
+                    // The seven cx.circle.* event kinds match the
+                    // SDK's event-kind registry exactly.
+                    div { class: "space-y-1",
+                        Label { class: "text-xs text-muted-foreground".to_string(), {t("audit.filter_event_kind")} }
+                        select {
+                            class: "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm",
+                            value: draft.read().event_kind.clone(),
+                            onchange: move |evt| {
+                                draft.write().event_kind = evt.value();
+                            },
+                            option { value: "", "—" }
+                            option { value: "cx.circle.create", {t("audit.filter_event_kind_circle_create")} }
+                            option { value: "cx.circle.update", {t("audit.filter_event_kind_circle_update")} }
+                            option { value: "cx.circle.archive", {t("audit.filter_event_kind_circle_archive")} }
+                            option { value: "cx.circle.tombstone", {t("audit.filter_event_kind_circle_tombstone")} }
+                            option { value: "cx.circle.member.state", {t("audit.filter_event_kind_circle_member_state")} }
+                            option { value: "cx.circle.capability.grant", {t("audit.filter_event_kind_circle_capability_grant")} }
+                            option { value: "cx.circle.capability.revoke", {t("audit.filter_event_kind_circle_capability_revoke")} }
+                        }
+                    }
                 }
                 div { class: "mt-4 flex flex-wrap items-center gap-2",
                     Button {
@@ -170,6 +198,7 @@ pub fn AuditLog() -> Element {
                                     TableHead { {t("audit.actor_id")} }
                                     TableHead { {t("audit.target_type")} }
                                     TableHead { {t("audit.target_id")} }
+                                    TableHead { {t("audit.effective_scope")} }
                                     TableHead { {t("audit.timestamp")} }
                                     TableHead { {t("audit.source_ip")} }
                                 }
@@ -193,6 +222,12 @@ pub fn AuditLog() -> Element {
                                             let source_ip = entry.source_ip.clone().unwrap_or_else(|| "-".to_string());
                                             let details = entry.details.clone();
                                             let is_expanded = expanded.read().as_ref() == Some(&id);
+                                            // P3A.5 — render the
+                                            // effective scope (Realm
+                                            // vs Circle) with a deep
+                                            // link when it is a
+                                            // Circle id.
+                                            let scope_kind = entry.scope_kind();
 
                                             rsx! {
                                                 TableRow {
@@ -216,6 +251,9 @@ pub fn AuditLog() -> Element {
                                                     TableCell { class: "max-w-[150px] truncate".to_string(), "{actor_id}" }
                                                     TableCell { "{target_type}" }
                                                     TableCell { class: "max-w-[150px] truncate".to_string(), "{target_id}" }
+                                                    TableCell { class: "font-mono text-xs".to_string(),
+                                                        {render_effective_scope(&scope_kind)}
+                                                    }
                                                     TableCell { class: "text-muted-foreground".to_string(), "{timestamp}" }
                                                     TableCell { "{source_ip}" }
                                                 }
@@ -255,5 +293,32 @@ pub fn AuditLog() -> Element {
                 None => rsx! { PageSkeleton {} },
             }
         }
+    }
+}
+
+/// P3A.5 — render the audit entry's effective scope. Circle scopes
+/// get a deep link into `/circles/:id`; Realm scopes render as plain
+/// text (the Realm directory does not yet have a `/realms/:id` show
+/// page, see `TODO(circle-rollout-P3A.5)` for the deferred follow-up).
+fn render_effective_scope(kind: &AuditScopeKind) -> Element {
+    match kind {
+        AuditScopeKind::Circle(id) => {
+            let id_owned = id.clone();
+            let label = id.clone();
+            rsx! {
+                Link {
+                    to: Route::CircleShow { circle_id: id_owned },
+                    class: "text-primary hover:underline",
+                    title: t("audit.scope_jump"),
+                    {format!("{}: {}", t("audit.scope_circle"), label)}
+                }
+            }
+        }
+        AuditScopeKind::Realm(id) => rsx! {
+            span { class: "text-muted-foreground",
+                {format!("{}: {}", t("audit.scope_realm"), id)}
+            }
+        },
+        AuditScopeKind::Unknown => rsx! { span { class: "text-muted-foreground", "-" } },
     }
 }

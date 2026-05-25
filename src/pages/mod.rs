@@ -4,6 +4,7 @@ pub mod applets;
 pub mod audit;
 pub mod audit_attestation;
 pub mod capabilities;
+pub mod circles;
 pub mod coauth;
 pub mod dashboard;
 pub mod deactivation_review;

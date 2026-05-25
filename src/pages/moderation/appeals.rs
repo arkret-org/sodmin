@@ -430,7 +430,9 @@ fn appeal_detail_card(
     // Separation-of-duties: an admin cannot review an appeal of a
     // moderation decision they themselves issued.
     let admin_is_issuer = !current_admin_did.is_empty()
-        && row.original_issuer_did.eq_ignore_ascii_case(current_admin_did);
+        && row
+            .original_issuer_did
+            .eq_ignore_ascii_case(current_admin_did);
 
     let evidence_block: Element = if row.evidence_refs.is_empty() {
         rsx! {

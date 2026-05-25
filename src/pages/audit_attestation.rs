@@ -15,6 +15,11 @@
 //! endpoint) is `TODO(round23-T10)` — this round just wires the upload
 //! form + the read panel. The verification chips render the principal
 //! server's coarse `{chain_verified, revocation_checked}` flags.
+//!
+//! TODO(circle-rollout-P3A.5): once attestation evidence rows surface
+//! their pinning Circle / Realm in the wire shape, add an
+//! `effective_scope` column here too. Today the rows are scoped to the
+//! deployment, not to a specific Circle, so the column would be empty.
 
 use dioxus::prelude::*;
 

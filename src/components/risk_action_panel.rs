@@ -409,10 +409,7 @@ fn format_risk_action_status(proposal: &coauth::CoauthAccountRiskActionProposal)
             .as_deref()
             .unwrap_or("missing"),
         proposal.requested_by.as_deref().unwrap_or("missing"),
-        proposal
-            .requested_by_handle
-            .as_deref()
-            .unwrap_or("missing"),
+        proposal.requested_by_handle.as_deref().unwrap_or("missing"),
         proposal.ticket.as_deref().unwrap_or("missing"),
         proposal.approved_by.as_deref().unwrap_or("pending"),
         proposal.todo,
@@ -436,10 +433,7 @@ fn format_risk_action_approval_status(
             .as_deref()
             .unwrap_or("missing"),
         approval.approved_by.as_deref().unwrap_or("missing"),
-        approval
-            .approved_by_handle
-            .as_deref()
-            .unwrap_or("missing"),
+        approval.approved_by_handle.as_deref().unwrap_or("missing"),
         approval.execution_endpoint,
         approval.approval_note.as_deref().unwrap_or("missing"),
         approval.todo,

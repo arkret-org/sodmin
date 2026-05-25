@@ -50,10 +50,7 @@ pub async fn reassign_handle(
     id: &str,
     req: &HandleReassignRequest,
 ) -> Result<HandleRecord, HttpError> {
-    let url = format!(
-        "/api/admin/v1/handles/{}/reassign",
-        urlencoding::encode(id)
-    );
+    let url = format!("/api/admin/v1/handles/{}/reassign", urlencoding::encode(id));
     api_client(
         &url,
         "POST",

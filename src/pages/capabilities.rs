@@ -28,6 +28,15 @@ pub fn CapabilityList() -> Element {
     let mut expires_at = use_signal(String::new);
     let mut grant_loading = use_signal(|| false);
 
+    // P3A.4 — CXP-0007 Circle capability picker. Surfaces the six
+    // cx.circle.* actions as a quick-select and exposes the
+    // `allowed_circle_refs` constraint editor (CSV of cx:circle:...
+    // ids). For actions whose `required_constraints` include
+    // `allowed_circle_refs` (manage / member.manage / member.add.others)
+    // the CSV is non-optional — soland's reducer rejects unconstrained
+    // grants for those actions with `cx.error.validation`.
+    let mut circle_allowed_refs = use_signal(String::new);
+
     // T6.2 §5 — constraint editor signals.
     let mut edit_expires_at = use_signal(String::new);
     let mut edit_fields_write_allow = use_signal(String::new);
@@ -203,6 +212,47 @@ pub fn CapabilityList() -> Element {
                                     oninput: move |evt: FormEvent| capability_name.set(evt.value()),
                                 }
                             }
+                            // P3A.4 — Quick-select for the 6 CXP-0007
+                            // cx.circle.* actions. Selecting one
+                            // populates the capability_name field.
+                            div { class: "space-y-1",
+                                Label { r#for: "cap-circle-quick".to_string(),
+                                    {t("capability.cx_circle_section")}
+                                }
+                                select {
+                                    id: "cap-circle-quick",
+                                    name: "cx_circle_action",
+                                    class: "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm",
+                                    onchange: move |e| {
+                                        if !e.value().is_empty() {
+                                            capability_name.set(e.value());
+                                        }
+                                    },
+                                    option { value: "", "— {t(\"capability.cx_circle_section\")} —" }
+                                    option { value: "cx.circle.create", "cx.circle.create" }
+                                    option { value: "cx.circle.manage", "cx.circle.manage" }
+                                    option { value: "cx.circle.member.add", "cx.circle.member.add" }
+                                    option { value: "cx.circle.member.manage", "cx.circle.member.manage" }
+                                    option {
+                                        value: "cx.circle.member.add.others",
+                                        "cx.circle.member.add.others"
+                                    }
+                                    option { value: "cx.circle.audit", "cx.circle.audit" }
+                                }
+                            }
+                            div { class: "space-y-1",
+                                Label { r#for: "cap-allowed-circle-refs".to_string(),
+                                    {t("capability.allowed_circle_refs")}
+                                }
+                                Input {
+                                    value: circle_allowed_refs.read().clone(),
+                                    placeholder: "cx:circle:...,cx:circle:...".to_string(),
+                                    oninput: move |evt: FormEvent| circle_allowed_refs.set(evt.value()),
+                                }
+                                p { class: "text-xs text-muted-foreground",
+                                    {t("capability.allowed_circle_refs_hint")}
+                                }
+                            }
                             div { class: "space-y-1",
                                 Label { r#for: "cap-scope".to_string(), {t("capabilities.scope")} }
                                 Input {
@@ -230,12 +280,31 @@ pub fn CapabilityList() -> Element {
                                 disabled: *grant_loading.read(),
                                 onclick: move |_| {
                                     grant_loading.set(true);
+                                    // P3A.4 — pack allowed_circle_refs
+                                    // into GrantConstraint when the
+                                    // operator filled the CSV. soland's
+                                    // authz layer reads
+                                    // constraints.allowed_circle_refs
+                                    // verbatim.
+                                    let circle_refs: Vec<String> = circle_allowed_refs
+                                        .read()
+                                        .split(',')
+                                        .map(|s| s.trim().to_string())
+                                        .filter(|s| !s.is_empty())
+                                        .collect();
+                                    let constraints = if circle_refs.is_empty() {
+                                        None
+                                    } else {
+                                        Some(serde_json::json!({
+                                            "allowed_circle_refs": circle_refs,
+                                        }))
+                                    };
                                     let req = GrantCapabilityRequest {
                                         grantee_id: grantee_id.read().clone(),
                                         capability: capability_name.read().clone(),
                                         scope: if scope.read().is_empty() { None } else { Some(scope.read().clone()) },
+                                        constraints,
                                         expires_at: if expires_at.read().is_empty() { None } else { Some(expires_at.read().clone()) },
-                                        ..Default::default()
                                     };
                                     spawn(async move {
                                         match capabilities::grant_capability(&req).await {

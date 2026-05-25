@@ -1,6 +1,7 @@
 use dioxus::prelude::*;
 
 use crate::api::spaces;
+use crate::components::realm_classification_badge::RealmClassificationBadge;
 use crate::components::ui::button::{Button, ButtonVariant};
 use crate::components::ui::card::*;
 use crate::components::ui::error_banner::ErrorBanner;
@@ -42,6 +43,12 @@ pub fn SpaceShow(space_id: String) -> Element {
 
                         PageHeader {
                             title: space.name.as_deref().unwrap_or(&space.id).to_string(),
+                            // P3A.6 — Principal Control vs Collaboration
+                            // Realm badge. Hidden when the field is absent
+                            // on older soland deployments.
+                            if let Some(ref cls) = space.realm_class {
+                                RealmClassificationBadge { realm_class: cls.clone() }
+                            }
                         }
 
                         div { class: "grid gap-6 md:grid-cols-2",

@@ -3,6 +3,7 @@ pub use api::*;
 
 pub mod anchor;
 pub mod authz;
+pub mod circles;
 pub mod coauth_devices;
 pub mod components;
 pub mod consent;

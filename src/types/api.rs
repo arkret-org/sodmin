@@ -110,6 +110,12 @@ pub struct Space {
     pub join_rule: Option<String>,
     #[serde(default)]
     pub history_visibility: Option<String>,
+    /// CXP-0007 (P3A.6) — `principal_control` vs `collaboration`. The
+    /// admin SPA renders a Realm-classification badge whenever this
+    /// is populated. Older soland releases omit the field; the
+    /// `Option<String>` defaults to `None` for those rows.
+    #[serde(default)]
+    pub realm_class: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -128,6 +134,12 @@ pub struct CreateSpaceRequest {
     pub parent_space_id: Option<String>,
     #[serde(default)]
     pub is_encrypted: bool,
+    /// CXP-0007 (P3A.6) — required at create time; the spec pins this
+    /// to `principal_control` / `collaboration`. soland defaults
+    /// unset values to `collaboration` server-side, but the admin UI
+    /// always surfaces the picker so the choice is explicit.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub realm_class: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -443,6 +455,66 @@ pub struct AuditEntry {
     pub timestamp: Option<String>,
     #[serde(default)]
     pub source_ip: Option<String>,
+    /// CXP-0007 — the effective scope at which the action took effect
+    /// (`cx:realm:...` or `cx:circle:...`). Distinct from the audited
+    /// `target_id` because Circle actions surface inside a Realm
+    /// envelope but get pinned to the Circle for replay-locality.
+    /// `None` for legacy entries written before the field shipped.
+    #[serde(default)]
+    pub effective_scope: Option<String>,
+    /// CXP-0007 — when `effective_scope` points at a Circle, this is
+    /// the parent realm id so the audit row can render a "jump to
+    /// Realm" link without an extra round trip.
+    #[serde(default)]
+    pub scope_realm_id: Option<String>,
+    /// CXP-0007 — convenience copy of `effective_scope` when it is a
+    /// `cx:circle:...` id; saves the row a string-prefix sniff on
+    /// the rendering path.
+    #[serde(default)]
+    pub scope_circle_id: Option<String>,
+}
+
+impl AuditEntry {
+    /// Classify the audit entry's effective scope for badge / link
+    /// rendering. Pure helper so the rule stays unit-testable.
+    pub fn scope_kind(&self) -> AuditScopeKind {
+        if let Some(ref s) = self.scope_circle_id {
+            if !s.is_empty() {
+                return AuditScopeKind::Circle(s.clone());
+            }
+        }
+        if let Some(ref s) = self.effective_scope {
+            if s.starts_with("cx:circle:") {
+                return AuditScopeKind::Circle(s.clone());
+            }
+            if s.starts_with("cx:realm:") {
+                return AuditScopeKind::Realm(s.clone());
+            }
+        }
+        if let Some(ref r) = self.scope_realm_id {
+            if !r.is_empty() {
+                return AuditScopeKind::Realm(r.clone());
+            }
+        }
+        AuditScopeKind::Unknown
+    }
+}
+
+/// Discriminated effective-scope value for the audit views.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum AuditScopeKind {
+    Realm(String),
+    Circle(String),
+    Unknown,
+}
+
+impl AuditScopeKind {
+    pub fn id(&self) -> Option<&str> {
+        match self {
+            Self::Realm(id) | Self::Circle(id) => Some(id.as_str()),
+            Self::Unknown => None,
+        }
+    }
 }
 
 // ── Policy types ──
@@ -950,7 +1022,10 @@ impl DeliveryBindingHandoverReason {
     /// Returns `true` when this reason represents a wire-breaking
     /// failure the operator must act on (vs. a diagnostic).
     pub fn is_failure(self) -> bool {
-        matches!(self, Self::DeliveryBindingStale | Self::DeliveryBindingHandedOver)
+        matches!(
+            self,
+            Self::DeliveryBindingStale | Self::DeliveryBindingHandedOver
+        )
     }
 }
 
@@ -984,7 +1059,9 @@ pub struct DeliveryBindingHandoverRow {
 impl DeliveryBindingHandoverRow {
     pub fn classified_reason(&self) -> Option<DeliveryBindingHandoverReason> {
         match self.reason_code.as_deref() {
-            Some("delivery_binding_stale") => Some(DeliveryBindingHandoverReason::DeliveryBindingStale),
+            Some("delivery_binding_stale") => {
+                Some(DeliveryBindingHandoverReason::DeliveryBindingStale)
+            }
             Some("delivery_binding_handed_over") => {
                 Some(DeliveryBindingHandoverReason::DeliveryBindingHandedOver)
             }
@@ -1271,10 +1348,7 @@ mod tests {
             describe.compat_surfaces,
             vec!["legacy.federation.v0".to_string()]
         );
-        assert_eq!(
-            describe.plaintext_visibility,
-            vec!["floria".to_string()]
-        );
+        assert_eq!(describe.plaintext_visibility, vec!["floria".to_string()]);
     }
 
     #[test]
