@@ -7,6 +7,44 @@ the SDK pins down its 1.0 contract.
 
 ## [Unreleased]
 
+### CXP-0007 Circle rollout (P3A)
+
+UI surfaces for the encrypted-sub-boundary primitive shipped by
+soland P2A + coauth P2B.
+
+- **Added** Circle management UI (P3A.3): `/circles`, `/circles/new`,
+  `/circles/:id`, `/circles/:id/members`, `/circles/:id/scope` Dioxus
+  pages plus a `src/api/circles.rs` fetch wrapper. Eight `/api/v1/circles/*`
+  routes added to `build.rs` REQUIRED_SOLAND so a missing route fails
+  the wasm build at contract-check time.
+- **Added** Capability grant dialog (P3A.4) gains a quick-select for the
+  six `cx.circle.*` actions and an `allowed_circle_refs` CSV input
+  that emits the GrantConstraint server-side.
+- **Added** Audit log (P3A.5) renders the new `effective_scope` field
+  with a deep link into `/circles/:id` for Circle-scoped events, and
+  the filter row grows an event-kind dropdown covering the seven
+  `cx.circle.*` event kinds.
+- **Added** Realm classification badges (P3A.6): new
+  `RealmClassificationBadge` component renders the Principal
+  Control / Collaboration / unknown distinction. The Realm/Space
+  create form now requires the immutable classification at create
+  time (defaults to `collaboration`).
+- **Added** CXP-0007 reason-code i18n (P3A.8): six reducer
+  rejection reasons (`circle_realm_mismatch`,
+  `circle_member_must_be_realm_member`, `circle_not_active`,
+  `circle_already_terminal`, `circle_capability_denied`,
+  `circle_scope_rotation_in_progress`) now render with localised
+  toast bodies.
+- **Added** Playwright e2e `tests/e2e/circle-admin.spec.ts` covering
+  create / valid member / subset-rejection / archive / audit fanout
+  and a capability grant happy path.
+- **Fixed** `.gitignore` tightening (P3A.1) — explicit pins for
+  `/bundle.js.map`, `/docker-build.log`, and `**/dist/` so root-level
+  build artifacts cannot regress past the wildcard rules.
+- **Notes** Version unchanged; this round ships against the existing
+  `circle-rollout` branch only. Lighthouse perf budget raised from
+  70 → 80 to track industry baseline.
+
 ### Round R4 — protocol review closures (2026-05-20, contrix-spec `2a4d39b..a77b995`)
 
 UI surfaces for the round-4 wire changes implemented in soland / coauth.

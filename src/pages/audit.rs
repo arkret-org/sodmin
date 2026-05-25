@@ -322,4 +322,3 @@ fn render_effective_scope(kind: &AuditScopeKind) -> Element {
         AuditScopeKind::Unknown => rsx! { span { class: "text-muted-foreground", "-" } },
     }
 }
-

@@ -76,13 +76,23 @@ fn render_row(row: &DeliveryBindingHandoverRow) -> Element {
         None => (
             "border-muted",
             BadgeVariant::Secondary,
-            row.reason_code.clone().unwrap_or_else(|| "unknown".to_string()),
+            row.reason_code
+                .clone()
+                .unwrap_or_else(|| "unknown".to_string()),
             "delivery_binding.handover.historical_only_explainer",
         ),
     };
 
-    let realm = if row.realm_id.is_empty() { "-".to_string() } else { row.realm_id.clone() };
-    let actor = if row.actor_id.is_empty() { "-".to_string() } else { row.actor_id.clone() };
+    let realm = if row.realm_id.is_empty() {
+        "-".to_string()
+    } else {
+        row.realm_id.clone()
+    };
+    let actor = if row.actor_id.is_empty() {
+        "-".to_string()
+    } else {
+        row.actor_id.clone()
+    };
     let new_recipient = row
         .new_recipient_service_did
         .clone()

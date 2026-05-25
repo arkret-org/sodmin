@@ -1292,7 +1292,10 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("server_status.conformance_label", "Conformance Posture"),
             ("server_status.verified_profiles", "Verified profiles"),
             ("server_status.claimed_profiles", "Self-claimed profiles"),
-            ("server_status.experimental_features", "Experimental features"),
+            (
+                "server_status.experimental_features",
+                "Experimental features",
+            ),
             ("server_status.compat_surfaces", "Compatibility surfaces"),
             (
                 "server_status.verified_blocked_dev",
@@ -1303,7 +1306,10 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "Experimental: shape may change without notice. Do not rely on this in production.",
             ),
             // T6.2 §6 — dev-posture posture card on the server status page.
-            ("server_status.dev_posture_title", "Weak runtime posture detected"),
+            (
+                "server_status.dev_posture_title",
+                "Weak runtime posture detected",
+            ),
             (
                 "server_status.dev_posture_verifier",
                 "proof_verifier_mode = development (unsigned envelopes accepted)",
@@ -1312,8 +1318,10 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "server_status.dev_posture_admin",
                 "admin_auth_mode = development (admin endpoints accept any authenticated session)",
             ),
-            ("server_status.dev_posture_plaintext", "plaintext_visibility"),
-
+            (
+                "server_status.dev_posture_plaintext",
+                "plaintext_visibility",
+            ),
             // Round 4 — ServerDescribe v2 additional field labels.
             ("server_status.trust_domain", "Trust domain"),
             ("server_status.supported_operations", "Supported operations"),
@@ -1329,14 +1337,19 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "server_status.dev_with_verified_detail",
                 "The relaxed dev-mode proof verifier voids every `verified_profiles` claim. The verification chain that backs those claims is unreachable while development_mode is on. Either clear verified_profiles or turn development_mode off.",
             ),
-
             // Round 4 — delivery-binding handover panel.
-            ("delivery_binding.handover.title", "Delivery binding handover"),
+            (
+                "delivery_binding.handover.title",
+                "Delivery binding handover",
+            ),
             (
                 "delivery_binding.handover.subtitle",
                 "When a recipient service hands over its binding to another service, the reducer emits one of the round-4 error codes below.",
             ),
-            ("delivery_binding.handover.new_recipient", "new_recipient_service_did"),
+            (
+                "delivery_binding.handover.new_recipient",
+                "new_recipient_service_did",
+            ),
             ("delivery_binding.handover.frontier", "handover_frontier"),
             (
                 "delivery_binding.handover.stale_explainer",
@@ -1350,7 +1363,6 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "delivery_binding.handover.historical_only_explainer",
                 "historical_only (200 diagnostic): the response is a cached replay against a prior key state. It is informational only — NOT a fresh action.",
             ),
-
             // Round 4 — 3PID invite state machine.
             ("nav.invites_3pid", "3PID invites"),
             ("invites_3pid.title", "3PID invite state machine"),
@@ -1365,28 +1377,40 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("invites_3pid.evidence", "Evidence"),
             ("invites_3pid.state_claimed", "claimed"),
             ("invites_3pid.state_send_failed", "send_failed"),
-            ("invites_3pid.state_revoked_by_capability_loss", "revoked_by_capability_loss"),
-            ("invites_3pid.state_revoked_by_inviter_left", "revoked_by_inviter_left"),
-            ("invites_3pid.state_invalidated_by_rate_limit", "invalidated_by_rate_limit"),
+            (
+                "invites_3pid.state_revoked_by_capability_loss",
+                "revoked_by_capability_loss",
+            ),
+            (
+                "invites_3pid.state_revoked_by_inviter_left",
+                "revoked_by_inviter_left",
+            ),
+            (
+                "invites_3pid.state_invalidated_by_rate_limit",
+                "invalidated_by_rate_limit",
+            ),
             (
                 "invites_3pid.send_failed_warning",
                 "send_failed is a TERMINAL state, not transient. The auth server never delivered the OOB code; the recipient cannot redeem this invite. Do not paper this over as a success.",
             ),
-            ("invites_3pid.empty", "No 3PID invites in any terminal state."),
-
+            (
+                "invites_3pid.empty",
+                "No 3PID invites in any terminal state.",
+            ),
             // Round 4 — DID input validation.
             (
                 "did_input.invalid",
                 "Must match `^did:[a-z0-9]+:[^\\s]+$` (round-4 tightened method-name grammar — no `.`/`-`/`_`/`:` in the method segment).",
             ),
-
             // Round 4 — account deactivation federation status.
-            ("actors.deactivation_federation_incomplete", "Federation fanout incomplete"),
+            (
+                "actors.deactivation_federation_incomplete",
+                "Federation fanout incomplete",
+            ),
             (
                 "actors.deactivation_federation_incomplete_detail",
                 "The 7-domain local fanout has completed but at least one federated peer has NOT confirmed deactivation. Do NOT treat this principal as fully deactivated until cross-PS receipts arrive.",
             ),
-
             // T6.2 §2 — handle management.
             ("nav.handles", "Handles"),
             ("handles.title", "Handles"),
@@ -1432,7 +1456,6 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("handles.audit_action", "Action"),
             ("handles.audit_actor", "Actor"),
             ("handles.audit_reason", "Reason"),
-
             // T6.2 §3 — delivery binding policy editor (realm-rework:
             // security boundary is now called "Realm").
             ("nav.delivery_binding", "Delivery binding"),
@@ -1447,7 +1470,10 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ),
             ("delivery_binding.policy_frontier", "Policy frontier"),
             ("delivery_binding.updated_at", "Updated at"),
-            ("delivery_binding.binding_source_policy", "Binding source policy"),
+            (
+                "delivery_binding.binding_source_policy",
+                "Binding source policy",
+            ),
             (
                 "delivery_binding.binding_source_hint",
                 "Comma-separated list of accepted binding sources, e.g. explicit, invite, organization_policy.",
@@ -1456,21 +1482,30 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "delivery_binding.allowed_recipient_services",
                 "Allowed recipient services",
             ),
-            ("delivery_binding.allowed_empty", "No services in the allow list yet."),
+            (
+                "delivery_binding.allowed_empty",
+                "No services in the allow list yet.",
+            ),
             (
                 "delivery_binding.allowed_edit_hint",
                 "Comma-separated list of recipient_service_did values. Add/remove inline.",
             ),
             ("delivery_binding.add_recipient", "Add"),
             ("delivery_binding.save", "Save policy"),
-            ("delivery_binding.save_ok", "Delivery binding policy updated"),
+            (
+                "delivery_binding.save_ok",
+                "Delivery binding policy updated",
+            ),
             ("delivery_binding.save_fail", "Failed to update policy"),
             ("delivery_binding.members_title", "Member routability"),
             (
                 "delivery_binding.members_subtitle",
                 "Each member's effective recipient_service_did checked against the allow list above.",
             ),
-            ("delivery_binding.members_empty", "No members in this realm."),
+            (
+                "delivery_binding.members_empty",
+                "No members in this realm.",
+            ),
             ("delivery_binding.member_actor", "Actor"),
             ("delivery_binding.member_recipient", "Recipient service DID"),
             ("delivery_binding.member_status", "Delivery status"),
@@ -1486,7 +1521,6 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "delivery_binding.link_graph_placeholder",
                 "Realm link graph coming soon.",
             ),
-
             // R5.2 — Realm link-graph admin page.
             ("nav.realm_links", "Realm links"),
             ("realm_links.title", "Realm link graph"),
@@ -1496,13 +1530,19 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "realm_links.outbound_subtitle",
                 "Typed cx.realm.link edges from this Realm to others (governed_by / discoverable_from / mirror_of …).",
             ),
-            ("realm_links.outbound_empty", "No outbound links from this Realm."),
+            (
+                "realm_links.outbound_empty",
+                "No outbound links from this Realm.",
+            ),
             ("realm_links.inbound_title", "Inbound links"),
             (
                 "realm_links.inbound_subtitle",
                 "Typed cx.realm.link edges from other Realms pointing at this one.",
             ),
-            ("realm_links.inbound_empty", "No inbound links to this Realm."),
+            (
+                "realm_links.inbound_empty",
+                "No inbound links to this Realm.",
+            ),
             ("realm_links.graph_title", "Graph visualisation"),
             (
                 "realm_links.graph_subtitle",
@@ -1515,7 +1555,6 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("realm_links.kind.governed_by", "governed by"),
             ("realm_links.kind.discoverable_from", "discoverable from"),
             ("realm_links.kind.mirror_of", "mirror of"),
-
             // T6.2 §4 — push route / device route inspector.
             ("nav.push_routes", "Push routes"),
             ("push_routes.title", "Push routes"),
@@ -1534,7 +1573,6 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("push_routes.empty", "No push routes for this principal."),
             ("push_routes.reveal", "Reveal"),
             ("push_routes.hide", "Hide"),
-
             // T6.2 §5 — capability constraint editor extras.
             ("capabilities.edit_title", "Edit capability"),
             ("capabilities.fields_write_allow", "Field write allow list"),
@@ -1543,7 +1581,6 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("capabilities.csv_hint", "Comma-separated values"),
             ("capabilities.edit_ok", "Capability updated"),
             ("capabilities.edit_fail", "Failed to update capability"),
-
             ("nav.coauth_capabilities", "Authz Capabilities"),
             ("nav.spaces_admin", "Spaces (admin)"),
             ("nav.moderation_reports", "Moderation reports"),
@@ -1842,7 +1879,6 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "directory_admin.reject_confirm_body",
                 "Rejects the directory entry — it will not be listed publicly. Audit-logged.",
             ),
-
             // ── CXP-0007 Circle admin (P3A.3 / P3A.6 / P3A.8) ─────────
             ("nav.circles", "Circles"),
             ("nav.section_circles", "Circles"),
@@ -1861,7 +1897,10 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("circle.title_placeholder", "Trust & Safety"),
             ("circle.summary", "Summary"),
             ("circle.realm_id", "Realm"),
-            ("circle.realm_id_hint", "cx:realm:... identifier of the parent security boundary. Required."),
+            (
+                "circle.realm_id_hint",
+                "cx:realm:... identifier of the parent security boundary. Required.",
+            ),
             ("circle.filter_realm", "Filter by realm"),
             (
                 "circle.filter_realm_hint",
@@ -1887,8 +1926,14 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("circle.actions", "Actions"),
             ("circle.manage_members", "Manage members"),
             ("circle.manage_scope", "Manage scope"),
-            ("circle.scope_description", "Rotate the bound MLS group for this Circle. Receipts fan out into the audit log even when no membership changes accompany the rotation."),
-            ("circle.scope_hint", "Full MLS-key rotation lands when soland P2A.4 is complete. Today this emits a cx.circle.update Move so authz hooks fire."),
+            (
+                "circle.scope_description",
+                "Rotate the bound MLS group for this Circle. Receipts fan out into the audit log even when no membership changes accompany the rotation.",
+            ),
+            (
+                "circle.scope_hint",
+                "Full MLS-key rotation lands when soland P2A.4 is complete. Today this emits a cx.circle.update Move so authz hooks fire.",
+            ),
             ("circle.rotate_scope", "Rotate MLS scope"),
             ("circle.archive", "Archive"),
             ("circle.tombstone", "Tombstone"),
@@ -1915,45 +1960,34 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("circle.error_actor_required", "actor_did is required."),
             ("circle.created_toast", "Circle created."),
             ("circle.archived_toast", "Circle archived."),
-            ("circle.tombstoned_toast", "Circle tombstoned. Terminal state."),
-            ("circle.scope_rotated_toast", "Circle scope rotation acknowledged."),
+            (
+                "circle.tombstoned_toast",
+                "Circle tombstoned. Terminal state.",
+            ),
+            (
+                "circle.scope_rotated_toast",
+                "Circle scope rotation acknowledged.",
+            ),
             ("circle.member_added_toast", "Member added to Circle."),
             ("circle.member_removed_toast", "Member removed from Circle."),
-            (
-                "circle.confirm_archive_title",
-                "Archive this Circle?",
-            ),
+            ("circle.confirm_archive_title", "Archive this Circle?"),
             (
                 "circle.confirm_archive_body",
                 "Archived Circles reject all member changes and ordinary writes. Scope rotation is still allowed. Reversible while inside the soft-delete window.",
             ),
-            (
-                "circle.confirm_tombstone_title",
-                "Tombstone this Circle?",
-            ),
+            ("circle.confirm_tombstone_title", "Tombstone this Circle?"),
             (
                 "circle.confirm_tombstone_body",
                 "Tombstoned Circles are terminal: no further admin actions are accepted and member state is forever frozen. Erasure receipts fan out per CXP-0007.",
             ),
-
             // P3A.6 — Principal Control vs Collaboration Realm
-            (
-                "realm.principal_control",
-                "Principal control",
-            ),
-            (
-                "realm.collaboration",
-                "Collaboration",
-            ),
-            (
-                "realm.classification",
-                "Realm classification",
-            ),
+            ("realm.principal_control", "Principal control"),
+            ("realm.collaboration", "Collaboration"),
+            ("realm.classification", "Realm classification"),
             (
                 "realm.classification_hint",
                 "Principal-control Realms back DID issuance and recovery; Collaboration Realms scope content. The class is immutable after create per CXP-0007.",
             ),
-
             // P3A.5 — audit effective scope + Circle event filters
             ("audit.effective_scope", "Effective scope"),
             ("audit.scope_realm", "Realm"),
@@ -1962,8 +1996,14 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("audit.filter_event_kind", "Event kind"),
             ("audit.filter_event_kind_circle_create", "cx.circle.create"),
             ("audit.filter_event_kind_circle_update", "cx.circle.update"),
-            ("audit.filter_event_kind_circle_archive", "cx.circle.archive"),
-            ("audit.filter_event_kind_circle_tombstone", "cx.circle.tombstone"),
+            (
+                "audit.filter_event_kind_circle_archive",
+                "cx.circle.archive",
+            ),
+            (
+                "audit.filter_event_kind_circle_tombstone",
+                "cx.circle.tombstone",
+            ),
             (
                 "audit.filter_event_kind_circle_member_state",
                 "cx.circle.member.state",
@@ -1976,27 +2016,28 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "audit.filter_event_kind_circle_capability_revoke",
                 "cx.circle.capability.revoke",
             ),
-
             // P3A.4 — capability editor (cx.circle.*) labels
             ("capability.cx_circle_create", "cx.circle.create"),
             ("capability.cx_circle_manage", "cx.circle.manage"),
             ("capability.cx_circle_member_add", "cx.circle.member.add"),
-            ("capability.cx_circle_member_manage", "cx.circle.member.manage"),
+            (
+                "capability.cx_circle_member_manage",
+                "cx.circle.member.manage",
+            ),
             (
                 "capability.cx_circle_member_add_others",
                 "cx.circle.member.add.others",
             ),
             ("capability.cx_circle_audit", "cx.circle.audit"),
-            ("capability.cx_circle_section", "Circle capabilities (CXP-0007)"),
             (
-                "capability.allowed_circle_refs",
-                "Allowed circle refs",
+                "capability.cx_circle_section",
+                "Circle capabilities (CXP-0007)",
             ),
+            ("capability.allowed_circle_refs", "Allowed circle refs"),
             (
                 "capability.allowed_circle_refs_hint",
                 "Comma-separated cx:circle:... ids. Required for cx.circle.manage, cx.circle.member.manage, and cx.circle.member.add.others.",
             ),
-
             // P3A.8 — CXP-0007 error codes (returned by reducer)
             (
                 "error.circle_realm_mismatch",
@@ -2329,8 +2370,10 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "server_status.dev_posture_admin",
                 "admin_auth_mode = development（管理端点接受任何已认证会话）",
             ),
-            ("server_status.dev_posture_plaintext", "plaintext_visibility"),
-
+            (
+                "server_status.dev_posture_plaintext",
+                "plaintext_visibility",
+            ),
             // Round 4 — ServerDescribe v2 新增字段。
             ("server_status.trust_domain", "Trust domain"),
             ("server_status.supported_operations", "支持的 operation"),
@@ -2346,12 +2389,18 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "server_status.dev_with_verified_detail",
                 "dev 模式下宽松的 proof verifier 会作废所有 verified_profiles 声明。先清空 verified_profiles，或关闭 development_mode。",
             ),
-            ("delivery_binding.handover.title", "Delivery binding handover"),
+            (
+                "delivery_binding.handover.title",
+                "Delivery binding handover",
+            ),
             (
                 "delivery_binding.handover.subtitle",
                 "接收方服务把 delivery binding 移交给其它服务时，reducer 会发出下列 Round 4 错误码。",
             ),
-            ("delivery_binding.handover.new_recipient", "new_recipient_service_did"),
+            (
+                "delivery_binding.handover.new_recipient",
+                "new_recipient_service_did",
+            ),
             ("delivery_binding.handover.frontier", "handover_frontier"),
             (
                 "delivery_binding.handover.stale_explainer",
@@ -2378,9 +2427,18 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("invites_3pid.evidence", "证据"),
             ("invites_3pid.state_claimed", "claimed"),
             ("invites_3pid.state_send_failed", "send_failed"),
-            ("invites_3pid.state_revoked_by_capability_loss", "revoked_by_capability_loss"),
-            ("invites_3pid.state_revoked_by_inviter_left", "revoked_by_inviter_left"),
-            ("invites_3pid.state_invalidated_by_rate_limit", "invalidated_by_rate_limit"),
+            (
+                "invites_3pid.state_revoked_by_capability_loss",
+                "revoked_by_capability_loss",
+            ),
+            (
+                "invites_3pid.state_revoked_by_inviter_left",
+                "revoked_by_inviter_left",
+            ),
+            (
+                "invites_3pid.state_invalidated_by_rate_limit",
+                "invalidated_by_rate_limit",
+            ),
             (
                 "invites_3pid.send_failed_warning",
                 "send_failed 是终态，不是临时状态。auth server 从未投递 OOB code，对方无法兑换此邀请。严禁伪装成功。",
@@ -2390,12 +2448,14 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "did_input.invalid",
                 "必须匹配 `^did:[a-z0-9]+:[^\\s]+$`（Round 4 收紧后的 method-name，不允许 `.`/`-`/`_`/`:`）。",
             ),
-            ("actors.deactivation_federation_incomplete", "联邦端注销未完成"),
+            (
+                "actors.deactivation_federation_incomplete",
+                "联邦端注销未完成",
+            ),
             (
                 "actors.deactivation_federation_incomplete_detail",
                 "本地 7 域 fanout 已完成，但仍有至少一个联邦对端未确认注销。在跨 PS 回执到齐前，不可将该 principal 视为已完全注销。",
             ),
-
             // T6.2 §2 — Handle 管理。
             ("nav.handles", "Handle"),
             ("handles.title", "Handle"),
@@ -2441,7 +2501,6 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("handles.audit_action", "操作"),
             ("handles.audit_actor", "执行者"),
             ("handles.audit_reason", "原因"),
-
             // T6.2 §3 — Delivery binding policy 编辑器（realm-rework：安全边界改称 Realm）。
             ("nav.delivery_binding", "投递绑定"),
             ("delivery_binding.title", "Realm 投递绑定策略"),
@@ -2455,7 +2514,10 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ),
             ("delivery_binding.policy_frontier", "Policy Frontier"),
             ("delivery_binding.updated_at", "更新时间"),
-            ("delivery_binding.binding_source_policy", "Binding Source Policy"),
+            (
+                "delivery_binding.binding_source_policy",
+                "Binding Source Policy",
+            ),
             (
                 "delivery_binding.binding_source_hint",
                 "接受的 binding source 用逗号分隔，如 explicit, invite, organization_policy。",
@@ -2494,7 +2556,6 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "delivery_binding.link_graph_placeholder",
                 "Realm 链接图开发中。",
             ),
-
             // R5.2 — Realm 链接图管理页。
             ("nav.realm_links", "Realm 链接"),
             ("realm_links.title", "Realm 链接图"),
@@ -2512,10 +2573,7 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ),
             ("realm_links.inbound_empty", "本 Realm 没有入向链接。"),
             ("realm_links.graph_title", "图形可视化"),
-            (
-                "realm_links.graph_subtitle",
-                "上方链接行的空间布局视图。",
-            ),
+            ("realm_links.graph_subtitle", "上方链接行的空间布局视图。"),
             (
                 "realm_links.graph_placeholder",
                 "交互式图形可视化开发中 — 暂请使用上方列表。",
@@ -2523,7 +2581,6 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("realm_links.kind.governed_by", "受治理于"),
             ("realm_links.kind.discoverable_from", "可被发现于"),
             ("realm_links.kind.mirror_of", "镜像自"),
-
             // T6.2 §4 — Push route inspector。
             ("nav.push_routes", "推送路由"),
             ("push_routes.title", "推送路由"),
@@ -2542,7 +2599,6 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("push_routes.empty", "该 principal 暂无推送路由。"),
             ("push_routes.reveal", "展开"),
             ("push_routes.hide", "隐藏"),
-
             // T6.2 §5 — Capability 约束编辑。
             ("capabilities.edit_title", "编辑能力"),
             ("capabilities.fields_write_allow", "可写字段允许清单"),
@@ -2551,7 +2607,6 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("capabilities.csv_hint", "用逗号分隔"),
             ("capabilities.edit_ok", "已更新能力"),
             ("capabilities.edit_fail", "更新能力失败"),
-
             // ── 第 24 轮 侧边栏 ──
             ("nav.coauth_capabilities", "Authz 权限"),
             ("nav.spaces_admin", "Space（管理）"),
@@ -2845,7 +2900,6 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "directory_admin.reject_confirm_body",
                 "驳回该目录条目——不会被公开列出。该操作记入审计。",
             ),
-
             // ── CXP-0007 Circle 管理（P3A.3 / P3A.6 / P3A.8） ─────────
             ("nav.circles", "Circle"),
             ("nav.section_circles", "Circle"),
@@ -2864,7 +2918,10 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("circle.title_placeholder", "信任与安全"),
             ("circle.summary", "摘要"),
             ("circle.realm_id", "Realm"),
-            ("circle.realm_id_hint", "父 Realm 的 cx:realm:... 标识符。必填。"),
+            (
+                "circle.realm_id_hint",
+                "父 Realm 的 cx:realm:... 标识符。必填。",
+            ),
             ("circle.filter_realm", "按 Realm 过滤"),
             (
                 "circle.filter_realm_hint",
@@ -2890,8 +2947,14 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("circle.actions", "操作"),
             ("circle.manage_members", "管理成员"),
             ("circle.manage_scope", "管理域（MLS scope）"),
-            ("circle.scope_description", "轮换 Circle 绑定的 MLS 组。即使本次没有成员变更，回执也会进入审计日志。"),
-            ("circle.scope_hint", "完整的 MLS 密钥轮换将随 soland P2A.4 上线。目前仅发送 cx.circle.update Move 以触发授权挂钩。"),
+            (
+                "circle.scope_description",
+                "轮换 Circle 绑定的 MLS 组。即使本次没有成员变更，回执也会进入审计日志。",
+            ),
+            (
+                "circle.scope_hint",
+                "完整的 MLS 密钥轮换将随 soland P2A.4 上线。目前仅发送 cx.circle.update Move 以触发授权挂钩。",
+            ),
             ("circle.rotate_scope", "轮换 MLS 域"),
             ("circle.archive", "归档"),
             ("circle.tombstone", "墓碑（不可逆）"),
@@ -2922,41 +2985,24 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("circle.scope_rotated_toast", "已确认 Circle 域轮换。"),
             ("circle.member_added_toast", "成员已加入 Circle。"),
             ("circle.member_removed_toast", "成员已从 Circle 移除。"),
-            (
-                "circle.confirm_archive_title",
-                "归档此 Circle？",
-            ),
+            ("circle.confirm_archive_title", "归档此 Circle？"),
             (
                 "circle.confirm_archive_body",
                 "归档后将拒绝所有成员变更与常规写入。仍可进行域轮换。软删窗口内可恢复。",
             ),
-            (
-                "circle.confirm_tombstone_title",
-                "墓碑此 Circle？",
-            ),
+            ("circle.confirm_tombstone_title", "墓碑此 Circle？"),
             (
                 "circle.confirm_tombstone_body",
                 "墓碑为终态：不再接受任何管理操作，成员状态永久冻结。CXP-0007 会发出擦除回执。",
             ),
-
             // P3A.6 — Principal Control vs Collaboration Realm
-            (
-                "realm.principal_control",
-                "主体控制（Principal Control）",
-            ),
-            (
-                "realm.collaboration",
-                "协作（Collaboration）",
-            ),
-            (
-                "realm.classification",
-                "Realm 类别",
-            ),
+            ("realm.principal_control", "主体控制（Principal Control）"),
+            ("realm.collaboration", "协作（Collaboration）"),
+            ("realm.classification", "Realm 类别"),
             (
                 "realm.classification_hint",
                 "主体控制 Realm 承担 DID 颁发与恢复；协作 Realm 仅作内容范围。CXP-0007 规定该分类在创建后不可变更。",
             ),
-
             // P3A.5 — audit effective_scope + Circle 事件筛选
             ("audit.effective_scope", "有效范围"),
             ("audit.scope_realm", "Realm"),
@@ -2965,8 +3011,14 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("audit.filter_event_kind", "事件类型"),
             ("audit.filter_event_kind_circle_create", "cx.circle.create"),
             ("audit.filter_event_kind_circle_update", "cx.circle.update"),
-            ("audit.filter_event_kind_circle_archive", "cx.circle.archive"),
-            ("audit.filter_event_kind_circle_tombstone", "cx.circle.tombstone"),
+            (
+                "audit.filter_event_kind_circle_archive",
+                "cx.circle.archive",
+            ),
+            (
+                "audit.filter_event_kind_circle_tombstone",
+                "cx.circle.tombstone",
+            ),
             (
                 "audit.filter_event_kind_circle_member_state",
                 "cx.circle.member.state",
@@ -2979,27 +3031,25 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "audit.filter_event_kind_circle_capability_revoke",
                 "cx.circle.capability.revoke",
             ),
-
             // P3A.4 — capability 编辑器（cx.circle.*）标签
             ("capability.cx_circle_create", "cx.circle.create"),
             ("capability.cx_circle_manage", "cx.circle.manage"),
             ("capability.cx_circle_member_add", "cx.circle.member.add"),
-            ("capability.cx_circle_member_manage", "cx.circle.member.manage"),
+            (
+                "capability.cx_circle_member_manage",
+                "cx.circle.member.manage",
+            ),
             (
                 "capability.cx_circle_member_add_others",
                 "cx.circle.member.add.others",
             ),
             ("capability.cx_circle_audit", "cx.circle.audit"),
             ("capability.cx_circle_section", "Circle 能力（CXP-0007）"),
-            (
-                "capability.allowed_circle_refs",
-                "受限 Circle 列表",
-            ),
+            ("capability.allowed_circle_refs", "受限 Circle 列表"),
             (
                 "capability.allowed_circle_refs_hint",
                 "逗号分隔的 cx:circle:... 标识符。cx.circle.manage、cx.circle.member.manage、cx.circle.member.add.others 必填。",
             ),
-
             // P3A.8 — CXP-0007 错误码（来自 reducer）
             (
                 "error.circle_realm_mismatch",

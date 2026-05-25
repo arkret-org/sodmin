@@ -30,3 +30,28 @@ docker run --rm -p 9090:80 \
 ## Security Headers
 
 The nginx template sets CSP, `X-Frame-Options: DENY`, `Referrer-Policy: no-referrer`, and a restrictive `Permissions-Policy`. If an operator fronts additional origins, update `connect-src` in `docker-entrypoint.sh` and keep the change local to that deployment.
+
+## CXP-0007 Circle administration
+
+Sodmin's `/circles/*` surfaces (P3A.3) call into soland's `/api/v1/circles/*`
+admin layer. Before an operator can use those pages, coauth must have
+issued the matching `cx.circle.*` capability grants to the operator's
+admin DID — typically via the Coauth Capabilities admin page at
+`/coauth/capabilities`, or by running the bootstrap migration that
+seeds the six actions:
+
+* `cx.circle.create` (medium risk, no constraints)
+* `cx.circle.manage` (medium risk, requires `allowed_circle_refs`)
+* `cx.circle.member.add` (low risk, no constraints)
+* `cx.circle.member.manage` (medium risk, requires `allowed_circle_refs`)
+* `cx.circle.member.add.others` (high risk, requires `allowed_circle_refs`)
+* `cx.circle.audit` (high risk, paired with `audit_pair_required` check)
+
+Without these grants every Circle admin call returns 403 with
+`cx.error.capability_denied`. The sodmin UI surfaces that as
+"Administrator capability denied" — coauth side fix.
+
+`connect-src` in `docker-entrypoint.sh` MUST include the soland,
+coauth, and (when used) floria origins so the SPA can call them. The
+nginx CSP template already covers the default three; add additional
+peers per deployment.

@@ -53,10 +53,7 @@ pub async fn add_circle_member(
     circle_id: &str,
     req: &CircleMemberRequest,
 ) -> Result<CircleMembershipResponse, HttpError> {
-    let url = format!(
-        "/api/v1/circles/{}/members",
-        urlencoding::encode(circle_id),
-    );
+    let url = format!("/api/v1/circles/{}/members", urlencoding::encode(circle_id),);
     let body = serde_json::to_string(req).unwrap_or_default();
     api_client(&url, "POST", Some(body)).await
 }
@@ -77,9 +74,7 @@ pub async fn remove_circle_member(
 /// Rotate the Circle's bound MLS group. CXP-0007 mandates this be a
 /// separate explicit admin action so the receipt fans out into the
 /// audit log even when no membership changes accompany the rotation.
-pub async fn rotate_circle_scope(
-    circle_id: &str,
-) -> Result<CircleScopeRotateResponse, HttpError> {
+pub async fn rotate_circle_scope(circle_id: &str) -> Result<CircleScopeRotateResponse, HttpError> {
     let url = format!(
         "/api/v1/circles/{}/scope-rotate",
         urlencoding::encode(circle_id),
@@ -90,10 +85,7 @@ pub async fn rotate_circle_scope(
 /// Archive the Circle (`cx.circle.archive`). Reversible by the same
 /// caller while the Circle is still inside the soft-delete window.
 pub async fn archive_circle(circle_id: &str) -> Result<Circle, HttpError> {
-    let url = format!(
-        "/api/v1/circles/{}/archive",
-        urlencoding::encode(circle_id),
-    );
+    let url = format!("/api/v1/circles/{}/archive", urlencoding::encode(circle_id),);
     api_client(&url, "POST", Some("{}".to_string())).await
 }
 

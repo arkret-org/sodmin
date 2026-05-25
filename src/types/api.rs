@@ -1022,7 +1022,10 @@ impl DeliveryBindingHandoverReason {
     /// Returns `true` when this reason represents a wire-breaking
     /// failure the operator must act on (vs. a diagnostic).
     pub fn is_failure(self) -> bool {
-        matches!(self, Self::DeliveryBindingStale | Self::DeliveryBindingHandedOver)
+        matches!(
+            self,
+            Self::DeliveryBindingStale | Self::DeliveryBindingHandedOver
+        )
     }
 }
 
@@ -1056,7 +1059,9 @@ pub struct DeliveryBindingHandoverRow {
 impl DeliveryBindingHandoverRow {
     pub fn classified_reason(&self) -> Option<DeliveryBindingHandoverReason> {
         match self.reason_code.as_deref() {
-            Some("delivery_binding_stale") => Some(DeliveryBindingHandoverReason::DeliveryBindingStale),
+            Some("delivery_binding_stale") => {
+                Some(DeliveryBindingHandoverReason::DeliveryBindingStale)
+            }
             Some("delivery_binding_handed_over") => {
                 Some(DeliveryBindingHandoverReason::DeliveryBindingHandedOver)
             }
@@ -1343,10 +1348,7 @@ mod tests {
             describe.compat_surfaces,
             vec!["legacy.federation.v0".to_string()]
         );
-        assert_eq!(
-            describe.plaintext_visibility,
-            vec!["floria".to_string()]
-        );
+        assert_eq!(describe.plaintext_visibility, vec!["floria".to_string()]);
     }
 
     #[test]

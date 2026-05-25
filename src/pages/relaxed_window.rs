@@ -239,7 +239,13 @@ mod tests {
     #[test]
     fn clamp_passes_in_range_values_through() {
         assert_eq!(clamp_relaxed_window(60_000), 60_000);
-        assert_eq!(clamp_relaxed_window(EPHEMERAL_HARD_CEILING_MS), EPHEMERAL_HARD_CEILING_MS);
-        assert_eq!(clamp_relaxed_window(RELAXED_WINDOW_FLOOR_MS), RELAXED_WINDOW_FLOOR_MS);
+        assert_eq!(
+            clamp_relaxed_window(EPHEMERAL_HARD_CEILING_MS),
+            EPHEMERAL_HARD_CEILING_MS
+        );
+        assert_eq!(
+            clamp_relaxed_window(RELAXED_WINDOW_FLOOR_MS),
+            RELAXED_WINDOW_FLOOR_MS
+        );
     }
 }

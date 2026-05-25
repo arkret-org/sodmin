@@ -35,10 +35,7 @@ impl RealmClass {
 }
 
 #[component]
-pub fn RealmClassificationBadge(
-    #[props(default)] class: String,
-    realm_class: String,
-) -> Element {
+pub fn RealmClassificationBadge(#[props(default)] class: String, realm_class: String) -> Element {
     let parsed = RealmClass::from_wire(&realm_class);
     let (variant, key) = match parsed {
         RealmClass::PrincipalControl => (BadgeVariant::Destructive, "realm.principal_control"),

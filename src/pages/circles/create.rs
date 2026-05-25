@@ -51,7 +51,9 @@ pub fn CircleCreate() -> Element {
             match circles::create_circle(&req).await {
                 Ok(c) => {
                     show_toast(&t("circle.created_toast"), ToastVariant::Success);
-                    let _ = nav.push(Route::CircleShow { circle_id: c.circle_id });
+                    let _ = nav.push(Route::CircleShow {
+                        circle_id: c.circle_id,
+                    });
                 }
                 Err(e) => {
                     error.set(e.message);

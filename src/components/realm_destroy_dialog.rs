@@ -149,8 +149,16 @@ mod tests {
         // / shrinks the spec is the source of truth.
         assert_eq!(NORMATIVE_RULES.len(), 5);
         // Spot-check a few of the canonical phrases.
-        assert!(NORMATIVE_RULES.iter().any(|r| r.contains("ordinary writes")));
-        assert!(NORMATIVE_RULES.iter().any(|r| r.contains("Erasure receipts")));
+        assert!(
+            NORMATIVE_RULES
+                .iter()
+                .any(|r| r.contains("ordinary writes"))
+        );
+        assert!(
+            NORMATIVE_RULES
+                .iter()
+                .any(|r| r.contains("Erasure receipts"))
+        );
         assert!(NORMATIVE_RULES.iter().any(|r| r.contains("30-day")));
     }
 }

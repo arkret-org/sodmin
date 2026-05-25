@@ -1,5 +1,6 @@
 use dioxus::prelude::*;
 
+use crate::api::generated::soland_admin::CreatePolicyRequest;
 use crate::api::policy;
 use crate::components::ui::badge::{Badge, BadgeVariant};
 use crate::components::ui::button::{Button, ButtonVariant};
@@ -11,7 +12,6 @@ use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::pagination::Pagination;
 use crate::components::ui::table::*;
 use crate::components::ui::toast::{ToastVariant, show_toast};
-use crate::api::generated::soland_admin::CreatePolicyRequest;
 use crate::utils::i18n::t;
 
 const PAGE_SIZE: u64 = 25;

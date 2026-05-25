@@ -169,10 +169,7 @@ mod tests {
     #[test]
     fn state_badge_picks_correct_variant() {
         assert!(matches!(state_badge("active").0, BadgeVariant::Success));
-        assert!(matches!(
-            state_badge("archived").0,
-            BadgeVariant::Secondary
-        ));
+        assert!(matches!(state_badge("archived").0, BadgeVariant::Secondary));
         assert!(matches!(
             state_badge("tombstoned").0,
             BadgeVariant::Destructive

@@ -136,7 +136,11 @@ fn build_nav_sections() -> Vec<NavSection> {
     sections.push(
         NavSection::new(
             t("nav.section_circles"),
-            vec![NavItem::new(t("nav.circles"), Route::CircleList {}, "users")],
+            vec![NavItem::new(
+                t("nav.circles"),
+                Route::CircleList {},
+                "users",
+            )],
         )
         .bridge(bridge::SOLAND)
         .scope(scope::IDENTITY),

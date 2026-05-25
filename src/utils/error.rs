@@ -51,15 +51,11 @@ pub fn display_error(errcode: &str, status: u16, message: &str) -> String {
     // English literal so brand-new codes still surface usefully.
     let circle_reason: Option<&'static str> = match errcode {
         "circle_realm_mismatch" => Some("error.circle_realm_mismatch"),
-        "circle_member_must_be_realm_member" => {
-            Some("error.circle_member_must_be_realm_member")
-        }
+        "circle_member_must_be_realm_member" => Some("error.circle_member_must_be_realm_member"),
         "circle_not_active" => Some("error.circle_not_active"),
         "circle_already_terminal" => Some("error.circle_already_terminal"),
         "circle_capability_denied" => Some("error.circle_capability_denied"),
-        "circle_scope_rotation_in_progress" => {
-            Some("error.circle_scope_rotation_in_progress")
-        }
+        "circle_scope_rotation_in_progress" => Some("error.circle_scope_rotation_in_progress"),
         _ => None,
     };
     if let Some(key) = circle_reason {

@@ -26,9 +26,6 @@ pub async fn create_invite_token(req: &CreateInviteTokenRequest) -> Result<Invit
 }
 
 pub async fn delete_invite_token(id: &str) -> Result<(), HttpError> {
-    let url = format!(
-        "/api/admin/v1/invite-tokens/{}",
-        urlencoding::encode(id)
-    );
+    let url = format!("/api/admin/v1/invite-tokens/{}", urlencoding::encode(id));
     api_client(&url, "DELETE", None).await
 }

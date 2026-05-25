@@ -107,10 +107,7 @@ pub fn ThirdPartyInvitesPage() -> Element {
 
 fn render_invite_row(row: &ThirdPartyInviteRow) -> Element {
     let invite_id = row.invite_id.clone();
-    let oob_mode = row
-        .oob_code_kind
-        .clone()
-        .unwrap_or_else(|| "-".to_string());
+    let oob_mode = row.oob_code_kind.clone().unwrap_or_else(|| "-".to_string());
     let verifier = row
         .verification_service_did
         .clone()
@@ -118,11 +115,9 @@ fn render_invite_row(row: &ThirdPartyInviteRow) -> Element {
     let evidence = row.evidence.clone().unwrap_or_else(|| "-".to_string());
 
     let (state_label, state_variant, row_class) = match row.classified_state() {
-        Some(ThirdPartyInviteTerminalState::Claimed) => (
-            t("invites_3pid.state_claimed"),
-            BadgeVariant::Success,
-            "",
-        ),
+        Some(ThirdPartyInviteTerminalState::Claimed) => {
+            (t("invites_3pid.state_claimed"), BadgeVariant::Success, "")
+        }
         Some(ThirdPartyInviteTerminalState::SendFailed) => (
             t("invites_3pid.state_send_failed"),
             BadgeVariant::Destructive,
@@ -144,7 +139,9 @@ fn render_invite_row(row: &ThirdPartyInviteRow) -> Element {
             "",
         ),
         None => (
-            row.terminal_state.clone().unwrap_or_else(|| "-".to_string()),
+            row.terminal_state
+                .clone()
+                .unwrap_or_else(|| "-".to_string()),
             BadgeVariant::Secondary,
             "",
         ),
@@ -219,7 +216,10 @@ mod tests {
         let rows = placeholder_third_party_invites();
         for row in rows {
             let evidence = row.evidence.unwrap_or_default();
-            assert!(!evidence.contains('@'), "evidence leaks an email: {evidence}");
+            assert!(
+                !evidence.contains('@'),
+                "evidence leaks an email: {evidence}"
+            );
             // Sanity: a 10+ digit phone number would be 10+ contiguous
             // digits; the placeholder fixture must not include any.
             let digits: String = evidence.chars().filter(|c| c.is_ascii_digit()).collect();
