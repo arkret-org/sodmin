@@ -110,6 +110,12 @@ pub struct Space {
     pub join_rule: Option<String>,
     #[serde(default)]
     pub history_visibility: Option<String>,
+    /// CXP-0007 (P3A.6) — `principal_control` vs `collaboration`. The
+    /// admin SPA renders a Realm-classification badge whenever this
+    /// is populated. Older soland releases omit the field; the
+    /// `Option<String>` defaults to `None` for those rows.
+    #[serde(default)]
+    pub realm_class: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -128,6 +134,12 @@ pub struct CreateSpaceRequest {
     pub parent_space_id: Option<String>,
     #[serde(default)]
     pub is_encrypted: bool,
+    /// CXP-0007 (P3A.6) — required at create time; the spec pins this
+    /// to `principal_control` / `collaboration`. soland defaults
+    /// unset values to `collaboration` server-side, but the admin UI
+    /// always surfaces the picker so the choice is explicit.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub realm_class: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
