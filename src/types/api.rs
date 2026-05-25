@@ -443,6 +443,66 @@ pub struct AuditEntry {
     pub timestamp: Option<String>,
     #[serde(default)]
     pub source_ip: Option<String>,
+    /// CXP-0007 — the effective scope at which the action took effect
+    /// (`cx:realm:...` or `cx:circle:...`). Distinct from the audited
+    /// `target_id` because Circle actions surface inside a Realm
+    /// envelope but get pinned to the Circle for replay-locality.
+    /// `None` for legacy entries written before the field shipped.
+    #[serde(default)]
+    pub effective_scope: Option<String>,
+    /// CXP-0007 — when `effective_scope` points at a Circle, this is
+    /// the parent realm id so the audit row can render a "jump to
+    /// Realm" link without an extra round trip.
+    #[serde(default)]
+    pub scope_realm_id: Option<String>,
+    /// CXP-0007 — convenience copy of `effective_scope` when it is a
+    /// `cx:circle:...` id; saves the row a string-prefix sniff on
+    /// the rendering path.
+    #[serde(default)]
+    pub scope_circle_id: Option<String>,
+}
+
+impl AuditEntry {
+    /// Classify the audit entry's effective scope for badge / link
+    /// rendering. Pure helper so the rule stays unit-testable.
+    pub fn scope_kind(&self) -> AuditScopeKind {
+        if let Some(ref s) = self.scope_circle_id {
+            if !s.is_empty() {
+                return AuditScopeKind::Circle(s.clone());
+            }
+        }
+        if let Some(ref s) = self.effective_scope {
+            if s.starts_with("cx:circle:") {
+                return AuditScopeKind::Circle(s.clone());
+            }
+            if s.starts_with("cx:realm:") {
+                return AuditScopeKind::Realm(s.clone());
+            }
+        }
+        if let Some(ref r) = self.scope_realm_id {
+            if !r.is_empty() {
+                return AuditScopeKind::Realm(r.clone());
+            }
+        }
+        AuditScopeKind::Unknown
+    }
+}
+
+/// Discriminated effective-scope value for the audit views.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum AuditScopeKind {
+    Realm(String),
+    Circle(String),
+    Unknown,
+}
+
+impl AuditScopeKind {
+    pub fn id(&self) -> Option<&str> {
+        match self {
+            Self::Realm(id) | Self::Circle(id) => Some(id.as_str()),
+            Self::Unknown => None,
+        }
+    }
 }
 
 // ── Policy types ──

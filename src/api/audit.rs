@@ -13,6 +13,13 @@ pub struct AuditFilter {
     pub target_id: Option<String>,
     pub since: Option<String>,
     pub until: Option<String>,
+    /// CXP-0007 (P3A.5) — server-side filter on event kind. When set,
+    /// soland constrains the audit feed to the matching `cx.*` kind
+    /// strings (e.g. `cx.circle.create`).
+    pub event_kind: Option<String>,
+    /// CXP-0007 (P3A.5) — server-side filter on effective scope (a
+    /// `cx:realm:...` or `cx:circle:...` id).
+    pub effective_scope: Option<String>,
 }
 
 impl AuditFilter {
@@ -24,6 +31,8 @@ impl AuditFilter {
             ("target_id", self.target_id),
             ("since", self.since),
             ("until", self.until),
+            ("event_kind", self.event_kind),
+            ("effective_scope", self.effective_scope),
         ]
         .into_iter()
         .filter_map(|(k, v)| {
