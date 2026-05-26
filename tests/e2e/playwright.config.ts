@@ -30,8 +30,19 @@ export default defineConfig({
 
   projects: [
     {
-      name: "chromium",
+      name: "chromium-desktop",
       use: { ...devices["Desktop Chrome"] },
+    },
+    // Responsive coverage: sodmin's admin UI ships a mobile breakpoint
+    // and an iPad layout; mobile.spec.ts asserts the breakpoint actually
+    // engages on these viewports.
+    {
+      name: "mobile",
+      use: { ...devices["Pixel 5"] },
+    },
+    {
+      name: "tablet",
+      use: { ...devices["iPad (gen 7)"] },
     },
   ],
 });

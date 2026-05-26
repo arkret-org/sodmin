@@ -1,0 +1,56 @@
+// Responsive smoke — verifies sodmin's login surface renders without
+// horizontal overflow on the mobile and tablet projects defined in
+// playwright.config.ts.
+//
+// The check is intentionally minimal:
+//   1. Hit the login page (no auth needed, no admin stack required).
+//   2. Wait for the form to mount.
+//   3. Assert the document does not scroll horizontally — i.e. the
+//      mobile / tablet breakpoint actually engaged and nothing
+//      overflowed the viewport.
+//
+// This catches the most common responsive regression (a `min-width` or
+// `width: 100vw + N` rule sneaking in via a new component) without
+// needing a live soland stack.
+//
+// Skip behaviour: if `SODMIN_E2E_BASE_URL` is unset, the spec is
+// skipped so CI environments that haven't wired a sodmin instance
+// still pass. Run locally with:
+//
+//   SODMIN_E2E_BASE_URL=http://localhost:8080 \
+//     npx playwright test -c tests/e2e/playwright.config.ts mobile
+//
+// Runs across the chromium-desktop, mobile (Pixel 5), and tablet
+// (iPad) projects — desktop is included as a baseline so a regression
+// that breaks all three viewports surfaces clearly.
+
+import { test, expect } from "@playwright/test";
+
+const BASE_URL = process.env.SODMIN_E2E_BASE_URL || "";
+
+test.describe("responsive smoke", () => {
+  test.beforeAll(async () => {
+    if (!BASE_URL) {
+      test.skip(true, "SODMIN_E2E_BASE_URL must be set");
+    }
+  });
+
+  test("login page fits the viewport without horizontal overflow", async ({
+    page,
+  }) => {
+    await page.goto(`${BASE_URL}/login`);
+
+    // The email input is the most reliable "form is mounted" signal —
+    // it's labelled in every locale and it's the first focusable field.
+    await expect(page.getByLabel(/email/i)).toBeVisible({ timeout: 15_000 });
+
+    // No horizontal scrollbar — scrollWidth must fit within clientWidth.
+    // We compare on documentElement (the <html> root) because that's
+    // where the browser surfaces overflow caused by any descendant.
+    const overflow = await page.evaluate(() => ({
+      scrollWidth: document.documentElement.scrollWidth,
+      clientWidth: document.documentElement.clientWidth,
+    }));
+    expect(overflow.scrollWidth).toBeLessThanOrEqual(overflow.clientWidth + 1);
+  });
+});

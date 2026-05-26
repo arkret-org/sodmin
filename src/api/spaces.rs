@@ -2,19 +2,23 @@ use crate::api::client::{api_client, build_url};
 use crate::types::*;
 use crate::utils::error::HttpError;
 
+/// Cursor-paginated space list. `search` is a best-effort
+/// `filter[name_or_id]` parameter; backends that haven't shipped it
+/// just return everything and the page filters client-side.
 pub async fn list_spaces(
-    page: u64,
-    per_page: u64,
+    cursor: Option<&str>,
+    limit: u64,
     search: &str,
 ) -> Result<ListResponse<Space>, HttpError> {
-    let url = build_url(
-        "/api/admin/v1/spaces",
-        &[
-            ("page", &page.to_string()),
-            ("per_page", &per_page.to_string()),
-            ("search", search),
-        ],
-    )?;
+    let limit_str = limit.max(1).to_string();
+    let mut params: Vec<(&str, &str)> = vec![("limit", limit_str.as_str())];
+    if let Some(c) = cursor.filter(|c| !c.is_empty()) {
+        params.push(("cursor", c));
+    }
+    if !search.is_empty() {
+        params.push(("filter[name_or_id]", search));
+    }
+    let url = build_url("/api/admin/v1/spaces", &params)?;
     api_client(&url, "GET", None).await
 }
 

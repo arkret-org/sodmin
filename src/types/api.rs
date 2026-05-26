@@ -11,7 +11,14 @@ pub struct PaginationParams {
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ListResponse<T> {
     pub data: Vec<T>,
+    #[serde(default)]
     pub total: u64,
+    /// Opaque cursor for the next page. `None` when the current page is
+    /// the last one. Backends that haven't migrated to cursor pagination
+    /// yet simply omit this field — callers fall back to the legacy
+    /// page+total UX in that case.
+    #[serde(default)]
+    pub next_cursor: Option<String>,
 }
 
 // ── Actor types ──

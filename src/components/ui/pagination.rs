@@ -2,6 +2,46 @@ use dioxus::prelude::*;
 
 use super::button::{Button, ButtonSize, ButtonVariant};
 
+/// Cursor-based prev/next pair used by every list page that has been
+/// migrated off legacy page+total pagination. The "page depth" is just
+/// the size of the cursor stack the caller is maintaining (1 == first
+/// page) — it's a UX affordance, not an O(N) computation. Going back
+/// pops the stack rather than re-requesting from the server, so admins
+/// flipping prev/next don't burn server pages.
+#[component]
+pub fn CursorPagination(
+    /// 1-indexed depth of the cursor stack.
+    depth: usize,
+    /// `true` when a `next_cursor` is available on the current page.
+    has_next: bool,
+    on_prev: EventHandler<()>,
+    on_next: EventHandler<()>,
+) -> Element {
+    rsx! {
+        div { class: "flex items-center justify-between px-2 py-4",
+            div { class: "text-sm text-muted-foreground",
+                {format!("Page {}", depth)}
+            }
+            div { class: "flex items-center space-x-2",
+                Button {
+                    variant: ButtonVariant::Outline,
+                    size: ButtonSize::Sm,
+                    disabled: depth <= 1,
+                    onclick: move |_| on_prev.call(()),
+                    "Previous"
+                }
+                Button {
+                    variant: ButtonVariant::Outline,
+                    size: ButtonSize::Sm,
+                    disabled: !has_next,
+                    onclick: move |_| on_next.call(()),
+                    "Next"
+                }
+            }
+        }
+    }
+}
+
 #[component]
 pub fn Pagination(
     page: u64,

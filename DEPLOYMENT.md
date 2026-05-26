@@ -55,3 +55,19 @@ Without these grants every Circle admin call returns 403 with
 coauth, and (when used) floria origins so the SPA can call them. The
 nginx CSP template already covers the default three; add additional
 peers per deployment.
+
+## List pagination
+
+All admin list pages (`/agents`, `/applets`, `/devices`, `/spaces`,
+`/federation`) use cursor pagination as of Phase 5. The previous
+`page + total` model was migrated off because offset pagination forces
+the backend into an `O(N)` scan to compute `total` whenever the table
+gets large enough to matter; cursor pagination keeps next-page lookup
+at `O(1)` (an index seek on the keyset cursor).
+
+The wire shape is a `data` array plus an optional `next_cursor`
+string. The SPA maintains a client-side cursor stack so "Previous"
+pops back to the prior cursor without re-requesting. Backends that
+haven't yet shipped `next_cursor` should simply omit it — the SPA
+treats absent `next_cursor` as "this is the last page" and disables
+the Next button.

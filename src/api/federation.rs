@@ -2,17 +2,23 @@ use crate::api::client::{api_client, build_url};
 use crate::types::*;
 use crate::utils::error::HttpError;
 
+/// Cursor-paginated federation peer list. `search` is a best-effort
+/// `filter[name_or_id]` (i.e. domain) parameter; backends that haven't
+/// shipped it just return everything and the page filters client-side.
 pub async fn list_federation_peers(
-    page: u64,
-    per_page: u64,
+    cursor: Option<&str>,
+    limit: u64,
+    search: &str,
 ) -> Result<ListResponse<FederationPeer>, HttpError> {
-    let url = build_url(
-        "/api/admin/v1/federation/peers",
-        &[
-            ("page", &page.to_string()),
-            ("per_page", &per_page.to_string()),
-        ],
-    )?;
+    let limit_str = limit.max(1).to_string();
+    let mut params: Vec<(&str, &str)> = vec![("limit", limit_str.as_str())];
+    if let Some(c) = cursor.filter(|c| !c.is_empty()) {
+        params.push(("cursor", c));
+    }
+    if !search.is_empty() {
+        params.push(("filter[name_or_id]", search));
+    }
+    let url = build_url("/api/admin/v1/federation/peers", &params)?;
     api_client(&url, "GET", None).await
 }
 
@@ -33,16 +39,15 @@ pub async fn reset_federation_connection(domain: &str) -> Result<(), HttpError> 
 }
 
 pub async fn list_federation_allow_rules(
-    page: u64,
-    per_page: u64,
+    cursor: Option<&str>,
+    limit: u64,
 ) -> Result<ListResponse<FederationAllowRule>, HttpError> {
-    let url = build_url(
-        "/api/admin/v1/federation/allow-rules",
-        &[
-            ("page", &page.to_string()),
-            ("per_page", &per_page.to_string()),
-        ],
-    )?;
+    let limit_str = limit.max(1).to_string();
+    let mut params: Vec<(&str, &str)> = vec![("limit", limit_str.as_str())];
+    if let Some(c) = cursor.filter(|c| !c.is_empty()) {
+        params.push(("cursor", c));
+    }
+    let url = build_url("/api/admin/v1/federation/allow-rules", &params)?;
     api_client(&url, "GET", None).await
 }
 

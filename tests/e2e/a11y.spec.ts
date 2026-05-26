@@ -59,9 +59,10 @@ test.describe("axe accessibility audit", () => {
       }
       await gotoReady(page, route);
 
-      const results = await new AxeBuilder({ page })
-        .disableRules(["color-contrast"])
-        .analyze();
+      // `color-contrast` is re-enabled as of Phase 5 — the dark-mode
+      // `--muted-foreground` token was bumped to ~78% lightness so it
+      // clears WCAG AA against the `--background: 270 22% 10%` token.
+      const results = await new AxeBuilder({ page }).analyze();
       const critical = results.violations.filter((violation) =>
         ["critical", "serious"].includes(violation.impact || ""),
       );
