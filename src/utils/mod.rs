@@ -3,6 +3,8 @@ pub mod cache;
 pub mod config;
 pub mod crypto;
 pub mod csp;
+/// B.7 — client-side CSV export for admin list pages.
+pub mod csv;
 pub mod date;
 /// Round 4 — DID input validation (tightened `^did:[a-z0-9]+:[^\s]+$`).
 pub mod did;

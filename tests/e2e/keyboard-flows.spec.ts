@@ -17,6 +17,24 @@ const keyboardRoutes = [
   { name: "peers", path: "/federation", target: /search|refresh|add|peer/i },
   { name: "audit", path: "/audit", target: /actor|action|target|refresh/i },
   { name: "policy", path: "/policy", target: /name|type|scope|enabled|create/i },
+  // P3 D.1 — confirm /circles and /moderation also expose reachable
+  // focus targets so keyboard-only operators can run identity and
+  // moderation flows without a mouse.
+  {
+    name: "circles",
+    path: "/circles",
+    target: /circle|filter|create|realm|refresh|export/i,
+  },
+  {
+    name: "moderation_reports",
+    path: "/moderation/reports",
+    target: /report|reason|status|refresh|review|appeal/i,
+  },
+  {
+    name: "moderation_appeals",
+    path: "/moderation/appeals",
+    target: /appeal|status|refresh|approve|reject/i,
+  },
 ];
 
 test.describe("keyboard-only management flows", () => {

@@ -1,4 +1,9 @@
 pub mod claims_panel;
+/// B.7 — shared dangerous-action confirmation dialog with a
+/// parameterised typed-phrase gate. Used by /devices revoke (last 4
+/// chars of device ID) and /applets/admin suspend / revoke (first 6
+/// chars of applet name).
+pub mod dangerous_action_dialog;
 pub mod deactivation_fanout_panel;
 /// Round 4 — delivery-binding handover panel (`delivery_binding_stale`
 /// / `delivery_binding_handed_over` / `historical_only`).

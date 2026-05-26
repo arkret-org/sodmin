@@ -113,6 +113,112 @@ pub fn emit_admin_audit(
     );
 }
 
+/// Wire shape POSTed to `/api/admin/v1/audit/client-event`. The
+/// envelope is intentionally schema-stable so soland's reducer can map
+/// it straight to its audit row without a sodmin-specific adapter.
+///
+/// `target_type` + `target_id` mirror the local-only
+/// `format_admin_audit_line` triple; `outcome` carries the mapped HTTP
+/// status so the audit row distinguishes "soland accepted my click"
+/// from "soland 404'd the endpoint" without re-deriving the
+/// classification server-side.
+#[derive(Debug, Clone, serde::Serialize)]
+pub struct AdminAuditClientEvent {
+    pub target_type: String,
+    pub target_id: String,
+    pub action: String,
+    pub outcome: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub note: Option<String>,
+}
+
+/// Build the wire payload for the `/api/admin/v1/audit/client-event`
+/// POST. Pure helper — split out so we can unit-test the shape
+/// without compiling the wasm fetch path.
+pub fn build_client_event(
+    target: &str,
+    id: &str,
+    action: &str,
+    outcome: AdminAuditOutcome,
+    note: Option<&str>,
+) -> AdminAuditClientEvent {
+    AdminAuditClientEvent {
+        target_type: target.to_string(),
+        target_id: id.to_string(),
+        action: action.to_string(),
+        outcome: outcome.label().to_string(),
+        note: note
+            .map(str::trim)
+            .filter(|s| !s.is_empty())
+            .map(|s| s.to_string()),
+    }
+}
+
+/// Server-side admin audit POST. Mirrors [`emit_admin_audit`] but
+/// additionally fires a best-effort `POST
+/// /api/admin/v1/audit/client-event` so the audit row also lands in
+/// the soland audit feed (not only the browser console).
+///
+/// 404 / 5xx is intentionally tolerated — soland may not have wired
+/// the client-event sink yet, and a missing audit-of-the-click should
+/// never break the actual click. We swallow the error and log a
+/// single line so the operator can see the POST happened even when
+/// the route is missing.
+#[cfg(target_arch = "wasm32")]
+pub fn emit_admin_audit_server(
+    target: &str,
+    id: &str,
+    action: &str,
+    outcome: AdminAuditOutcome,
+    note: Option<&str>,
+) {
+    // Local console line first so the breadcrumb always appears even
+    // if the network POST is queued / fails.
+    emit_admin_audit(target, id, action, outcome, note);
+
+    let payload = build_client_event(target, id, action, outcome, note);
+    let body = match serde_json::to_string(&payload) {
+        Ok(b) => b,
+        Err(e) => {
+            log::warn!("sodmin.admin.audit_server serialize failed: {e}");
+            return;
+        }
+    };
+
+    dioxus::prelude::spawn(async move {
+        let res: Result<serde_json::Value, _> = crate::api::client::api_client(
+            "/api/admin/v1/audit/client-event",
+            "POST",
+            Some(body),
+        )
+        .await;
+        if let Err(e) = res {
+            // Don't toast — this is a fire-and-forget breadcrumb. Just
+            // surface in the console for the operator who's actively
+            // debugging audit wiring.
+            log::warn!(
+                "sodmin.admin.audit_server POST failed status={} err={}",
+                e.status,
+                e.message
+            );
+        }
+    });
+}
+
+/// Non-wasm fallback for tests and host-side compilation. The actual
+/// POST is wasm-only; this keeps `cargo check` on a host target from
+/// dragging in the gloo-net dependency in test mode.
+#[cfg(not(target_arch = "wasm32"))]
+pub fn emit_admin_audit_server(
+    target: &str,
+    id: &str,
+    action: &str,
+    outcome: AdminAuditOutcome,
+    note: Option<&str>,
+) {
+    emit_admin_audit(target, id, action, outcome, note);
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -199,6 +305,51 @@ mod tests {
         assert!(!line.contains('\t'));
         // spaces preserved as separators
         assert!(line.contains("line1 line2 line3 tab"));
+    }
+
+    #[test]
+    fn client_event_payload_carries_outcome_label() {
+        let ev = build_client_event(
+            "agent",
+            "ag_01",
+            "approve",
+            AdminAuditOutcome::Accepted,
+            None,
+        );
+        assert_eq!(ev.target_type, "agent");
+        assert_eq!(ev.target_id, "ag_01");
+        assert_eq!(ev.action, "approve");
+        assert_eq!(ev.outcome, "accepted");
+        assert!(ev.note.is_none());
+    }
+
+    #[test]
+    fn client_event_drops_blank_note() {
+        let ev = build_client_event(
+            "agent",
+            "ag_01",
+            "suspend",
+            AdminAuditOutcome::Rejected,
+            Some("   "),
+        );
+        assert!(ev.note.is_none());
+    }
+
+    #[test]
+    fn client_event_serializes_to_stable_json() {
+        let ev = build_client_event(
+            "applet",
+            "ap_01",
+            "revoke",
+            AdminAuditOutcome::NotWired,
+            Some("hand-off to coauth"),
+        );
+        let json = serde_json::to_string(&ev).expect("json");
+        assert!(json.contains("\"target_type\":\"applet\""));
+        assert!(json.contains("\"target_id\":\"ap_01\""));
+        assert!(json.contains("\"action\":\"revoke\""));
+        assert!(json.contains("\"outcome\":\"not_wired\""));
+        assert!(json.contains("\"note\":\"hand-off to coauth\""));
     }
 
     #[test]

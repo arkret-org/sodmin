@@ -11,6 +11,23 @@ pub fn Input(
     #[props(default)] aria_label: String,
     #[props(default)] disabled: bool,
     #[props(default)] required: bool,
+    /// HTML `minlength` constraint. `None` omits the attribute so
+    /// callers that don't care preserve the prior wire shape.
+    #[props(default)]
+    min_length: Option<u32>,
+    /// HTML `maxlength` constraint.
+    #[props(default)]
+    max_length: Option<u32>,
+    /// HTML `pattern` regex for client-side validation. The pattern
+    /// is anchored by the browser so callers should not add `^`/`$`.
+    #[props(default)]
+    pattern: Option<String>,
+    /// Optional ARIA description (e.g. inline error message id). When
+    /// `pattern` validation fails the browser surfaces this via the
+    /// standard `:invalid` pseudoclass; the description hint lets
+    /// screen-reader users locate the message.
+    #[props(default)]
+    aria_describedby: String,
     #[props(default)] oninput: EventHandler<FormEvent>,
 ) -> Element {
     let resolved_name = if name.is_empty() { id.clone() } else { name };
@@ -19,12 +36,16 @@ pub fn Input(
             id,
             name: resolved_name,
             r#type,
-            class: "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 touch-target {class}",
+            class: "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 invalid:border-destructive invalid:ring-destructive/40 touch-target {class}",
             placeholder,
             value,
             aria_label,
+            aria_describedby,
             disabled,
             required,
+            minlength: min_length.map(|n| n.to_string()),
+            maxlength: max_length.map(|n| n.to_string()),
+            pattern: pattern.clone(),
             oninput: move |evt| oninput.call(evt),
         }
     }

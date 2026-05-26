@@ -11,6 +11,7 @@
 use dioxus::prelude::*;
 
 use crate::api::applets_agents_directory_admin as admin_api;
+use crate::components::dangerous_action_dialog::{DangerousActionDialog, applet_phrase};
 use crate::components::ui::badge::{Badge, BadgeVariant};
 use crate::components::ui::button::{Button, ButtonSize, ButtonVariant};
 use crate::components::ui::dialog::ConfirmDialog;
@@ -53,6 +54,11 @@ impl RowAction {
 #[derive(Debug, Clone)]
 struct PendingDecision {
     id: String,
+    /// Applet name as shown in the table — used by the
+    /// DangerousActionDialog to compute the typed-phrase gate (first 6
+    /// chars of the name) on suspend / revoke. `None` falls back to
+    /// the applet id.
+    name: Option<String>,
     action: RowAction,
 }
 
@@ -110,6 +116,7 @@ pub fn AppletAdminPage() -> Element {
                                             {
                                                 let id = r.id.clone();
                                                 let name = r.name.clone().unwrap_or_else(|| "-".to_string());
+                                                let raw_name = r.name.clone();
                                                 let owner = r.owner_did.clone().unwrap_or_else(|| "-".to_string());
                                                 let typed = r.status_typed();
                                                 let label = typed.label().to_string();
@@ -121,6 +128,9 @@ pub fn AppletAdminPage() -> Element {
                                                 let id_a = id.clone();
                                                 let id_s = id.clone();
                                                 let id_r = id.clone();
+                                                let name_a = raw_name.clone();
+                                                let name_s = raw_name.clone();
+                                                let name_r = raw_name.clone();
                                                 let row_busy = in_flight
                                                     .read()
                                                     .as_deref()
@@ -142,6 +152,7 @@ pub fn AppletAdminPage() -> Element {
                                                                     onclick: move |_| {
                                                                         pending.set(Some(PendingDecision {
                                                                             id: id_a.clone(),
+                                                                            name: name_a.clone(),
                                                                             action: RowAction::Approve,
                                                                         }));
                                                                     },
@@ -154,6 +165,7 @@ pub fn AppletAdminPage() -> Element {
                                                                     onclick: move |_| {
                                                                         pending.set(Some(PendingDecision {
                                                                             id: id_s.clone(),
+                                                                            name: name_s.clone(),
                                                                             action: RowAction::Suspend,
                                                                         }));
                                                                     },
@@ -166,6 +178,7 @@ pub fn AppletAdminPage() -> Element {
                                                                     onclick: move |_| {
                                                                         pending.set(Some(PendingDecision {
                                                                             id: id_r.clone(),
+                                                                            name: name_r.clone(),
                                                                             action: RowAction::Revoke,
                                                                         }));
                                                                     },
@@ -220,6 +233,9 @@ pub fn AppletAdminPage() -> Element {
                 Some(Err(e)) => rsx! {
                     ErrorBanner {
                         message: e.message.clone(),
+                        errcode: e.body.as_ref().map(|b| b.errcode.clone()),
+                        request_id: e.request_id.clone(),
+                        retry_after_ms: e.retry_after_ms,
                         on_retry: move |_| data.restart(),
                     }
                 },
@@ -230,60 +246,83 @@ pub fn AppletAdminPage() -> Element {
                 let p = pending.read().clone();
                 let action = p.as_ref().map(|x| x.action).unwrap_or(RowAction::Approve);
                 let (title_key, body_key, confirm_label) = applet_dialog_copy(action);
-                rsx! {
-                    ConfirmDialog {
-                        open: p.is_some(),
-                        title: t(title_key),
-                        description: t(body_key),
-                        confirm_text: t(confirm_label),
-                        cancel_text: t("common.cancel"),
-                        destructive: action.is_destructive(),
-                        on_cancel: move |_| pending.set(None),
-                        on_confirm: move |_| {
-                            if let Some(p) = pending.read().clone() {
-                                in_flight.set(Some(p.id.clone()));
-                                spawn(async move {
-                                    let body = ApprovalActionRequest::default();
-                                    let res = match p.action {
-                                        RowAction::Approve => admin_api::approve_applet(&p.id, &body).await,
-                                        RowAction::Suspend => admin_api::suspend_applet(&p.id, &body).await,
-                                        RowAction::Revoke => admin_api::revoke_applet(&p.id, &body).await,
-                                    };
-                                    match res {
-                                        Ok(_) => {
-                                            emit_admin_audit(
-                                                "applet",
-                                                &p.id,
-                                                p.action.wire(),
-                                                AdminAuditOutcome::Accepted,
-                                                None,
-                                            );
-                                            show_toast(
-                                                "Applet decision recorded.",
-                                                ToastVariant::Success,
-                                            );
-                                        }
-                                        Err(e) => {
-                                            emit_admin_audit(
-                                                "applet",
-                                                &p.id,
-                                                p.action.wire(),
-                                                AdminAuditOutcome::from_http_status(e.status),
-                                                None,
-                                            );
-                                            let msg = format_optional_endpoint_error(
-                                                applet_action_label(p.action),
-                                                &e,
-                                            );
-                                            show_toast(&msg, ToastVariant::Error);
-                                        }
-                                    }
-                                    in_flight.set(None);
-                                    data.restart();
-                                });
+                let pending_id = p.as_ref().map(|x| x.id.clone()).unwrap_or_default();
+                let pending_name = p.as_ref().and_then(|x| x.name.clone());
+                // First-6-chars-of-name (or id fallback) gate per B.7
+                // spec — only fires on the destructive verbs so an
+                // approve click stays a simple ConfirmDialog.
+                let phrase = applet_phrase(pending_name.as_deref(), &pending_id, 6);
+                let on_confirm = move |_| {
+                    if let Some(p) = pending.read().clone() {
+                        in_flight.set(Some(p.id.clone()));
+                        spawn(async move {
+                            let body = ApprovalActionRequest::default();
+                            let res = match p.action {
+                                RowAction::Approve => admin_api::approve_applet(&p.id, &body).await,
+                                RowAction::Suspend => admin_api::suspend_applet(&p.id, &body).await,
+                                RowAction::Revoke => admin_api::revoke_applet(&p.id, &body).await,
+                            };
+                            match res {
+                                Ok(_) => {
+                                    emit_admin_audit(
+                                        "applet",
+                                        &p.id,
+                                        p.action.wire(),
+                                        AdminAuditOutcome::Accepted,
+                                        None,
+                                    );
+                                    show_toast(
+                                        "Applet decision recorded.",
+                                        ToastVariant::Success,
+                                    );
+                                }
+                                Err(e) => {
+                                    emit_admin_audit(
+                                        "applet",
+                                        &p.id,
+                                        p.action.wire(),
+                                        AdminAuditOutcome::from_http_status(e.status),
+                                        None,
+                                    );
+                                    let msg = format_optional_endpoint_error(
+                                        applet_action_label(p.action),
+                                        &e,
+                                    );
+                                    show_toast(&msg, ToastVariant::Error);
+                                }
                             }
-                            pending.set(None);
-                        },
+                            in_flight.set(None);
+                            data.restart();
+                        });
+                    }
+                    pending.set(None);
+                };
+                let on_cancel = move |_| pending.set(None);
+                if action.is_destructive() {
+                    rsx! {
+                        DangerousActionDialog {
+                            open: p.is_some(),
+                            title: t(title_key),
+                            description: t(body_key),
+                            confirmation_phrase: phrase,
+                            confirm_text: t(confirm_label),
+                            cancel_text: t("common.cancel"),
+                            on_cancel,
+                            on_confirm,
+                        }
+                    }
+                } else {
+                    rsx! {
+                        ConfirmDialog {
+                            open: p.is_some(),
+                            title: t(title_key),
+                            description: t(body_key),
+                            confirm_text: t(confirm_label),
+                            cancel_text: t("common.cancel"),
+                            destructive: false,
+                            on_cancel,
+                            on_confirm,
+                        }
                     }
                 }
             }
@@ -364,16 +403,19 @@ mod tests {
     fn pending_decision_carries_action_polarity() {
         let p = PendingDecision {
             id: "a1".into(),
+            name: None,
             action: RowAction::Approve,
         };
         assert_eq!(p.action, RowAction::Approve);
         let p = PendingDecision {
             id: "a1".into(),
+            name: Some("acme-bot".into()),
             action: RowAction::Suspend,
         };
         assert_eq!(p.action, RowAction::Suspend);
         let p = PendingDecision {
             id: "a1".into(),
+            name: None,
             action: RowAction::Revoke,
         };
         assert_eq!(p.action, RowAction::Revoke);

@@ -11,6 +11,13 @@ pub struct AdminErrorEnvelope {
     pub error: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub retry_after_ms: Option<u64>,
+    /// D.1 — soland may attach the capability scope required for the
+    /// failing action on 401/403 envelopes (e.g.
+    /// `cx:scope:realm:01HXY/admin.write`). When present, surfacing
+    /// it lets the admin grep their bound scopes / coauth role
+    /// without round-tripping the support team.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub required_scope: Option<String>,
     #[serde(flatten)]
     pub extra: BTreeMap<String, serde_json::Value>,
 }
@@ -236,5 +243,29 @@ mod tests {
         let s = display_error("cx.error.validation", 400, "user bob@example.org rejected");
         assert!(!s.contains("bob@example.org"));
         assert!(s.contains("[email]"));
+    }
+
+    #[test]
+    fn admin_error_envelope_round_trips_required_scope() {
+        use super::AdminErrorEnvelope;
+        let raw = r#"{"errcode":"cx.error.capability_denied","required_scope":"cx:scope:realm:01HXY/admin.write"}"#;
+        let env: AdminErrorEnvelope = serde_json::from_str(raw).expect("parse");
+        assert_eq!(
+            env.required_scope.as_deref(),
+            Some("cx:scope:realm:01HXY/admin.write")
+        );
+
+        let serialized = serde_json::to_string(&env).expect("serialize");
+        assert!(serialized.contains("required_scope"));
+    }
+
+    #[test]
+    fn admin_error_envelope_omits_missing_required_scope() {
+        use super::AdminErrorEnvelope;
+        let raw = r#"{"errcode":"cx.error.validation"}"#;
+        let env: AdminErrorEnvelope = serde_json::from_str(raw).expect("parse");
+        assert!(env.required_scope.is_none());
+        let out = serde_json::to_string(&env).expect("serialize");
+        assert!(!out.contains("required_scope"));
     }
 }

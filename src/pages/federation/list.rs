@@ -109,7 +109,13 @@ pub fn FederationList() -> Element {
                             }
                         },
                         Some(Err(e)) => rsx! {
-                            ErrorBanner { message: e.message.clone(), on_retry: move |_| peers.restart() }
+                            ErrorBanner {
+                                message: e.message.clone(),
+                                errcode: e.body.as_ref().map(|b| b.errcode.clone()),
+                                request_id: e.request_id.clone(),
+                                retry_after_ms: e.retry_after_ms,
+                                on_retry: move |_| peers.restart(),
+                            }
                         },
                         None => rsx! { PageSkeleton {} },
                     }
@@ -189,7 +195,13 @@ pub fn FederationList() -> Element {
                             }
                         },
                         Some(Err(e)) => rsx! {
-                            ErrorBanner { message: e.message.clone(), on_retry: move |_| rules.restart() }
+                            ErrorBanner {
+                                message: e.message.clone(),
+                                errcode: e.body.as_ref().map(|b| b.errcode.clone()),
+                                request_id: e.request_id.clone(),
+                                retry_after_ms: e.retry_after_ms,
+                                on_retry: move |_| rules.restart(),
+                            }
                         },
                         None => rsx! { PageSkeleton {} },
                     }

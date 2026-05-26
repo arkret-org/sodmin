@@ -10,6 +10,7 @@ use crate::components::ui::pagination::Pagination;
 use crate::components::ui::table::*;
 use crate::components::ui::toast::{ToastVariant, show_toast};
 use crate::router::Route;
+use crate::utils::csv::{build_csv, export_to_csv};
 use crate::utils::i18n::t;
 
 const PAGE_SIZE: u64 = 25;
@@ -28,6 +29,30 @@ pub fn AgentList() -> Element {
             PageHeader {
                 title: t("agents.title"),
                 description: t("agents.subtitle"),
+                Button {
+                    variant: ButtonVariant::Outline,
+                    size: ButtonSize::Sm,
+                    onclick: move |_| {
+                        if let Some(Ok(resp)) = data.read().as_ref() {
+                            let rows: Vec<Vec<String>> = resp.data.iter().map(|a| vec![
+                                a.id.clone(),
+                                a.name.clone().unwrap_or_default(),
+                                a.owner_id.clone(),
+                                a.agent_type.clone().unwrap_or_default(),
+                                a.status.clone().unwrap_or_default(),
+                                if a.is_enabled { "true".into() } else { "false".into() },
+                                a.last_active_at.clone().unwrap_or_default(),
+                            ]).collect();
+                            let csv = build_csv(
+                                &["id", "name", "owner_id", "type", "status", "enabled", "last_active_at"],
+                                &rows,
+                            );
+                            export_to_csv("agents.csv", &csv);
+                            show_toast("Agents CSV downloaded", ToastVariant::Success);
+                        }
+                    },
+                    {t("common.export_csv")}
+                }
             }
 
             match &*data.read() {
@@ -154,6 +179,9 @@ pub fn AgentList() -> Element {
                 Some(Err(e)) => rsx! {
                     ErrorBanner {
                         message: e.message.clone(),
+                        errcode: e.body.as_ref().map(|b| b.errcode.clone()),
+                        request_id: e.request_id.clone(),
+                        retry_after_ms: e.retry_after_ms,
                         on_retry: move |_| data.restart(),
                     }
                 },

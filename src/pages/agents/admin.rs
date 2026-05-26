@@ -18,7 +18,7 @@ use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::table::*;
 use crate::components::ui::toast::{ToastVariant, show_toast};
 use crate::pages::applets::admin::{RowAction, approval_variant};
-use crate::utils::audit::{AdminAuditOutcome, emit_admin_audit};
+use crate::utils::audit::{AdminAuditOutcome, emit_admin_audit_server};
 use crate::utils::error::format_optional_endpoint_error;
 use crate::utils::i18n::t;
 use coauth_admin_types::applets_admin::ApprovalActionRequest;
@@ -195,6 +195,9 @@ pub fn AgentAdminPage() -> Element {
                 Some(Err(e)) => rsx! {
                     ErrorBanner {
                         message: e.message.clone(),
+                        errcode: e.body.as_ref().map(|b| b.errcode.clone()),
+                        request_id: e.request_id.clone(),
+                        retry_after_ms: e.retry_after_ms,
                         on_retry: move |_| data.restart(),
                     }
                 },
@@ -226,7 +229,7 @@ pub fn AgentAdminPage() -> Element {
                                     };
                                     match res {
                                         Ok(_) => {
-                                            emit_admin_audit(
+                                            emit_admin_audit_server(
                                                 "agent",
                                                 &p.id,
                                                 p.action.wire(),
@@ -239,7 +242,7 @@ pub fn AgentAdminPage() -> Element {
                                             );
                                         }
                                         Err(e) => {
-                                            emit_admin_audit(
+                                            emit_admin_audit_server(
                                                 "agent",
                                                 &p.id,
                                                 p.action.wire(),

@@ -1980,6 +1980,21 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "circle.confirm_tombstone_body",
                 "Tombstoned Circles are terminal: no further admin actions are accepted and member state is forever frozen. Erasure receipts fan out per CXP-0007.",
             ),
+            // D.1 — plural `circles.*` namespace used by the listing
+            // chrome (title bar, create button, member limit hints).
+            // Keep alongside the existing singular `circle.*` keys so
+            // grep finds either spelling.
+            ("circles.title", "Circles"),
+            ("circles.create", "Create Circle"),
+            (
+                "circles.member_limit",
+                "Members must already belong to the parent Realm.",
+            ),
+            // B.7 — Export CSV button label, shared across the
+            // agents / devices / spaces list pages.
+            ("common.export_csv", "Export CSV"),
+            ("common.enabled", "Enabled"),
+            ("common.disabled", "Disabled"),
             // P3A.6 — Principal Control vs Collaboration Realm
             ("realm.principal_control", "Principal control"),
             ("realm.collaboration", "Collaboration"),
@@ -2995,6 +3010,18 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "circle.confirm_tombstone_body",
                 "墓碑为终态：不再接受任何管理操作，成员状态永久冻结。CXP-0007 会发出擦除回执。",
             ),
+            // D.1 — plural `circles.*` namespace, paired with the
+            // singular `circle.*` keys above.
+            ("circles.title", "Circle"),
+            ("circles.create", "创建 Circle"),
+            (
+                "circles.member_limit",
+                "成员必须已属于父 Realm。",
+            ),
+            // B.7 — Export CSV button label.
+            ("common.export_csv", "导出 CSV"),
+            ("common.enabled", "已启用"),
+            ("common.disabled", "已禁用"),
             // P3A.6 — Principal Control vs Collaboration Realm
             ("realm.principal_control", "主体控制（Principal Control）"),
             ("realm.collaboration", "协作（Collaboration）"),

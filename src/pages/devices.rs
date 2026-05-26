@@ -1,8 +1,10 @@
 use dioxus::prelude::*;
 
 use crate::api::devices;
+use crate::components::dangerous_action_dialog::{
+    DangerousActionDialog, device_revoke_phrase,
+};
 use crate::components::ui::button::{Button, ButtonSize, ButtonVariant};
-use crate::components::ui::dialog::ConfirmDialog;
 use crate::components::ui::error_banner::ErrorBanner;
 use crate::components::ui::input::SearchInput;
 use crate::components::ui::loading::PageSkeleton;
@@ -10,6 +12,7 @@ use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::pagination::Pagination;
 use crate::components::ui::table::*;
 use crate::components::ui::toast::{ToastVariant, show_toast};
+use crate::utils::csv::{build_csv, export_to_csv};
 use crate::utils::i18n::t;
 
 const PAGE_SIZE: u64 = 25;
@@ -33,6 +36,29 @@ pub fn DeviceList() -> Element {
             PageHeader {
                 title: t("devices.title"),
                 description: t("devices.subtitle"),
+                Button {
+                    variant: ButtonVariant::Outline,
+                    size: ButtonSize::Sm,
+                    onclick: move |_| {
+                        if let Some(Ok(resp)) = data.read().as_ref() {
+                            let rows: Vec<Vec<String>> = resp.data.iter().map(|d| vec![
+                                d.id.clone(),
+                                d.actor_id.clone().unwrap_or_default(),
+                                d.display_name.clone().unwrap_or_default(),
+                                d.device_type.clone().unwrap_or_default(),
+                                d.verification_status.clone().unwrap_or_default(),
+                                d.last_seen_ts.map(|t| t.to_string()).unwrap_or_default(),
+                            ]).collect();
+                            let csv = build_csv(
+                                &["id", "actor_id", "display_name", "device_type", "verification_status", "last_seen_ts_ms"],
+                                &rows,
+                            );
+                            export_to_csv("devices.csv", &csv);
+                            show_toast("Devices CSV downloaded", ToastVariant::Success);
+                        }
+                    },
+                    {t("common.export_csv")}
+                }
             }
 
             SearchInput {
@@ -121,6 +147,9 @@ pub fn DeviceList() -> Element {
                 Some(Err(e)) => rsx! {
                     ErrorBanner {
                         message: e.message.clone(),
+                        errcode: e.body.as_ref().map(|b| b.errcode.clone()),
+                        request_id: e.request_id.clone(),
+                        retry_after_ms: e.retry_after_ms,
                         on_retry: move |_| data.restart(),
                     }
                 },
@@ -128,28 +157,42 @@ pub fn DeviceList() -> Element {
             }
         }
 
-        ConfirmDialog {
-            open: show_delete_dialog.read().is_some(),
-            title: t("common.delete"),
-            description: "Are you sure you want to delete this device?".to_string(),
-            confirm_text: t("common.delete"),
-            destructive: true,
-            on_confirm: move |_| {
-                if let Some(id) = show_delete_dialog.read().clone() {
-                    let id = id.clone();
-                    spawn(async move {
-                        match devices::delete_device(&id).await {
-                            Ok(_) => {
-                                show_toast("Device deleted", ToastVariant::Success);
-                                data.restart();
-                            }
-                            Err(e) => show_toast(&format!("Failed: {}", e.message), ToastVariant::Error),
+        {
+            let pending = show_delete_dialog.read().clone();
+            let phrase = pending
+                .as_deref()
+                .map(|id| device_revoke_phrase(id, 4))
+                .unwrap_or_default();
+            let pending_id_desc = pending.clone().unwrap_or_default();
+            rsx! {
+                DangerousActionDialog {
+                    open: pending.is_some(),
+                    title: t("common.delete"),
+                    description: format!(
+                        "Revoke device {}? This signs out the session, drops device keys, and cannot be undone.",
+                        pending_id_desc
+                    ),
+                    confirmation_phrase: phrase,
+                    confirm_text: t("common.delete"),
+                    cancel_text: t("common.cancel"),
+                    on_confirm: move |_| {
+                        if let Some(id) = show_delete_dialog.read().clone() {
+                            let id = id.clone();
+                            spawn(async move {
+                                match devices::delete_device(&id).await {
+                                    Ok(_) => {
+                                        show_toast("Device deleted", ToastVariant::Success);
+                                        data.restart();
+                                    }
+                                    Err(e) => show_toast(&format!("Failed: {}", e.message), ToastVariant::Error),
+                                }
+                            });
                         }
-                    });
+                        show_delete_dialog.set(None);
+                    },
+                    on_cancel: move |_| show_delete_dialog.set(None),
                 }
-                show_delete_dialog.set(None);
-            },
-            on_cancel: move |_| show_delete_dialog.set(None),
+            }
         }
     }
 }
