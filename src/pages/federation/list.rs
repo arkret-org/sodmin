@@ -1,9 +1,7 @@
 use dioxus::prelude::*;
 
 use crate::api::federation;
-use crate::components::ui::auto_refresh::{
-    self, AutoRefreshPicker, RefreshInterval,
-};
+use crate::components::ui::auto_refresh::{self, AutoRefreshPicker, RefreshInterval};
 use crate::components::ui::badge::{Badge, BadgeVariant};
 use crate::components::ui::button::{Button, ButtonVariant};
 use crate::components::ui::card::*;
@@ -40,16 +38,12 @@ pub fn FederationList() -> Element {
     let mut peers = use_resource(move || {
         let c = peer_cursor.clone();
         let s = search_val.clone();
-        async move {
-            federation::list_federation_peers(c.as_deref(), PAGE_SIZE, &s).await
-        }
+        async move { federation::list_federation_peers(c.as_deref(), PAGE_SIZE, &s).await }
     });
 
     let mut rules = use_resource(move || {
         let c = rule_cursor.clone();
-        async move {
-            federation::list_federation_allow_rules(c.as_deref(), PAGE_SIZE).await
-        }
+        async move { federation::list_federation_allow_rules(c.as_deref(), PAGE_SIZE).await }
     });
 
     let mut interval_handle = use_signal::<Option<gloo_timers::callback::Interval>>(|| None);

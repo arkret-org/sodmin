@@ -191,6 +191,14 @@ fn build_nav_sections() -> Vec<NavSection> {
                 NavItem::new(t("nav.applets_admin"), Route::AppletAdmin {}, "plug"),
                 NavItem::new(t("nav.agents"), Route::AgentList {}, "bot"),
                 NavItem::new(t("nav.agents_admin"), Route::AgentAdmin {}, "bot"),
+                // CXP-0008 personal-agent admin (P3-A).
+                NavItem::new(
+                    "Personal agents".to_string(),
+                    Route::PersonalAgentList {},
+                    "bot",
+                ),
+                // B-C key-backup recovery admin (P3-B).
+                NavItem::new("Key backup".to_string(), Route::KeyBackupList {}, "key"),
                 NavItem::new(t("nav.directory_admin"), Route::DirectoryAdmin {}, "globe"),
                 NavItem::new(
                     t("nav.federation_status"),

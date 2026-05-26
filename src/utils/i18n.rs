@@ -3014,10 +3014,7 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             // singular `circle.*` keys above.
             ("circles.title", "Circle"),
             ("circles.create", "创建 Circle"),
-            (
-                "circles.member_limit",
-                "成员必须已属于父 Realm。",
-            ),
+            ("circles.member_limit", "成员必须已属于父 Realm。"),
             // B.7 — Export CSV button label.
             ("common.export_csv", "导出 CSV"),
             ("common.enabled", "已启用"),

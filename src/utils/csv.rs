@@ -110,10 +110,10 @@ pub fn export_to_csv(filename: &str, csv: &str) {
         Ok(u) => u,
         Err(_) => return,
     };
-    let anchor = match document
-        .create_element("a")
-        .and_then(|el| el.dyn_into::<HtmlAnchorElement>().map_err(|_| JsValue::NULL))
-    {
+    let anchor = match document.create_element("a").and_then(|el| {
+        el.dyn_into::<HtmlAnchorElement>()
+            .map_err(|_| JsValue::NULL)
+    }) {
         Ok(a) => a,
         Err(_) => {
             let _ = Url::revoke_object_url(&url);
@@ -183,10 +183,7 @@ mod tests {
 
     #[test]
     fn truncates_oversized_rows_to_header_width() {
-        let csv = build_csv(
-            &["a", "b"],
-            &[vec!["1".into(), "2".into(), "3".into()]],
-        );
+        let csv = build_csv(&["a", "b"], &[vec!["1".into(), "2".into(), "3".into()]]);
         let line = csv.lines().nth(1).unwrap();
         assert_eq!(line, "\"1\",\"2\"");
     }

@@ -1,9 +1,7 @@
 use dioxus::prelude::*;
 
 use crate::api::spaces;
-use crate::components::ui::auto_refresh::{
-    self, AutoRefreshPicker, RefreshInterval,
-};
+use crate::components::ui::auto_refresh::{self, AutoRefreshPicker, RefreshInterval};
 use crate::components::ui::button::{Button, ButtonSize, ButtonVariant};
 use crate::components::ui::error_banner::ErrorBanner;
 use crate::components::ui::icons::Icon;

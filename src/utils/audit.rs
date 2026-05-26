@@ -186,12 +186,9 @@ pub fn emit_admin_audit_server(
     };
 
     dioxus::prelude::spawn(async move {
-        let res: Result<serde_json::Value, _> = crate::api::client::api_client(
-            "/api/admin/v1/audit/client-event",
-            "POST",
-            Some(body),
-        )
-        .await;
+        let res: Result<serde_json::Value, _> =
+            crate::api::client::api_client("/api/admin/v1/audit/client-event", "POST", Some(body))
+                .await;
         if let Err(e) = res {
             // Don't toast — this is a fire-and-forget breadcrumb. Just
             // surface in the console for the operator who's actively

@@ -175,10 +175,7 @@ mod tests {
 
     #[test]
     fn applet_phrase_uses_name_when_present() {
-        assert_eq!(
-            applet_phrase(Some("acme-bot"), "ap_01", 6),
-            "acme-b"
-        );
+        assert_eq!(applet_phrase(Some("acme-bot"), "ap_01", 6), "acme-b");
         assert_eq!(applet_phrase(None, "ap_01HXY7", 6), "ap_01H");
         assert_eq!(applet_phrase(Some(""), "ap_01HXY7", 6), "ap_01H");
         // shorter than n -> whole source

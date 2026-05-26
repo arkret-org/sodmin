@@ -137,8 +137,19 @@ pub enum Route {
         AgentList {},
         #[route("/agents/admin")]
         AgentAdmin {},
+        // CXP-0008 personal-agent admin (P3-A). List + detail + 3-step
+        // provision wizard. Must precede the `/agents/:agent_id` catch
+        // so `/agents/personal` does NOT bind agent_id="personal".
+        #[route("/agents/personal")]
+        PersonalAgentList {},
+        #[route("/agents/personal/:agent_id")]
+        PersonalAgentShow { agent_id: String },
         #[route("/agents/:agent_id")]
         AgentShow { agent_id: String },
+
+        // B-C key-backup admin surface (P3-B).
+        #[route("/key-backup")]
+        KeyBackupList {},
 
         #[route("/directory")]
         DirectoryAdmin {},
@@ -536,6 +547,21 @@ fn SpacePolicyEditor(space_id: String) -> Element {
 #[component]
 fn AgentShow(agent_id: String) -> Element {
     rsx! { pages::agents::show::AgentShow { agent_id } }
+}
+
+#[component]
+fn PersonalAgentList() -> Element {
+    rsx! { pages::agents::personal::PersonalAgentList {} }
+}
+
+#[component]
+fn PersonalAgentShow(agent_id: String) -> Element {
+    rsx! { pages::agents::personal::PersonalAgentShow { agent_id } }
+}
+
+#[component]
+fn KeyBackupList() -> Element {
+    rsx! { pages::key_backup::KeyBackupList {} }
 }
 
 #[component]

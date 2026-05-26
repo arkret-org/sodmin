@@ -199,6 +199,12 @@ pub fn AuditLog() -> Element {
                                     TableHead { {t("audit.target_type")} }
                                     TableHead { {t("audit.target_id")} }
                                     TableHead { {t("audit.effective_scope")} }
+                                    // CXP-0008 — new envelope columns:
+                                    // executed_by / authorization_ref /
+                                    // actor_kind (reducer-stamped).
+                                    TableHead { "executed_by" }
+                                    TableHead { "authz_ref" }
+                                    TableHead { "actor_kind" }
                                     TableHead { {t("audit.timestamp")} }
                                     TableHead { {t("audit.source_ip")} }
                                 }
@@ -220,6 +226,9 @@ pub fn AuditLog() -> Element {
                                             let target_id = entry.target_id.clone().unwrap_or_else(|| "-".to_string());
                                             let timestamp = entry.timestamp.clone().unwrap_or_else(|| "-".to_string());
                                             let source_ip = entry.source_ip.clone().unwrap_or_else(|| "-".to_string());
+                                            let executed_by = entry.executed_by.clone().unwrap_or_else(|| "-".to_string());
+                                            let authorization_ref = entry.authorization_ref.clone().unwrap_or_else(|| "-".to_string());
+                                            let actor_kind = entry.actor_kind.clone().unwrap_or_else(|| "-".to_string());
                                             let details = entry.details.clone();
                                             let is_expanded = expanded.read().as_ref() == Some(&id);
                                             // P3A.5 — render the
@@ -254,6 +263,9 @@ pub fn AuditLog() -> Element {
                                                     TableCell { class: "font-mono text-xs".to_string(),
                                                         {render_effective_scope(&scope_kind)}
                                                     }
+                                                    TableCell { class: "font-mono text-xs max-w-[160px] truncate".to_string(), "{executed_by}" }
+                                                    TableCell { class: "font-mono text-xs max-w-[160px] truncate".to_string(), "{authorization_ref}" }
+                                                    TableCell { class: "text-xs".to_string(), "{actor_kind}" }
                                                     TableCell { class: "text-muted-foreground".to_string(), "{timestamp}" }
                                                     TableCell { "{source_ip}" }
                                                 }

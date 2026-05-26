@@ -370,6 +370,149 @@ pub struct Agent {
     pub created_at: Option<String>,
     #[serde(default)]
     pub last_active_at: Option<String>,
+    /// CXP-0008 — reducer-stamped actor kind. `native` / `ghost` for
+    /// personal agents; `service` / `agent` for non-personal forms.
+    /// Populated by soland's `cx.agent.list` / `cx.agent.get`.
+    #[serde(default)]
+    pub actor_kind: Option<String>,
+    /// CXP-0008 — controller DID. Personal agents are 1:1 bound to a
+    /// controller DID (`actor_kind=native`); ghost actors point at the
+    /// owning applet's principal DID instead.
+    #[serde(default)]
+    pub controller_did: Option<String>,
+    /// CXP-0008 — current `accountability_grant` id (coauth-issued).
+    /// `None` when no grant has been issued / the existing one was
+    /// revoked.
+    #[serde(default)]
+    pub accountability_grant_id: Option<String>,
+    /// CXP-0008 — ISO-8601 timestamp of when the
+    /// `accountability_grant` was last refreshed. Drives the
+    /// "accountability grant freshness" indicator on the detail page.
+    #[serde(default)]
+    pub accountability_grant_refreshed_at: Option<String>,
+    /// CXP-0008 — current pairing status (e.g. `paired`, `pending`,
+    /// `expired`). Surfaced verbatim on the detail page.
+    #[serde(default)]
+    pub pairing_status: Option<String>,
+    /// CXP-0008 — list of authorized agent key DIDs.
+    #[serde(default)]
+    pub agent_keys: Vec<String>,
+}
+
+/// CXP-0008 — capability grant detail for the personal-agent detail
+/// view's grant editor. Mirrors the soland `agent.grant.attach` /
+/// `agent.grant.detach` payload.
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct AgentGrantEntry {
+    #[serde(default)]
+    pub grant_id: String,
+    #[serde(default)]
+    pub action: String,
+    #[serde(default)]
+    pub scope: Option<String>,
+    #[serde(default)]
+    pub issued_at: Option<String>,
+    #[serde(default)]
+    pub expires_at: Option<String>,
+}
+
+/// CXP-0008 — agent provision wizard request body.
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct AgentProvisionRequest {
+    #[serde(default)]
+    pub controller_did: String,
+    #[serde(default)]
+    pub display_name: Option<String>,
+    /// Agent key proof material from step 2 of the wizard.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub agent_key_proof: Option<serde_json::Value>,
+}
+
+/// CXP-0008 — agent provision wizard response (returns the freshly
+/// minted `cx:agent_principal:<uuid7>` id).
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct AgentProvisionResponse {
+    #[serde(default)]
+    pub agent_principal_id: String,
+    #[serde(default)]
+    pub agent_did: Option<String>,
+    #[serde(default)]
+    pub initial_grant_ids: Vec<String>,
+}
+
+/// CXP-0008 — coauth `accountability_grant` request body for the
+/// wizard's controller-approval step.
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct AccountabilityGrantRequest {
+    #[serde(default)]
+    pub controller_did: String,
+    /// Optional human-friendly rationale stored on the grant ledger.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub rationale: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct AccountabilityGrantResponse {
+    #[serde(default)]
+    pub accountability_grant_id: String,
+    #[serde(default)]
+    pub issued_at: Option<String>,
+}
+
+// ── Key-backup admin types (B-C) ──
+
+/// B-C — recovery policy lifecycle. Mirrors
+/// `cx.schema.recovery_policy.v1#lifecycle`.
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct RecoveryPolicy {
+    #[serde(default)]
+    pub policy_id: String,
+    /// `pending` / `active` / `retired`.
+    #[serde(default)]
+    pub lifecycle: String,
+    #[serde(default)]
+    pub kdf_profile: Option<String>,
+    #[serde(default)]
+    pub epoch_hash: Option<String>,
+    #[serde(default)]
+    pub created_at: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct KeyBackupSeries {
+    #[serde(default)]
+    pub series_id: String,
+    #[serde(default)]
+    pub backup_class: Option<String>,
+    /// Highest `series_seq` observed for this series.
+    #[serde(default)]
+    pub frontier_seq: u64,
+    #[serde(default)]
+    pub frontier_ref: Option<String>,
+    /// Spec rename (head 37ce729): `series_sequence` → `series_seq`.
+    #[serde(default)]
+    pub series_seq: u64,
+    /// Three-class 409 reason counters per §12.1.
+    #[serde(default)]
+    pub series_chain_broken_count: u64,
+    #[serde(default)]
+    pub series_seq_not_monotonic_count: u64,
+    #[serde(default)]
+    pub series_predecessor_not_found_count: u64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct RecoveryReceipt {
+    #[serde(default)]
+    pub receipt_id: String,
+    #[serde(default)]
+    pub session_id: Option<String>,
+    #[serde(default)]
+    pub policy_id: Option<String>,
+    #[serde(default)]
+    pub issued_at: Option<String>,
+    #[serde(default)]
+    pub verified: bool,
 }
 
 // ── Report / Moderation types ──
@@ -479,6 +622,23 @@ pub struct AuditEntry {
     /// the rendering path.
     #[serde(default)]
     pub scope_circle_id: Option<String>,
+    /// CXP-0008 — when the envelope was signed/executed on behalf of
+    /// the principal, this records the executing DID (e.g. a personal
+    /// agent acting on behalf of the controller). Conditional: present
+    /// only on agent-attributed envelopes.
+    #[serde(default)]
+    pub executed_by: Option<String>,
+    /// CXP-0008 — typed id of the `accountability_grant` or capability
+    /// grant whose validity authorized the action. Lets the audit row
+    /// link back to the grant ledger row.
+    #[serde(default)]
+    pub authorization_ref: Option<String>,
+    /// CXP-0008 — reducer-stamped projection of the actor classification
+    /// at the moment of admission. One of `native` / `ghost` / `service`
+    /// / `agent`. Immutable per envelope and supplied by the reducer —
+    /// clients MUST NOT attempt to set this on write.
+    #[serde(default)]
+    pub actor_kind: Option<String>,
 }
 
 impl AuditEntry {
@@ -575,8 +735,9 @@ pub struct BlobInfo {
     pub id: String,
     #[serde(default)]
     pub digest: Option<String>,
+    /// Spec rename (head 37ce729): `size` → `size_bytes` on blob/media metadata.
     #[serde(default)]
-    pub size: u64,
+    pub size_bytes: u64,
     #[serde(default)]
     pub content_type: Option<String>,
     #[serde(default)]

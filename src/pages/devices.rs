@@ -4,9 +4,7 @@ use dioxus::prelude::*;
 
 use crate::api::devices;
 use crate::components::dangerous_action_dialog::DangerousActionDialog;
-use crate::components::ui::auto_refresh::{
-    self, AutoRefreshPicker, RefreshInterval,
-};
+use crate::components::ui::auto_refresh::{self, AutoRefreshPicker, RefreshInterval};
 use crate::components::ui::button::{Button, ButtonSize, ButtonVariant};
 use crate::components::ui::checkbox::{self, Checkbox};
 use crate::components::ui::error_banner::ErrorBanner;
@@ -71,11 +69,7 @@ pub fn DeviceList() -> Element {
             .data
             .iter()
             .filter(|d| {
-                matches_name_or_id(
-                    search.read().as_str(),
-                    &d.id,
-                    d.display_name.as_deref(),
-                )
+                matches_name_or_id(search.read().as_str(), &d.id, d.display_name.as_deref())
             })
             .map(|d| d.id.clone())
             .collect(),

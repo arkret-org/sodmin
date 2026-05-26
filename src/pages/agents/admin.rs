@@ -15,9 +15,7 @@ use dioxus::prelude::*;
 
 use crate::api::applets_agents_directory_admin as admin_api;
 use crate::components::dangerous_action_dialog::DangerousActionDialog;
-use crate::components::ui::auto_refresh::{
-    self, AutoRefreshPicker, RefreshInterval,
-};
+use crate::components::ui::auto_refresh::{self, AutoRefreshPicker, RefreshInterval};
 use crate::components::ui::badge::Badge;
 use crate::components::ui::button::{Button, ButtonSize, ButtonVariant};
 use crate::components::ui::checkbox::{self, Checkbox};

@@ -22,6 +22,8 @@ pub mod generated;
 pub mod handles;
 pub mod invite_tokens;
 pub mod invites_3pid;
+/// B-C key-backup recovery admin (soland P2 series + recovery policy).
+pub mod key_backup;
 pub mod media;
 pub mod moderation_admin;
 pub mod multisig_admin;
