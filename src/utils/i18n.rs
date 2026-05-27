@@ -2260,6 +2260,51 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "Delete this key backup version?",
             ),
             ("key_backup.refresh", "Refresh"),
+
+            // R3.1 (HDLREN-1) — handle normalize error tags.
+            ("error.handle_empty", "Handle is empty after trimming."),
+            (
+                "error.handle_malformed",
+                "Handle could not be parsed as <localpart>:<domain> — canonical wire form is required.",
+            ),
+
+            // R3.1 (MID-1..3, ROST-1..2) — Realm members + identity diagnostic.
+            ("spaces.identity", "Identity"),
+            ("spaces.membership", "Membership"),
+            (
+                "spaces.members_subtitle",
+                "Handles and display names are sourced from the effective MemberIdentity, not the legacy sync members[] row.",
+            ),
+            ("spaces.identity_pending", "Identity pending decryption"),
+            ("spaces.members_showing", "Showing"),
+            ("spaces.members_of_many", "of many"),
+            ("spaces.members_load_more", "Load more"),
+            ("spaces.open_identity_audit", "Open identity audit"),
+
+            ("realm_identity_audit.title", "Identity audit"),
+            (
+                "realm_identity_audit.subtitle",
+                "Per-actor effective cx.member.identity.update event ids and identity_state_digest projection.",
+            ),
+            ("realm_identity_audit.stub_title", "Data plumbing pending"),
+            (
+                "realm_identity_audit.stub_body",
+                "This diagnostic surface lights up once yougen's MLS decrypt pipeline (MID-4) lands. The page renders the empty scaffold today so the route is reachable from the Realm detail card.",
+            ),
+            ("realm_identity_audit.actors_title", "Actors"),
+            (
+                "realm_identity_audit.actors_subtitle",
+                "One row per actor in this Realm. cache_drift is set when the local projection disagrees with the roster row.",
+            ),
+            ("realm_identity_audit.col_actor", "Actor DID"),
+            ("realm_identity_audit.col_primary_handle", "Primary handle"),
+            ("realm_identity_audit.col_display_name", "Display name"),
+            ("realm_identity_audit.col_event_ids", "Effective event ids"),
+            ("realm_identity_audit.col_state_digest", "identity_state_digest"),
+            ("realm_identity_audit.col_cache", "Cache"),
+            ("realm_identity_audit.cache_drift", "drift"),
+            ("realm_identity_audit.cache_ok", "ok"),
+            ("realm_identity_audit.empty", "No actors observed yet."),
         ],
         Language::ZhCn => &[
             ("nav.actors", "Actor"),
@@ -3442,6 +3487,51 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("key_backup.delete", "删除备份"),
             ("key_backup.delete_confirm", "确认删除该备份版本？"),
             ("key_backup.refresh", "刷新"),
+
+            // R3.1 (HDLREN-1) — handle 规范化错误信息。
+            ("error.handle_empty", "句柄为空（已去除空白）。"),
+            (
+                "error.handle_malformed",
+                "句柄无法解析为 <localpart>:<domain>，请使用规范的 wire 格式。",
+            ),
+
+            // R3.1 (MID-1..3, ROST-1..2) — Realm 成员 + 身份诊断。
+            ("spaces.identity", "身份"),
+            ("spaces.membership", "成员状态"),
+            (
+                "spaces.members_subtitle",
+                "句柄和显示名称源自当前有效的 MemberIdentity，而非旧版同步成员字段。",
+            ),
+            ("spaces.identity_pending", "身份待解密"),
+            ("spaces.members_showing", "显示"),
+            ("spaces.members_of_many", "项（共更多）"),
+            ("spaces.members_load_more", "加载更多"),
+            ("spaces.open_identity_audit", "打开身份审计"),
+
+            ("realm_identity_audit.title", "身份审计"),
+            (
+                "realm_identity_audit.subtitle",
+                "每位 actor 当前有效的 cx.member.identity.update 事件 id 及 identity_state_digest 投影。",
+            ),
+            ("realm_identity_audit.stub_title", "数据接入待完成"),
+            (
+                "realm_identity_audit.stub_body",
+                "在 yougen MLS 解密管线（MID-4）就绪后，此诊断页将开始展示真实数据。今天先渲染空骨架以便从 Realm 详情卡片到达本页。",
+            ),
+            ("realm_identity_audit.actors_title", "Actor 列表"),
+            (
+                "realm_identity_audit.actors_subtitle",
+                "本 Realm 中每个 actor 一行。本地投影与 roster 不一致时 cache_drift 会标红。",
+            ),
+            ("realm_identity_audit.col_actor", "Actor DID"),
+            ("realm_identity_audit.col_primary_handle", "首选句柄"),
+            ("realm_identity_audit.col_display_name", "显示名称"),
+            ("realm_identity_audit.col_event_ids", "有效事件 id"),
+            ("realm_identity_audit.col_state_digest", "identity_state_digest"),
+            ("realm_identity_audit.col_cache", "缓存"),
+            ("realm_identity_audit.cache_drift", "偏差"),
+            ("realm_identity_audit.cache_ok", "正常"),
+            ("realm_identity_audit.empty", "暂未观察到任何 actor。"),
         ],
     };
 

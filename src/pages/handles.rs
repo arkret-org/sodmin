@@ -8,6 +8,16 @@
 //! - [`HandleShow`] is the per-handle detail page; it pulls the audit
 //!   trail from `/api/admin/v1/handles/{id}/audit` (T3.2's audit
 //!   table) and exposes the revoke + force-reassign actions.
+//!
+//! R3.1 (HDLREN-1) — the canonical wire form is `<localpart>:<domain>`;
+//! the retired `contrix://` URI form is gone. Both columns here render
+//! the soland-supplied `canonical_uri` verbatim (which is already
+//! `<localpart>:<domain>` post-R3.1); the operator-facing display
+//! sigil `@<localpart>:<domain>` is rendered alongside via
+//! [`utils::handle::display_sigil`] for readability. Inputs that
+//! arrive as sigil / acct: / retired URI shapes are normalised back
+//! to canonical via [`utils::handle::normalize_to_canonical`] before
+//! they hit soland.
 
 use dioxus::prelude::*;
 
@@ -27,6 +37,7 @@ use crate::components::ui::toast::{ToastVariant, show_toast};
 use crate::router::Route;
 use crate::types::HandleReassignRequest;
 use crate::utils::did;
+use crate::utils::handle::display_sigil;
 use crate::utils::i18n::t;
 
 const PAGE_SIZE: u64 = 25;
@@ -91,6 +102,12 @@ pub fn HandleList() -> Element {
                                         {
                                             let id = handle.id.clone();
                                             let canonical = handle.canonical_uri.clone();
+                                            // R3.1 (HDLREN-1) — display sigil
+                                            // alongside the canonical wire bytes
+                                            // so operators can scan the list
+                                            // visually without losing the
+                                            // soland-verifiable form.
+                                            let sigil = display_sigil(&canonical);
                                             let aliases = handle.aliases.join(", ");
                                             let issuer = handle.issuer_did.clone().unwrap_or_else(|| "-".to_string());
                                             let expires = handle.expires_at.clone().unwrap_or_else(|| "-".to_string());
@@ -104,9 +121,14 @@ pub fn HandleList() -> Element {
                                             rsx! {
                                                 TableRow {
                                                     TableCell { class: "font-mono text-xs max-w-[260px] truncate".to_string(),
-                                                        Link { to: Route::HandleShow { handle_id: id_for_link.clone() },
-                                                            class: "text-primary hover:underline",
-                                                            "{canonical}"
+                                                        div { class: "flex flex-col",
+                                                            Link { to: Route::HandleShow { handle_id: id_for_link.clone() },
+                                                                class: "text-primary hover:underline",
+                                                                "{canonical}"
+                                                            }
+                                                            span { class: "text-muted-foreground/80 text-[10px]",
+                                                                "{sigil}"
+                                                            }
                                                         }
                                                     }
                                                     TableCell { class: "max-w-[200px] truncate text-xs".to_string(), "{aliases}" }

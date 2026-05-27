@@ -27,6 +27,8 @@ pub mod oauth_callback;
 pub mod policy;
 pub mod push_routes;
 pub mod realm_destroy;
+/// R3.1 (MID-3) — Realm identity audit diagnostic page.
+pub mod realm_identity_audit;
 pub mod realm_links;
 /// R3 (UI-3) — Realm `media_service.foci[]` editor.
 pub mod realm_media_service;

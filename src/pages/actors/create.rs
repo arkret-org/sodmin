@@ -8,7 +8,9 @@ use crate::components::ui::loading::Spinner;
 use crate::components::ui::page_header::PageHeader;
 use crate::router::Route;
 use crate::types::CreateActorRequest;
-use crate::utils::handle::{HomographReason, is_safe_handle_localpart};
+use crate::utils::handle::{
+    HomographReason, is_safe_handle_localpart, normalize_to_canonical,
+};
 use crate::utils::i18n::t;
 
 #[component]
@@ -41,21 +43,42 @@ pub fn ActorCreate() -> Element {
         // operator gets the same answer the soland reducer would have
         // returned (handle_homograph_forbidden). Empty handle is fine —
         // the wire shape allows omitting it entirely.
-        let candidate = handle.read().clone();
-        if !candidate.is_empty()
-            && let Err(reason) = is_safe_handle_localpart(&candidate)
-        {
-            error.set(t(reason.i18n_key()));
-            return;
-        }
+        //
+        // R3.1 (HDLREN-1) — soland's canonical wire form is now
+        // `<localpart>:<domain>`. If the operator pasted the display
+        // sigil, the `acct:` interop form, or the retired `contrix://`
+        // URI, normalise back to canonical before submitting. The
+        // homograph guard then runs against the localpart only.
+        let raw = handle.read().trim().to_string();
+        let normalised_handle: Option<String> = if raw.is_empty() {
+            None
+        } else if raw.contains(':') || raw.starts_with('@') || raw.starts_with("acct:") {
+            match normalize_to_canonical(&raw) {
+                Ok(canonical) => {
+                    let local = canonical.split(':').next().unwrap_or("");
+                    if let Err(reason) = is_safe_handle_localpart(local) {
+                        error.set(t(reason.i18n_key()));
+                        return;
+                    }
+                    Some(canonical)
+                }
+                Err(e) => {
+                    error.set(t(e.i18n_key()));
+                    return;
+                }
+            }
+        } else {
+            // Bare localpart — soland fills in the host domain server-side.
+            if let Err(reason) = is_safe_handle_localpart(&raw) {
+                error.set(t(reason.i18n_key()));
+                return;
+            }
+            Some(raw)
+        };
         saving.set(true);
         error.set(String::new());
         let req = CreateActorRequest {
-            handle: if handle.read().is_empty() {
-                None
-            } else {
-                Some(handle.read().clone())
-            },
+            handle: normalised_handle,
             display_name: if display_name.read().is_empty() {
                 None
             } else {
@@ -113,12 +136,33 @@ pub fn ActorCreate() -> Element {
                     // SDK helper `normalize_handle_localpart`. Renders as
                     // soon as the operator types something the soland
                     // reducer would reject with handle_homograph_forbidden.
+                    //
+                    // R3.1 (HDLREN-1) — if the operator pasted a display
+                    // sigil / canonical / acct: form, isolate the
+                    // localpart first so the homograph check runs against
+                    // only the user-controlled portion. Soland's
+                    // canonical wire form is `<localpart>:<domain>`.
                     {
-                        let candidate = handle.read().clone();
-                        if candidate.is_empty() {
+                        let raw = handle.read().trim().to_string();
+                        if raw.is_empty() {
                             rsx! {}
                         } else {
-                            match is_safe_handle_localpart(&candidate) {
+                            let local_for_check: String = if raw.contains(':')
+                                || raw.starts_with('@')
+                                || raw.starts_with("acct:")
+                            {
+                                match normalize_to_canonical(&raw) {
+                                    Ok(canon) => canon
+                                        .split(':')
+                                        .next()
+                                        .unwrap_or("")
+                                        .to_string(),
+                                    Err(_) => raw.clone(),
+                                }
+                            } else {
+                                raw.clone()
+                            };
+                            match is_safe_handle_localpart(&local_for_check) {
                                 Ok(_) => rsx! {},
                                 Err(reason) => {
                                     let copy = t(reason.i18n_key());

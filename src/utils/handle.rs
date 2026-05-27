@@ -19,6 +19,19 @@
 //! `Err(reason)` otherwise. The full UTS#39 skeleton table is the SDK's
 //! responsibility (R3.1); this helper is just enough to render an inline
 //! "looks suspicious" warning under the input field.
+//!
+//! ## R3.1 — canonical handle wire form
+//!
+//! The canonical wire form is `<localpart>:<domain>(:<port>)?` — the
+//! pre-R3.1 `contrix://<domain>/users/<localpart>` URI form has been
+//! retired (contrix-spec @ 7157ee8). The admin UI MAY render the
+//! display sigil `@<localpart>:<domain>` to operators, but MUST
+//! normalize back to the canonical bytes via
+//! [`normalize_to_canonical`] before submitting to soland so soland's
+//! `cx.handle.*` reducers see the wire shape they verify against.
+//!
+//! See `contrix_core::model::handle::Handle` for the SDK-side parser /
+//! formatter; this module is the admin-SPA mirror.
 
 /// Static i18n key returned by [`is_safe_handle_localpart`] when the
 /// input would trip the server-side `handle_homograph_forbidden`
@@ -108,6 +121,107 @@ impl HomographReason {
     }
 }
 
+/// R3.1 — normalize any of the operator-visible handle spellings down
+/// to the canonical wire form `<localpart>:<domain>(:<port>)?` that
+/// soland verifies against.
+///
+/// Accepts:
+/// - canonical `localpart:domain[:port]` (returned as-is, lower-cased)
+/// - display sigil `@localpart:domain[:port]` (strip leading `@`)
+/// - interop `acct:localpart@domain[:port]` (rewrite to canonical)
+/// - retired `contrix://domain/users/localpart` URI form (rewrite to
+///   canonical; the admin UI is the last surface where this can leak
+///   in from a copy-paste, so we accept it as input but never emit it)
+///
+/// Returns `Err` when the input is empty after trimming or carries
+/// structural noise we can't recover from (e.g. multiple `@`). The
+/// caller is expected to additionally run [`is_safe_handle_localpart`]
+/// against the resulting localpart to catch homograph attacks.
+pub fn normalize_to_canonical(input: &str) -> Result<String, HandleNormalizeError> {
+    let trimmed = input.trim();
+    if trimmed.is_empty() {
+        return Err(HandleNormalizeError::Empty);
+    }
+
+    // 1. Retired `contrix://` URI form. We accept on input so a stale
+    //    bookmark / copy-paste round-trips into canonical; we never
+    //    emit it on output.
+    if let Some(rest) = trimmed.strip_prefix("contrix://") {
+        let mut parts = rest.splitn(3, '/');
+        let domain = parts.next().unwrap_or("").to_ascii_lowercase();
+        let users = parts.next().unwrap_or("");
+        let localpart = parts.next().unwrap_or("").to_ascii_lowercase();
+        if users != "users" || localpart.is_empty() || domain.is_empty() {
+            return Err(HandleNormalizeError::Malformed);
+        }
+        return Ok(format!("{localpart}:{domain}"));
+    }
+
+    // 2. `acct:` interop form -- rewrite the `@` separator to `:`.
+    if let Some(rest) = trimmed.strip_prefix("acct:") {
+        let (local, domain) = rest
+            .rsplit_once('@')
+            .ok_or(HandleNormalizeError::Malformed)?;
+        if local.is_empty() || domain.is_empty() {
+            return Err(HandleNormalizeError::Malformed);
+        }
+        return Ok(format!(
+            "{}:{}",
+            local.to_ascii_lowercase(),
+            domain.to_ascii_lowercase()
+        ));
+    }
+
+    // 3. Display sigil `@localpart:domain[:port]`.
+    let body = trimmed.strip_prefix('@').unwrap_or(trimmed);
+
+    // 4. Canonical form already.
+    let mut parts = body.split(':');
+    let local = parts.next().ok_or(HandleNormalizeError::Malformed)?;
+    let domain = parts.next().ok_or(HandleNormalizeError::Malformed)?;
+    let port = parts.next();
+    if parts.next().is_some() {
+        return Err(HandleNormalizeError::Malformed);
+    }
+    if local.is_empty() || domain.is_empty() {
+        return Err(HandleNormalizeError::Malformed);
+    }
+    let local = local.to_ascii_lowercase();
+    let domain = domain.to_ascii_lowercase();
+    match port {
+        Some(p) => Ok(format!("{local}:{domain}:{p}")),
+        None => Ok(format!("{local}:{domain}")),
+    }
+}
+
+/// R3.1 — format the operator-facing display sigil for a canonical
+/// handle. Given canonical bytes `<localpart>:<domain>(:<port>)?` it
+/// returns `@<localpart>:<domain>(:<port>)?`. Pass any operator input
+/// through [`normalize_to_canonical`] first if you're not certain it's
+/// already canonical.
+pub fn display_sigil(canonical: &str) -> String {
+    let body = canonical.trim().strip_prefix('@').unwrap_or(canonical.trim());
+    format!("@{body}")
+}
+
+/// R3.1 — failure reason from [`normalize_to_canonical`]. Surfaces a
+/// short i18n key the page can render under the input field.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum HandleNormalizeError {
+    Empty,
+    Malformed,
+}
+
+impl HandleNormalizeError {
+    #[allow(dead_code)]
+    pub fn i18n_key(self) -> &'static str {
+        match self {
+            HandleNormalizeError::Empty => "error.handle_empty",
+            HandleNormalizeError::Malformed => "error.handle_malformed",
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -161,5 +275,76 @@ mod tests {
             is_safe_handle_localpart(&too_long),
             Err(HomographReason::OutOfRange)
         );
+    }
+
+    #[test]
+    fn normalizes_canonical_passthrough() {
+        assert_eq!(
+            normalize_to_canonical("alice:example.com").unwrap(),
+            "alice:example.com"
+        );
+        assert_eq!(
+            normalize_to_canonical("Alice:Example.COM").unwrap(),
+            "alice:example.com"
+        );
+        assert_eq!(
+            normalize_to_canonical("alice:example.com:8443").unwrap(),
+            "alice:example.com:8443"
+        );
+    }
+
+    #[test]
+    fn normalizes_display_sigil() {
+        assert_eq!(
+            normalize_to_canonical("@alice:example.com").unwrap(),
+            "alice:example.com"
+        );
+        assert_eq!(
+            normalize_to_canonical("  @alice:example.com  ").unwrap(),
+            "alice:example.com"
+        );
+    }
+
+    #[test]
+    fn normalizes_acct_interop() {
+        assert_eq!(
+            normalize_to_canonical("acct:alice@example.com").unwrap(),
+            "alice:example.com"
+        );
+    }
+
+    #[test]
+    fn normalizes_retired_contrix_uri() {
+        assert_eq!(
+            normalize_to_canonical("contrix://example.com/users/alice").unwrap(),
+            "alice:example.com"
+        );
+    }
+
+    #[test]
+    fn rejects_malformed_handles() {
+        assert_eq!(
+            normalize_to_canonical(""),
+            Err(HandleNormalizeError::Empty)
+        );
+        assert_eq!(
+            normalize_to_canonical("alice"),
+            Err(HandleNormalizeError::Malformed)
+        );
+        assert_eq!(
+            normalize_to_canonical("alice:example.com:443:extra"),
+            Err(HandleNormalizeError::Malformed)
+        );
+        assert_eq!(
+            normalize_to_canonical("acct:alice"),
+            Err(HandleNormalizeError::Malformed)
+        );
+    }
+
+    #[test]
+    fn display_sigil_formats() {
+        assert_eq!(display_sigil("alice:example.com"), "@alice:example.com");
+        // Already-sigil input is idempotent so callers can be sloppy.
+        assert_eq!(display_sigil("@alice:example.com"), "@alice:example.com");
     }
 }

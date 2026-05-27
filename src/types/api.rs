@@ -168,6 +168,30 @@ pub struct SpaceMember {
     /// expiry, and the rebind action.
     #[serde(default)]
     pub delivery_binding: Option<MemberDeliveryBinding>,
+    /// R3.1 (ROST-1) — membership state from the new
+    /// `member_roster_entry` wire shape (`join` / `invite` / `knock`).
+    /// `None` on responses that pre-date the rename so the field is
+    /// backwards-compatible.
+    #[serde(default)]
+    pub membership: Option<String>,
+    /// R3.1 (ROST-1) — effective `cx.member.identity.update` event
+    /// ids. Admin rows MUST source `display_name` / `primary_handle`
+    /// from the joined effective MemberIdentity rather than the
+    /// legacy in-roster fields when this list is non-empty (MID-1).
+    #[serde(default)]
+    pub identity_event_ids: Vec<String>,
+    /// R3.1 (ROST-1, MID-2) — projection digest the server published
+    /// alongside the identity events. Drives the "identity pending
+    /// decryption" placeholder when the local SDK cache disagrees.
+    #[serde(default)]
+    pub identity_state_digest: Option<String>,
+    /// R3.1 (ROST-1) — canonical primary handle from the effective
+    /// MemberIdentity, when the SDK has already joined the projection
+    /// for this row. `None` means the SPA hasn't decrypted the
+    /// identity events yet (render the pending placeholder instead of
+    /// falling back to the raw DID).
+    #[serde(default)]
+    pub primary_handle: Option<String>,
 }
 
 /// `member_delivery_binding` shape carried inside [`SpaceMember`].
@@ -1394,10 +1418,234 @@ pub struct PushRouteRow {
     pub created_at: Option<String>,
 }
 
+// ── R3.1 — HandleClaim / MemberDeliveryBindingCandidate (HDLREN-2) ──
+//
+// Mirrors `cx.schema.handle_claim.v1` and the embedded
+// `member_delivery_binding` candidate. Spec ref: contrix-spec @ 7157ee8.
+//
+// Wire rename: the prior `handle_uri` field is now `handle` and carries
+// the canonical `<localpart>:<domain>(:<port>)?` wire form. The SDK
+// retains a deprecated alias for one release; admin SPA reads the new
+// name only (we don't accept the legacy spelling).
+
+/// Subset of the spec's `cx.handle_claim.v1` body that the admin SPA
+/// actually consumes. Stays a thin wire mirror — full validation lives
+/// in the SDK (`contrix_core::model::handle::HandleClaim`).
+#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
+pub struct HandleClaim {
+    /// Canonical handle `<localpart>:<domain>(:<port>)?`. R3.1 rename
+    /// from the pre-R3.1 `handle_uri` URI form (`contrix://...`).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub handle: Option<String>,
+    /// Interop aliases — e.g. `acct:alice@example.com`.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub handle_aliases: Vec<String>,
+    /// Principal DID the handle currently resolves to.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub subject: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub issuer: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub issuer_service_did: Option<String>,
+    /// `unverified` / `pending` / `verified` / `revoked`.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub binding_state: Option<String>,
+    /// Optional embedded delivery-binding candidate (see
+    /// [`MemberDeliveryBindingCandidate`]).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub member_delivery_binding: Option<MemberDeliveryBindingCandidate>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub issued_at: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub expires_at: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub verified_at: Option<String>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub source_refs: Vec<String>,
+}
+
+/// `member_delivery_binding` candidate embedded in [`HandleClaim`]. The
+/// admin SPA only reads it (we don't yet surface candidate management
+/// here); the typed mirror exists so deserialization survives the
+/// `handle_uri → handle` wire rename without falling back to
+/// `serde_json::Value`.
+#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
+pub struct MemberDeliveryBindingCandidate {
+    #[serde(default)]
+    pub recipient_service_did: String,
+    #[serde(default)]
+    pub binding_source: String,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub delivery_modes: Vec<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub audience: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub expires_at: Option<String>,
+    /// Spec-level `cx:event:*` ref to the service_acceptance event.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub service_acceptance_ref: Option<String>,
+}
+
+// ── R3.1 — MemberRosterEntry / MemberIdentity views (MID-1..3, ROST-1..2) ──
+//
+// Spec source: contrix-spec @ 7157ee8 — `account-subscribe-frame.schema.json`
+// `member_roster_entry` + `cx.schema.member_identity.v1`. Wire-shape
+// mirror only; effective-set evaluation + signature verification stay
+// in the SDK (`contrix_core::model::member_identity`).
+
+/// Per-actor entry in a Realm's `members[]` projection. The roster
+/// itself never carries raw handle / display_name — clients resolve
+/// identity via `identity_event_ids[]` + the effective
+/// `cx.member.identity.update` events. Admin pages surface a "pending
+/// decryption" placeholder when our cache lacks the matching epoch
+/// material.
+#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
+pub struct MemberRosterEntry {
+    #[serde(default)]
+    pub actor_id: String,
+    /// `join` / `invite` / `knock`.
+    #[serde(default)]
+    pub membership: String,
+    /// Effective `cx.member.identity.update` event ids after replacement
+    /// edges have been applied. May be empty before initial identity
+    /// update has been received.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub identity_event_ids: Vec<String>,
+    /// `sha256:<hex>` projection digest of the effective identity set.
+    /// `None` when the server omitted the field; non-`None` values MUST
+    /// match what the local cache rederives or the UI surfaces the
+    /// "pending decryption" placeholder.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub identity_state_digest: Option<String>,
+}
+
+/// Per-actor effective MemberIdentity projection rendered on the
+/// roster row. Populated client-side by joining
+/// [`MemberRosterEntry::identity_event_ids`] against the locally-cached
+/// `cx.member.identity.update` decryption pipeline.
+///
+/// The projection is the *display surface* — soland never sends this
+/// shape directly; it's assembled by the SPA from the effective
+/// identity events.
+#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
+pub struct EffectiveMemberIdentity {
+    #[serde(default)]
+    pub actor_id: String,
+    /// Canonical primary handle, or `None` when no `cx.handle.*` claim
+    /// has been published yet for this actor.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub primary_handle: Option<String>,
+    /// Operator-friendly display name.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub display_name: Option<String>,
+    /// `sha256:<hex>` projection digest the SDK derived from the local
+    /// effective set; compared against
+    /// [`MemberRosterEntry::identity_state_digest`] to detect drift.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub identity_state_digest: Option<String>,
+    /// Effective `cx.member.identity.update` event ids in the canonical
+    /// order the SDK computed them.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub identity_event_ids: Vec<String>,
+}
+
+/// MID-2 — render-time classifier for a roster row's identity column.
+///
+/// The admin UI MUST NOT silently fall back to the raw DID when the
+/// effective MemberIdentity is missing or stale; this enum drives the
+/// "identity pending decryption" placeholder instead.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum MemberIdentityRender {
+    /// Effective MemberIdentity successfully decoded and the cached
+    /// digest matches the roster row's projection.
+    Effective(EffectiveMemberIdentity),
+    /// Roster row references identity events but the SPA does not yet
+    /// have the matching epoch / payload digest in cache (the MLS
+    /// decrypt pipeline lives in yougen, MID-4). The UI surfaces a
+    /// "pending decryption" placeholder rather than a raw DID.
+    PendingDecryption {
+        actor_id: String,
+        expected_digest: Option<String>,
+    },
+    /// Roster row carries zero identity events (e.g. fresh `invite`
+    /// state). Acceptable to render the actor_id directly; this is
+    /// distinct from `PendingDecryption` because no projection has
+    /// ever been published.
+    NoIdentityYet { actor_id: String },
+}
+
+impl MemberIdentityRender {
+    /// Classify a roster row against an optional effective projection
+    /// supplied by the caller (typically the local SDK cache).
+    pub fn classify(
+        entry: &MemberRosterEntry,
+        cached: Option<&EffectiveMemberIdentity>,
+    ) -> Self {
+        if entry.identity_event_ids.is_empty() {
+            return MemberIdentityRender::NoIdentityYet {
+                actor_id: entry.actor_id.clone(),
+            };
+        }
+        match cached {
+            Some(eff)
+                if eff.identity_state_digest.is_some()
+                    && eff.identity_state_digest == entry.identity_state_digest =>
+            {
+                MemberIdentityRender::Effective(eff.clone())
+            }
+            _ => MemberIdentityRender::PendingDecryption {
+                actor_id: entry.actor_id.clone(),
+                expected_digest: entry.identity_state_digest.clone(),
+            },
+        }
+    }
+}
+
+/// Cursor-paginated roster envelope. Mirrors the
+/// `account-subscribe-frame.schema.json` shape — note `members_limited`
+/// + `members_next_cursor` so admin pages can surface "showing N of
+/// many" affordances (ROST-2).
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct MemberRosterPage {
+    #[serde(default)]
+    pub members: Vec<MemberRosterEntry>,
+    /// `true` when soland truncated the page; the admin UI MUST render
+    /// a "showing N of many" affordance + the cursor-based load-more
+    /// button.
+    #[serde(default)]
+    pub members_limited: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub members_next_cursor: Option<String>,
+}
+
+/// MID-3 — read-only row in the per-Realm identity-audit diagnostic
+/// page. One row per actor; lists the current effective
+/// `cx.member.identity.update` event ids + the projection digest the
+/// SPA computed. Used to triage cross-actor identity drift without
+/// hitting the soland audit log directly.
+#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
+pub struct RealmIdentityAuditRow {
+    #[serde(default)]
+    pub actor_id: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub primary_handle: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub display_name: Option<String>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub identity_event_ids: Vec<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub identity_state_digest: Option<String>,
+    /// `true` when the cached projection digest disagrees with the
+    /// roster row — surface as a red flag in the operator view.
+    #[serde(default)]
+    pub cache_drift: bool,
+}
+
 #[cfg(test)]
 mod tests {
     use super::{
-        HandleRecord, ServerDescribeResBody, UpdateCapabilityRequest,
+        HandleClaim, HandleRecord, MemberDeliveryBindingCandidate, MemberIdentityRender,
+        MemberRosterEntry, ServerDescribeResBody, UpdateCapabilityRequest,
         UpdateDeliveryBindingPolicyRequest,
     };
     use serde_json::json;
@@ -1560,5 +1808,100 @@ mod tests {
         assert!(serialized.contains("fields_write_allow"));
         assert!(serialized.contains("approval_required"));
         assert!(!serialized.contains("facets_allow"));
+    }
+
+    #[test]
+    fn handle_claim_uses_handle_field_not_handle_uri() {
+        // R3.1 wire rename — the spec field name is `handle`. The
+        // legacy `handle_uri` spelling must NOT appear in either
+        // serialization or deserialization (sodmin is a fresh client
+        // and never had to ship the alias).
+        let claim: HandleClaim = serde_json::from_value(json!({
+            "handle": "alice:example.com",
+            "subject": "did:web:alice.example.com",
+            "binding_state": "verified",
+            "expires_at": "2027-01-01T00:00:00Z"
+        }))
+        .expect("HandleClaim with `handle` field deserializes");
+        assert_eq!(claim.handle.as_deref(), Some("alice:example.com"));
+        assert_eq!(claim.binding_state.as_deref(), Some("verified"));
+
+        let serialized = serde_json::to_string(&claim).expect("serializes");
+        assert!(serialized.contains("\"handle\":"));
+        assert!(
+            !serialized.contains("handle_uri"),
+            "legacy handle_uri field must not be serialized"
+        );
+    }
+
+    #[test]
+    fn member_delivery_binding_candidate_round_trips() {
+        let candidate = MemberDeliveryBindingCandidate {
+            recipient_service_did: "did:web:floria.example".to_string(),
+            binding_source: "explicit".to_string(),
+            delivery_modes: vec!["push".to_string()],
+            audience: Some("did:web:alice.example".to_string()),
+            expires_at: Some("2027-01-01T00:00:00Z".to_string()),
+            service_acceptance_ref: Some("cx:event:01904100-0000-7000-8000-000000000001".to_string()),
+        };
+        let json = serde_json::to_value(&candidate).expect("serializes");
+        let decoded: MemberDeliveryBindingCandidate =
+            serde_json::from_value(json).expect("round-trips");
+        assert_eq!(decoded, candidate);
+    }
+
+    #[test]
+    fn member_roster_entry_deserializes_minimal_shape() {
+        let entry: MemberRosterEntry = serde_json::from_value(json!({
+            "actor_id": "did:web:alice.example",
+            "membership": "join"
+        }))
+        .expect("minimal roster entry deserializes");
+        assert_eq!(entry.actor_id, "did:web:alice.example");
+        assert_eq!(entry.membership, "join");
+        assert!(entry.identity_event_ids.is_empty());
+        assert!(entry.identity_state_digest.is_none());
+    }
+
+    #[test]
+    fn member_identity_render_classifier_handles_three_states() {
+        // 1. No identity events yet -- NoIdentityYet.
+        let bare = MemberRosterEntry {
+            actor_id: "did:web:alice.example".to_string(),
+            membership: "invite".to_string(),
+            identity_event_ids: vec![],
+            identity_state_digest: None,
+        };
+        assert!(matches!(
+            MemberIdentityRender::classify(&bare, None),
+            MemberIdentityRender::NoIdentityYet { .. }
+        ));
+
+        // 2. Identity events but no cached projection -- PendingDecryption.
+        let pending = MemberRosterEntry {
+            actor_id: "did:web:bob.example".to_string(),
+            membership: "join".to_string(),
+            identity_event_ids: vec!["cx:event:0000".to_string()],
+            identity_state_digest: Some("sha256:deadbeef".to_string()),
+        };
+        assert!(matches!(
+            MemberIdentityRender::classify(&pending, None),
+            MemberIdentityRender::PendingDecryption { .. }
+        ));
+
+        // 3. Identity events with matching cache -- Effective.
+        let eff = super::EffectiveMemberIdentity {
+            actor_id: "did:web:bob.example".to_string(),
+            primary_handle: Some("bob:example.com".to_string()),
+            display_name: Some("Bob".to_string()),
+            identity_state_digest: Some("sha256:deadbeef".to_string()),
+            identity_event_ids: vec!["cx:event:0000".to_string()],
+        };
+        match MemberIdentityRender::classify(&pending, Some(&eff)) {
+            MemberIdentityRender::Effective(rendered) => {
+                assert_eq!(rendered.primary_handle.as_deref(), Some("bob:example.com"));
+            }
+            other => panic!("expected Effective, got {other:?}"),
+        }
     }
 }

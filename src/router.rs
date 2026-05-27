@@ -132,6 +132,12 @@ pub enum Route {
         #[route("/realms/:realm_id/media-service")]
         RealmMediaService { realm_id: String },
 
+        // R3.1 (MID-3) — Realm identity audit diagnostic page. Stub
+        // view today; full data plumbing lands after yougen MID-4 ships
+        // the MLS decrypt pipeline (TODO(R4)).
+        #[route("/admin/realms/:realm_id/identity-audit")]
+        RealmIdentityAudit { realm_id: String },
+
         #[route("/applets")]
         AppletList {},
         #[route("/applets/admin")]
@@ -519,6 +525,11 @@ fn RealmLinks(realm_id: String) -> Element {
 #[component]
 fn RealmMediaService(realm_id: String) -> Element {
     rsx! { pages::realm_media_service::RealmMediaService { realm_id } }
+}
+
+#[component]
+fn RealmIdentityAudit(realm_id: String) -> Element {
+    rsx! { pages::realm_identity_audit::RealmIdentityAudit { realm_id } }
 }
 
 #[component]

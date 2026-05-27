@@ -2,6 +2,7 @@ use dioxus::prelude::*;
 
 use crate::api::spaces;
 use crate::components::realm_classification_badge::RealmClassificationBadge;
+use crate::components::ui::badge::{Badge, BadgeVariant};
 use crate::components::ui::button::{Button, ButtonVariant};
 use crate::components::ui::card::*;
 use crate::components::ui::error_banner::ErrorBanner;
@@ -9,6 +10,7 @@ use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::{BreadcrumbItem, Breadcrumbs, PageHeader};
 use crate::components::ui::table::*;
 use crate::router::Route;
+use crate::utils::handle::display_sigil;
 use crate::utils::i18n::t;
 
 #[component]
@@ -121,26 +123,148 @@ pub fn SpaceShow(space_id: String) -> Element {
                         }
 
                         Card {
-                            CardHeader { CardTitle { {t("spaces.members")} } }
+                            CardHeader {
+                                div { class: "flex items-start justify-between gap-2",
+                                    div { class: "space-y-1",
+                                        CardTitle { {t("spaces.members")} }
+                                        // R3.1 (MID-1) — admin rows now
+                                        // source handle / display_name from
+                                        // the effective MemberIdentity, not
+                                        // the raw sync `members[]` fields.
+                                        CardDescription { {t("spaces.members_subtitle")} }
+                                    }
+                                    // R3.1 (MID-3) — quick jump to the
+                                    // per-Realm identity audit diagnostic
+                                    // page.
+                                    Link {
+                                        to: Route::RealmIdentityAudit { realm_id: space.id.clone() },
+                                        class: "text-xs text-primary hover:underline",
+                                        {t("spaces.open_identity_audit")}
+                                    }
+                                }
+                            }
                             CardContent {
                                 match &*members.read() {
-                                    Some(Ok(member_list)) => rsx! {
-                                        Table {
-                                            TableHeader {
-                                                TableRow {
-                                                    TableHead { {t("spaces.actor_id")} }
-                                                    TableHead { {t("spaces.display_name")} }
-                                                    TableHead { {t("spaces.role")} }
-                                                    TableHead { {t("spaces.joined_at")} }
+                                    Some(Ok(member_list)) => {
+                                        // R3.1 (ROST-2) — `members_limited`
+                                        // + `members_next_cursor` aren't yet
+                                        // plumbed through the legacy
+                                        // `list_space_members` envelope; the
+                                        // affordance below is wired so the
+                                        // operator sees the truncation
+                                        // notice as soon as soland surfaces
+                                        // it. TODO(R4): swap to a typed
+                                        // `MemberRosterPage` once the admin
+                                        // endpoint adopts the cursor shape.
+                                        let members_limited = false;
+                                        let next_cursor: Option<String> = None;
+                                        let shown = member_list.len();
+                                        rsx! {
+                                            Table {
+                                                TableHeader {
+                                                    TableRow {
+                                                        TableHead { {t("spaces.actor_id")} }
+                                                        TableHead { {t("spaces.identity")} }
+                                                        TableHead { {t("spaces.membership")} }
+                                                        TableHead { {t("spaces.role")} }
+                                                        TableHead { {t("spaces.joined_at")} }
+                                                    }
+                                                }
+                                                TableBody {
+                                                    for member in member_list.iter() {
+                                                        {
+                                                            // R3.1 (MID-1, MID-2) —
+                                                            // source handle / display_name
+                                                            // from the effective
+                                                            // MemberIdentity projection.
+                                                            // When the SPA hasn't joined
+                                                            // identity events yet (no
+                                                            // primary_handle / display_name
+                                                            // and at least one
+                                                            // identity_event_id), surface
+                                                            // the "pending decryption"
+                                                            // placeholder rather than
+                                                            // falling back to the raw DID.
+                                                            let identity_pending =
+                                                                !member.identity_event_ids.is_empty()
+                                                                    && member.primary_handle.is_none()
+                                                                    && member.display_name.is_none();
+                                                            let handle_canon = member
+                                                                .primary_handle
+                                                                .clone()
+                                                                .unwrap_or_default();
+                                                            let sigil = if handle_canon.is_empty() {
+                                                                String::new()
+                                                            } else {
+                                                                display_sigil(&handle_canon)
+                                                            };
+                                                            let display = member
+                                                                .display_name
+                                                                .clone()
+                                                                .unwrap_or_default();
+                                                            let membership = member
+                                                                .membership
+                                                                .clone()
+                                                                .unwrap_or_else(|| "join".to_string());
+                                                            rsx! {
+                                                                TableRow {
+                                                                    TableCell { class: "font-mono text-xs".to_string(), "{member.actor_id}" }
+                                                                    TableCell {
+                                                                        if identity_pending {
+                                                                            Badge { variant: BadgeVariant::Outline,
+                                                                                {t("spaces.identity_pending")}
+                                                                            }
+                                                                        } else if !handle_canon.is_empty() || !display.is_empty() {
+                                                                            div { class: "flex flex-col",
+                                                                                if !display.is_empty() {
+                                                                                    span { class: "text-sm font-medium", "{display}" }
+                                                                                }
+                                                                                if !handle_canon.is_empty() {
+                                                                                    span { class: "text-xs font-mono", "{handle_canon}" }
+                                                                                    span { class: "text-muted-foreground/80 text-[10px]", "{sigil}" }
+                                                                                }
+                                                                            }
+                                                                        } else {
+                                                                            // No identity events
+                                                                            // and no joined
+                                                                            // projection -- e.g.
+                                                                            // bare `invite` row.
+                                                                            // Acceptable to
+                                                                            // render an em-dash;
+                                                                            // raw DID stays in
+                                                                            // the actor_id col.
+                                                                            span { class: "text-muted-foreground", "-" }
+                                                                        }
+                                                                    }
+                                                                    TableCell { {membership} }
+                                                                    TableCell { {member.role.as_deref().unwrap_or("member")} }
+                                                                    TableCell { {member.joined_at.as_deref().unwrap_or("-")} }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
                                                 }
                                             }
-                                            TableBody {
-                                                for member in member_list.iter() {
-                                                    TableRow {
-                                                        TableCell { class: "font-mono text-xs", "{member.actor_id}" }
-                                                        TableCell { {member.display_name.as_deref().unwrap_or("-")} }
-                                                        TableCell { {member.role.as_deref().unwrap_or("member")} }
-                                                        TableCell { {member.joined_at.as_deref().unwrap_or("-")} }
+                                            // R3.1 (ROST-2) — "showing N of
+                                            // many" affordance + load-more.
+                                            // Hidden when the page wasn't
+                                            // truncated.
+                                            if members_limited {
+                                                div { class: "mt-3 flex items-center justify-between text-xs text-muted-foreground",
+                                                    span {
+                                                        {format!(
+                                                            "{} {} {}",
+                                                            t("spaces.members_showing"),
+                                                            shown,
+                                                            t("spaces.members_of_many"),
+                                                        )}
+                                                    }
+                                                    if next_cursor.is_some() {
+                                                        Button {
+                                                            variant: ButtonVariant::Outline,
+                                                            onclick: move |_| { /* TODO(R4): cursor pagination */ },
+                                                            {t("spaces.members_load_more")}
+                                                        }
                                                     }
                                                 }
                                             }
