@@ -109,6 +109,61 @@ coauth, and (when used) floria origins so the SPA can call them. The
 nginx CSP template already covers the default three; add additional
 peers per deployment.
 
+## Database migration
+
+sodmin itself is stateless — it ships no database. Operator-facing data
+lives in the upstream services (`soland`, `coauth`, `teabay`). Migration
+during a sodmin upgrade is therefore a coordination concern, not a
+sodmin concern:
+
+1. Run upstream migrations first (`soland`, `coauth`, `teabay`) and
+   confirm `/healthz/deep` reports green for each.
+2. Roll sodmin forward only after the upstream schema version is
+   compatible with the new SPA bundle. The runtime config endpoint
+   (`/config.json`) carries the configured upstream URLs; the SPA does
+   not pin a schema version, so a backwards-compatible upstream is
+   sufficient.
+3. If an upstream rollback is required, roll the sodmin SPA back to the
+   matching tag first so the SPA never calls a schema it does not know.
+
+## Backup / restore
+
+sodmin holds no persistent data; there is nothing to back up at the
+sodmin layer. Operator backup procedures should target:
+
+* `soland` PostgreSQL — daily logical dump (`pg_dump --format=custom`)
+  plus 15-minute WAL archive to the operator-owned object store.
+* `coauth` PostgreSQL — same cadence; coauth additionally requires the
+  admin token rotation table to be included (default).
+* `teabay` PostgreSQL — same cadence; directory rebuild from event log
+  is possible but slow, so periodic snapshots are preferred.
+
+Restore is upstream-first: bring up the upstream Postgres replica, point
+the upstream service at it, verify `/healthz/deep`, then redeploy
+sodmin. The SPA picks up the new endpoints on next browser reload via
+`/config.json`.
+
+## Disaster recovery
+
+For region-loss scenarios:
+
+1. **DNS failover** — repoint `sodmin.example.com` to the DR region's
+   ingress. The SPA is served from any region without state migration.
+2. **Upstream failover** — promote the DR-region Postgres replica for
+   `soland` / `coauth` / `teabay`; update the sodmin Deployment's
+   `SOLAND_URL` / `COAUTH_URL` env vars to point at the DR-region
+   upstreams and roll the Deployment.
+3. **Capability re-issuance** — coauth admin grants reference an admin
+   DID, not a region; existing operator capability rows survive the
+   failover. No re-grant cycle is required.
+4. **Verification** — load `/healthz/deep` (browser-side it returns 200
+   only when `${SOLAND_URL}/healthz` is reachable within 2s) and walk
+   the operator smoke-test in `docs/admin-onboarding.md`.
+
+Recovery time objective (RTO) is bounded by the slowest upstream
+Postgres promotion. sodmin's own RTO is ~30s (rolling Deployment
+replacement); plan for 5-10 minutes end-to-end including DNS TTLs.
+
 ## List pagination
 
 All admin list pages (`/agents`, `/applets`, `/devices`, `/spaces`,

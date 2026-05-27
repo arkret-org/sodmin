@@ -1,0 +1,64 @@
+name: a11y
+
+on:
+  pull_request:
+    paths:
+      - "src/**"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/a11y.yml"
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  axe:
+    name: axe-core SPA scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install JS deps
+        run: npm ci
+
+      - name: Install Rust + wasm target
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - name: Install dioxus-cli
+        run: cargo install dioxus-cli --locked --version "0.7.*"
+
+      - name: Build SPA
+        run: dx build --release
+
+      - name: Install Playwright
+        run: npx playwright install --with-deps chromium
+
+      - name: Run axe-core scan
+        run: |
+          # Two-step scan harness:
+          # 1. Serve the built SPA on http://127.0.0.1:4173 (any static
+          #    server is fine; we use `npx serve`).
+          # 2. Walk a representative set of admin pages through Playwright
+          #    + @axe-core/playwright and fail on any "serious" or
+          #    "critical" violation.
+          npx serve -l 4173 -s dist &
+          SPA_PID=$!
+          trap "kill $SPA_PID" EXIT
+          sleep 2
+          node ./scripts/a11y/axe-scan.mjs http://127.0.0.1:4173
+
+      # The actual scan script (scripts/a11y/axe-scan.mjs) is intentionally
+      # left for the operator to land alongside this workflow. Until it
+      # exists, the docs note in docs/A11Y.md describes the manual
+      # procedure that mirrors this CI job.

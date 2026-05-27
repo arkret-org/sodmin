@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: sodmin
+  labels:
+    app.kubernetes.io/name: sodmin
+    app.kubernetes.io/component: admin-spa
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: sodmin
+    app.kubernetes.io/component: admin-spa
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+      protocol: TCP
