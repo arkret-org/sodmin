@@ -93,8 +93,6 @@ pub mod bridge {
     /// coauth account/admin integration. Gates the entire coauth section.
     pub const COAUTH: &str = "coauth";
 
-    /// floria push gateway — currently no admin pages, reserved.
-    pub const FLORIA: &str = "floria";
 }
 
 /// Names of the admin scope buckets the sidebar gates pages against. A
@@ -140,10 +138,6 @@ pub fn active_bridges() -> Vec<String> {
     auto
 }
 
-pub fn set_active_bridges(bridges: &[&str]) {
-    storage::set_item(ACTIVE_BRIDGES_KEY, &bridges.join(","));
-}
-
 /// True if this admin session has the bridge enabled (or no override is
 /// stored — fallback path for unprovisioned deployments).
 pub fn has_bridge(name: &str) -> bool {
@@ -160,10 +154,6 @@ pub fn admin_scope() -> Vec<String> {
         return vec![scope::WILDCARD.to_string()];
     }
     stored
-}
-
-pub fn set_admin_scope(scopes: &[&str]) {
-    storage::set_item(ADMIN_SCOPE_KEY, &scopes.join(","));
 }
 
 /// True if the current session's admin scope set covers `needed` (either

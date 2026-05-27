@@ -13,11 +13,6 @@ pub async fn list_applets(page: u64, per_page: u64) -> Result<ListResponse<Apple
     api_client(&url, "GET", None).await
 }
 
-pub async fn get_applet(id: &str) -> Result<Applet, HttpError> {
-    let url = format!("/api/admin/v1/applets/{}", urlencoding::encode(id));
-    api_client(&url, "GET", None).await
-}
-
 pub async fn register_applet(req: &RegisterAppletRequest) -> Result<Applet, HttpError> {
     api_client(
         "/api/admin/v1/applets",

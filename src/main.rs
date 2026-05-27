@@ -1,3 +1,9 @@
+// `HttpError` is the canonical SPA error type and is wired through every
+// `api/*` module's `Result<T, HttpError>` signature. Its size (a string
+// message, optional envelope, optional retry hint) is intentional and
+// boxing every call site would add noise without measurable benefit.
+#![allow(clippy::result_large_err)]
+
 mod api;
 mod components;
 mod pages;
@@ -40,11 +46,10 @@ fn install_csp_meta() {
         None => return,
     };
     // Skip if a CSP meta already exists (server rendered shell).
-    if let Ok(existing) = document.query_selector("meta[http-equiv=\"Content-Security-Policy\"]") {
-        if existing.is_some() {
+    if let Ok(existing) = document.query_selector("meta[http-equiv=\"Content-Security-Policy\"]")
+        && existing.is_some() {
             return;
         }
-    }
     let Ok(meta) = document.create_element("meta") else {
         return;
     };

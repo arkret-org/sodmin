@@ -140,8 +140,6 @@ pub struct CoauthRegistrationToken {
 pub use coauth_admin_types::ConnectorHealthRow as CoauthConnectorHealth;
 pub use coauth_admin_types::NotificationChannelStatus as CoauthNotificationChannel;
 pub use coauth_admin_types::NotificationTemplateEntry as CoauthNotificationTemplate;
-pub use coauth_admin_types::PublishTemplateRequest as CoauthPublishTemplateRequest;
-pub use coauth_admin_types::PublishedTemplateResponse as CoauthPublishedTemplate;
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 #[non_exhaustive]
@@ -566,26 +564,6 @@ pub async fn list_notification_templates() -> Result<Vec<CoauthNotificationTempl
     Ok(resp.templates)
 }
 
-/// Publish a notification template version. The request body carries
-/// the template key + channel + body (and optional subject + locale);
-/// the response is the persisted row.
-pub async fn publish_notification_template(
-    request: &CoauthPublishTemplateRequest,
-) -> Result<CoauthPublishedTemplate, HttpError> {
-    let body = serde_json::to_string(request).map_err(|e| HttpError {
-        status: 0,
-        message: format!("serialize publish-template request: {e}"),
-        body: None,
-        request_id: None,
-        retry_after_ms: None,
-    })?;
-    api_client(
-        coauth_paths::NOTIFICATION_TEMPLATES_PUBLISH,
-        "POST",
-        Some(body),
-    )
-    .await
-}
 
 /// Cursor-paginated account list. The caller passes back the opaque
 /// `cursor` it received from the prior page's `links.next`.
@@ -621,11 +599,9 @@ pub async fn list_accounts_cursor(
         .map(map_admin_account_summary_resource)
         .collect();
     let next_cursor = resp.links.next.as_deref().and_then(extract_cursor_param);
-    let prev_cursor = resp.links.prev.as_deref().and_then(extract_cursor_param);
     Ok(CursorPage {
         data: summaries,
         next_cursor,
-        prev_cursor,
         total: resp.meta.count,
     })
 }
@@ -787,33 +763,6 @@ pub async fn execute_account_risk_action(
     api_client(&url, "POST", Some(body.to_string())).await
 }
 
-pub async fn lock_account(id: &str) -> Result<(), HttpError> {
-    let url = format!("/api/admin/v1/accounts/{}/lock", urlencoding::encode(id));
-    let _: serde_json::Value = api_client(&url, "POST", None).await?;
-    Ok(())
-}
-
-pub async fn disable_account(id: &str) -> Result<(), HttpError> {
-    let url = format!("/api/admin/v1/accounts/{}/disable", urlencoding::encode(id));
-    let _: serde_json::Value = api_client(&url, "POST", None).await?;
-    Ok(())
-}
-
-pub async fn erase_account(id: &str) -> Result<(), HttpError> {
-    let url = format!("/api/admin/v1/accounts/{}/erase", urlencoding::encode(id));
-    let _: serde_json::Value = api_client(&url, "POST", None).await?;
-    Ok(())
-}
-
-pub async fn reset_account_recovery(id: &str) -> Result<(), HttpError> {
-    let url = format!(
-        "/api/admin/v1/accounts/{}/reset-recovery",
-        urlencoding::encode(id)
-    );
-    let _: serde_json::Value = api_client(&url, "POST", None).await?;
-    Ok(())
-}
-
 fn map_admin_account_summary_resource(
     resource: CoauthAdminResource<CoauthAdminAccountRecord>,
 ) -> CoauthAccountSummary {
@@ -895,14 +844,12 @@ pub struct PaginatedResponse<T> {
 }
 
 /// Cursor-shaped pagination result. `next_cursor` is `Some` when the
-/// server links another page; `prev_cursor` mirrors it for backward
-/// navigation. Both are opaque base64url strings produced by coauth and
-/// fed back unchanged on the next request.
+/// server links another page. It is an opaque base64url string produced
+/// by coauth and fed back unchanged on the next request.
 #[derive(Debug, Clone, Default)]
 pub struct CursorPage<T> {
     pub data: Vec<T>,
     pub next_cursor: Option<String>,
-    pub prev_cursor: Option<String>,
     /// Total when the server populated `meta.count` (best-effort).
     pub total: Option<u64>,
 }
@@ -916,12 +863,6 @@ pub struct AccountListFilter {
     pub display_name: String,
 }
 
-impl AccountListFilter {
-    pub fn is_empty(&self) -> bool {
-        self.handle.trim().is_empty() && self.display_name.trim().is_empty()
-    }
-}
-
 /// Parse the `cursor=…` query parameter out of a JSON:API `links.next` /
 /// `links.prev` URL. Returns `None` when the link is absent or has no
 /// cursor.
@@ -932,21 +873,20 @@ fn extract_cursor_param(link: &str) -> Option<String> {
     let query = link.split_once('?').map(|(_, rest)| rest)?;
     let bare = query.split('#').next().unwrap_or(query);
     for pair in bare.split('&') {
-        if let Some((key, value)) = pair.split_once('=') {
-            if key == "cursor" || key == "page%5Bcursor%5D" || key == "page[cursor]" {
+        if let Some((key, value)) = pair.split_once('=')
+            && (key == "cursor" || key == "page%5Bcursor%5D" || key == "page[cursor]") {
                 let decoded = urlencoding::decode(value).ok()?.into_owned();
                 if !decoded.is_empty() {
                     return Some(decoded);
                 }
             }
-        }
     }
     None
 }
 
 #[cfg(test)]
 mod cursor_tests {
-    use super::{AccountListFilter, extract_cursor_param};
+    use super::extract_cursor_param;
 
     #[test]
     fn extract_cursor_handles_plain_param() {
@@ -978,19 +918,4 @@ mod cursor_tests {
         );
     }
 
-    #[test]
-    fn account_list_filter_is_empty_when_blank() {
-        let f = AccountListFilter::default();
-        assert!(f.is_empty());
-        let f = AccountListFilter {
-            handle: "  ".to_string(),
-            display_name: "".to_string(),
-        };
-        assert!(f.is_empty());
-        let f = AccountListFilter {
-            handle: "alice".to_string(),
-            display_name: "".to_string(),
-        };
-        assert!(!f.is_empty());
-    }
 }

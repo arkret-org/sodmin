@@ -221,9 +221,7 @@ fn evidence_row_card(row: &AttestationRow) -> Element {
 /// otherwise. The principal-server reducer rejects evidence whose
 /// `validity.not_after <= now`.
 fn validity_chip_variant(days: i64) -> BadgeVariant {
-    if days < 0 {
-        BadgeVariant::Destructive
-    } else if days <= 7 {
+    if days <= 7 {
         BadgeVariant::Destructive
     } else {
         BadgeVariant::Success

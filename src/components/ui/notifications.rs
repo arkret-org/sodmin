@@ -1,5 +1,11 @@
 use dioxus::prelude::*;
 
+/// Notification severity levels. The dropdown matches on every variant
+/// to pick a colour even though nothing pushes notifications today —
+/// the producer hooks were removed when no production callsite was
+/// wiring them. The variants stay so the renderer keeps compiling once
+/// soland surfaces a real notification feed.
+#[allow(dead_code)]
 #[derive(Debug, Clone, PartialEq)]
 pub enum NotificationSeverity {
     Info,
@@ -7,63 +13,16 @@ pub enum NotificationSeverity {
     Error,
 }
 
-#[derive(Debug, Clone, PartialEq)]
-pub enum NotificationType {
-    ReportFiled,
-    UserRegistered,
-    FederationAlert,
-    JobFailure,
-    SystemInfo,
-}
-
 #[derive(Debug, Clone)]
 pub struct Notification {
     pub id: u64,
     pub message: String,
     pub severity: NotificationSeverity,
-    pub notification_type: Option<NotificationType>,
     pub timestamp: String,
     pub read: bool,
 }
 
-static NOTIFICATION_COUNTER: GlobalSignal<u64> = GlobalSignal::new(|| 0);
-pub static NOTIFICATIONS: GlobalSignal<Vec<Notification>> = GlobalSignal::new(|| Vec::new());
-
-pub fn add_notification(message: &str, severity: NotificationSeverity) {
-    add_typed_notification(message, severity, None);
-}
-
-pub fn add_typed_notification(
-    message: &str,
-    severity: NotificationSeverity,
-    ntype: Option<NotificationType>,
-) {
-    let id = {
-        let mut counter = NOTIFICATION_COUNTER.write();
-        *counter += 1;
-        *counter
-    };
-
-    let timestamp = chrono::Utc::now().format("%Y-%m-%d %H:%M:%S").to_string();
-
-    let mut notifications = NOTIFICATIONS.write();
-    notifications.insert(
-        0,
-        Notification {
-            id,
-            message: message.to_string(),
-            severity,
-            notification_type: ntype,
-            timestamp,
-            read: false,
-        },
-    );
-
-    // Keep at most 50 notifications
-    if notifications.len() > 50 {
-        notifications.truncate(50);
-    }
-}
+pub static NOTIFICATIONS: GlobalSignal<Vec<Notification>> = GlobalSignal::new(Vec::new);
 
 pub fn mark_all_read() {
     let mut notifications = NOTIFICATIONS.write();

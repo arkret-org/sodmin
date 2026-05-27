@@ -82,7 +82,7 @@ pub fn RealmDestroyDialog(props: RealmDestroyDialogProps) -> Element {
                                         checked: is_checked,
                                         onchange: move |evt| {
                                             let parsed = evt.value().parse::<bool>().unwrap_or(!is_checked);
-                                            let mut current = checked.read().clone();
+                                            let mut current = *checked.read();
                                             current[idx] = parsed;
                                             checked.set(current);
                                         },

@@ -25,7 +25,7 @@ pub struct FederationStatusEnvelope {
 }
 
 pub async fn get_status(space_id: Option<&str>) -> Result<FederationStatusEnvelope, HttpError> {
-    let mut params: Vec<(&str, &str)> = Vec::new();
+    let mut params: Vec<(&str, &str)> = Vec::with_capacity(1);
     if let Some(s) = space_id.filter(|s| !s.is_empty()) {
         params.push(("space_id", s));
     }

@@ -8,7 +8,6 @@ pub enum ButtonVariant {
     Outline,
     Secondary,
     Ghost,
-    Link,
 }
 
 #[derive(Debug, Clone, PartialEq, Default)]
@@ -16,8 +15,6 @@ pub enum ButtonSize {
     #[default]
     Default,
     Sm,
-    Lg,
-    Icon,
 }
 
 #[component]
@@ -38,14 +35,11 @@ pub fn Button(
         ButtonVariant::Outline => "btn-outline",
         ButtonVariant::Secondary => "btn-secondary",
         ButtonVariant::Ghost => "hover:bg-accent hover:text-accent-foreground",
-        ButtonVariant::Link => "text-primary underline-offset-4 hover:underline",
     };
 
     let size_class = match size {
         ButtonSize::Default => "h-10 px-4 py-2",
         ButtonSize::Sm => "h-9 px-3",
-        ButtonSize::Lg => "h-11 px-8",
-        ButtonSize::Icon => "h-10 w-10",
     };
 
     let disabled_class = if disabled {

@@ -12,6 +12,5 @@ pub mod loading;
 pub mod notifications;
 pub mod page_header;
 pub mod pagination;
-pub mod relative_time;
 pub mod table;
 pub mod toast;

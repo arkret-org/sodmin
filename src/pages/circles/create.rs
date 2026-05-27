@@ -8,7 +8,7 @@
 use dioxus::prelude::*;
 
 use crate::api::circles;
-use crate::components::ui::button::{Button, ButtonVariant};
+use crate::components::ui::button::Button;
 use crate::components::ui::input::{Input, Label};
 use crate::components::ui::loading::Spinner;
 use crate::components::ui::page_header::{BreadcrumbItem, Breadcrumbs, PageHeader};

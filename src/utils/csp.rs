@@ -92,13 +92,6 @@ pub fn csp_meta_value() -> String {
     csp_directive(page_nonce())
 }
 
-/// Public accessor for the per-page nonce. Future round-26 inline
-/// scripts can stamp this value into their `nonce="…"` attribute so
-/// the strict CSP allows them through.
-pub fn current_nonce() -> &'static str {
-    page_nonce()
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;

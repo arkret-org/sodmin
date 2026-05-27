@@ -122,6 +122,11 @@ pub fn emit_admin_audit(
 /// status so the audit row distinguishes "soland accepted my click"
 /// from "soland 404'd the endpoint" without re-deriving the
 /// classification server-side.
+///
+/// The struct is consumed only by the wasm `emit_admin_audit_server`
+/// path and the unit tests below; native (non-wasm) builds never need
+/// it but keeping the shared definition keeps the test surface honest.
+#[cfg_attr(not(any(target_arch = "wasm32", test)), allow(dead_code))]
 #[derive(Debug, Clone, serde::Serialize)]
 pub struct AdminAuditClientEvent {
     pub target_type: String,
@@ -135,6 +140,7 @@ pub struct AdminAuditClientEvent {
 /// Build the wire payload for the `/api/admin/v1/audit/client-event`
 /// POST. Pure helper — split out so we can unit-test the shape
 /// without compiling the wasm fetch path.
+#[cfg_attr(not(any(target_arch = "wasm32", test)), allow(dead_code))]
 pub fn build_client_event(
     target: &str,
     id: &str,

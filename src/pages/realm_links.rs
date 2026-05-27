@@ -80,7 +80,7 @@ pub fn RealmLinks(realm_id: String) -> Element {
                     CardDescription { {t("realm_links.outbound_subtitle")} }
                 }
                 CardContent {
-                    {render_link_list(&*outbound.read(), move |_| outbound.restart(), true)}
+                    {render_link_list(&outbound.read(), move |_| outbound.restart(), true)}
                 }
             }
 
@@ -91,7 +91,7 @@ pub fn RealmLinks(realm_id: String) -> Element {
                     CardDescription { {t("realm_links.inbound_subtitle")} }
                 }
                 CardContent {
-                    {render_link_list(&*inbound.read(), move |_| inbound.restart(), false)}
+                    {render_link_list(&inbound.read(), move |_| inbound.restart(), false)}
                 }
             }
 
@@ -101,7 +101,7 @@ pub fn RealmLinks(realm_id: String) -> Element {
                     CardDescription { {t("realm_links.graph_subtitle")} }
                 }
                 CardContent {
-                    {render_link_graph(&realm_id, &*outbound.read(), &*inbound.read())}
+                    {render_link_graph(&realm_id, &outbound.read(), &inbound.read())}
                 }
             }
         }

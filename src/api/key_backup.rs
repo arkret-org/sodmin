@@ -13,7 +13,7 @@ pub async fn list_backups(
     series_id: Option<&str>,
     backup_class: Option<&str>,
 ) -> Result<ListResponse<KeyBackupSeries>, HttpError> {
-    let mut params: Vec<(&str, &str)> = Vec::new();
+    let mut params: Vec<(&str, &str)> = Vec::with_capacity(2);
     if let Some(s) = series_id {
         params.push(("series_id", s));
     }
@@ -53,7 +53,7 @@ pub async fn upsert_recovery_policy(policy: &RecoveryPolicy) -> Result<RecoveryP
 pub async fn list_recovery_receipts(
     session_id: Option<&str>,
 ) -> Result<ListResponse<RecoveryReceipt>, HttpError> {
-    let mut params: Vec<(&str, &str)> = Vec::new();
+    let mut params: Vec<(&str, &str)> = Vec::with_capacity(1);
     if let Some(s) = session_id {
         params.push(("session_id", s));
     }

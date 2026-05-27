@@ -24,17 +24,3 @@ pub fn set_cached(key: &str, value: &str) {
         cache.insert(key.to_string(), (js_sys::Date::now(), value.to_string()));
     });
 }
-
-pub fn remove_cached(key: &str) {
-    CACHE.with(|c| {
-        let mut cache = c.borrow_mut();
-        cache.remove(key);
-    });
-}
-
-pub fn invalidate_cached_prefix(prefix: &str) {
-    CACHE.with(|c| {
-        let mut cache = c.borrow_mut();
-        cache.retain(|key, _| !key.starts_with(prefix));
-    });
-}

@@ -25,7 +25,7 @@ use crate::components::ui::error_banner::ErrorBanner;
 use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::toast::{ToastVariant, show_toast};
-use crate::types::signing_key::{SigningKeyDescribe, SigningKeyOrigin};
+use crate::types::signing_key::SigningKeyOrigin;
 use crate::utils::error::format_optional_endpoint_error;
 
 #[component]
@@ -215,17 +215,6 @@ pub(crate) fn origin_badge_variant(origin: &SigningKeyOrigin) -> BadgeVariant {
     }
 }
 
-/// Render the verification method id for display, falling back to a `-`
-/// placeholder when soland returns an empty string. Pure helper so the
-/// fallback rule can be unit-tested.
-pub(crate) fn render_verification_method(d: &SigningKeyDescribe) -> String {
-    if d.verification_method_id.is_empty() {
-        "-".to_string()
-    } else {
-        d.verification_method_id.clone()
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -242,19 +231,5 @@ mod tests {
             origin_badge_variant(&SigningKeyOrigin::Ephemeral),
             BadgeVariant::Destructive
         ));
-    }
-
-    #[test]
-    fn render_verification_method_falls_back_when_empty() {
-        let d = SigningKeyDescribe {
-            verification_method_id: String::new(),
-            ..Default::default()
-        };
-        assert_eq!(render_verification_method(&d), "-");
-        let d = SigningKeyDescribe {
-            verification_method_id: "did:cx:abc#kid-1".into(),
-            ..Default::default()
-        };
-        assert_eq!(render_verification_method(&d), "did:cx:abc#kid-1");
     }
 }

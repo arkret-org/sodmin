@@ -127,12 +127,6 @@ pub async fn retry_realm_destroy(
 #[derive(Debug, Clone, serde::Deserialize, Default)]
 pub struct HealthEnvelope {
     #[serde(default)]
-    pub ok: bool,
-    #[serde(default)]
-    pub service: Option<String>,
-    #[serde(default)]
-    pub development_mode: Option<bool>,
-    #[serde(default)]
     pub hardening: Option<HardeningStatus>,
 }
 

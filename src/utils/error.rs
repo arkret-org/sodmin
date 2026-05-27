@@ -148,11 +148,6 @@ pub fn redact_pii(message: &str) -> String {
     out
 }
 
-/// Format an error message for display in toasts, including the request ID if available.
-pub fn format_error_with_ref(error: &HttpError) -> String {
-    error.to_string()
-}
-
 /// Format an admin-mutation error for the 404-tolerant pattern used by the
 /// Stream H' actions (consent resolve, components refresh, covered_frontier
 /// advance). When the backend hasn't wired the route yet, soland returns

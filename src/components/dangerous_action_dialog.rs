@@ -25,7 +25,7 @@ pub struct DangerousActionDialogProps {
     pub title: String,
     pub description: String,
     /// Exact phrase the admin must type. Matching is whitespace-trimmed
-    /// + case-sensitive so an accidental shift-key press doesn't
+    /// and case-sensitive so an accidental shift-key press doesn't
     /// satisfy the gate.
     pub confirmation_phrase: String,
     #[props(default = "Confirm".to_string())]

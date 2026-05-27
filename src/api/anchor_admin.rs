@@ -62,17 +62,6 @@ pub async fn submit_anchorer_reconfig(
     .await
 }
 
-/// List all cells currently in `Bottom` state inside the given Space.
-///
-/// `GET /api/admin/v1/spaces/{id}/bottom`.
-pub async fn list_bottom_entries(space_id: &str) -> Result<Vec<BottomEntry>, HttpError> {
-    let url = format!(
-        "/api/admin/v1/spaces/{}/bottom",
-        urlencoding::encode(space_id)
-    );
-    api_client(&url, "GET", None).await
-}
-
 /// List bottom entries across every Space the admin can see — used by
 /// the global "Bottom diagnostics" page in the sidebar (no per-Space
 /// pre-filter).

@@ -15,7 +15,6 @@ use crate::utils::error::HttpError;
 pub struct AppletAdminPage {
     pub data: Vec<AppletAdminRow>,
     pub next_cursor: Option<String>,
-    pub total: Option<u64>,
 }
 
 #[derive(Debug, Clone, serde::Deserialize, Default)]
@@ -24,15 +23,12 @@ struct AppletAdminEnvelope {
     data: Vec<AppletAdminRow>,
     #[serde(default)]
     next_cursor: Option<String>,
-    #[serde(default)]
-    total: Option<u64>,
 }
 
 #[derive(Debug, Clone, Default)]
 pub struct AgentAdminPage {
     pub data: Vec<AgentAdminRow>,
     pub next_cursor: Option<String>,
-    pub total: Option<u64>,
 }
 
 #[derive(Debug, Clone, serde::Deserialize, Default)]
@@ -41,15 +37,12 @@ struct AgentAdminEnvelope {
     data: Vec<AgentAdminRow>,
     #[serde(default)]
     next_cursor: Option<String>,
-    #[serde(default)]
-    total: Option<u64>,
 }
 
 #[derive(Debug, Clone, Default)]
 pub struct DirectoryAdminPage {
     pub data: Vec<DirectoryAdminRow>,
     pub next_cursor: Option<String>,
-    pub total: Option<u64>,
 }
 
 #[derive(Debug, Clone, serde::Deserialize, Default)]
@@ -58,8 +51,6 @@ struct DirectoryAdminEnvelope {
     data: Vec<DirectoryAdminRow>,
     #[serde(default)]
     next_cursor: Option<String>,
-    #[serde(default)]
-    total: Option<u64>,
 }
 
 fn cursor_params<'a>(cursor: Option<&'a str>, limit_str: &'a str) -> Vec<(&'a str, &'a str)> {
@@ -80,7 +71,6 @@ pub async fn list_applets(cursor: Option<&str>, limit: u64) -> Result<AppletAdmi
     Ok(AppletAdminPage {
         data: resp.data,
         next_cursor: resp.next_cursor,
-        total: resp.total,
     })
 }
 
@@ -118,7 +108,6 @@ pub async fn list_agents_admin(
     Ok(AgentAdminPage {
         data: resp.data,
         next_cursor: resp.next_cursor,
-        total: resp.total,
     })
 }
 
@@ -156,7 +145,6 @@ pub async fn list_directory_admin(
     Ok(DirectoryAdminPage {
         data: resp.data,
         next_cursor: resp.next_cursor,
-        total: resp.total,
     })
 }
 
@@ -168,16 +156,6 @@ pub async fn approve_directory_entry(
         "/api/admin/v1/directory/{}/approve",
         urlencoding::encode(id)
     );
-    let payload = serde_json::to_string(body).unwrap_or_default();
-    let _: serde_json::Value = api_client(&url, "POST", Some(payload)).await?;
-    Ok(())
-}
-
-pub async fn revoke_directory_entry(
-    id: &str,
-    body: &ApprovalActionRequest,
-) -> Result<(), HttpError> {
-    let url = format!("/api/admin/v1/directory/{}/revoke", urlencoding::encode(id));
     let payload = serde_json::to_string(body).unwrap_or_default();
     let _: serde_json::Value = api_client(&url, "POST", Some(payload)).await?;
     Ok(())

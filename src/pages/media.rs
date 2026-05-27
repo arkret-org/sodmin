@@ -19,7 +19,7 @@ pub fn MediaList() -> Element {
 
     let page_val = *page.read();
 
-    let mut stats = use_resource(|| async { media::get_media_statistics().await.ok() });
+    let stats = use_resource(|| async { media::get_media_statistics().await.ok() });
 
     let mut media_data =
         use_resource(move || async move { media::list_actor_media(page_val, PAGE_SIZE).await });

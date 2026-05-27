@@ -151,47 +151,6 @@ fn render_row(row: &DeliveryBindingHandoverRow) -> Element {
     }
 }
 
-/// Placeholder rows for the panel until the admin describe surface
-/// lands. Mirrors a realistic mix of the three round-4 codes.
-// TODO(round4-delivery-binding-handover-fetch) — replace with
-// `/api/admin/v1/realms/{id}/delivery-binding/handovers` once soland
-// exposes it.
-pub fn placeholder_handover_rows(realm_id: impl Into<String>) -> Vec<DeliveryBindingHandoverRow> {
-    let realm = realm_id.into();
-    vec![
-        DeliveryBindingHandoverRow {
-            realm_id: realm.clone(),
-            actor_id: "did:web:alice.example".to_string(),
-            previous_recipient_service_did: Some("did:web:floria-old.example".to_string()),
-            new_recipient_service_did: Some("did:web:floria-new.example".to_string()),
-            handover_frontier: vec![
-                "cx:event:01904100-0000-7000-8000-000000000010".to_string(),
-                "cx:event:01904100-0000-7000-8000-000000000011".to_string(),
-            ],
-            reason_code: Some("delivery_binding_stale".to_string()),
-            observed_at: Some("2026-05-20T10:00:00Z".to_string()),
-        },
-        DeliveryBindingHandoverRow {
-            realm_id: realm.clone(),
-            actor_id: "did:web:bob.example".to_string(),
-            previous_recipient_service_did: Some("did:web:floria-old.example".to_string()),
-            new_recipient_service_did: Some("did:web:floria-new.example".to_string()),
-            handover_frontier: vec!["cx:event:01904100-0000-7000-8000-000000000012".to_string()],
-            reason_code: Some("delivery_binding_handed_over".to_string()),
-            observed_at: Some("2026-05-20T10:15:00Z".to_string()),
-        },
-        DeliveryBindingHandoverRow {
-            realm_id: realm,
-            actor_id: "did:web:carol.example".to_string(),
-            previous_recipient_service_did: None,
-            new_recipient_service_did: None,
-            handover_frontier: vec![],
-            reason_code: Some("historical_only".to_string()),
-            observed_at: Some("2026-05-20T10:30:00Z".to_string()),
-        },
-    ]
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -226,19 +185,4 @@ mod tests {
         );
     }
 
-    #[test]
-    fn historical_only_is_not_a_failure() {
-        assert!(!DeliveryBindingHandoverReason::HistoricalOnly.is_failure());
-        assert!(DeliveryBindingHandoverReason::DeliveryBindingStale.is_failure());
-        assert!(DeliveryBindingHandoverReason::DeliveryBindingHandedOver.is_failure());
-    }
-
-    #[test]
-    fn placeholder_rows_cover_all_three_codes() {
-        let rows = placeholder_handover_rows("cx:realm:r");
-        let codes: Vec<_> = rows.iter().filter_map(|r| r.reason_code.clone()).collect();
-        assert!(codes.iter().any(|c| c == "delivery_binding_stale"));
-        assert!(codes.iter().any(|c| c == "delivery_binding_handed_over"));
-        assert!(codes.iter().any(|c| c == "historical_only"));
-    }
 }

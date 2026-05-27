@@ -18,7 +18,7 @@ use crate::components::ui::error_banner::ErrorBanner;
 use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
 use crate::router::Route;
-use crate::types::spaces_admin::{SpaceHierarchy, SpaceHierarchyNode};
+use crate::types::spaces_admin::SpaceHierarchyNode;
 use crate::utils::i18n::t;
 
 #[component]
@@ -143,12 +143,6 @@ pub(crate) fn depth_summary_label(parent_count: usize, child_count: usize) -> St
     format!("{parent_phrase} · {child_phrase}")
 }
 
-/// Whether the empty-state placeholder should be rendered. Pure helper —
-/// matches the rule used by the page (no parent + no children = empty).
-pub(crate) fn hierarchy_is_empty(tree: &SpaceHierarchy) -> bool {
-    tree.parent.is_none() && tree.children.is_empty()
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -161,22 +155,4 @@ mod tests {
         assert_eq!(depth_summary_label(1, 5), "1 parent · 5 children");
     }
 
-    #[test]
-    fn hierarchy_empty_when_no_neighbours() {
-        let mut tree = SpaceHierarchy::default();
-        assert!(hierarchy_is_empty(&tree));
-
-        tree.parent = Some(SpaceHierarchyNode {
-            space_id: "s2".into(),
-            ..Default::default()
-        });
-        assert!(!hierarchy_is_empty(&tree));
-
-        tree.parent = None;
-        tree.children.push(SpaceHierarchyNode {
-            space_id: "s3".into(),
-            ..Default::default()
-        });
-        assert!(!hierarchy_is_empty(&tree));
-    }
 }

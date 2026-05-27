@@ -11,7 +11,3 @@ pub fn set_item(key: &str, value: &str) {
 pub fn remove_item(key: &str) {
     LocalStorage::delete(key);
 }
-
-pub fn clear() {
-    LocalStorage::clear();
-}

@@ -32,21 +32,6 @@ pub fn is_valid_did(s: &str) -> bool {
     !s.is_empty() && did_regex().is_match(s)
 }
 
-/// Returns `Ok(())` when the value validates under the round-4 grammar;
-/// `Err` with a user-facing message otherwise. The message intentionally
-/// references the regex so the admin understands which characters are
-/// rejected.
-pub fn validate_did(s: &str) -> Result<(), String> {
-    if is_valid_did(s) {
-        Ok(())
-    } else {
-        Err(format!(
-            "DID must match `{}` (round-4 tightened grammar — no `.`/`-`/`_`/`:` in the method segment).",
-            DID_REGEX_PATTERN
-        ))
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -79,12 +64,5 @@ mod tests {
         assert!(!is_valid_did("did:web:"));
         assert!(!is_valid_did("did:web:has whitespace"));
         assert!(!is_valid_did("did:web:trailing\nnewline"));
-    }
-
-    #[test]
-    fn validate_did_returns_user_message_on_error() {
-        // ROUND4-ALLOW: negative test verifies the error message from round-4 regex tightening.
-        let err = validate_did("did:web.vh:alice").unwrap_err();
-        assert!(err.contains("`^did:[a-z0-9]+:[^"));
     }
 }

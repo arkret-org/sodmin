@@ -73,15 +73,6 @@ pub enum ConsentResolveDecision {
     Reject,
 }
 
-impl ConsentResolveDecision {
-    pub fn label(&self) -> &'static str {
-        match self {
-            ConsentResolveDecision::Approve => "approve",
-            ConsentResolveDecision::Reject => "reject",
-        }
-    }
-}
-
 /// Body POSTed to `/api/admin/v1/consent/{consent_id}/resolve`.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ConsentResolveRequest {
@@ -179,7 +170,6 @@ mod tests {
         let s = serde_json::to_string(&approve).unwrap();
         assert!(s.contains("\"decision\":\"approve\""));
         assert!(s.contains("\"note\":\"looks legit\""));
-        assert_eq!(ConsentResolveDecision::Approve.label(), "approve");
 
         let reject_no_note = ConsentResolveRequest {
             decision: ConsentResolveDecision::Reject,

@@ -33,10 +33,15 @@ pub enum ValidationKind {
     /// Loose URL check: requires a scheme of `http://` or `https://`
     /// and a non-empty authority. Sufficient to catch missing scheme,
     /// trailing whitespace, and obvious typos before the wire fails.
+    /// Kept in the public validator API for future form wiring even
+    /// though no production callsite constructs it today.
+    #[allow(dead_code)]
     Url,
     /// Loose email check (`<atom>@<host>.<tld>`), aligned with the
     /// same regex used by [`crate::utils::error::redact_pii`]. The
-    /// canonical check happens server-side.
+    /// canonical check happens server-side. See `Url` for the rationale
+    /// behind the `#[allow]` annotation.
+    #[allow(dead_code)]
     Email,
     /// Trimmed value MUST be non-empty.
     Required,
@@ -61,15 +66,13 @@ impl ValidationKind {
                 }
             }
             ValidationKind::Url => {
-                if value.is_empty() {
-                    Ok(())
-                } else if (value.starts_with("http://") || value.starts_with("https://"))
+                let host_ok = (value.starts_with("http://") || value.starts_with("https://"))
                     && value
-                        .splitn(4, '/')
+                        .split('/')
                         .nth(2)
                         .map(|host| !host.is_empty())
-                        .unwrap_or(false)
-                {
+                        .unwrap_or(false);
+                if value.is_empty() || host_ok {
                     Ok(())
                 } else {
                     Err("URL must start with http:// or https:// and include a host")

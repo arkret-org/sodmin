@@ -17,13 +17,11 @@ use crate::types::{ListResponse, RealmLinkRow};
 use crate::utils::error::HttpError;
 
 /// Direction of the link list query. The wire surface accepts
-/// `outbound` (this Realm → others), `inbound` (others → this Realm),
-/// or `both` for the combined view used by the link-graph page.
+/// `outbound` (this Realm → others) or `inbound` (others → this Realm).
 #[derive(Debug, Clone, Copy)]
 pub enum LinkDirection {
     Outbound,
     Inbound,
-    Both,
 }
 
 impl LinkDirection {
@@ -31,7 +29,6 @@ impl LinkDirection {
         match self {
             LinkDirection::Outbound => "outbound",
             LinkDirection::Inbound => "inbound",
-            LinkDirection::Both => "both",
         }
     }
 }

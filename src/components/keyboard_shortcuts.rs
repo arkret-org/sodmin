@@ -29,9 +29,9 @@ pub fn KeyboardShortcuts() -> Element {
 
     let handle_keydown = move |evt: KeyboardEvent| {
         // Ignore if the user is typing in an input, textarea or contenteditable.
-        if let Some(window) = web_sys::window() {
-            if let Some(doc) = window.document() {
-                if let Some(active) = doc.active_element() {
+        if let Some(window) = web_sys::window()
+            && let Some(doc) = window.document()
+                && let Some(active) = doc.active_element() {
                     let tag = active.tag_name().to_uppercase();
                     if tag == "INPUT" || tag == "TEXTAREA" || tag == "SELECT" {
                         return;
@@ -44,8 +44,6 @@ pub fn KeyboardShortcuts() -> Element {
                         return;
                     }
                 }
-            }
-        }
 
         let key = evt.key();
         let key_str = match key_to_string(&key) {

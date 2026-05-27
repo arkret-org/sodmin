@@ -50,19 +50,6 @@ pub async fn deactivate_actor(id: &str) -> Result<(), HttpError> {
     api_client(&url, "POST", None).await
 }
 
-pub async fn reactivate_actor(id: &str) -> Result<(), HttpError> {
-    let url = format!(
-        "/api/admin/v1/actors/{}/reactivate",
-        urlencoding::encode(id)
-    );
-    api_client(&url, "POST", None).await
-}
-
-pub async fn erase_actor(id: &str) -> Result<(), HttpError> {
-    let url = format!("/api/admin/v1/actors/{}/erase", urlencoding::encode(id));
-    api_client(&url, "POST", None).await
-}
-
 pub async fn check_handle_availability(
     handle: &str,
 ) -> Result<HandleAvailabilityResult, HttpError> {

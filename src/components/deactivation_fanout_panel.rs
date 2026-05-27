@@ -92,8 +92,6 @@ pub struct FanoutDomainResult {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum FanoutState {
-    Pending,
-    InProgress,
     Succeeded,
     Failed,
 }
@@ -101,8 +99,6 @@ pub enum FanoutState {
 impl FanoutState {
     pub fn badge_variant(&self) -> BadgeVariant {
         match self {
-            FanoutState::Pending => BadgeVariant::Secondary,
-            FanoutState::InProgress => BadgeVariant::Default,
             FanoutState::Succeeded => BadgeVariant::Success,
             FanoutState::Failed => BadgeVariant::Destructive,
         }
@@ -110,8 +106,6 @@ impl FanoutState {
 
     pub fn label(&self) -> &'static str {
         match self {
-            FanoutState::Pending => "pending",
-            FanoutState::InProgress => "in_progress",
             FanoutState::Succeeded => "ok",
             FanoutState::Failed => "failed",
         }
@@ -310,7 +304,7 @@ fn erasure_receipt_block(receipt: &ErasureReceiptStatus) -> Element {
         .iter()
         .filter(|peer| matches!(peer.state, FanoutState::Succeeded))
         .count();
-    let progress = if total == 0 { 0 } else { (done * 100) / total };
+    let progress = (done * 100).checked_div(total).unwrap_or(0);
 
     rsx! {
         div { class: "rounded-md border p-3 space-y-2",

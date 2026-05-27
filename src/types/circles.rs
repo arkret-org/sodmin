@@ -82,10 +82,6 @@ impl Circle {
         self.state == "active"
     }
 
-    pub fn is_archived(&self) -> bool {
-        self.state == "archived"
-    }
-
     pub fn is_tombstoned(&self) -> bool {
         self.state == "tombstoned"
     }
@@ -159,13 +155,15 @@ mod tests {
 
     #[test]
     fn circle_state_helpers() {
-        let mut c = Circle::default();
-        c.state = "active".into();
-        assert!(c.is_active() && !c.is_archived() && !c.is_tombstoned());
+        let mut c = Circle {
+            state: "active".into(),
+            ..Default::default()
+        };
+        assert!(c.is_active() && !c.is_tombstoned());
         c.state = "archived".into();
-        assert!(!c.is_active() && c.is_archived() && !c.is_tombstoned());
+        assert!(!c.is_active() && !c.is_tombstoned());
         c.state = "tombstoned".into();
-        assert!(!c.is_active() && !c.is_archived() && c.is_tombstoned());
+        assert!(!c.is_active() && c.is_tombstoned());
     }
 
     #[test]

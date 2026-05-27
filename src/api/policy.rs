@@ -13,11 +13,6 @@ pub async fn list_policies(page: u64, per_page: u64) -> Result<PolicyListRespons
     api_client(&url, "GET", None).await
 }
 
-pub async fn get_policy(id: &str) -> Result<Policy, HttpError> {
-    let url = format!("/api/admin/v1/policies/{}", urlencoding::encode(id));
-    api_client(&url, "GET", None).await
-}
-
 pub async fn create_policy(req: &CreatePolicyRequest) -> Result<Policy, HttpError> {
     api_client(
         "/api/admin/v1/policies",

@@ -56,20 +56,3 @@ pub async fn list_space_members(id: &str) -> Result<Vec<SpaceMember>, HttpError>
     api_client(&url, "GET", None).await
 }
 
-pub async fn kick_space_member(space_id: &str, actor_id: &str) -> Result<(), HttpError> {
-    let url = format!(
-        "/api/admin/v1/spaces/{}/members/{}/kick",
-        urlencoding::encode(space_id),
-        urlencoding::encode(actor_id)
-    );
-    api_client(&url, "POST", None).await
-}
-
-pub async fn ban_space_member(space_id: &str, actor_id: &str) -> Result<(), HttpError> {
-    let url = format!(
-        "/api/admin/v1/spaces/{}/members/{}/ban",
-        urlencoding::encode(space_id),
-        urlencoding::encode(actor_id)
-    );
-    api_client(&url, "POST", None).await
-}

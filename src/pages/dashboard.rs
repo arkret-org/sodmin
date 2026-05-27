@@ -440,7 +440,7 @@ fn conformance_rows(describe: Option<&ServerDescribeResBody>) -> Vec<Conformance
                 None => "Unknown",
             };
             ConformanceRow {
-                label: *label,
+                label,
                 state,
                 detail: needles.join(" | "),
             }

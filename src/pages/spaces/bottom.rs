@@ -284,7 +284,7 @@ pub(crate) fn format_head_option(idx: usize, head: &WinnerHead) -> String {
 /// populated, so the caller can skip rendering an empty block. Pure
 /// helper so the formatting logic is unit-testable.
 pub(crate) fn format_head_metadata(head: &WinnerHead) -> Option<String> {
-    let mut parts = Vec::new();
+    let mut parts: Vec<String> = Vec::with_capacity(3);
     if let Some(issuer) = head.issuer.as_deref().filter(|s| !s.is_empty()) {
         parts.push(format!("issuer={issuer}"));
     }

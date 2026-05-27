@@ -171,7 +171,7 @@ pub fn AppHeader(collapsed: Signal<bool>, mobile_sidebar_open: Signal<bool>) -> 
                             button {
                                 class: "app-header-logout inline-flex h-9 items-center justify-center rounded-lg border bg-background px-3 text-xs font-medium text-foreground hover:bg-accent hover:text-accent-foreground touch-target",
                                 onclick: move |_| {
-                                    let nav = nav.clone();
+                                    let nav = nav;
                                     spawn(async move {
                                         let _ = crate::api::auth::logout().await;
                                         nav.push(Route::LoginPage {});

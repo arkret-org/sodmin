@@ -41,13 +41,12 @@ pub fn RelaxedWindowPage() -> Element {
     let mut saving = use_signal(|| false);
     let mut setting_data = use_resource(|| async { server::get_relaxed_window().await });
 
-    if !*hydrated.read() {
-        if let Some(Ok(setting)) = setting_data.read().as_ref() {
+    if !*hydrated.read()
+        && let Some(Ok(setting)) = setting_data.read().as_ref() {
             relaxed_ms.set(clamp_relaxed_window(setting.window_ms));
             relaxed_enabled.set(setting.enabled);
             hydrated.set(true);
         }
-    }
 
     let active_profile = setting_data
         .read()
@@ -190,7 +189,7 @@ pub fn RelaxedWindowPage() -> Element {
 /// profiles that pins the ephemeral window. Done as a helper so the UI
 /// gating + the unit tests share a single source of truth.
 pub fn is_audit_profile(profile_id: &str) -> bool {
-    AUDIT_PROFILES.iter().any(|p| *p == profile_id)
+    AUDIT_PROFILES.contains(&profile_id)
 }
 
 /// Clamp a candidate window value into `[FLOOR, HARD_CEILING]`. The
@@ -198,9 +197,7 @@ pub fn is_audit_profile(profile_id: &str) -> bool {
 /// but the slider can be driven via `oninput` with arbitrary values
 /// from accessibility tooling — this is the canonical check.
 pub fn clamp_relaxed_window(value: u32) -> u32 {
-    value
-        .max(RELAXED_WINDOW_FLOOR_MS)
-        .min(EPHEMERAL_HARD_CEILING_MS)
+    value.clamp(RELAXED_WINDOW_FLOOR_MS, EPHEMERAL_HARD_CEILING_MS)
 }
 
 #[cfg(test)]

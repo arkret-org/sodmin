@@ -98,6 +98,11 @@ impl AnchorerValue {
 /// Typed reason for an `admin-self-signs-themselves-in` constraint
 /// violation, surfaced per anchorer kind so the operator sees exactly
 /// which sub-rule tripped.
+///
+/// The shared `Admin` postfix is meaningful — every variant describes
+/// the same admin DID landing inside a different anchorer shape, so
+/// renaming away from it would obscure intent.
+#[allow(clippy::enum_variant_names)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SelfSignViolation {
     SingleDidIsAdmin,
@@ -108,32 +113,6 @@ pub enum SelfSignViolation {
     OpenSetContainsAdmin,
     MixedPrimaryIsAdmin,
     MixedRecoveryContainsAdmin,
-}
-
-impl SelfSignViolation {
-    /// Short human-readable label for toast / log copy.
-    pub fn label(&self) -> &'static str {
-        match self {
-            SelfSignViolation::SingleDidIsAdmin => {
-                "single_did anchorer references the current admin DID"
-            }
-            SelfSignViolation::ThresholdContainsAdmin => {
-                "threshold anchorer member set contains the current admin DID"
-            }
-            SelfSignViolation::ThresholdLeaderIsAdmin => {
-                "threshold anchorer lex-smallest leader is the current admin DID"
-            }
-            SelfSignViolation::OpenSetContainsAdmin => {
-                "open_set anchorer member set contains the current admin DID"
-            }
-            SelfSignViolation::MixedPrimaryIsAdmin => {
-                "mixed anchorer primary is the current admin DID"
-            }
-            SelfSignViolation::MixedRecoveryContainsAdmin => {
-                "mixed anchorer recovery quorum contains the current admin DID"
-            }
-        }
-    }
 }
 
 /// Profile sent to the "construct anchorer reconfig Move" form. The
@@ -180,11 +159,11 @@ impl AnchorerReconfigRequest {
     ///
     /// - `single_did`: `single_did != admin_did`
     /// - `threshold`:  `!threshold_dids.contains(admin_did)` AND the
-    ///                 lex-smallest `threshold_dids` entry (the leader
-    ///                 per spec multisig §4) is not `admin_did`
+    ///   lex-smallest `threshold_dids` entry (the leader per spec
+    ///   multisig §4) is not `admin_did`
     /// - `open_set`:   `!open_set_members.contains(admin_did)`
     /// - `mixed`:      `mixed_primary != admin_did` AND
-    ///                 `!mixed_recovery.contains(admin_did)`
+    ///   `!mixed_recovery.contains(admin_did)`
     pub fn self_sign_violation(&self, admin_did: &str) -> Option<SelfSignViolation> {
         match self.kind.as_str() {
             "single_did" => {
@@ -206,11 +185,10 @@ impl AnchorerReconfigRequest {
                 // For the current shape this collapses into the
                 // contains() check above, but we keep it explicit so
                 // the constraint is auditable per-kind.
-                if let Some(leader) = self.threshold_dids.iter().min() {
-                    if leader == admin_did {
+                if let Some(leader) = self.threshold_dids.iter().min()
+                    && leader == admin_did {
                         return Some(SelfSignViolation::ThresholdLeaderIsAdmin);
                     }
-                }
                 None
             }
             "open_set" => {

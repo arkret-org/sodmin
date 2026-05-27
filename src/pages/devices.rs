@@ -445,7 +445,7 @@ where
             done += 1;
             match res {
                 Ok(_) => ok += 1,
-                Err(e) => failed.push((id, e.message.clone())),
+                Err(e) => failed.push((id, e.message)),
             }
         }
         on_progress(done);

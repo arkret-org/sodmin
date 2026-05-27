@@ -28,16 +28,6 @@ pub async fn get_agent(id: &str) -> Result<Agent, HttpError> {
     api_client(&url, "GET", None).await
 }
 
-pub async fn disable_agent(id: &str) -> Result<(), HttpError> {
-    let url = format!("/api/admin/v1/agents/{}/disable", urlencoding::encode(id));
-    api_client(&url, "POST", None).await
-}
-
-pub async fn enable_agent(id: &str) -> Result<(), HttpError> {
-    let url = format!("/api/admin/v1/agents/{}/enable", urlencoding::encode(id));
-    api_client(&url, "POST", None).await
-}
-
 // ── CXP-0008 personal-agent surface (soland P2 aa76b91) ──
 //
 // The 11 new soland endpoints. UI form payloads are TODO(P3-impl)

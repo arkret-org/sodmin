@@ -40,8 +40,8 @@ pub fn PolicyEditorPage(space_id: String) -> Element {
 
     // Seed the form once from the first successful read. Subsequent
     // refreshes leave the operator's edits in place.
-    if !*form_seeded.read() {
-        if let Some(Ok(p)) = data.read().as_ref() {
+    if !*form_seeded.read()
+        && let Some(Ok(p)) = data.read().as_ref() {
             history_visibility.set(p.history_visibility.clone());
             join_rule.set(p.join_rule.clone());
             guest_access.set(p.guest_access.clone());
@@ -49,7 +49,6 @@ pub fn PolicyEditorPage(space_id: String) -> Element {
             encryption_algorithm.set(p.encryption_algorithm.clone());
             form_seeded.set(true);
         }
-    }
 
     let id_for_submit = space_id.clone();
 

@@ -221,15 +221,14 @@ pub fn AnchorerPage(space_id: String) -> Element {
                                     // we hard-block client-side so the
                                     // operator can correct the form
                                     // before paying a round-trip.
-                                    if let Some(did) = &admin_did_for_submit {
-                                        if req.admin_self_signs_themselves_in(did) {
+                                    if let Some(did) = &admin_did_for_submit
+                                        && req.admin_self_signs_themselves_in(did) {
                                             show_toast(
                                                 "Refusing to submit: the proposed anchorer includes the current admin DID. Pick a different operator (or, if you intend the swap, perform it via a fresh admin scope, not self-signed).",
                                                 ToastVariant::Error,
                                             );
                                             return;
                                         }
-                                    }
                                     pending.set(Some(req));
                                 },
                                 "Construct Move"
@@ -292,11 +291,10 @@ pub fn AnchorerPage(space_id: String) -> Element {
                             "High-sensitivity admin operation. Proposed kind = {}. Confirm your admin scope is current; soland will reject if scope has lapsed.",
                             req.kind
                         );
-                        if let Some(did) = admin_did_for_warn.as_deref() {
-                            if req.admin_self_signs_themselves_in(did) {
+                        if let Some(did) = admin_did_for_warn.as_deref()
+                            && req.admin_self_signs_themselves_in(did) {
                                 d.push_str(" Warning: the proposed anchorer references the current admin DID; this will be rejected.");
                             }
-                        }
                         d
                     }
                     None => String::new(),

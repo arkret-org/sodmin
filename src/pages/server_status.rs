@@ -478,15 +478,16 @@ fn rate_limit_bars(rate_limit: &serde_json::Value) -> Vec<RateLimitBar> {
         }];
     }
 
-    let mut bars = Vec::new();
-    for key in [
+    let keys = [
         "limit",
         "burst",
         "capacity",
         "tokens",
         "remaining",
         "requests",
-    ] {
+    ];
+    let mut bars = Vec::with_capacity(keys.len());
+    for key in keys {
         if let Some(value) = obj.get(key).and_then(number_value) {
             let base = obj
                 .get("limit")

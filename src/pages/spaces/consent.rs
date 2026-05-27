@@ -241,17 +241,9 @@ pub(crate) fn consent_status_variant(status: &ConsentStatus) -> BadgeVariant {
     }
 }
 
-/// Whether the row should expose the Approve/Reject admin override. Pure
-/// helper so the gating rule can be unit-tested without spinning up the
-/// page. The rule is: row status is `Pending` AND soland populated
-/// `consent_id` (rows lacking the id can't be resolved server-side).
-pub(crate) fn row_is_resolvable(status: &ConsentStatus, consent_id: Option<&str>) -> bool {
-    matches!(status, ConsentStatus::Pending) && consent_id.is_some()
-}
-
 #[cfg(test)]
 mod tests {
-    use super::{consent_status_variant, row_is_resolvable};
+    use super::consent_status_variant;
     use crate::components::ui::badge::BadgeVariant;
     use crate::types::consent::ConsentStatus;
 
@@ -273,16 +265,5 @@ mod tests {
             consent_status_variant(&ConsentStatus::Pending),
             BadgeVariant::Secondary
         ));
-    }
-
-    #[test]
-    fn only_pending_rows_with_consent_id_are_resolvable() {
-        // The Approve/Reject buttons only appear when both conditions
-        // hold; otherwise the column shows the placeholder em-dash.
-        assert!(row_is_resolvable(&ConsentStatus::Pending, Some("c:1")));
-        assert!(!row_is_resolvable(&ConsentStatus::Pending, None));
-        assert!(!row_is_resolvable(&ConsentStatus::Active, Some("c:1")));
-        assert!(!row_is_resolvable(&ConsentStatus::Revoked, Some("c:1")));
-        assert!(!row_is_resolvable(&ConsentStatus::Expired, Some("c:1")));
     }
 }

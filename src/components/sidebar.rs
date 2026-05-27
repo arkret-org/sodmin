@@ -76,16 +76,14 @@ impl NavSection {
     /// Hide a whole section if its bridge is not active or its scope is
     /// not held — also hide if every item has been filtered out.
     fn is_visible(&self) -> bool {
-        if let Some(b) = self.required_bridge {
-            if !session::has_bridge(b) {
+        if let Some(b) = self.required_bridge
+            && !session::has_bridge(b) {
                 return false;
             }
-        }
-        if let Some(s) = self.required_scope {
-            if !session::has_scope(s) {
+        if let Some(s) = self.required_scope
+            && !session::has_scope(s) {
                 return false;
             }
-        }
         !self.filtered_items().is_empty()
     }
 }
@@ -94,18 +92,16 @@ impl NavSection {
 /// from the cached session info and only emits groups/items the operator
 /// is actually allowed to see. Unknown extras in either set are ignored.
 fn build_nav_sections() -> Vec<NavSection> {
-    let mut sections: Vec<NavSection> = Vec::new();
-
     // Dashboard is always visible — it has its own per-bridge readiness
     // surface.
-    sections.push(NavSection::new(
+    let mut sections: Vec<NavSection> = vec![NavSection::new(
         String::new(),
         vec![NavItem::new(
             t("nav.dashboard"),
             Route::Dashboard {},
             "layout-dashboard",
         )],
-    ));
+    )];
 
     sections.push(
         NavSection::new(
@@ -555,16 +551,14 @@ mod tests {
     }
 
     fn section_visible_with(section: &NavSection, bridges: &[&str], scopes: &[&str]) -> bool {
-        if let Some(b) = section.required_bridge {
-            if !bridges.contains(&b) {
+        if let Some(b) = section.required_bridge
+            && !bridges.contains(&b) {
                 return false;
             }
-        }
-        if let Some(s) = section.required_scope {
-            if !(scopes.contains(&scope::WILDCARD) || scopes.contains(&s)) {
+        if let Some(s) = section.required_scope
+            && !(scopes.contains(&scope::WILDCARD) || scopes.contains(&s)) {
                 return false;
             }
-        }
         !filter_with_scopes(section, scopes).is_empty()
     }
 
