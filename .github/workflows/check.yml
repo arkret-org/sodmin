@@ -38,6 +38,8 @@ jobs:
       - name: Cache cargo registry, git, and target
         uses: Swatinem/rust-cache@v2
 
+      # rustfmt enforcement was dropped intentionally in commit 17e8e8a;
+      # restore via `cargo fmt --all -- --check` before tagging a release.
       - name: cargo check (host)
         run: cargo check --workspace --all-targets --locked
 
