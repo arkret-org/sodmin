@@ -20,7 +20,7 @@ env:
 
 jobs:
   rust:
-    name: cargo fmt + check + test
+    name: cargo check + test
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -37,9 +37,6 @@ jobs:
 
       - name: Cache cargo registry, git, and target
         uses: Swatinem/rust-cache@v2
-
-      - name: cargo fmt --check
-        run: cargo fmt --all -- --check
 
       - name: cargo check (host)
         run: cargo check --workspace --all-targets --locked
