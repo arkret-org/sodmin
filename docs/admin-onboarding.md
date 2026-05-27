@@ -124,3 +124,147 @@ from a higher-privileged admin or via the coauth bootstrap migration.
 
 For deployment topology and the full port / path routing table see
 [DEPLOYMENT.md](../DEPLOYMENT.md).
+
+## R3 admin flowcharts
+
+The flowcharts below are the canonical reference for the three most common
+operational lifecycle flows admins drive from sodmin. They are intentionally
+text-only (ASCII step lists) so they survive in any review tool and can be
+read on-call without rendering.
+
+### Agent lifecycle: provisioning → pause → resume → deactivate
+
+```text
+[provision]
+    │
+    │  /agents/personal → "Provision new agent" wizard
+    │  - choose DID method (did:key by default; did:web for cross-realm)
+    │  - generate key pair (browser-side; private key never leaves the wizard)
+    │  - paste accountable_to chain (defaults to the operator's own grant)
+    │  - submit
+    │     → POST cx.account.agent_key_pair to coauth
+    │     → soland materializes the agent_state cell (Active)
+    ▼
+[Active]   (agent serves traffic; appears in /agents/personal listing)
+    │
+    │  Need a maintenance window?
+    ▼
+[pause]
+    │  /agents/personal → row action "Pause"
+    │     → POST /agents/{id}/pause to soland
+    │     → audit row written: kind=agent.pause
+    │     → soland_agent_state_cell flips to Paused
+    │  Writes against the agent now reject with `agent_paused`.
+    │  Reads remain allowed.
+    ▼
+[Paused]
+    │
+    │  Resume? (revert)                Deactivate? (terminal)
+    ▼                                  ▼
+[resume]                          [deactivate]
+    │ /agents/personal               │ /agents/personal
+    │   → row action "Resume"        │   → row action "Deactivate"
+    │     → POST .../resume          │     → POST .../deactivate
+    │     → cell back to Active      │     → cell to Deactivated (terminal)
+    │                                │  All writes return agent_deactivated.
+    │                                │  Inert reads remain allowed.
+    ▼                                ▼
+[Active]                          [Deactivated]
+                                      │
+                                      ▼
+                                    no further transitions
+                                    (bind a new agent under a new DID)
+```
+
+Notes:
+
+- The historical `/agents/{id}/revoke` path is gone in R3. Any "Revoke"
+  button in older builds of sodmin must be replaced with "Deactivate".
+- Pause is reversible; Deactivate is not. The wizard requires a typed-out
+  confirmation phrase before deactivate to prevent fat-fingering.
+
+### Recovery policy rotation
+
+```text
+[review current policy]
+    │  /policies/recovery → opens the principal's policy_version stack
+    │  - read the active version (highest policy_version)
+    │  - confirm proof_kinds set is current
+    │  - inspect the witness inventory (DeviceQuorum, RecoveryUnlock,
+    │    TrustedRecoveryService, PrincipalSigning rows)
+    ▼
+[draft new policy]
+    │  "New revision" button
+    │  - new policy_version = prev + 1 (form pre-fills)
+    │  - edit proof_kinds (add / remove witness types)
+    │  - edit body fields (threshold, witness set, freshness window)
+    │  - save draft (not yet submitted)
+    ▼
+[validate draft]
+    │  - sodmin runs the local validator against
+    │    recovery-policy.schema.json
+    │  - flags any schema-mismatch fields red
+    │  - if green, "Submit" enables
+    ▼
+[submit]
+    │  - POST cx.recovery.policy.create to soland
+    │  - soland writes the policy row + audit
+    │  - policy stack now shows the new version as active
+    ▼
+[verify with a drill]
+    │  - "Run drill" button on the new policy version
+    │  - sodmin opens a synthetic recovery_session against the new policy
+    │  - drill completes → emits RecoveryReceipt
+    │  - verify proof_summary matches expectations
+    ▼
+[done]
+    Old policy versions remain in history (append-only). If the new
+    policy needs rollback, draft *another* new revision; do not edit
+    the past.
+```
+
+### Realm `media_service.foci[]` configuration
+
+```text
+[open realm config]
+    │  /realms/{id}/media_service
+    │  - view current foci[] (one row per focus)
+    │  - for each focus: focus_id, backend, connect_url, issuer_kid, status
+    ▼
+[add a focus]
+    │  "Add focus" button
+    │  - choose backend (livekit / mediasoup / janus / contrix_native / moq_relay)
+    │  - paste connect_url (the SFU/relay control endpoint)
+    │  - choose issuer_kid (from soland's active kid set)
+    │  - sodmin synthesizes focus_id using the canonical rules:
+    │      cx:focus:<backend>:<region>:<disambiguator>
+    │  - validate (region matches [a-z0-9-]+, length checks)
+    │  - save draft
+    ▼
+[stage]
+    │  - new focus row is added with status=staged
+    │  - clients with the matching profile can negotiate, but the realm
+    │    won't auto-prefer it until you flip to active
+    ▼
+[health check]
+    │  - "Probe" button issues a one-shot synthetic call against the focus
+    │  - probe success → backend reachable, issuer_kid signs cleanly
+    │  - probe failure → check connect_url and the issuer_kid binding
+    ▼
+[promote to active]
+    │  - "Promote to active" flips status=staged → status=active
+    │  - new tokens may now bind to this focus
+    ▼
+[(optional) demote / remove]
+    │  - "Demote" flips active → drained; existing tokens valid till TTL
+    │  - after >10min (max token TTL), "Remove" deletes the focus row
+    ▼
+[done]
+    Audit rows under `realm.media_service.foci.update` capture every
+    transition.
+```
+
+If the realm still advertises the legacy v1.0 `sfu_endpoint` shape,
+sodmin shows a yellow banner with a one-click "Migrate to foci[]" action
+that runs the equivalent of soland's `20260520_realm_media_service_foci.sql`
+on this single realm row.
