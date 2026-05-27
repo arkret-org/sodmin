@@ -19,3 +19,6 @@ pub mod perf;
 pub mod search;
 pub mod session;
 pub mod storage;
+/// P5 — opt-in browser-error telemetry and request_id formatting
+/// helpers. Requires `SODMIN_TELEMETRY_ENDPOINT` at deploy time.
+pub mod telemetry;

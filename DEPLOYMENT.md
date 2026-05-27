@@ -14,6 +14,35 @@ This document covers local/container deployment only. The project does not push 
 | `COAUTH_URL` | recommended | Internal URL for coauth admin/auth endpoints. Enables `/auth/`, `/api/v1/auth/`, `/api/admin/`, `/authorize`, `/oauth2/`, and `/.well-known/` proxy locations. |
 | `COAUTH_PUBLIC_URL` | recommended | Browser-facing coauth origin written to `/config.json` for OAuth2 PKCE redirects. |
 | `SODMIN_PORT` | no | nginx listen port. Defaults to `80`. |
+| `SODMIN_TELEMETRY_ENDPOINT` | no | P5 — opt-in browser-error telemetry sink. When set, `/config.json` exposes the URL and `utils::telemetry` POSTs structured (no-PII) error events. Operator must also flip `localStorage.sodmin_telemetry_opt_in=1`. |
+
+## Port / Path Routing Table
+
+The sodmin container is a single nginx instance serving a Dioxus/WASM SPA
+plus reverse-proxy locations for upstream services. P5 — operators
+fronting additional services should update both `connect-src` in the
+CSP header and the routing table below.
+
+| Browser path | Upstream | Notes |
+| --- | --- | --- |
+| `/` (SPA fall-through) | sodmin nginx | Serves `index.html`; SPA router takes over. |
+| `/healthz` | sodmin nginx | Static liveness probe — serves `index.html` so missing bundle returns 503. |
+| `/healthz/deep` | sodmin nginx → `${SOLAND_URL}/healthz` | P5 — readiness probe; returns 503 if soland is unreachable within 2s. |
+| `/config.json` | sodmin nginx | Runtime config rendered at boot from env. |
+| `/api/v1/events/` | `${SOLAND_URL}` | Event ingestion. |
+| `/api/v1/sync/` | `${SOLAND_URL}` | Sync long-poll. |
+| `/api/v1/directory/` | `${SOLAND_URL}` | Directory queries. |
+| `/api/admin/` | `${COAUTH_URL}` | All coauth admin endpoints (RBAC enforced server-side). |
+| `/auth/` and `/api/v1/auth/` | `${COAUTH_URL}` | Token + session endpoints. |
+| `/authorize`, `/oauth2/`, `/.well-known/` | `${COAUTH_URL}` | OAuth2 PKCE flow + discovery. |
+| `*.wasm`, `*.js`, `*.css`, images | sodmin nginx (`Cache-Control: public, immutable`) | Bundle assets. |
+
+P5 — when `floria` (E2EE / matrix bridge) or `teabay` (developer
+console) are fronted alongside sodmin, the recommended pattern is a
+separate nginx in front of all three, with sodmin keeping its own
+SPA-only fall-through. Inline proxy entries in `docker-entrypoint.sh`
+are intentionally minimal: only soland + coauth are first-class
+upstreams.
 
 ## Local Container Run
 
@@ -30,6 +59,30 @@ docker run --rm -p 9090:80 \
 ## Security Headers
 
 The nginx template sets CSP, `X-Frame-Options: DENY`, `Referrer-Policy: no-referrer`, and a restrictive `Permissions-Policy`. If an operator fronts additional origins, update `connect-src` in `docker-entrypoint.sh` and keep the change local to that deployment.
+
+The CSP `script-src` directive includes `'wasm-unsafe-eval'` (required
+by the Dioxus WASM bundle) but intentionally OMITS `'unsafe-eval'` and
+`'unsafe-inline'`. P5 — new agent-UI dialogs use the existing
+`ConfirmDialog` / `DangerousActionDialog` Dioxus primitives and do not
+introduce any inline-script or eval-based dialog framework; the strict
+CSP is preserved.
+
+## Backend RBAC is Canonical
+
+UI "hiding" of buttons and links is a usability affordance, **never** a
+security boundary. The backend (soland for admin endpoints, coauth for
+auth/identity endpoints) MUST enforce capability checks on every
+admin-scoped route, and MUST reject disallowed actions with
+`cx.error.capability_denied`. If a sodmin operator forges a request
+through DevTools or curl with a stale token, the server-side RBAC layer
+is the one that says no.
+
+P5 — the new `GrantedCapabilitiesView` component (rendered above the
+agent provision wizard and other destructive forms) shows the
+operator's current grant list before submission to reduce the
+"click → 403 surprise" loop, but the destructive button is still
+visible regardless: only the backend can authoritatively reject the
+action.
 
 ## CXP-0007 Circle administration
 

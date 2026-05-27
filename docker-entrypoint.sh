@@ -110,6 +110,27 @@ server {
         access_log off;
         try_files /index.html =503;
     }
+
+    # P5 — deep healthcheck that also verifies upstream soland
+    # connectivity. Container orchestrators (k8s, nomad) can use this
+    # as a readiness probe so a sodmin pod is not advertised "ready"
+    # while soland is unreachable. Errors (DNS failure, network down,
+    # soland returning anything other than 2xx/3xx) return 503 via
+    # nginx error_page so the probe fails as expected.
+    location = /healthz/deep {
+        access_log off;
+        proxy_pass ${SOLAND_URL}/healthz;
+        proxy_set_header Host \$host;
+        proxy_connect_timeout 2s;
+        proxy_read_timeout 2s;
+        proxy_intercept_errors on;
+        error_page 500 502 503 504 =503 /healthz-upstream-down;
+    }
+    location = /healthz-upstream-down {
+        access_log off;
+        internal;
+        return 503 "upstream soland unreachable\n";
+    }
 EOF
 
 if [ -n "$COAUTH_URL" ]; then

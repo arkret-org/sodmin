@@ -23,3 +23,10 @@ pub mod risk_action_panel;
 pub mod sidebar;
 pub mod theme;
 pub mod ui;
+/// P5 — generic client-side validating input (DID / URL / Email /
+/// Required / MaxLength). Wired into the personal-agent provision
+/// wizard step 1 and the DID-binding panel `Add binding` form.
+pub mod validated_input;
+/// P5 — preview of the operator's current capability grants before a
+/// destructive action, to avoid the "click → 403 surprise" loop.
+pub mod granted_capabilities_view;

@@ -134,13 +134,17 @@ where
 
     if status >= 400 {
         let (message, error_body) = format_error(status, &text, retry_after_ms);
-        return Err(HttpError {
+        let err = HttpError {
             message,
             status,
             body: error_body,
             request_id: response_rid,
             retry_after_ms,
-        });
+        };
+        // P5 — fire-and-forget opt-in telemetry. Internal no-op when
+        // disabled / endpoint unset; never blocks the caller.
+        crate::utils::telemetry::report_http_error(url, &err);
+        return Err(err);
     }
 
     serde_json::from_str(&text).map_err(|e| HttpError {

@@ -14,14 +14,16 @@ use dioxus::prelude::*;
 
 use crate::api::agents;
 use crate::components::dangerous_action_dialog::DangerousActionDialog;
+use crate::components::granted_capabilities_view::GrantedCapabilitiesView;
 use crate::components::ui::badge::{Badge, BadgeVariant};
 use crate::components::ui::button::{Button, ButtonSize, ButtonVariant};
 use crate::components::ui::error_banner::ErrorBanner;
-use crate::components::ui::input::{Input, Label};
+use crate::components::ui::input::Label;
 use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::table::*;
 use crate::components::ui::toast::{ToastVariant, show_toast};
+use crate::components::validated_input::{ValidatedInput, ValidationKind};
 use crate::types::{AccountabilityGrantRequest, Agent, AgentProvisionRequest};
 
 const PAGE_SIZE: u64 = 25;
@@ -375,14 +377,27 @@ fn ProvisionWizard(props: ProvisionWizardProps) -> Element {
 
                 if *step.read() == 1 {
                     div { class: "space-y-3",
+                        // P5 — pre-flight capability check so the operator
+                        // sees whether their account already holds
+                        // `cx.agent.provision` before submit. UI hint only;
+                        // backend RBAC is canonical.
+                        GrantedCapabilitiesView {
+                            required_capability: Some("cx.agent.provision".to_string()),
+                            title: Some("Required capability".to_string()),
+                        }
                         Label { class: "text-sm".to_string(), "Controller DID" }
-                        Input {
+                        // P5 — ValidatedInput enforces the round-4
+                        // did:<method>:<id> grammar inline so the operator
+                        // sees the error immediately, not on submit.
+                        ValidatedInput {
+                            kind: ValidationKind::Did,
                             value: controller_did.read().clone(),
                             placeholder: "did:cx:abc123…".to_string(),
                             oninput: move |evt: FormEvent| controller_did.set(evt.value()),
                         }
                         Label { class: "text-sm".to_string(), "Display name (optional)" }
-                        Input {
+                        ValidatedInput {
+                            kind: ValidationKind::MaxLength(128),
                             value: display_name.read().clone(),
                             oninput: move |evt: FormEvent| display_name.set(evt.value()),
                         }

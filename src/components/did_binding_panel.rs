@@ -14,7 +14,8 @@ use dioxus::prelude::*;
 use crate::api::coauth::{self, CoauthManagedDidBinding};
 use crate::components::ui::button::{Button, ButtonVariant};
 use crate::components::ui::dialog::ConfirmDialog;
-use crate::components::ui::input::{Input, Label};
+use crate::components::ui::input::Label;
+use crate::components::validated_input::{ValidatedInput, ValidationKind};
 use crate::utils::error::HttpError;
 
 #[component]
@@ -92,8 +93,10 @@ pub fn DidBindingPanel(
                 }
                 div { class: "space-y-2",
                     Label { r#for: "new-did".to_string(), "DID" }
-                    Input {
-                        r#type: "text".to_string(),
+                    // P5 — ValidatedInput for the round-4 DID grammar,
+                    // identical regex to `crate::utils::did::is_valid_did`.
+                    ValidatedInput {
+                        kind: ValidationKind::Did,
                         placeholder: "did:web:example.org:account:alice".to_string(),
                         value: new_did.read().clone(),
                         oninput: move |evt: FormEvent| new_did.set(evt.value()),
@@ -101,8 +104,10 @@ pub fn DidBindingPanel(
                 }
                 div { class: "space-y-2",
                     Label { r#for: "new-control-proof".to_string(), "Control Proof" }
-                    Input {
-                        r#type: "text".to_string(),
+                    // P5 — Required validation gives the operator inline
+                    // feedback when they tab through an empty field.
+                    ValidatedInput {
+                        kind: ValidationKind::Required,
                         placeholder: "base64url-encoded signed challenge".to_string(),
                         value: new_control_proof.read().clone(),
                         oninput: move |evt: FormEvent| new_control_proof.set(evt.value()),

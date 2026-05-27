@@ -34,6 +34,16 @@ pub fn show_toast_with_action(message: &str, variant: ToastVariant, action: Toas
     show_toast_inner(message, variant, Some(action));
 }
 
+/// P5 — show an error toast that automatically appends the
+/// `request_id` from the [`crate::utils::error::HttpError`] so the
+/// operator can quote it verbatim in a support ticket. Calls
+/// [`crate::utils::telemetry::format_request_id`] internally.
+pub fn show_http_error_toast(error: &crate::utils::error::HttpError) {
+    let suffix = crate::utils::telemetry::format_request_id(error);
+    let message = format!("{}{}", error.message, suffix);
+    show_toast_inner(&message, ToastVariant::Error, None);
+}
+
 fn show_toast_inner(message: &str, variant: ToastVariant, action: Option<ToastAction>) {
     let id = {
         let mut counter = TOAST_COUNTER.write();
