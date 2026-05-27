@@ -2080,13 +2080,19 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ),
             // P5 — /agents/personal page strings.
             ("agents.personal.title", "Personal agents"),
-            ("agents.personal.subtitle", "Controller-self native agents (CXP-0008)"),
+            (
+                "agents.personal.subtitle",
+                "Controller-self native agents (CXP-0008)",
+            ),
             ("agents.personal.provision", "Provision new agent"),
             ("agents.personal.deactivate", "Deactivate"),
             ("agents.personal.pause", "Pause"),
             ("agents.personal.resume", "Resume"),
             ("agents.personal.rotate_key", "Rotate key"),
-            ("agents.personal.no_agents", "No personal agents provisioned yet."),
+            (
+                "agents.personal.no_agents",
+                "No personal agents provisioned yet.",
+            ),
             ("agents.personal.controller_did", "Controller DID"),
             ("agents.personal.display_name", "Display name (optional)"),
             ("agents.personal.step_label", "Step {step}/3"),
@@ -2096,7 +2102,10 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("agents.personal.required_capability", "Required capability"),
             // R3 — Agent FSM list (UI-1).
             ("agents.title", "Agents"),
-            ("agents.subtitle", "Native + personal agents — active / paused / deactivated."),
+            (
+                "agents.subtitle",
+                "Native + personal agents — active / paused / deactivated.",
+            ),
             ("agents.id", "Agent ID"),
             ("agents.name", "Name"),
             ("agents.owner_id", "Owner"),
@@ -2120,7 +2129,10 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "agents.lifecycle.subtitle",
                 "Drafts, action_request, action_approve, action_reject. Coming in R3.1.",
             ),
-            ("agents.lifecycle.placeholder", "No draft/action data plumbed yet."),
+            (
+                "agents.lifecycle.placeholder",
+                "No draft/action data plumbed yet.",
+            ),
             // R3 — Realm media_service editor (UI-3).
             ("media_service.title", "Realm media service"),
             (
@@ -2165,7 +2177,10 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "recovery.receipts_subtitle",
                 "Each receipt's proof_summary[] lists the proofs the coauth recovery flow accepted.",
             ),
-            ("recovery.placeholder", "Recovery data API ships in R3.1 — surface stubbed."),
+            (
+                "recovery.placeholder",
+                "Recovery data API ships in R3.1 — surface stubbed.",
+            ),
             // R3 — Handle homograph inline warnings (UI-5).
             (
                 "error.handle_homograph_forbidden",
@@ -2201,10 +2216,22 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "key_backup.memory_hard.v1 — Argon2id memory-hard key backup KDF.",
             ),
             // R3 — New wire error codes (UI-7).
-            ("error.pairing_request_expired", "The pairing request expired before approval. Restart the pairing flow."),
-            ("error.proof_invalid", "Submitted proof failed verification."),
-            ("error.agent_paused", "The agent is paused. Resume it before retrying."),
-            ("error.agent_deactivated", "The agent is deactivated and cannot accept new work."),
+            (
+                "error.pairing_request_expired",
+                "The pairing request expired before approval. Restart the pairing flow.",
+            ),
+            (
+                "error.proof_invalid",
+                "Submitted proof failed verification.",
+            ),
+            (
+                "error.agent_paused",
+                "The agent is paused. Resume it before retrying.",
+            ),
+            (
+                "error.agent_deactivated",
+                "The agent is deactivated and cannot accept new work.",
+            ),
             (
                 "error.accountability_grant_missing",
                 "Action requires an active accountability_grant from the controller.",
@@ -2219,13 +2246,19 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ),
             // P5 — /key-backup page strings.
             ("key_backup.title", "Key backup"),
-            ("key_backup.subtitle", "Server-side cross-signing key backup"),
+            (
+                "key_backup.subtitle",
+                "Server-side cross-signing key backup",
+            ),
             ("key_backup.no_backup", "No key backup found on server."),
             ("key_backup.backup_version", "Backup version"),
             ("key_backup.algorithm", "Algorithm"),
             ("key_backup.created", "Created"),
             ("key_backup.delete", "Delete backup"),
-            ("key_backup.delete_confirm", "Delete this key backup version?"),
+            (
+                "key_backup.delete_confirm",
+                "Delete this key backup version?",
+            ),
             ("key_backup.refresh", "Refresh"),
         ],
         Language::ZhCn => &[
@@ -3250,7 +3283,10 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ),
             // P5 — /agents/personal 页面中文短串。
             ("agents.personal.title", "个人 Agent"),
-            ("agents.personal.subtitle", "控制者自管原生 Agent（CXP-0008）"),
+            (
+                "agents.personal.subtitle",
+                "控制者自管原生 Agent（CXP-0008）",
+            ),
             ("agents.personal.provision", "新建 Agent"),
             ("agents.personal.deactivate", "停用"),
             ("agents.personal.pause", "暂停"),
@@ -3266,7 +3302,10 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("agents.personal.required_capability", "所需能力"),
             // R3 — Agent FSM 列表（UI-1）。
             ("agents.title", "Agent"),
-            ("agents.subtitle", "原生与个人 Agent —— active / paused / deactivated 状态机。"),
+            (
+                "agents.subtitle",
+                "原生与个人 Agent —— active / paused / deactivated 状态机。",
+            ),
             ("agents.id", "Agent ID"),
             ("agents.name", "名称"),
             ("agents.owner_id", "拥有者"),
@@ -3335,7 +3374,10 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "recovery.receipts_subtitle",
                 "每条回执的 proof_summary[] 列出 coauth 恢复流程接受的证明项。",
             ),
-            ("recovery.placeholder", "恢复数据 API 在 R3.1 接入 —— 当前为占位界面。"),
+            (
+                "recovery.placeholder",
+                "恢复数据 API 在 R3.1 接入 —— 当前为占位界面。",
+            ),
             // R3 — Handle homograph 内联提示（UI-5）。
             (
                 "error.handle_homograph_forbidden",
@@ -3371,7 +3413,10 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "key_backup.memory_hard.v1 —— Argon2id 内存密集型 KDF。",
             ),
             // R3 — 新增 wire 错误码（UI-7）。
-            ("error.pairing_request_expired", "配对请求已在批准前过期，请重新发起。"),
+            (
+                "error.pairing_request_expired",
+                "配对请求已在批准前过期，请重新发起。",
+            ),
             ("error.proof_invalid", "提交的证明未通过校验。"),
             ("error.agent_paused", "Agent 处于暂停状态，请先恢复后重试。"),
             ("error.agent_deactivated", "Agent 已停用，无法接受新工作。"),

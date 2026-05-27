@@ -127,6 +127,58 @@ pub fn report_http_error(path: &str, error: &HttpError) {
     });
 }
 
+/// Fire-and-forget reporter for browser-side errors that do NOT originate
+/// from an HTTP envelope (panics, decoder failures, UI assertion misses).
+///
+/// Posts to the soland-side `/api/v1/telemetry/error` endpoint when the
+/// admin runtime endpoint is configured (a future operator deployment may
+/// route to that path directly; today the same `SODMIN_TELEMETRY_ENDPOINT`
+/// sink is used). No-op when telemetry is disabled or the endpoint is unset.
+///
+/// `code` is a stable wire-style identifier (e.g. `ui.error_banner.shown`).
+/// `context` is a short human-readable hint, MUST NOT include operator
+/// input, secrets, or PII — keep it to component names and error kinds.
+pub fn report_error(code: &str, context: &str) {
+    if !is_enabled() {
+        return;
+    }
+    let endpoint = match storage::get_item(ENDPOINT_KEY) {
+        Some(e) if !e.is_empty() => e,
+        _ => return,
+    };
+
+    // Prefer the canonical "/api/v1/telemetry/error" path when the
+    // operator configured a host-only base URL; otherwise POST directly
+    // to whatever the operator set.
+    let target = if endpoint.ends_with("/telemetry/error") {
+        endpoint
+    } else if endpoint.ends_with('/') {
+        format!("{endpoint}api/v1/telemetry/error")
+    } else {
+        format!("{endpoint}/api/v1/telemetry/error")
+    };
+
+    let payload = serde_json::json!({
+        "code": code,
+        "context": context,
+        "ts": iso_now(),
+    });
+    let body = match serde_json::to_string(&payload) {
+        Ok(b) => b,
+        Err(_) => return,
+    };
+
+    // Fire-and-forget. We do not await — telemetry MUST never block.
+    wasm_bindgen_futures::spawn_local(async move {
+        let _ = gloo_net::http::Request::post(&target)
+            .header("Content-Type", "application/json")
+            .body(body)
+            .expect("telemetry body builder")
+            .send()
+            .await;
+    });
+}
+
 /// Format a request_id for an error toast — operator can quote it
 /// verbatim in a support ticket and the responder can grep soland /
 /// coauth logs. Returns the empty string if no id is present.

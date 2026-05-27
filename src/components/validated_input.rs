@@ -161,7 +161,11 @@ mod tests {
 
     #[test]
     fn url_kind_requires_scheme_and_host() {
-        assert!(ValidationKind::Url.validate("https://soland.example").is_ok());
+        assert!(
+            ValidationKind::Url
+                .validate("https://soland.example")
+                .is_ok()
+        );
         assert!(ValidationKind::Url.validate("http://").is_err());
         assert!(ValidationKind::Url.validate("ftp://example").is_err());
     }

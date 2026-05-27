@@ -1,6 +1,7 @@
 use dioxus::prelude::*;
 
 use crate::utils::i18n::t;
+use crate::utils::telemetry;
 
 /// Shared inline error banner used on list/detail pages.
 ///
@@ -21,6 +22,17 @@ pub fn ErrorBanner(
     let retry_label = t("common.retry");
     let error_label = t("common.error");
     let has_meta = errcode.is_some() || request_id.is_some() || retry_after_ms.is_some();
+    // R3 P1 backfill (ENG-5) — fire-and-forget telemetry ping when the
+    // banner mounts with a known wire errcode. No-op when telemetry is
+    // disabled / the user has not opted in (see `utils::telemetry`).
+    {
+        let telemetry_code = errcode.clone();
+        use_effect(move || {
+            if let Some(code) = telemetry_code.as_deref() {
+                telemetry::report_error(code, "ui.error_banner.shown");
+            }
+        });
+    }
     // R3 (UI-7) — when the server returned a known wire code, look up
     // the localized copy via `error.<errcode>`. Falls back to the raw
     // wire code below (the chip) when the key is missing.
