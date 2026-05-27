@@ -1,5 +1,7 @@
 # sodmin
 
+> **Spec target**: [contrix-spec @ b47ff6ec](../contrix-spec) (R3 sync 2026-05-27)
+
 Contrix administrator web UI for Principal Server and coauth deployments. The app is built with Dioxus and compiled to WebAssembly.
 
 ## Scope
