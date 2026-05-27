@@ -128,6 +128,10 @@ pub enum Route {
         #[route("/realms/:realm_id/links")]
         RealmLinks { realm_id: String },
 
+        // R3 (UI-3) — Realm media_service.foci[] editor.
+        #[route("/realms/:realm_id/media-service")]
+        RealmMediaService { realm_id: String },
+
         #[route("/applets")]
         AppletList {},
         #[route("/applets/admin")]
@@ -219,6 +223,9 @@ pub enum Route {
         CoauthNotificationTemplates {},
         #[route("/coauth/connector-health")]
         CoauthConnectorHealth {},
+        // R3 (UI-4) — recovery policy admin (stub).
+        #[route("/coauth/recovery")]
+        CoauthRecovery {},
 
     #[end_layout]
 
@@ -507,6 +514,16 @@ fn SpaceDeliveryBinding(space_id: String) -> Element {
 #[component]
 fn RealmLinks(realm_id: String) -> Element {
     rsx! { pages::realm_links::RealmLinks { realm_id } }
+}
+
+#[component]
+fn RealmMediaService(realm_id: String) -> Element {
+    rsx! { pages::realm_media_service::RealmMediaService { realm_id } }
+}
+
+#[component]
+fn CoauthRecovery() -> Element {
+    rsx! { pages::coauth::recovery::RecoveryPolicyList {} }
 }
 
 #[component]

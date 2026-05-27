@@ -2094,6 +2094,129 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("agents.personal.agent_keys", "Agent keys"),
             ("agents.personal.capability_grants", "Capability grants"),
             ("agents.personal.required_capability", "Required capability"),
+            // R3 — Agent FSM list (UI-1).
+            ("agents.title", "Agents"),
+            ("agents.subtitle", "Native + personal agents — active / paused / deactivated."),
+            ("agents.id", "Agent ID"),
+            ("agents.name", "Name"),
+            ("agents.owner_id", "Owner"),
+            ("agents.agent_type", "Type"),
+            ("agents.status", "Status"),
+            ("agents.last_active_at", "Last active"),
+            ("agents.no_agents", "No agents."),
+            ("agents.pause", "Pause"),
+            ("agents.resume", "Resume"),
+            ("agents.rotate_key", "Rotate key"),
+            ("agents.grants", "Grants"),
+            ("agents.deactivate", "Deactivate"),
+            ("agents.deactivate_title", "Deactivate agent?"),
+            (
+                "agents.deactivate_body",
+                "This revokes the agent's keys, capability grants, and runtime endpoints. Type DEACTIVATE to confirm.",
+            ),
+            // R3 — Agent draft / action_request lifecycle (UI-2 stub).
+            ("agents.lifecycle.title", "Agent draft / action lifecycle"),
+            (
+                "agents.lifecycle.subtitle",
+                "Drafts, action_request, action_approve, action_reject. Coming in R3.1.",
+            ),
+            ("agents.lifecycle.placeholder", "No draft/action data plumbed yet."),
+            // R3 — Realm media_service editor (UI-3).
+            ("media_service.title", "Realm media service"),
+            (
+                "media_service.subtitle",
+                "Foci list — pick one or more media services (livekit, mediasoup, janus, contrix-native, moq-relay).",
+            ),
+            ("media_service.foci_label", "Foci"),
+            ("media_service.empty", "No foci configured for this Realm."),
+            ("media_service.add", "Add focus"),
+            ("media_service.focus_id", "id"),
+            ("media_service.focus_type", "type"),
+            ("media_service.focus_connect_url", "connect_url"),
+            ("media_service.focus_service_did", "service_did"),
+            ("media_service.focus_regions", "regions (comma-separated)"),
+            ("media_service.remove", "Remove"),
+            ("media_service.save", "Save media_service"),
+            ("media_service.save_ok", "media_service saved"),
+            ("media_service.save_fail", "Failed to save media_service"),
+            (
+                "media_service.legacy_banner_title",
+                "Legacy single-endpoint media_service detected",
+            ),
+            (
+                "media_service.legacy_banner_body",
+                "The sfu_endpoint field is being replaced by foci[]. Pre-fill the first focus from the legacy endpoint, fan out additional services, then save to migrate.",
+            ),
+            // R3 — Recovery policy view (UI-4 stub).
+            ("recovery.title", "Recovery policies"),
+            (
+                "recovery.subtitle",
+                "List, inspect, and rotate cx.coauth.recovery.* policies. Receipts include proof_summary[].",
+            ),
+            ("recovery.list_title", "Policies"),
+            ("recovery.policy_id", "Policy id"),
+            ("recovery.policy_type", "Type"),
+            ("recovery.policy_status", "Status"),
+            ("recovery.policy_actions", "Actions"),
+            ("recovery.inspect", "Inspect"),
+            ("recovery.rotate", "Rotate"),
+            ("recovery.receipts_title", "Recovery receipts"),
+            (
+                "recovery.receipts_subtitle",
+                "Each receipt's proof_summary[] lists the proofs the coauth recovery flow accepted.",
+            ),
+            ("recovery.placeholder", "Recovery data API ships in R3.1 — surface stubbed."),
+            // R3 — Handle homograph inline warnings (UI-5).
+            (
+                "error.handle_homograph_forbidden",
+                "This handle would be rejected as a homograph (handle_homograph_forbidden).",
+            ),
+            (
+                "error.handle_homograph_out_of_range",
+                "Handle localpart must be 1..=128 bytes.",
+            ),
+            (
+                "error.handle_homograph_zero_width",
+                "Handle contains zero-width or bidi-control codepoints — rejected.",
+            ),
+            (
+                "error.handle_homograph_script_mixed",
+                "Handle mixes Latin and non-Latin scripts — rejected as a homograph.",
+            ),
+            (
+                "error.handle_homograph_confusable",
+                "Handle contains codepoints that fold to ASCII look-alikes — rejected.",
+            ),
+            // R3 — Server profile toggles (UI-6).
+            (
+                "server_status.profile.media_service_binding",
+                "media_service_binding.v1 — Realm-level foci binding profile.",
+            ),
+            (
+                "server_status.profile.accountable_to_strict_reject",
+                "accountable_to.strict_reject.v1 — fail-closed on missing accountability grants.",
+            ),
+            (
+                "server_status.profile.key_backup_memory_hard",
+                "key_backup.memory_hard.v1 — Argon2id memory-hard key backup KDF.",
+            ),
+            // R3 — New wire error codes (UI-7).
+            ("error.pairing_request_expired", "The pairing request expired before approval. Restart the pairing flow."),
+            ("error.proof_invalid", "Submitted proof failed verification."),
+            ("error.agent_paused", "The agent is paused. Resume it before retrying."),
+            ("error.agent_deactivated", "The agent is deactivated and cannot accept new work."),
+            (
+                "error.accountability_grant_missing",
+                "Action requires an active accountability_grant from the controller.",
+            ),
+            (
+                "error.participant_binding_invalid",
+                "Participant binding does not match the Realm's allowed recipient services.",
+            ),
+            (
+                "error.legacy_single_endpoint_media_service",
+                "Realm still uses the legacy sfu_endpoint field — migrate to foci[].",
+            ),
             // P5 — /key-backup page strings.
             ("key_backup.title", "Key backup"),
             ("key_backup.subtitle", "Server-side cross-signing key backup"),
@@ -3141,6 +3264,129 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("agents.personal.agent_keys", "Agent 密钥"),
             ("agents.personal.capability_grants", "授权能力"),
             ("agents.personal.required_capability", "所需能力"),
+            // R3 — Agent FSM 列表（UI-1）。
+            ("agents.title", "Agent"),
+            ("agents.subtitle", "原生与个人 Agent —— active / paused / deactivated 状态机。"),
+            ("agents.id", "Agent ID"),
+            ("agents.name", "名称"),
+            ("agents.owner_id", "拥有者"),
+            ("agents.agent_type", "类型"),
+            ("agents.status", "状态"),
+            ("agents.last_active_at", "上次活跃"),
+            ("agents.no_agents", "暂无 Agent。"),
+            ("agents.pause", "暂停"),
+            ("agents.resume", "恢复"),
+            ("agents.rotate_key", "轮换密钥"),
+            ("agents.grants", "授权"),
+            ("agents.deactivate", "停用"),
+            ("agents.deactivate_title", "停用该 Agent？"),
+            (
+                "agents.deactivate_body",
+                "此操作将吊销 Agent 的密钥、能力授权与运行时端点。请输入 DEACTIVATE 以确认。",
+            ),
+            // R3 — Agent 草稿/动作生命周期（UI-2 占位）。
+            ("agents.lifecycle.title", "Agent 草稿 / 动作生命周期"),
+            (
+                "agents.lifecycle.subtitle",
+                "Drafts、action_request、action_approve、action_reject。R3.1 接入。",
+            ),
+            ("agents.lifecycle.placeholder", "草稿 / 动作数据尚未接入。"),
+            // R3 — Realm media_service 编辑器（UI-3）。
+            ("media_service.title", "Realm 媒体服务"),
+            (
+                "media_service.subtitle",
+                "Foci 列表 —— 选择一个或多个媒体服务（livekit、mediasoup、janus、contrix-native、moq-relay）。",
+            ),
+            ("media_service.foci_label", "Foci"),
+            ("media_service.empty", "当前 Realm 未配置 foci。"),
+            ("media_service.add", "新增 focus"),
+            ("media_service.focus_id", "id"),
+            ("media_service.focus_type", "type"),
+            ("media_service.focus_connect_url", "connect_url"),
+            ("media_service.focus_service_did", "service_did"),
+            ("media_service.focus_regions", "regions（逗号分隔）"),
+            ("media_service.remove", "移除"),
+            ("media_service.save", "保存 media_service"),
+            ("media_service.save_ok", "media_service 已保存"),
+            ("media_service.save_fail", "保存 media_service 失败"),
+            (
+                "media_service.legacy_banner_title",
+                "检测到旧版单端点 media_service",
+            ),
+            (
+                "media_service.legacy_banner_body",
+                "sfu_endpoint 字段已被 foci[] 取代。请将旧端点写入首个 focus，扩展其它服务后保存以完成迁移。",
+            ),
+            // R3 — 恢复策略视图（UI-4 占位）。
+            ("recovery.title", "恢复策略"),
+            (
+                "recovery.subtitle",
+                "列出、查看、轮换 cx.coauth.recovery.* 策略；receipt 携带 proof_summary[]。",
+            ),
+            ("recovery.list_title", "策略"),
+            ("recovery.policy_id", "策略 ID"),
+            ("recovery.policy_type", "类型"),
+            ("recovery.policy_status", "状态"),
+            ("recovery.policy_actions", "操作"),
+            ("recovery.inspect", "查看"),
+            ("recovery.rotate", "轮换"),
+            ("recovery.receipts_title", "恢复回执"),
+            (
+                "recovery.receipts_subtitle",
+                "每条回执的 proof_summary[] 列出 coauth 恢复流程接受的证明项。",
+            ),
+            ("recovery.placeholder", "恢复数据 API 在 R3.1 接入 —— 当前为占位界面。"),
+            // R3 — Handle homograph 内联提示（UI-5）。
+            (
+                "error.handle_homograph_forbidden",
+                "该 Handle 会被服务端拒绝为同形异义体（handle_homograph_forbidden）。",
+            ),
+            (
+                "error.handle_homograph_out_of_range",
+                "Handle 本地段长度必须在 1..=128 字节之间。",
+            ),
+            (
+                "error.handle_homograph_zero_width",
+                "Handle 包含零宽 / 方向控制码点 —— 已拒绝。",
+            ),
+            (
+                "error.handle_homograph_script_mixed",
+                "Handle 混用了 Latin 与非 Latin 文字 —— 视为同形异义体已拒绝。",
+            ),
+            (
+                "error.handle_homograph_confusable",
+                "Handle 含有可与 ASCII 字母混淆的码点 —— 已拒绝。",
+            ),
+            // R3 — Server profile 开关说明（UI-6）。
+            (
+                "server_status.profile.media_service_binding",
+                "media_service_binding.v1 —— Realm 级 foci 绑定 profile。",
+            ),
+            (
+                "server_status.profile.accountable_to_strict_reject",
+                "accountable_to.strict_reject.v1 —— 缺失 accountability grant 时 fail-closed。",
+            ),
+            (
+                "server_status.profile.key_backup_memory_hard",
+                "key_backup.memory_hard.v1 —— Argon2id 内存密集型 KDF。",
+            ),
+            // R3 — 新增 wire 错误码（UI-7）。
+            ("error.pairing_request_expired", "配对请求已在批准前过期，请重新发起。"),
+            ("error.proof_invalid", "提交的证明未通过校验。"),
+            ("error.agent_paused", "Agent 处于暂停状态，请先恢复后重试。"),
+            ("error.agent_deactivated", "Agent 已停用，无法接受新工作。"),
+            (
+                "error.accountability_grant_missing",
+                "该操作需要控制者签发的 accountability_grant。",
+            ),
+            (
+                "error.participant_binding_invalid",
+                "Participant binding 与 Realm 允许的 recipient service 不匹配。",
+            ),
+            (
+                "error.legacy_single_endpoint_media_service",
+                "该 Realm 仍在使用旧版 sfu_endpoint —— 请迁移至 foci[]。",
+            ),
             // P5 — /key-backup 页面中文短串。
             ("key_backup.title", "密钥备份"),
             ("key_backup.subtitle", "服务端交叉签名密钥备份"),

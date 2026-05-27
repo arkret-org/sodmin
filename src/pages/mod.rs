@@ -28,6 +28,8 @@ pub mod policy;
 pub mod push_routes;
 pub mod realm_destroy;
 pub mod realm_links;
+/// R3 (UI-3) — Realm `media_service.foci[]` editor.
+pub mod realm_media_service;
 pub mod relaxed_window;
 pub mod reports;
 pub mod server_status;

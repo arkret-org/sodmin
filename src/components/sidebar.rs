@@ -233,6 +233,14 @@ fn build_nav_sections() -> Vec<NavSection> {
                     },
                     "link",
                 ),
+                // R3 (UI-3) — Realm media_service.foci[] editor.
+                NavItem::new(
+                    t("media_service.title"),
+                    Route::RealmMediaService {
+                        realm_id: "_".to_string(),
+                    },
+                    "video",
+                ),
             ],
         )
         .bridge(bridge::SOLAND)
@@ -400,6 +408,13 @@ fn build_nav_sections() -> Vec<NavSection> {
                     t("nav.connector_health"),
                     Route::CoauthConnectorHealth {},
                     "heart-pulse",
+                )
+                .scoped(scope::COAUTH),
+                // R3 (UI-4) — recovery policies + receipts stub.
+                NavItem::new(
+                    t("recovery.title"),
+                    Route::CoauthRecovery {},
+                    "shield",
                 )
                 .scoped(scope::COAUTH),
             ],

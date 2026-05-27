@@ -8,6 +8,7 @@ use crate::components::ui::loading::Spinner;
 use crate::components::ui::page_header::PageHeader;
 use crate::router::Route;
 use crate::types::CreateActorRequest;
+use crate::utils::handle::{HomographReason, is_safe_handle_localpart};
 use crate::utils::i18n::t;
 
 #[component]
@@ -36,6 +37,17 @@ pub fn ActorCreate() -> Element {
     };
 
     let on_submit = move |_evt: Event<FormData>| {
+        // R3 (UI-5) — refuse to submit a homograph-suspect handle so the
+        // operator gets the same answer the soland reducer would have
+        // returned (handle_homograph_forbidden). Empty handle is fine —
+        // the wire shape allows omitting it entirely.
+        let candidate = handle.read().clone();
+        if !candidate.is_empty()
+            && let Err(reason) = is_safe_handle_localpart(&candidate)
+        {
+            error.set(t(reason.i18n_key()));
+            return;
+        }
         saving.set(true);
         error.set(String::new());
         let req = CreateActorRequest {
@@ -94,6 +106,30 @@ pub fn ActorCreate() -> Element {
                                 Icon { name: "check-circle".to_string(), class: "h-5 w-5 text-green-500".to_string() }
                             } else {
                                 Icon { name: "x-circle".to_string(), class: "h-5 w-5 text-red-500".to_string() }
+                            }
+                        }
+                    }
+                    // R3 (UI-5) — inline homograph warning mirroring the
+                    // SDK helper `normalize_handle_localpart`. Renders as
+                    // soon as the operator types something the soland
+                    // reducer would reject with handle_homograph_forbidden.
+                    {
+                        let candidate = handle.read().clone();
+                        if candidate.is_empty() {
+                            rsx! {}
+                        } else {
+                            match is_safe_handle_localpart(&candidate) {
+                                Ok(_) => rsx! {},
+                                Err(reason) => {
+                                    let copy = t(reason.i18n_key());
+                                    let _ = HomographReason::OutOfRange; // touch enum for completeness
+                                    rsx! {
+                                        p { class: "text-xs text-amber-600 dark:text-amber-300",
+                                            span { class: "mr-1", "\u{26A0}" }
+                                            "{copy}"
+                                        }
+                                    }
+                                }
                             }
                         }
                     }

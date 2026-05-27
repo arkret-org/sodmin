@@ -324,6 +324,7 @@ fn describe_body(describe: &ServerDescribeResBody) -> Element {
             // as a flat strip of mono chips; conformance buckets render
             // separately below.
             {chip_section(t("server_status.profiles_label"), &profiles)}
+            {r3_profile_status_section(&profiles)}
             {chip_section(t("server_status.features_label"), &features)}
             {chip_section(t("server_status.implemented_features"), &implemented)}
             {chip_section(t("server_status.supported_operations"), &operations)}
@@ -702,6 +703,60 @@ fn dev_posture_card(describe: &ServerDescribeResBody) -> Element {
                 if !plaintext.is_empty() {
                     li {
                         {format!("{}: {}", t("server_status.dev_posture_plaintext"), plaintext.join(", "))}
+                    }
+                }
+            }
+        }
+    }
+}
+
+/// R3 (UI-6) — render a single-line status row per "new R3 profile" so
+/// the operator can see at a glance which of them the server has
+/// declared in `cx.server.describe.supported_profiles`. The list of
+/// known R3 profiles is held here (not in i18n) because it tracks the
+/// spec one-for-one and the i18n value is only the human label.
+fn r3_profile_status_section(profiles: &[String]) -> Element {
+    // (wire profile id, i18n key for the description copy).
+    let known: &[(&str, &str)] = &[
+        (
+            "cx.profile.media_service_binding.v1",
+            "server_status.profile.media_service_binding",
+        ),
+        (
+            "cx.profile.accountable_to.strict_reject.v1",
+            "server_status.profile.accountable_to_strict_reject",
+        ),
+        (
+            "cx.profile.key_backup.memory_hard.v1",
+            "server_status.profile.key_backup_memory_hard",
+        ),
+    ];
+
+    rsx! {
+        div { class: "space-y-1",
+            p { class: "text-xs font-semibold uppercase tracking-wider text-muted-foreground",
+                "R3 profile toggles"
+            }
+            ul { class: "text-xs space-y-1",
+                for (wire, key) in known.iter() {
+                    {
+                        let declared = profiles.iter().any(|p| p == wire);
+                        let copy = t(key);
+                        rsx! {
+                            li { class: "flex items-start gap-2",
+                                if declared {
+                                    span { class: "rounded bg-green-600/15 px-1.5 py-0.5 font-mono text-green-700 dark:text-green-300",
+                                        "declared"
+                                    }
+                                } else {
+                                    span { class: "rounded bg-muted px-1.5 py-0.5 font-mono text-muted-foreground",
+                                        "absent"
+                                    }
+                                }
+                                span { class: "font-mono", "{wire}" }
+                                span { class: "text-muted-foreground", "— {copy}" }
+                            }
+                        }
                     }
                 }
             }

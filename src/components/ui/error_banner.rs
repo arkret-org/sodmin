@@ -21,6 +21,14 @@ pub fn ErrorBanner(
     let retry_label = t("common.retry");
     let error_label = t("common.error");
     let has_meta = errcode.is_some() || request_id.is_some() || retry_after_ms.is_some();
+    // R3 (UI-7) — when the server returned a known wire code, look up
+    // the localized copy via `error.<errcode>`. Falls back to the raw
+    // wire code below (the chip) when the key is missing.
+    let localized = errcode.as_deref().and_then(|c| {
+        let key = format!("error.{}", c);
+        let v = t(&key);
+        if v == key { None } else { Some(v) }
+    });
     rsx! {
         div { class: "rounded-md bg-destructive/10 p-4 space-y-2",
             div { class: "flex items-center justify-between gap-4",
@@ -33,6 +41,11 @@ pub fn ErrorBanner(
                         onclick: move |evt| handler.call(evt),
                         "{retry_label}"
                     }
+                }
+            }
+            if let Some(copy) = localized {
+                p { class: "text-xs text-destructive/80",
+                    "{copy}"
                 }
             }
             if has_meta {
