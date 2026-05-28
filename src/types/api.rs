@@ -434,14 +434,15 @@ pub struct Agent {
     pub created_at: Option<String>,
     #[serde(default)]
     pub last_active_at: Option<String>,
-    /// CXP-0008 — reducer-stamped actor kind. `native` / `ghost` for
-    /// personal agents; `service` / `agent` for non-personal forms.
+    /// CXP-0008 — reducer-stamped actor kind. Native personal agents
+    /// use `agent`; Applet-managed ghost actors use `integration` or
+    /// `agent` plus provenance/accountability metadata.
     /// Populated by soland's `cx.agent.list` / `cx.agent.get`.
     #[serde(default)]
     pub actor_kind: Option<String>,
-    /// CXP-0008 — controller DID. Personal agents are 1:1 bound to a
-    /// controller DID (`actor_kind=native`); ghost actors point at the
-    /// owning applet's principal DID instead.
+    /// CXP-0008 — controller DID. Native personal agents are 1:1 bound
+    /// to a controller DID; Applet-managed actors point at their owning
+    /// applet or integration provenance instead.
     #[serde(default)]
     pub controller_did: Option<String>,
     /// CXP-0008 — current `accountability_grant` id (coauth-issued).
@@ -698,9 +699,10 @@ pub struct AuditEntry {
     #[serde(default)]
     pub authorization_ref: Option<String>,
     /// CXP-0008 — reducer-stamped projection of the actor classification
-    /// at the moment of admission. One of `native` / `ghost` / `service`
-    /// / `agent`. Immutable per envelope and supplied by the reducer —
-    /// clients MUST NOT attempt to set this on write.
+    /// at the moment of admission. One of `user` / `org` / `team` /
+    /// `agent` / `service` / `device` / `integration`. Immutable per
+    /// envelope and supplied by the reducer; clients MUST NOT attempt
+    /// to set this on write.
     #[serde(default)]
     pub actor_kind: Option<String>,
 }

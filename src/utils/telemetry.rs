@@ -184,5 +184,4 @@ mod tests {
         // returns the prefix.
         assert_eq!(redact_path("/api/v1/x?q=1#frag"), "/api/v1/x");
     }
-
 }

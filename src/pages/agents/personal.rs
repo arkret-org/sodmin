@@ -28,7 +28,7 @@ use crate::types::{AccountabilityGrantRequest, Agent, AgentProvisionRequest};
 
 const PAGE_SIZE: u64 = 25;
 
-// ── List view (Native vs Ghost) ──
+// ── List view ──
 
 #[component]
 pub fn PersonalAgentList() -> Element {
@@ -120,8 +120,8 @@ fn render_list_row(agent: &Agent) -> Element {
     let status = agent.status.clone().unwrap_or_else(|| "-".into());
     let detail_route_id = id.clone();
     let kind_badge_variant = match actor_kind.as_str() {
-        "native" => BadgeVariant::Default,
-        "ghost" => BadgeVariant::Secondary,
+        "agent" => BadgeVariant::Default,
+        "integration" => BadgeVariant::Secondary,
         _ => BadgeVariant::Outline,
     };
 
