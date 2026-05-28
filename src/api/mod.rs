@@ -16,6 +16,9 @@ pub mod consent_admin;
 pub mod covered_frontier_admin;
 pub mod delivery_binding;
 pub mod devices;
+/// R3.2 (UI-SOD-4) — Directory service client
+/// (`cx.directory.list_handles_for_subject`).
+pub mod directory;
 pub mod federation;
 pub mod federation_status_admin;
 pub mod generated;

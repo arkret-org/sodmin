@@ -1,0 +1,36 @@
+//! R3.2 (UI-SOD-4) — Directory service client for the Subject → Handles
+//! admin page.
+//!
+//! `cx.directory.list_handles_for_subject` is the inverse of
+//! `resolve_handle`: given a known holder/principal DID it returns the
+//! currently visible signed `cx.schema.handle_claim.v1` evidence, after
+//! the directory applies disclosure policy / issuer trust / audience /
+//! Realm-intent filtering. The admin "Subject → Handles" operator view
+//! calls this to triage which handles a subject is currently bound to.
+//!
+//! 404-tolerant: directories that pre-date contrix-spec @ b56cab1 don't
+//! expose this endpoint yet — the page surfaces the error to the
+//! operator rather than crashing.
+
+use crate::api::client::api_client;
+use crate::types::{ListHandlesForSubjectRequest, ListHandlesForSubjectResponse};
+use crate::utils::error::HttpError;
+
+/// `POST /api/v1/directory/list-handles-for-subject`.
+pub const LIST_HANDLES_FOR_SUBJECT: &str = "/api/v1/directory/list-handles-for-subject";
+
+/// Call `cx.directory.list_handles_for_subject`. The directory applies
+/// disclosure / issuer-trust / audience / intent filtering server-side;
+/// the caller should still defensively use
+/// [`ListHandlesForSubjectResponse::visible_claims`] to enforce the
+/// `claims[].subject == subject` invariant.
+pub async fn list_handles_for_subject(
+    req: &ListHandlesForSubjectRequest,
+) -> Result<ListHandlesForSubjectResponse, HttpError> {
+    api_client(
+        LIST_HANDLES_FOR_SUBJECT,
+        "POST",
+        Some(serde_json::to_string(req).unwrap_or_default()),
+    )
+    .await
+}

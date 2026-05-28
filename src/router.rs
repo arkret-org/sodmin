@@ -138,6 +138,13 @@ pub enum Route {
         #[route("/admin/realms/:realm_id/identity-audit")]
         RealmIdentityAudit { realm_id: String },
 
+        // R3.2 (UI-SOD-4) — Subject → Handles directory page. Operator
+        // enters a holder/principal DID; the page calls
+        // `cx.directory.list_handles_for_subject` and lists the visible
+        // signed handle claims + the §3.2.1 primary handle.
+        #[route("/admin/handles/by-subject?:subject")]
+        HandlesBySubject { subject: Option<String> },
+
         #[route("/applets")]
         AppletList {},
         #[route("/applets/admin")]
@@ -530,6 +537,11 @@ fn RealmMediaService(realm_id: String) -> Element {
 #[component]
 fn RealmIdentityAudit(realm_id: String) -> Element {
     rsx! { pages::realm_identity_audit::RealmIdentityAudit { realm_id } }
+}
+
+#[component]
+fn HandlesBySubject(subject: Option<String>) -> Element {
+    rsx! { pages::handles_by_subject::HandlesBySubject { subject } }
 }
 
 #[component]

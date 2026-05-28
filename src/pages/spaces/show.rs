@@ -1,3 +1,4 @@
+use chrono::Utc;
 use dioxus::prelude::*;
 
 use crate::api::spaces;
@@ -12,6 +13,7 @@ use crate::components::ui::table::*;
 use crate::router::Route;
 use crate::utils::handle::display_sigil;
 use crate::utils::i18n::t;
+use crate::utils::primary_handle::{PrimaryHandleSelectInput, select_primary_handle_string};
 
 #[component]
 pub fn SpaceShow(space_id: String) -> Element {
@@ -173,26 +175,47 @@ pub fn SpaceShow(space_id: String) -> Element {
                                                 TableBody {
                                                     for member in member_list.iter() {
                                                         {
-                                                            // R3.1 (MID-1, MID-2) —
-                                                            // source handle / display_name
-                                                            // from the effective
-                                                            // MemberIdentity projection.
+                                                            // R3.2 (UI-SOD-3) —
+                                                            // MemberIdentity no longer
+                                                            // carries a handle. Derive the
+                                                            // display handle by running
+                                                            // §3.2.1 primary-handle
+                                                            // selection over the visible
+                                                            // `handle_claims` set when the
+                                                            // roster discloses `subject_id`;
+                                                            // fall back to any SPA-derived
+                                                            // value the projection-join
+                                                            // pass already filled.
+                                                            let derived_handle = member
+                                                                .subject_id
+                                                                .as_deref()
+                                                                .zip(member.handle_claims.as_deref())
+                                                                .and_then(|(subject_id, claims)| {
+                                                                    let input = PrimaryHandleSelectInput {
+                                                                        subject_id,
+                                                                        context: None,
+                                                                        claim_set_snapshot: claims,
+                                                                        accepted_issuers: &[],
+                                                                        holder_primary_handle_at_as_of: None,
+                                                                        resolution_as_of: Utc::now(),
+                                                                    };
+                                                                    select_primary_handle_string(&input)
+                                                                })
+                                                                .or_else(|| member.primary_handle.clone());
                                                             // When the SPA hasn't joined
-                                                            // identity events yet (no
-                                                            // primary_handle / display_name
-                                                            // and at least one
-                                                            // identity_event_id), surface
-                                                            // the "pending decryption"
-                                                            // placeholder rather than
-                                                            // falling back to the raw DID.
+                                                            // identity events yet (no derived
+                                                            // handle / display_name and at
+                                                            // least one identity_event_id),
+                                                            // surface the "pending
+                                                            // decryption" placeholder rather
+                                                            // than falling back to the raw
+                                                            // DID.
                                                             let identity_pending =
                                                                 !member.identity_event_ids.is_empty()
-                                                                    && member.primary_handle.is_none()
+                                                                    && derived_handle.is_none()
                                                                     && member.display_name.is_none();
-                                                            let handle_canon = member
-                                                                .primary_handle
-                                                                .clone()
-                                                                .unwrap_or_default();
+                                                            let handle_canon =
+                                                                derived_handle.clone().unwrap_or_default();
                                                             let sigil = if handle_canon.is_empty() {
                                                                 String::new()
                                                             } else {

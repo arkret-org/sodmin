@@ -1,10 +1,16 @@
-//! R3.1 (MID-3) — Realm identity audit diagnostic page.
+//! R3.1 (MID-3), R3.2 (UI-SOD-2/3/5) — Realm identity audit diagnostic
+//! page.
 //!
 //! Read-only operator view that lists, per actor in a Realm, the
 //! current effective `cx.member.identity.update` event ids and the
-//! `identity_state_digest` projection the SPA computed locally. Useful
-//! for triaging cross-actor identity drift without hitting the soland
-//! audit log directly.
+//! `member_display_state_digest` projection the SPA computed locally.
+//! Since contrix-spec @ b56cab1 `MemberIdentity` no longer carries a
+//! handle, so the handle column is derived by running §3.2.1
+//! primary-handle selection over the row's visible handle-claim set; a
+//! "handle changed since" hint surfaces when the captured
+//! `handle_at_time` differs from the current primary. Useful for
+//! triaging cross-actor identity drift without hitting the soland audit
+//! log directly.
 //!
 //! Route: `/admin/realms/:realm_id/identity-audit`.
 //!
@@ -17,8 +23,10 @@
 // identity projection per actor. Today the page renders the empty
 // scaffold + an operator-facing "data pending" notice.
 
+use chrono::Utc;
 use dioxus::prelude::*;
 
+use crate::components::handle_change_hint::HandleChangeHint;
 use crate::components::ui::badge::{Badge, BadgeVariant};
 use crate::components::ui::button::{Button, ButtonVariant};
 use crate::components::ui::card::*;
@@ -28,6 +36,9 @@ use crate::router::Route;
 use crate::types::RealmIdentityAuditRow;
 use crate::utils::handle::display_sigil;
 use crate::utils::i18n::t;
+use crate::utils::primary_handle::{
+    PrimaryHandleSelectInput, SubjectRender, render_subject, select_primary_handle_string,
+};
 
 #[component]
 pub fn RealmIdentityAudit(realm_id: String) -> Element {
@@ -112,7 +123,38 @@ pub fn RealmIdentityAudit(realm_id: String) -> Element {
                                 for row in rows.iter() {
                                     {
                                         let actor = row.actor_id.clone();
-                                        let handle_canon = row.primary_handle.clone();
+                                        // R3.2 (UI-SOD-3) — MemberIdentity no
+                                        // longer carries a handle. Derive the
+                                        // display handle by running §3.2.1
+                                        // selection over the visible claim set
+                                        // when `subject_id` is disclosed,
+                                        // degrading through display name then a
+                                        // truncated DID (§3.8.2 fallback ladder).
+                                        let subject_id =
+                                            row.subject_id.clone().unwrap_or_else(|| row.actor_id.clone());
+                                        let claims = row.handle_claims.clone().unwrap_or_default();
+                                        let sel = PrimaryHandleSelectInput {
+                                            subject_id: &subject_id,
+                                            context: None,
+                                            claim_set_snapshot: &claims,
+                                            accepted_issuers: &[],
+                                            holder_primary_handle_at_as_of: None,
+                                            resolution_as_of: Utc::now(),
+                                        };
+                                        let handle_canon = select_primary_handle_string(&sel)
+                                            .or_else(|| row.primary_handle.clone());
+                                        let rendered =
+                                            render_subject(&sel, row.display_name.as_deref());
+                                        let rendered_label = match &rendered {
+                                            SubjectRender::Verified(h) => h.clone(),
+                                            SubjectRender::NameOnly(n) => n.clone(),
+                                            SubjectRender::Unresolved(d) => d.clone(),
+                                        };
+                                        let degraded = !matches!(rendered, SubjectRender::Verified(_));
+                                        // R3.2 (UI-SOD-5) — captured handle at
+                                        // projection time, for the change hint.
+                                        let handle_at_time = row.handle_at_time.clone();
+                                        let current_primary = handle_canon.clone();
                                         let sigil = handle_canon
                                             .as_deref()
                                             .map(display_sigil)
@@ -123,14 +165,26 @@ pub fn RealmIdentityAudit(realm_id: String) -> Element {
                                         } else {
                                             row.identity_event_ids.join(", ")
                                         };
-                                        let digest = row.identity_state_digest.clone().unwrap_or_else(|| "-".to_string());
+                                        let digest = row
+                                            .member_display_state_digest
+                                            .clone()
+                                            .unwrap_or_else(|| "-".to_string());
                                         let drift = row.cache_drift;
                                         rsx! {
                                             TableRow {
                                                 TableCell { class: "font-mono text-xs".to_string(), "{actor}" }
                                                 TableCell { class: "font-mono text-xs".to_string(),
                                                     div { class: "flex flex-col",
-                                                        span { {handle_canon.unwrap_or_default()} }
+                                                        div { class: "flex items-center gap-1",
+                                                            span {
+                                                                class: if degraded { "text-muted-foreground" } else { "" },
+                                                                "{rendered_label}"
+                                                            }
+                                                            HandleChangeHint {
+                                                                handle_at_time,
+                                                                current_primary,
+                                                            }
+                                                        }
                                                         if !sigil.is_empty() {
                                                             span { class: "text-muted-foreground/80 text-[10px]", "{sigil}" }
                                                         }

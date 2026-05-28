@@ -13,6 +13,9 @@ pub mod devices;
 pub mod directory;
 pub mod federation;
 pub mod handles;
+/// R3.2 (UI-SOD-4) — Subject → Handles directory page
+/// (`cx.directory.list_handles_for_subject`).
+pub mod handles_by_subject;
 pub mod hardening;
 pub mod invite_tokens;
 /// Round 4 — 3PID third-party-invite state-machine admin view.
