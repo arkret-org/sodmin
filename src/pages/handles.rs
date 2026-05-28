@@ -301,7 +301,6 @@ pub fn HandleShow(handle_id: String) -> Element {
     let mut new_subject_did = use_signal(String::new);
     let mut reassign_loading = use_signal(|| false);
 
-    let id_for_actions = handle_id.clone();
     let id_revoke = handle_id.clone();
     let id_reassign = handle_id.clone();
 
@@ -518,10 +517,6 @@ pub fn HandleShow(handle_id: String) -> Element {
             }
         }
 
-        // Side-effect: silence unused-binding warning on id_for_actions
-        // in builds that don't take the success branch. Kept off-screen
-        // by a `hidden` div.
-        div { class: "hidden", "{id_for_actions}" }
     }
 }
 

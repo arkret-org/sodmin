@@ -1,4 +1,4 @@
-//! Round R2/R3 — Audit attestation_evidence admin page (T10).
+//! Audit attestation_evidence admin page.
 //!
 //! Operators of an `attested_audit.e2ee.v1` deployment join Audit Agents
 //! into the Realm by anchoring `cx.schema.attestation_evidence.v1` rows
@@ -12,9 +12,9 @@
 //! - see the chain-verification + revocation status badges
 //!
 //! Full chain verification visualization (per-cert, per-revocation
-//! endpoint) is `TODO(round23-T10)` — this round just wires the upload
-//! form + the read panel. The verification chips render the principal
-//! server's coarse `{chain_verified, revocation_checked}` flags.
+//! endpoint) is not wired yet. The verification chips render the
+//! principal server's coarse `{chain_verified, revocation_checked}`
+//! flags.
 //!
 //! TODO(circle-rollout-P3A.5): once attestation evidence rows surface
 //! their pinning Circle / Realm in the wire shape, add an
@@ -85,7 +85,7 @@ pub fn AuditAttestationPage() -> Element {
         div { class: "space-y-6",
             PageHeader {
                 title: "Audit attestation evidence".to_string(),
-                description: "Submit and review `cx.schema.attestation_evidence.v1` documents binding Audit Agents to a remote-attestation chain. Round R2/R3 T10.".to_string(),
+                description: "Submit and review `cx.schema.attestation_evidence.v1` documents binding Audit Agents to a remote-attestation chain.".to_string(),
             }
 
             Card {
@@ -161,7 +161,7 @@ pub fn AuditAttestationPage() -> Element {
                 CardHeader {
                     CardTitle { class: "text-lg".to_string(), "Active evidence rows" }
                     CardDescription {
-                        "Validity window + chain / revocation status per row. Click a row for the full evidence body (TODO round23-T10)."
+                        "Validity window + chain / revocation status per row."
                     }
                 }
                 CardContent {

@@ -1,4 +1,4 @@
-//! Round R2/R3 — Moderation appeal admin (T06).
+//! Moderation appeal admin.
 //!
 //! List view of pending `cx.moderation.appeal.submit` rows (state =
 //! `submitted` / `under_review`) plus a detail panel that surfaces:
@@ -20,16 +20,14 @@
 //! the same Anchor batch; this UI just surfaces the auto-pairing in a
 //! callout so the admin knows what they are about to submit.
 //!
-//! Wire to `/api/admin/v1/moderation/appeals` (TODO: list + describe
-//! handlers not yet generated in the soland describe contract, so the
-//! page renders against a local in-memory mock when the route 404s,
-//! same 404-tolerant pattern used by `pages/moderation/reports.rs`).
+//! Wire to `/api/admin/v1/moderation/appeals`; list + describe handlers
+//! are not yet generated in the soland describe contract, so the page
+//! renders against a local in-memory mock when the route 404s, same
+//! 404-tolerant pattern used by `pages/moderation/reports.rs`.
 //
-// TODO(round23-T06): swap the static placeholder dataset for the real
+// TODO: swap the static placeholder dataset for the real
 // `/api/admin/v1/moderation/appeals` describe rows once soland publishes
-// them; today the list is rendered from a `Vec<AppealRow>` literal so
-// the operator can see the verdict picker / countdown / separation-of-
-// duties wiring against a deterministic fixture.
+// them.
 
 use dioxus::prelude::*;
 
@@ -82,8 +80,7 @@ impl AppealLifecycle {
         }
     }
 
-    /// `pending` per the round 2+3 spec = state is `submitted` or
-    /// `under_review`. This is the default list-view filter.
+    /// Pending appeals are still `submitted` or `under_review`.
     fn is_pending(&self) -> bool {
         matches!(
             self,
@@ -95,8 +92,8 @@ impl AppealLifecycle {
 /// Verdict the reviewing admin can record. Mirrors
 /// `contrix_core::model::round23::AppealVerdict`. Modify requires the
 /// admin to also submit a fresh `cx.moderation.decision` event — that
-/// flow is intentionally not wired in this round, so the picker greys
-/// Modify out with a tooltip.
+/// flow is intentionally not wired yet, so the picker greys Modify out
+/// with a tooltip.
 #[derive(Debug, Clone, Copy, PartialEq)]
 enum Verdict {
     Uphold,

@@ -495,27 +495,3 @@ fn ProvisionWizard(props: ProvisionWizardProps) -> Element {
 fn is_valid_did(s: &str) -> bool {
     crate::utils::did::is_valid_did(s.trim())
 }
-
-/// 14 personal-agent capability actions surfaced in the grant-editor
-/// dropdown. Sourced from `capability-action-registry.json` (head
-/// 37ce729). The trailing `cx.agent.manage` is the coauth admin-level
-/// meta-scope — rendered as an admin badge separately on the editor.
-#[allow(dead_code)]
-pub const PERSONAL_AGENT_CAPABILITY_ACTIONS: &[&str] = &[
-    "cx.agent.provision",
-    "cx.agent.pause",
-    "cx.agent.resume",
-    "cx.agent.deactivate",
-    "cx.agent.draft.propose",
-    "cx.agent.action_request",
-    "cx.agent.action_approve",
-    "cx.agent.action_reject",
-    "cx.agent.sidecar_thread.ensure",
-    "cx.agent.sidecar_thread.write",
-    "cx.agent.sidecar_thread.publish",
-    "cx.agent.key.authorize",
-    "cx.agent.key.revoke",
-    "cx.agent.grant.attach",
-    // coauth meta-scope (admin-level)
-    "cx.agent.manage",
-];

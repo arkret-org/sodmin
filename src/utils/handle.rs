@@ -33,12 +33,6 @@
 //! See `contrix_core::model::handle::Handle` for the SDK-side parser /
 //! formatter; this module is the admin-SPA mirror.
 
-/// Static i18n key returned by [`is_safe_handle_localpart`] when the
-/// input would trip the server-side `handle_homograph_forbidden`
-/// guard. The page renders the matching string from `utils::i18n`.
-#[allow(dead_code)]
-pub const HOMOGRAPH_I18N_KEY: &str = "error.handle_homograph_forbidden";
-
 /// Returns `Ok(())` when `input` looks like a clean ASCII / pure-script
 /// handle localpart. On rejection returns a short reason tag that
 /// pages can map through i18n for an inline warning.
@@ -216,7 +210,6 @@ pub enum HandleNormalizeError {
 }
 
 impl HandleNormalizeError {
-    #[allow(dead_code)]
     pub fn i18n_key(self) -> &'static str {
         match self {
             HandleNormalizeError::Empty => "error.handle_empty",

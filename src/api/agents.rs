@@ -106,23 +106,6 @@ pub async fn attach_personal_agent_grant(
     api_client(&url, "POST", Some(body.to_string())).await
 }
 
-/// `DELETE /api/v1/agents/{id}/grants/{grant_id}` —
-/// `cx.agent.grant.detach`.
-///
-/// Currently no button wires this in the detail UI — the grant editor's
-/// per-row "Detach" action is `TODO(P3-impl)`. The function is kept so
-/// the HTTP contract is callable from tests and so the soland endpoint
-/// has a typed sodmin caller.
-#[allow(dead_code)]
-pub async fn detach_personal_agent_grant(id: &str, grant_id: &str) -> Result<(), HttpError> {
-    let url = format!(
-        "/api/v1/agents/{}/grants/{}",
-        urlencoding::encode(id),
-        urlencoding::encode(grant_id)
-    );
-    api_client(&url, "DELETE", None).await
-}
-
 /// `POST /api/v1/agents/{id}/sidecar-thread/ensure` —
 /// `cx.agent.sidecar_thread.ensure`.
 pub async fn ensure_sidecar_thread(id: &str) -> Result<serde_json::Value, HttpError> {

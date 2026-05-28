@@ -14,9 +14,6 @@
 //!   `Add binding` form uses [`ValidationKind::Did`] for the DID and
 //!   [`ValidationKind::Required`] for the control_proof opaque blob.
 //!
-//! TODO(P5-impl): a `ValidationKind::Custom(Box<dyn Fn(&str) -> Result<()>>)`
-//! variant for ad-hoc forms once the call sites stabilise.
-
 use dioxus::prelude::*;
 
 use crate::components::ui::input::Input;
@@ -30,19 +27,6 @@ use crate::utils::did;
 pub enum ValidationKind {
     /// Tightened round-4 DID grammar — `^did:[a-z0-9]+:[^\s]+$`.
     Did,
-    /// Loose URL check: requires a scheme of `http://` or `https://`
-    /// and a non-empty authority. Sufficient to catch missing scheme,
-    /// trailing whitespace, and obvious typos before the wire fails.
-    /// Kept in the public validator API for future form wiring even
-    /// though no production callsite constructs it today.
-    #[allow(dead_code)]
-    Url,
-    /// Loose email check (`<atom>@<host>.<tld>`), aligned with the
-    /// same regex used by [`crate::utils::error::redact_pii`]. The
-    /// canonical check happens server-side. See `Url` for the rationale
-    /// behind the `#[allow]` annotation.
-    #[allow(dead_code)]
-    Email,
     /// Trimmed value MUST be non-empty.
     Required,
     /// Trimmed value MUST be at most `n` characters long. Useful for
@@ -63,31 +47,6 @@ impl ValidationKind {
                     Ok(())
                 } else {
                     Err("DID must match did:<method>:<id> (round-4 grammar)")
-                }
-            }
-            ValidationKind::Url => {
-                let host_ok = (value.starts_with("http://") || value.starts_with("https://"))
-                    && value
-                        .split('/')
-                        .nth(2)
-                        .map(|host| !host.is_empty())
-                        .unwrap_or(false);
-                if value.is_empty() || host_ok {
-                    Ok(())
-                } else {
-                    Err("URL must start with http:// or https:// and include a host")
-                }
-            }
-            ValidationKind::Email => {
-                if value.is_empty() {
-                    Ok(())
-                } else {
-                    let parts: Vec<&str> = value.split('@').collect();
-                    if parts.len() == 2 && !parts[0].is_empty() && parts[1].contains('.') {
-                        Ok(())
-                    } else {
-                        Err("Email must look like name@host.tld")
-                    }
                 }
             }
             ValidationKind::Required => {
@@ -163,24 +122,6 @@ mod tests {
     }
 
     #[test]
-    fn url_kind_requires_scheme_and_host() {
-        assert!(
-            ValidationKind::Url
-                .validate("https://soland.example")
-                .is_ok()
-        );
-        assert!(ValidationKind::Url.validate("http://").is_err());
-        assert!(ValidationKind::Url.validate("ftp://example").is_err());
-    }
-
-    #[test]
-    fn email_kind_requires_at_and_dot() {
-        assert!(ValidationKind::Email.validate("admin@example.com").is_ok());
-        assert!(ValidationKind::Email.validate("no-at-sign").is_err());
-        assert!(ValidationKind::Email.validate("missing-dot@host").is_err());
-    }
-
-    #[test]
     fn required_kind_rejects_empty() {
         assert!(ValidationKind::Required.validate("").is_err());
         assert!(ValidationKind::Required.validate("anything").is_ok());
@@ -199,8 +140,6 @@ mod tests {
     #[test]
     fn empty_passes_non_required_rules() {
         assert!(ValidationKind::Did.validate("").is_ok());
-        assert!(ValidationKind::Url.validate("").is_ok());
-        assert!(ValidationKind::Email.validate("").is_ok());
         assert!(ValidationKind::MaxLength(5).validate("").is_ok());
     }
 }

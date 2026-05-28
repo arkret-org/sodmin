@@ -60,7 +60,7 @@ pub async fn resolve_report(report_id: &str, body: &ResolveReportRequest) -> Res
     Ok(())
 }
 
-// ── Moderation appeals (round R2/R3 T06, wired in this round) ────────
+// ── Moderation appeals ──────────────────────────────────────────────
 
 /// Wire shape returned by `GET /api/admin/v1/moderation/appeals`.
 /// Each entry is one row per `appeal_id`, with the latest event of

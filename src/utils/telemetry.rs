@@ -15,9 +15,8 @@
 //!
 //! Operators can correlate `request_id` with soland / coauth structured
 //! logs to find the corresponding server-side log line. The
-//! `request_id` is also surfaced on the [`crate::components::ui::toast`]
-//! error toast so the operator can paste it into a support ticket
-//! without opening DevTools.
+//! `request_id` is also preserved in error UI metadata so the operator
+//! can paste it into a support ticket without opening DevTools.
 //!
 //! Sending failures are silently swallowed; telemetry MUST never break
 //! the UI.
@@ -43,20 +42,6 @@ pub fn set_endpoint(url: &str) {
         storage::remove_item(ENDPOINT_KEY);
     } else {
         storage::set_item(ENDPOINT_KEY, url.trim());
-    }
-}
-
-/// Operator-facing toggle. Stored in localStorage so the choice
-/// survives reload but is per-browser, not pushed to the server.
-///
-/// TODO(P5-impl): wire a Settings dialog in `components/header.rs`
-/// to expose this toggle; for now operators flip it via DevTools.
-#[allow(dead_code)]
-pub fn set_opt_in(opt_in: bool) {
-    if opt_in {
-        storage::set_item(OPT_IN_KEY, "1");
-    } else {
-        storage::remove_item(OPT_IN_KEY);
     }
 }
 
@@ -179,21 +164,6 @@ pub fn report_error(code: &str, context: &str) {
     });
 }
 
-/// Format a request_id for an error toast — operator can quote it
-/// verbatim in a support ticket and the responder can grep soland /
-/// coauth logs. Returns the empty string if no id is present.
-///
-/// Public so call sites outside `show_http_error_toast` can also
-/// inline the ref into ad-hoc UI strings.
-#[allow(dead_code)]
-pub fn format_request_id(error: &HttpError) -> String {
-    error
-        .request_id
-        .as_deref()
-        .map(|id| format!(" (ref: {id})"))
-        .unwrap_or_default()
-}
-
 fn iso_now() -> String {
     // js_sys::Date::to_iso_string returns a JsString; convert to native.
     js_sys::Date::new_0()
@@ -206,19 +176,6 @@ fn iso_now() -> String {
 mod tests {
     use super::*;
 
-    fn err(status: u16, errcode: &str) -> HttpError {
-        HttpError {
-            message: "boom".into(),
-            status,
-            body: Some(crate::utils::error::AdminErrorEnvelope {
-                errcode: errcode.into(),
-                ..Default::default()
-            }),
-            request_id: Some("abc123".into()),
-            retry_after_ms: None,
-        }
-    }
-
     #[test]
     fn redact_path_strips_query_and_fragment() {
         assert_eq!(redact_path("/api/v1/x?cursor=c1"), "/api/v1/x");
@@ -228,17 +185,4 @@ mod tests {
         assert_eq!(redact_path("/api/v1/x?q=1#frag"), "/api/v1/x");
     }
 
-    #[test]
-    fn format_request_id_returns_ref_string() {
-        let e = err(403, "cx.error.capability_denied");
-        assert!(format_request_id(&e).contains("abc123"));
-        assert!(format_request_id(&e).contains("ref:"));
-    }
-
-    #[test]
-    fn format_request_id_empty_when_missing() {
-        let mut e = err(500, "cx.error.http_status");
-        e.request_id = None;
-        assert_eq!(format_request_id(&e), "");
-    }
 }

@@ -188,11 +188,6 @@ fn urlencoding_encode(s: &str) -> String {
 struct CheckResult {
     name: String,
     method: String,
-    /// Request URL — kept on the result struct so callers (or future
-    /// `--verbose` output) can correlate each summary line back to the
-    /// concrete URL that was probed. Not currently rendered.
-    #[allow(dead_code)]
-    url: String,
     status: Option<u16>,
     outcome: CheckOutcome,
     detail: String,
@@ -206,7 +201,6 @@ fn run_check(client: &Client, name: &str, method: &str, url: &str, args: &Args) 
             return CheckResult {
                 name: name.to_string(),
                 method: other.to_string(),
-                url: url.to_string(),
                 status: None,
                 outcome: CheckOutcome::Fail,
                 detail: format!("unsupported method: {other}"),
@@ -230,7 +224,6 @@ fn run_check(client: &Client, name: &str, method: &str, url: &str, args: &Args) 
             CheckResult {
                 name: name.to_string(),
                 method: method.to_string(),
-                url: url.to_string(),
                 status: Some(status.as_u16()),
                 outcome,
                 detail,
@@ -239,7 +232,6 @@ fn run_check(client: &Client, name: &str, method: &str, url: &str, args: &Args) 
         Err(e) => CheckResult {
             name: name.to_string(),
             method: method.to_string(),
-            url: url.to_string(),
             status: None,
             outcome: CheckOutcome::Fail,
             detail: format!("transport error: {e}"),

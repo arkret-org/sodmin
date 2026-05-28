@@ -1,5 +1,4 @@
-//! R3.1 (MID-3), R3.2 (UI-SOD-2/3/5) — Realm identity audit diagnostic
-//! page.
+//! Realm identity audit diagnostic page.
 //!
 //! Read-only operator view that lists, per actor in a Realm, the
 //! current effective `cx.member.identity.update` event ids and the
@@ -18,10 +17,9 @@
 //! page renders a stub-state today and ships the full live view once
 //! the SDK `MemberIdentity` decrypt pipeline (yougen MID-4) lands.
 //
-// TODO(R4): hook `api::spaces::list_realm_identity_audit(realm_id)` once
+// TODO: hook `api::spaces::list_realm_identity_audit(realm_id)` once
 // soland exposes the admin endpoint that aggregates the effective
-// identity projection per actor. Today the page renders the empty
-// scaffold + an operator-facing "data pending" notice.
+// identity projection per actor.
 
 use chrono::Utc;
 use dioxus::prelude::*;
@@ -42,7 +40,7 @@ use crate::utils::primary_handle::{
 
 #[component]
 pub fn RealmIdentityAudit(realm_id: String) -> Element {
-    // TODO(R4): replace with a `use_resource` against the soland admin
+    // TODO: replace with a `use_resource` against the soland admin
     // endpoint. The stub rows below are intentionally empty so the
     // operator sees the "data pending" affordance rather than a fake
     // result set.
@@ -74,7 +72,7 @@ pub fn RealmIdentityAudit(realm_id: String) -> Element {
                 description: t("realm_identity_audit.subtitle"),
                 Button {
                     variant: ButtonVariant::Outline,
-                    onclick: move |_| { /* refresh stub */ },
+                    onclick: move |_| {},
                     {t("common.refresh")}
                 }
             }
@@ -213,10 +211,6 @@ pub fn RealmIdentityAudit(realm_id: String) -> Element {
                     }
                 }
             }
-
-            // Silence the unused-binding warning on `realm_id` in stub
-            // builds; the upcoming live page consumes it directly.
-            div { class: "hidden", "{realm_id}" }
         }
     }
 }

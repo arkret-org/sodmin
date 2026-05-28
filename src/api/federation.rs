@@ -64,18 +64,6 @@ pub async fn add_federation_rule(
     api_client("/api/admin/v1/federation/allow-rules", "POST", Some(body)).await
 }
 
-#[allow(dead_code)]
-pub async fn add_federation_allow_rule(domain: &str) -> Result<FederationAllowRule, HttpError> {
-    add_federation_rule(&AddFederationRuleRequest {
-        domain: domain.to_owned(),
-        rule_type: Some("allow".to_owned()),
-        polarity: Some("allow".to_owned()),
-        action: Some("allow_federation".to_owned()),
-        allowlist_enforced: None,
-    })
-    .await
-}
-
 pub async fn defederate_federation_peer(domain: &str) -> Result<(), HttpError> {
     let url = format!(
         "/api/admin/v1/federation/peers/{}/defederate",
