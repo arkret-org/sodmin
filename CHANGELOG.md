@@ -5,6 +5,11 @@ this file. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0
 this project is pre-1.0 so wire-breaking changes can land in any release until
 the SDK pins down its 1.0 contract.
 
+## R3.3 — Spec sync 2026-05-28 (contrix-spec @ cced4b8)
+
+- R3.3 spec sync — pin to contrix-spec @ cced4b8 (CXP-0011). `resolve_target` operator diagnostic page deferred to R3.3.1.
+
+> No version tag, no crates.io / Docker Hub / npm publish — git commit only.
 ## R3.2 — Spec sync 2026-05-28 (contrix-spec @ b56cab1)
 
 - Renamed roster `identity_state_digest` → `member_display_state_digest`; added roster v2 gated fields + `HandleClaim`/`HandleBindingState` mirrors (`claim_type` drops `service_handle`).
