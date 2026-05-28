@@ -174,17 +174,44 @@ pub struct SpaceMember {
     /// legacy in-roster fields when this list is non-empty (MID-1).
     #[serde(default)]
     pub identity_event_ids: Vec<String>,
-    /// R3.1 (ROST-1, MID-2) — projection digest the server published
-    /// alongside the identity events. Drives the "identity pending
-    /// decryption" placeholder when the local SDK cache disagrees.
-    #[serde(default)]
-    pub identity_state_digest: Option<String>,
-    /// R3.1 (ROST-1) — canonical primary handle from the effective
-    /// MemberIdentity, when the SDK has already joined the projection
-    /// for this row. `None` means the SPA hasn't decrypted the
-    /// identity events yet (render the pending placeholder instead of
-    /// falling back to the raw DID).
-    #[serde(default)]
+    /// R3.2 (ROST-1, UI-SOD-2) — roster display-selection digest. Renamed
+    /// from the R3.1 `identity_state_digest`; the new computation folds in
+    /// the visible handle-claim set (`claim_digest / binding_state /
+    /// expires_at`) on top of the effective identity event refs. Drives
+    /// the "identity pending decryption" placeholder when the local cache
+    /// disagrees. Wire shape: `member_roster_entry.member_display_state_digest`.
+    #[serde(default, alias = "identity_state_digest")]
+    pub member_display_state_digest: Option<String>,
+    /// R3.2 (ROST-1) — disclosed principal/holder DID. This is the
+    /// disclosure gate for the four handle-claim fields below: when the
+    /// server has NOT disclosed `subject_id`, all of
+    /// `handle_claim_digests` / `handle_claims` / `handle_claims_limited`
+    /// MUST be absent too (dependentRequired). A missing claim set does
+    /// NOT mean the subject has no handle.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub subject_id: Option<String>,
+    /// R3.2 (ROST-1) — canonical `claim_digest` set of the currently
+    /// visible effective handle claims. Disclosure-gated on `subject_id`.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub handle_claim_digests: Option<Vec<String>>,
+    /// R3.2 (ROST-1) — inlined full signed `cx.schema.handle_claim.v1`
+    /// evidence. Each claim's `subject` MUST equal this entry's
+    /// `subject_id`. Disclosure-gated on `subject_id`. The SPA runs
+    /// §3.2.1 primary-handle selection over this set to derive the
+    /// display handle (see [`crate::utils::primary_handle`]).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub handle_claims: Option<Vec<HandleClaim>>,
+    /// R3.2 (ROST-1) — `true` when `handle_claims` was truncated / only
+    /// carries digest hints. Disclosure-gated on `subject_id`.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub handle_claims_limited: Option<bool>,
+    /// SPA-local derived display handle. R3.2: this is NOT a wire field —
+    /// the roster MUST NOT carry a handle string directly. The SPA
+    /// populates it by running §3.2.1 selection over `handle_claims`
+    /// (`crate::utils::primary_handle::select_primary_handle`). `None`
+    /// means selection has not run / no verified candidate yet.
+    /// TODO(R3.2.1): wire the selection pass at projection-join time.
+    #[serde(skip)]
     pub primary_handle: Option<String>,
 }
 
@@ -1000,6 +1027,126 @@ pub struct HandleAvailabilityResult {
     pub error: Option<String>,
 }
 
+// ── Handle claim evidence (R3.2 — cx.schema.handle_claim.v1) ──
+
+/// Binding lifecycle state of a [`HandleClaim`]. Mirrors the SDK
+/// `contrix_core::model::handle::HandleBindingState`. Only `Verified`
+/// claims are eligible for §3.2.1 primary-handle selection.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum HandleBindingState {
+    Pending,
+    Verified,
+    Revoked,
+    Expired,
+}
+
+/// R3.2 — local mirror of the signed `cx.schema.handle_claim.v1` object
+/// the wire now carries inline inside roster entries
+/// (`member_roster_entry.handle_claims[]`) and the
+/// `cx.directory.list_handles_for_subject` response. Handle lifecycle has
+/// fully moved off `MemberIdentity` onto this claim object (contrix-spec
+/// @ b56cab1). Mirrors the SDK `contrix_core::model::handle::HandleClaim`;
+/// only the fields the admin UI renders / runs selection over are kept.
+///
+/// Note: `claim_type=service_handle` is REMOVED in v1 — the enum only
+/// accepts `handle_binding` / `organization_handle`.
+#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq)]
+pub struct HandleClaim {
+    /// Canonical handle string (`localpart:domain`). Audit/display only;
+    /// the authoritative subject is `subject` (a holder/principal DID).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub handle: Option<String>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub handle_aliases: Vec<String>,
+    /// Holder/principal DID. MUST equal the enclosing roster entry /
+    /// response `subject_id` (byte-equal); mismatch is dropped/fails closed.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub subject: Option<String>,
+    /// Issuer DID that signed this claim.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub issuer: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub claim_type: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub binding_state: Option<HandleBindingState>,
+    /// Audience scope (e.g. `cx:realm:*`). When present, only matches a
+    /// resolution context equal to this value.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub audience: Option<String>,
+    /// ISO-8601 issuance timestamp (`created_at`).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub issued_at: Option<String>,
+    /// ISO-8601 expiry timestamp.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub expires_at: Option<String>,
+    /// Canonical `claim_digest` hint, when the server pre-computed it.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub claim_digest: Option<String>,
+}
+
+/// R3.2 (UI-SOD-4) — request body for `cx.directory.list_handles_for_subject`
+/// (`POST /api/v1/directory/list-handles-for-subject`). Known
+/// holder/principal DID → currently visible signed handle claims, the
+/// inverse of `resolve_handle`. Mirrors the SDK
+/// `DirectoryListHandlesForSubjectReqBody`.
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct ListHandlesForSubjectRequest {
+    /// Holder/principal DID reverse-lookup key. MUST NOT be a Realm
+    /// `actor_id` / `account_id` / service DID.
+    pub subject: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub realm_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub intent: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub requester: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub as_of: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub cursor: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub limit: Option<u32>,
+}
+
+/// R3.2 (UI-SOD-4) — response body for
+/// `cx.directory.list_handles_for_subject`. Schema
+/// `cx.schema.list_handles_for_subject_response.v1`. Every
+/// `claims[].subject` MUST equal [`Self::subject`] (byte-equal);
+/// mismatching claims MUST be dropped or the response failed closed —
+/// see [`Self::visible_claims`]. Mirrors the SDK
+/// `DirectoryListHandlesForSubjectResBody`.
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct ListHandlesForSubjectResponse {
+    #[serde(default)]
+    pub subject: String,
+    #[serde(default)]
+    pub claims: Vec<HandleClaim>,
+    /// Server-side §3.2.1 primary-handle selection result, when the
+    /// directory ran it. The SPA MAY re-derive locally via
+    /// [`crate::utils::primary_handle::select_primary_handle`].
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub primary_handle: Option<String>,
+    #[serde(default)]
+    pub as_of: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub next_cursor: Option<String>,
+    #[serde(default)]
+    pub has_more: bool,
+}
+
+impl ListHandlesForSubjectResponse {
+    /// Fail-closed view of `claims`: drops any claim whose `subject` is
+    /// not byte-equal to the response `subject` (schema invariant of
+    /// `cx.schema.list_handles_for_subject_response.v1`).
+    pub fn visible_claims(&self) -> Vec<&HandleClaim> {
+        self.claims
+            .iter()
+            .filter(|c| c.subject.as_deref() == Some(self.subject.as_str()))
+            .collect()
+    }
+}
+
 // ── Handle management (T6.2 §2) ──
 
 /// One row in `GET /api/admin/v1/handles`. Mirrors the `cx.handle.*` cell
@@ -1295,18 +1442,45 @@ pub struct PushRouteRow {
 /// `cx.member.identity.update` event ids + the projection digest the
 /// SPA computed. Used to triage cross-actor identity drift without
 /// hitting the soland audit log directly.
-#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq)]
 pub struct RealmIdentityAuditRow {
     #[serde(default)]
     pub actor_id: String,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    /// R3.2 (UI-SOD-3) — SPA-derived primary handle. NOT a wire field:
+    /// the operator view runs §3.2.1 selection over `handle_claims` to
+    /// fill this (`crate::utils::primary_handle::select_primary_handle`).
+    /// `None` means no verified candidate / selection not yet run.
+    #[serde(skip)]
     pub primary_handle: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub display_name: Option<String>,
+    /// R3.2 (UI-SOD-5) — the handle captured when this identity row was
+    /// last projected (`handle_at_time`, audit metadata only). When it
+    /// differs from the §3.2.1-derived current primary handle the
+    /// operator view surfaces a "handle changed since" hint. NOT an
+    /// authoritative attribution field.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub handle_at_time: Option<String>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub identity_event_ids: Vec<String>,
+    /// R3.2 (UI-SOD-2) — renamed from `identity_state_digest`. Roster
+    /// display-selection digest (member_roster_entry shape).
+    #[serde(default, skip_serializing_if = "Option::is_none", alias = "identity_state_digest")]
+    pub member_display_state_digest: Option<String>,
+    /// R3.2 (UI-SOD-2) — disclosed principal/holder DID. Gates the
+    /// handle-claim fields below (dependentRequired).
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub identity_state_digest: Option<String>,
+    pub subject_id: Option<String>,
+    /// R3.2 (UI-SOD-2) — canonical `claim_digest` set of visible claims.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub handle_claim_digests: Option<Vec<String>>,
+    /// R3.2 (UI-SOD-2) — inlined signed handle-claim evidence; the
+    /// operator diag page runs primary-handle selection over this.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub handle_claims: Option<Vec<HandleClaim>>,
+    /// R3.2 (UI-SOD-2) — `true` when `handle_claims` is truncated.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub handle_claims_limited: Option<bool>,
     /// `true` when the cached projection digest disagrees with the
     /// roster row — surface as a red flag in the operator view.
     #[serde(default)]
