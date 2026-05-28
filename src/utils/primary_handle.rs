@@ -206,7 +206,10 @@ fn tie_break_prefers(
     // claim_digest tie-break — fall back to the handle string when the
     // server did not pre-compute a digest hint (the SPA does not run the
     // full sha256(JCS(semantic_projection)) — TODO(R3.2.1)).
-    let cand_key = candidate.claim_digest.as_deref().or(candidate.handle.as_deref());
+    let cand_key = candidate
+        .claim_digest
+        .as_deref()
+        .or(candidate.handle.as_deref());
     let best_key = best.claim_digest.as_deref().or(best.handle.as_deref());
     match (cand_key, best_key) {
         (Some(cd), Some(bd)) => cd < bd,

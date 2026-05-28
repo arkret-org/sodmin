@@ -184,5 +184,4 @@ mod tests {
             Some(DeliveryBindingHandoverReason::HistoricalOnly)
         );
     }
-
 }

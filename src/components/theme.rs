@@ -17,7 +17,6 @@ impl Theme {
             _ => Theme::System,
         }
     }
-
 }
 
 fn get_system_theme() -> &'static str {
@@ -44,10 +43,11 @@ pub fn get_resolved_theme() -> String {
 pub fn apply_theme() {
     let resolved = get_resolved_theme();
     if let Some(document) = web_sys::window().and_then(|w| w.document())
-        && let Some(root) = document.document_element() {
-            let _ = root.class_list().remove_2("light", "dark");
-            let _ = root.class_list().add_1(&resolved);
-        }
+        && let Some(root) = document.document_element()
+    {
+        let _ = root.class_list().remove_2("light", "dark");
+        let _ = root.class_list().add_1(&resolved);
+    }
 }
 
 pub fn set_theme(theme: &str) {

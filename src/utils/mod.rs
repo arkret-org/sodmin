@@ -17,12 +17,12 @@ pub mod futures;
 pub mod handle;
 pub mod i18n;
 pub mod password;
+pub mod perf;
 /// R3.2 (UI-SOD-3) — §3.2.1 primary handle selection (admin-SPA mirror
 /// of the SDK `select_primary_handle` helper). `MemberIdentity` no
 /// longer carries handle fields; the UI derives the display handle by
 /// running this deterministic selection over the visible claim set.
 pub mod primary_handle;
-pub mod perf;
 /// Client-side `filter[name_or_id]` substring matcher used as a
 /// fallback when a backend hasn't yet plumbed the parameter.
 pub mod search;

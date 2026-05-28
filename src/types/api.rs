@@ -348,7 +348,26 @@ pub struct FederationAllowRule {
     #[serde(default)]
     pub rule_type: Option<String>,
     #[serde(default)]
+    pub polarity: Option<String>,
+    #[serde(default)]
+    pub action: Option<String>,
+    #[serde(default)]
+    pub allowlist_enforced: Option<bool>,
+    #[serde(default)]
     pub created_at: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct AddFederationRuleRequest {
+    pub domain: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub rule_type: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub polarity: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub action: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub allowlist_enforced: Option<bool>,
 }
 
 // ── Applet types ──
@@ -691,9 +710,10 @@ impl AuditEntry {
     /// rendering. Pure helper so the rule stays unit-testable.
     pub fn scope_kind(&self) -> AuditScopeKind {
         if let Some(ref s) = self.scope_circle_id
-            && !s.is_empty() {
-                return AuditScopeKind::Circle(s.clone());
-            }
+            && !s.is_empty()
+        {
+            return AuditScopeKind::Circle(s.clone());
+        }
         if let Some(ref s) = self.effective_scope {
             if s.starts_with("cx:circle:") {
                 return AuditScopeKind::Circle(s.clone());
@@ -703,9 +723,10 @@ impl AuditEntry {
             }
         }
         if let Some(ref r) = self.scope_realm_id
-            && !r.is_empty() {
-                return AuditScopeKind::Realm(r.clone());
-            }
+            && !r.is_empty()
+        {
+            return AuditScopeKind::Realm(r.clone());
+        }
         AuditScopeKind::Unknown
     }
 }
@@ -1654,5 +1675,4 @@ mod tests {
         assert!(serialized.contains("approval_required"));
         assert!(!serialized.contains("facets_allow"));
     }
-
 }

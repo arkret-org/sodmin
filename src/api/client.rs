@@ -163,9 +163,10 @@ pub fn format_admin_error(
 ) -> (String, Option<AdminErrorEnvelope>) {
     let mut error_body: Option<AdminErrorEnvelope> = serde_json::from_str(text).ok();
     if let Some(ref mut body) = error_body
-        && body.retry_after_ms.is_none() {
-            body.retry_after_ms = retry_after_ms;
-        }
+        && body.retry_after_ms.is_none()
+    {
+        body.retry_after_ms = retry_after_ms;
+    }
     let mut message = if let Some(ref eb) = error_body {
         display_error(&eb.errcode, status, eb.error.as_deref().unwrap_or(""))
     } else {
@@ -194,9 +195,11 @@ pub async fn api_client<T: DeserializeOwned>(
     let result = raw_fetch::<T, _>(url, method, body.clone(), format_admin_error).await;
 
     if let Err(ref err) = result
-        && err.status == 401 && crate::api::auth::handle_unauthorized().await {
-            return raw_fetch::<T, _>(url, method, body, format_admin_error).await;
-        }
+        && err.status == 401
+        && crate::api::auth::handle_unauthorized().await
+    {
+        return raw_fetch::<T, _>(url, method, body, format_admin_error).await;
+    }
 
     result
 }

@@ -31,19 +31,20 @@ pub fn KeyboardShortcuts() -> Element {
         // Ignore if the user is typing in an input, textarea or contenteditable.
         if let Some(window) = web_sys::window()
             && let Some(doc) = window.document()
-                && let Some(active) = doc.active_element() {
-                    let tag = active.tag_name().to_uppercase();
-                    if tag == "INPUT" || tag == "TEXTAREA" || tag == "SELECT" {
-                        return;
-                    }
-                    if active
-                        .get_attribute("contenteditable")
-                        .map(|v| v == "true")
-                        .unwrap_or(false)
-                    {
-                        return;
-                    }
-                }
+            && let Some(active) = doc.active_element()
+        {
+            let tag = active.tag_name().to_uppercase();
+            if tag == "INPUT" || tag == "TEXTAREA" || tag == "SELECT" {
+                return;
+            }
+            if active
+                .get_attribute("contenteditable")
+                .map(|v| v == "true")
+                .unwrap_or(false)
+            {
+                return;
+            }
+        }
 
         let key = evt.key();
         let key_str = match key_to_string(&key) {

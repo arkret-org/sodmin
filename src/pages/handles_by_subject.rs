@@ -271,18 +271,22 @@ fn claim_row(claim: &HandleClaim, primary: Option<&str>) -> Element {
 
 fn binding_badge(state: Option<HandleBindingState>) -> (String, BadgeVariant) {
     match state {
-        Some(HandleBindingState::Verified) => {
-            (t("handles_by_subject.binding_verified"), BadgeVariant::Success)
-        }
-        Some(HandleBindingState::Pending) => {
-            (t("handles_by_subject.binding_pending"), BadgeVariant::Outline)
-        }
-        Some(HandleBindingState::Revoked) => {
-            (t("handles_by_subject.binding_revoked"), BadgeVariant::Destructive)
-        }
-        Some(HandleBindingState::Expired) => {
-            (t("handles_by_subject.binding_expired"), BadgeVariant::Secondary)
-        }
+        Some(HandleBindingState::Verified) => (
+            t("handles_by_subject.binding_verified"),
+            BadgeVariant::Success,
+        ),
+        Some(HandleBindingState::Pending) => (
+            t("handles_by_subject.binding_pending"),
+            BadgeVariant::Outline,
+        ),
+        Some(HandleBindingState::Revoked) => (
+            t("handles_by_subject.binding_revoked"),
+            BadgeVariant::Destructive,
+        ),
+        Some(HandleBindingState::Expired) => (
+            t("handles_by_subject.binding_expired"),
+            BadgeVariant::Secondary,
+        ),
         None => ("-".to_string(), BadgeVariant::Outline),
     }
 }

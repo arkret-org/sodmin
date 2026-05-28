@@ -44,11 +44,12 @@ pub fn TrustDomainConfigPage() -> Element {
     let mut setting_data = use_resource(|| async { server::get_trust_domain().await });
 
     if !*hydrated.read()
-        && let Some(Ok(setting)) = setting_data.read().as_ref() {
-            current.set(setting.value.clone());
-            draft.set(setting.value.clone());
-            hydrated.set(true);
-        }
+        && let Some(Ok(setting)) = setting_data.read().as_ref()
+    {
+        current.set(setting.value.clone());
+        draft.set(setting.value.clone());
+        hydrated.set(true);
+    }
 
     let current_value = current.read().clone();
     let draft_value = draft.read().clone();

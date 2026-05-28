@@ -154,5 +154,4 @@ mod tests {
         assert_eq!(depth_summary_label(1, 1), "1 parent · 1 child");
         assert_eq!(depth_summary_label(1, 5), "1 parent · 5 children");
     }
-
 }

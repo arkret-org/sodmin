@@ -42,11 +42,12 @@ pub fn RelaxedWindowPage() -> Element {
     let mut setting_data = use_resource(|| async { server::get_relaxed_window().await });
 
     if !*hydrated.read()
-        && let Some(Ok(setting)) = setting_data.read().as_ref() {
-            relaxed_ms.set(clamp_relaxed_window(setting.window_ms));
-            relaxed_enabled.set(setting.enabled);
-            hydrated.set(true);
-        }
+        && let Some(Ok(setting)) = setting_data.read().as_ref()
+    {
+        relaxed_ms.set(clamp_relaxed_window(setting.window_ms));
+        relaxed_enabled.set(setting.enabled);
+        hydrated.set(true);
+    }
 
     let active_profile = setting_data
         .read()

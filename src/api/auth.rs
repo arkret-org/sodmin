@@ -65,9 +65,10 @@ fn build_oauth_scope() -> String {
 
 fn get_or_create_device_id() -> String {
     if let Some(device_id) = storage::get_item(OAUTH_DEVICE_ID_STORAGE_KEY)
-        && device_id.len() >= 10 {
-            return device_id;
-        }
+        && device_id.len() >= 10
+    {
+        return device_id;
+    }
     let device_id = crate::utils::password::generate_device_id();
     storage::set_item(OAUTH_DEVICE_ID_STORAGE_KEY, &device_id);
     device_id
@@ -282,9 +283,10 @@ pub async fn handle_oauth_callback(code: &str, state: Option<&str>) -> Result<()
 
     if let (Some(id_token), Some(expected)) = (&token_resp.id_token, &expected_nonce)
         && let Some(nonce_in_token) = extract_id_token_nonce(id_token)
-            && nonce_in_token != *expected {
-                return Err(make_err("OIDC nonce mismatch — possible replay".into()));
-            }
+        && nonce_in_token != *expected
+    {
+        return Err(make_err("OIDC nonce mismatch — possible replay".into()));
+    }
 
     // Mark the session as active for the JS-visible UI checks. The
     // value `"1"` carries no entropy.

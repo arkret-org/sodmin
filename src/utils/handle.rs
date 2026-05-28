@@ -200,7 +200,10 @@ pub fn normalize_to_canonical(input: &str) -> Result<String, HandleNormalizeErro
 /// through [`normalize_to_canonical`] first if you're not certain it's
 /// already canonical.
 pub fn display_sigil(canonical: &str) -> String {
-    let body = canonical.trim().strip_prefix('@').unwrap_or(canonical.trim());
+    let body = canonical
+        .trim()
+        .strip_prefix('@')
+        .unwrap_or(canonical.trim());
     format!("@{body}")
 }
 
@@ -323,10 +326,7 @@ mod tests {
 
     #[test]
     fn rejects_malformed_handles() {
-        assert_eq!(
-            normalize_to_canonical(""),
-            Err(HandleNormalizeError::Empty)
-        );
+        assert_eq!(normalize_to_canonical(""), Err(HandleNormalizeError::Empty));
         assert_eq!(
             normalize_to_canonical("alice"),
             Err(HandleNormalizeError::Malformed)

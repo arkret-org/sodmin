@@ -55,4 +55,3 @@ pub async fn list_space_members(id: &str) -> Result<Vec<SpaceMember>, HttpError>
     let url = format!("/api/admin/v1/spaces/{}/members", urlencoding::encode(id));
     api_client(&url, "GET", None).await
 }
-

@@ -2252,14 +2252,12 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "Delete this key backup version?",
             ),
             ("key_backup.refresh", "Refresh"),
-
             // R3.1 (HDLREN-1) — handle normalize error tags.
             ("error.handle_empty", "Handle is empty after trimming."),
             (
                 "error.handle_malformed",
                 "Handle could not be parsed as <localpart>:<domain> — canonical wire form is required.",
             ),
-
             // R3.1 (MID-1..3, ROST-1..2) — Realm members + identity diagnostic.
             ("spaces.identity", "Identity"),
             ("spaces.membership", "Membership"),
@@ -2272,7 +2270,6 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("spaces.members_of_many", "of many"),
             ("spaces.members_load_more", "Load more"),
             ("spaces.open_identity_audit", "Open identity audit"),
-
             ("realm_identity_audit.title", "Identity audit"),
             (
                 "realm_identity_audit.subtitle",
@@ -2292,12 +2289,14 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("realm_identity_audit.col_primary_handle", "Primary handle"),
             ("realm_identity_audit.col_display_name", "Display name"),
             ("realm_identity_audit.col_event_ids", "Effective event ids"),
-            ("realm_identity_audit.col_state_digest", "member_display_state_digest"),
+            (
+                "realm_identity_audit.col_state_digest",
+                "member_display_state_digest",
+            ),
             ("realm_identity_audit.col_cache", "Cache"),
             ("realm_identity_audit.cache_drift", "drift"),
             ("realm_identity_audit.cache_ok", "ok"),
             ("realm_identity_audit.empty", "No actors observed yet."),
-
             // R3.2 (UI-SOD-4) — Subject → Handles directory page.
             ("nav.handles_by_subject", "Subject → Handles"),
             ("handles_by_subject.title", "Subject → Handles"),
@@ -2312,9 +2311,15 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ),
             ("handles_by_subject.subject_did", "Subject DID"),
             ("handles_by_subject.lookup", "Look up"),
-            ("handles_by_subject.enter_did", "Enter a subject DID above to list its visible handle claims."),
+            (
+                "handles_by_subject.enter_did",
+                "Enter a subject DID above to list its visible handle claims.",
+            ),
             ("handles_by_subject.results_title", "Visible handle claims"),
-            ("handles_by_subject.primary_handle", "Primary handle (§3.2.1)"),
+            (
+                "handles_by_subject.primary_handle",
+                "Primary handle (§3.2.1)",
+            ),
             ("handles_by_subject.primary_badge", "primary"),
             ("handles_by_subject.col_handle", "Handle"),
             ("handles_by_subject.col_issuer", "Issuer DID"),
@@ -2325,13 +2330,18 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("handles_by_subject.why_issuer", "issuer"),
             ("handles_by_subject.why_binding", "binding_state"),
             ("handles_by_subject.why_created", "created_at"),
-            ("handles_by_subject.no_claims", "No visible handle claims for this subject in the current context."),
-            ("handles_by_subject.has_more", "More claims are available — refine the context to narrow the result set."),
+            (
+                "handles_by_subject.no_claims",
+                "No visible handle claims for this subject in the current context.",
+            ),
+            (
+                "handles_by_subject.has_more",
+                "More claims are available — refine the context to narrow the result set.",
+            ),
             ("handles_by_subject.binding_verified", "verified"),
             ("handles_by_subject.binding_pending", "pending"),
             ("handles_by_subject.binding_revoked", "revoked"),
             ("handles_by_subject.binding_expired", "expired"),
-
             // R3.2 (UI-SOD-5) — handle changed since hint.
             ("handle_change.changed_since", "handle changed since"),
             ("handle_change.now", "now"),
@@ -3517,14 +3527,12 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("key_backup.delete", "删除备份"),
             ("key_backup.delete_confirm", "确认删除该备份版本？"),
             ("key_backup.refresh", "刷新"),
-
             // R3.1 (HDLREN-1) — handle 规范化错误信息。
             ("error.handle_empty", "句柄为空（已去除空白）。"),
             (
                 "error.handle_malformed",
                 "句柄无法解析为 <localpart>:<domain>，请使用规范的 wire 格式。",
             ),
-
             // R3.1 (MID-1..3, ROST-1..2) — Realm 成员 + 身份诊断。
             ("spaces.identity", "身份"),
             ("spaces.membership", "成员状态"),
@@ -3537,7 +3545,6 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("spaces.members_of_many", "项（共更多）"),
             ("spaces.members_load_more", "加载更多"),
             ("spaces.open_identity_audit", "打开身份审计"),
-
             ("realm_identity_audit.title", "身份审计"),
             (
                 "realm_identity_audit.subtitle",
@@ -3557,12 +3564,14 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("realm_identity_audit.col_primary_handle", "首选句柄"),
             ("realm_identity_audit.col_display_name", "显示名称"),
             ("realm_identity_audit.col_event_ids", "有效事件 id"),
-            ("realm_identity_audit.col_state_digest", "member_display_state_digest"),
+            (
+                "realm_identity_audit.col_state_digest",
+                "member_display_state_digest",
+            ),
             ("realm_identity_audit.col_cache", "缓存"),
             ("realm_identity_audit.cache_drift", "偏差"),
             ("realm_identity_audit.cache_ok", "正常"),
             ("realm_identity_audit.empty", "暂未观察到任何 actor。"),
-
             // R3.2 (UI-SOD-4) — Subject → Handles 目录页。
             ("nav.handles_by_subject", "Subject → Handles"),
             ("handles_by_subject.title", "Subject → Handles"),
@@ -3577,9 +3586,15 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ),
             ("handles_by_subject.subject_did", "主体 DID"),
             ("handles_by_subject.lookup", "查询"),
-            ("handles_by_subject.enter_did", "在上方输入主体 DID 以列出其可见的 handle claim。"),
+            (
+                "handles_by_subject.enter_did",
+                "在上方输入主体 DID 以列出其可见的 handle claim。",
+            ),
             ("handles_by_subject.results_title", "可见的 handle claim"),
-            ("handles_by_subject.primary_handle", "Primary handle（§3.2.1）"),
+            (
+                "handles_by_subject.primary_handle",
+                "Primary handle（§3.2.1）",
+            ),
             ("handles_by_subject.primary_badge", "primary"),
             ("handles_by_subject.col_handle", "Handle"),
             ("handles_by_subject.col_issuer", "签发者 DID"),
@@ -3590,13 +3605,18 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("handles_by_subject.why_issuer", "签发者"),
             ("handles_by_subject.why_binding", "binding_state"),
             ("handles_by_subject.why_created", "created_at"),
-            ("handles_by_subject.no_claims", "当前 context 下该主体没有可见的 handle claim。"),
-            ("handles_by_subject.has_more", "还有更多 claim —— 收窄 context 以缩小结果集。"),
+            (
+                "handles_by_subject.no_claims",
+                "当前 context 下该主体没有可见的 handle claim。",
+            ),
+            (
+                "handles_by_subject.has_more",
+                "还有更多 claim —— 收窄 context 以缩小结果集。",
+            ),
             ("handles_by_subject.binding_verified", "verified"),
             ("handles_by_subject.binding_pending", "pending"),
             ("handles_by_subject.binding_revoked", "revoked"),
             ("handles_by_subject.binding_expired", "expired"),
-
             // R3.2 (UI-SOD-5) — handle changed since 提示。
             ("handle_change.changed_since", "handle 已变更"),
             ("handle_change.now", "当前"),

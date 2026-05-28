@@ -77,13 +77,15 @@ impl NavSection {
     /// not held — also hide if every item has been filtered out.
     fn is_visible(&self) -> bool {
         if let Some(b) = self.required_bridge
-            && !session::has_bridge(b) {
-                return false;
-            }
+            && !session::has_bridge(b)
+        {
+            return false;
+        }
         if let Some(s) = self.required_scope
-            && !session::has_scope(s) {
-                return false;
-            }
+            && !session::has_scope(s)
+        {
+            return false;
+        }
         !self.filtered_items().is_empty()
     }
 }
@@ -557,13 +559,15 @@ mod tests {
 
     fn section_visible_with(section: &NavSection, bridges: &[&str], scopes: &[&str]) -> bool {
         if let Some(b) = section.required_bridge
-            && !bridges.contains(&b) {
-                return false;
-            }
+            && !bridges.contains(&b)
+        {
+            return false;
+        }
         if let Some(s) = section.required_scope
-            && !(scopes.contains(&scope::WILDCARD) || scopes.contains(&s)) {
-                return false;
-            }
+            && !(scopes.contains(&scope::WILDCARD) || scopes.contains(&s))
+        {
+            return false;
+        }
         !filter_with_scopes(section, scopes).is_empty()
     }
 

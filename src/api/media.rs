@@ -19,4 +19,3 @@ pub async fn list_actor_media(
     )?;
     api_client(&url, "GET", None).await
 }
-

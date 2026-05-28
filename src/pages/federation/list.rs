@@ -5,6 +5,7 @@ use crate::components::ui::auto_refresh::{self, AutoRefreshPicker, RefreshInterv
 use crate::components::ui::badge::{Badge, BadgeVariant};
 use crate::components::ui::button::{Button, ButtonVariant};
 use crate::components::ui::card::*;
+use crate::components::ui::checkbox::Checkbox;
 use crate::components::ui::dialog::ConfirmDialog;
 use crate::components::ui::error_banner::ErrorBanner;
 use crate::components::ui::input::{Input, Label, SearchInput};
@@ -28,6 +29,9 @@ pub fn FederationList() -> Element {
     let mut show_add_rule = use_signal(|| false);
     let mut show_delete_rule = use_signal(|| None::<String>);
     let mut new_rule_domain = use_signal(String::new);
+    let mut new_rule_polarity = use_signal(|| "allow".to_string());
+    let mut new_rule_action = use_signal(|| "allow_federation".to_string());
+    let mut new_rule_allowlist_enforced = use_signal(|| false);
     let mut add_loading = use_signal(|| false);
     let mut autorefresh = use_signal(|| auto_refresh::load(AUTOREFRESH_STORAGE_KEY));
 
@@ -205,6 +209,9 @@ pub fn FederationList() -> Element {
                                                 TableHead { {t("federation.id")} }
                                                 TableHead { {t("federation.domain")} }
                                                 TableHead { {t("federation.rule_type")} }
+                                                TableHead { "Polarity" }
+                                                TableHead { "Action" }
+                                                TableHead { "Allowlist" }
                                                 TableHead { {t("federation.created_at")} }
                                                 TableHead { class: "text-right".to_string(), {t("common.actions")} }
                                             }
@@ -222,6 +229,9 @@ pub fn FederationList() -> Element {
                                                         let id = rule.id.clone();
                                                         let domain = rule.domain.clone();
                                                         let rule_type = rule.rule_type.clone().unwrap_or_else(|| "-".to_string());
+                                                        let polarity = rule.polarity.clone().unwrap_or_else(|| rule_type.clone());
+                                                        let action = rule.action.clone().unwrap_or_else(|| "-".to_string());
+                                                        let allowlist = if rule.allowlist_enforced.unwrap_or(false) { "enforced" } else { "-" };
                                                         let created_at = rule.created_at.clone().unwrap_or_else(|| "-".to_string());
                                                         let id_for_delete = id.clone();
 
@@ -230,6 +240,9 @@ pub fn FederationList() -> Element {
                                                                 TableCell { class: "font-medium".to_string(), "{id}" }
                                                                 TableCell { "{domain}" }
                                                                 TableCell { "{rule_type}" }
+                                                                TableCell { "{polarity}" }
+                                                                TableCell { "{action}" }
+                                                                TableCell { "{allowlist}" }
                                                                 TableCell { class: "text-muted-foreground".to_string(), "{created_at}" }
                                                                 TableCell { class: "text-right".to_string(),
                                                                     Button {
@@ -292,9 +305,54 @@ pub fn FederationList() -> Element {
                         div { class: "space-y-1",
                             Label { r#for: "rule-domain".to_string(), {t("federation.domain")} }
                             Input {
+                                id: "rule-domain".to_string(),
                                 value: new_rule_domain.read().clone(),
                                 oninput: move |evt: FormEvent| new_rule_domain.set(evt.value()),
                             }
+                        }
+                        div { class: "grid gap-4 sm:grid-cols-2",
+                            div { class: "space-y-1",
+                                Label { r#for: "rule-polarity".to_string(), "Polarity" }
+                                select {
+                                    id: "rule-polarity",
+                                    class: "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm",
+                                    value: new_rule_polarity.read().clone(),
+                                    onchange: move |evt| {
+                                        let value = evt.value();
+                                        new_rule_polarity.set(value.clone());
+                                        new_rule_action.set(match value.as_str() {
+                                            "deny" => "deny_federation".to_string(),
+                                            "block" => "block_federation".to_string(),
+                                            _ => "allow_federation".to_string(),
+                                        });
+                                    },
+                                    option { value: "allow", "allow" }
+                                    option { value: "deny", "deny" }
+                                    option { value: "block", "block" }
+                                }
+                            }
+                            div { class: "space-y-1",
+                                Label { r#for: "rule-action".to_string(), "Action" }
+                                select {
+                                    id: "rule-action",
+                                    class: "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm",
+                                    value: new_rule_action.read().clone(),
+                                    onchange: move |evt| new_rule_action.set(evt.value()),
+                                    option { value: "allow_federation", "allow_federation" }
+                                    option { value: "deny_federation", "deny_federation" }
+                                    option { value: "block_federation", "block_federation" }
+                                    option { value: "defederate", "defederate" }
+                                }
+                            }
+                        }
+                        label { class: "flex items-center gap-2 text-sm",
+                            Checkbox {
+                                id: "rule-allowlist-enforced".to_string(),
+                                checked: *new_rule_allowlist_enforced.read(),
+                                aria_label: "Enforce allowlist".to_string(),
+                                onchange: move |checked| new_rule_allowlist_enforced.set(checked),
+                            }
+                            span { "Enforce allowlist mode" }
                         }
                         div { class: "flex justify-end gap-2",
                             Button {
@@ -308,12 +366,25 @@ pub fn FederationList() -> Element {
                                 onclick: move |_| {
                                     add_loading.set(true);
                                     let domain = new_rule_domain.read().clone();
+                                    let polarity = new_rule_polarity.read().clone();
+                                    let action = new_rule_action.read().clone();
+                                    let allowlist_enforced = *new_rule_allowlist_enforced.read();
                                     spawn(async move {
-                                        match federation::add_federation_allow_rule(&domain).await {
+                                        let request = crate::types::AddFederationRuleRequest {
+                                            domain,
+                                            rule_type: Some(polarity.clone()),
+                                            polarity: Some(polarity),
+                                            action: Some(action),
+                                            allowlist_enforced: Some(allowlist_enforced),
+                                        };
+                                        match federation::add_federation_rule(&request).await {
                                             Ok(_) => {
                                                 show_toast("Rule added", ToastVariant::Success);
                                                 show_add_rule.set(false);
                                                 new_rule_domain.set(String::new());
+                                                new_rule_polarity.set("allow".to_string());
+                                                new_rule_action.set("allow_federation".to_string());
+                                                new_rule_allowlist_enforced.set(false);
                                                 rules.restart();
                                             }
                                             Err(e) => show_toast(&format!("Failed: {}", e.message), ToastVariant::Error),

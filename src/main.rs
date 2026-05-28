@@ -47,9 +47,10 @@ fn install_csp_meta() {
     };
     // Skip if a CSP meta already exists (server rendered shell).
     if let Ok(existing) = document.query_selector("meta[http-equiv=\"Content-Security-Policy\"]")
-        && existing.is_some() {
-            return;
-        }
+        && existing.is_some()
+    {
+        return;
+    }
     let Ok(meta) = document.create_element("meta") else {
         return;
     };

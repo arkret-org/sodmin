@@ -564,7 +564,6 @@ pub async fn list_notification_templates() -> Result<Vec<CoauthNotificationTempl
     Ok(resp.templates)
 }
 
-
 /// Cursor-paginated account list. The caller passes back the opaque
 /// `cursor` it received from the prior page's `links.next`.
 ///
@@ -874,12 +873,13 @@ fn extract_cursor_param(link: &str) -> Option<String> {
     let bare = query.split('#').next().unwrap_or(query);
     for pair in bare.split('&') {
         if let Some((key, value)) = pair.split_once('=')
-            && (key == "cursor" || key == "page%5Bcursor%5D" || key == "page[cursor]") {
-                let decoded = urlencoding::decode(value).ok()?.into_owned();
-                if !decoded.is_empty() {
-                    return Some(decoded);
-                }
+            && (key == "cursor" || key == "page%5Bcursor%5D" || key == "page[cursor]")
+        {
+            let decoded = urlencoding::decode(value).ok()?.into_owned();
+            if !decoded.is_empty() {
+                return Some(decoded);
             }
+        }
     }
     None
 }
@@ -917,5 +917,4 @@ mod cursor_tests {
             Some("A=B".to_string()),
         );
     }
-
 }

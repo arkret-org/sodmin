@@ -16,9 +16,10 @@ pub fn matches_name_or_id(query: &str, id: &str, name: Option<&str>) -> bool {
         return true;
     }
     if let Some(n) = name
-        && n.to_lowercase().contains(&q) {
-            return true;
-        }
+        && n.to_lowercase().contains(&q)
+    {
+        return true;
+    }
     false
 }
 

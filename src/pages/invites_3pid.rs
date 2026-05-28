@@ -159,5 +159,3 @@ fn render_invite_row(row: &ThirdPartyInviteRow) -> Element {
         }
     }
 }
-
-

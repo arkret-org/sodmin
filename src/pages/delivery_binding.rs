@@ -59,11 +59,12 @@ pub fn DeliveryBindingPolicy(realm_id: String) -> Element {
     // Hydrate the local editable state from the server response once
     // it arrives.
     if !*hydrated.read()
-        && let Some(Ok(policy)) = policy_data.read().as_ref() {
-            allowed_input.set(policy.allowed_recipient_services.join(", "));
-            binding_source_policy.set(policy.binding_source_policy.clone().unwrap_or_default());
-            hydrated.set(true);
-        }
+        && let Some(Ok(policy)) = policy_data.read().as_ref()
+    {
+        allowed_input.set(policy.allowed_recipient_services.join(", "));
+        binding_source_policy.set(policy.binding_source_policy.clone().unwrap_or_default());
+        hydrated.set(true);
+    }
 
     rsx! {
         div { class: "space-y-6",

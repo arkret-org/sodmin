@@ -34,15 +34,16 @@ pub fn Checkbox(
         }
         if let Some(win) = web_sys::window()
             && let Some(doc) = win.document()
-                && let Some(el) = doc.get_element_by_id(&id_for_effect)
-                    && let Ok(input) = el.dyn_into::<web_sys::HtmlInputElement>() {
-                        input.set_indeterminate(indeterminate_flag);
-                        // Keep DOM `checked` in sync with the prop —
-                        // Dioxus re-renders the attribute too, but
-                        // setting indeterminate sometimes clears the
-                        // visual state of a re-keyed element.
-                        let _ = checked_flag;
-                    }
+            && let Some(el) = doc.get_element_by_id(&id_for_effect)
+            && let Ok(input) = el.dyn_into::<web_sys::HtmlInputElement>()
+        {
+            input.set_indeterminate(indeterminate_flag);
+            // Keep DOM `checked` in sync with the prop —
+            // Dioxus re-renders the attribute too, but
+            // setting indeterminate sometimes clears the
+            // visual state of a re-keyed element.
+            let _ = checked_flag;
+        }
     });
 
     let label = if aria_label.is_empty() {

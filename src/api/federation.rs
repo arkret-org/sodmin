@@ -51,14 +51,37 @@ pub async fn list_federation_allow_rules(
     api_client(&url, "GET", None).await
 }
 
+pub async fn add_federation_rule(
+    request: &AddFederationRuleRequest,
+) -> Result<FederationAllowRule, HttpError> {
+    let body = serde_json::to_string(request).map_err(|e| HttpError {
+        status: 0,
+        message: format!("failed to encode federation rule: {e}"),
+        body: None,
+        request_id: None,
+        retry_after_ms: None,
+    })?;
+    api_client("/api/admin/v1/federation/allow-rules", "POST", Some(body)).await
+}
+
+#[allow(dead_code)]
 pub async fn add_federation_allow_rule(domain: &str) -> Result<FederationAllowRule, HttpError> {
-    let body = serde_json::json!({ "domain": domain });
-    api_client(
-        "/api/admin/v1/federation/allow-rules",
-        "POST",
-        Some(body.to_string()),
-    )
+    add_federation_rule(&AddFederationRuleRequest {
+        domain: domain.to_owned(),
+        rule_type: Some("allow".to_owned()),
+        polarity: Some("allow".to_owned()),
+        action: Some("allow_federation".to_owned()),
+        allowlist_enforced: None,
+    })
     .await
+}
+
+pub async fn defederate_federation_peer(domain: &str) -> Result<(), HttpError> {
+    let url = format!(
+        "/api/admin/v1/federation/peers/{}/defederate",
+        urlencoding::encode(domain)
+    );
+    api_client(&url, "POST", None).await
 }
 
 pub async fn delete_federation_allow_rule(id: &str) -> Result<(), HttpError> {

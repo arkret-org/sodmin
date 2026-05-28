@@ -186,9 +186,10 @@ impl AnchorerReconfigRequest {
                 // contains() check above, but we keep it explicit so
                 // the constraint is auditable per-kind.
                 if let Some(leader) = self.threshold_dids.iter().min()
-                    && leader == admin_did {
-                        return Some(SelfSignViolation::ThresholdLeaderIsAdmin);
-                    }
+                    && leader == admin_did
+                {
+                    return Some(SelfSignViolation::ThresholdLeaderIsAdmin);
+                }
                 None
             }
             "open_set" => {

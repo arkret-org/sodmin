@@ -92,7 +92,6 @@ pub mod bridge {
 
     /// coauth account/admin integration. Gates the entire coauth section.
     pub const COAUTH: &str = "coauth";
-
 }
 
 /// Names of the admin scope buckets the sidebar gates pages against. A
