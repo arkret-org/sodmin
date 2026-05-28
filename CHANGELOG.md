@@ -5,6 +5,14 @@ this file. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0
 this project is pre-1.0 so wire-breaking changes can land in any release until
 the SDK pins down its 1.0 contract.
 
+## R3.2 — Spec sync 2026-05-28 (contrix-spec @ b56cab1)
+
+- Renamed roster `identity_state_digest` → `member_display_state_digest`; added roster v2 gated fields + `HandleClaim`/`HandleBindingState` mirrors (`claim_type` drops `service_handle`).
+- New `utils/primary_handle.rs` mirrors SDK §3.2.1 selection; actor/identity views derive the handle via selection (MemberIdentity handle fields removed).
+- New `/admin/handles/by-subject` page calling `list_handles_for_subject` with a "Why am I seeing this?" tooltip; "handle changed since" hint on the identity-audit page.
+- Claim-set join + accepted_issuers policy + DID-doc holder preference deferred `TODO(R3.2.1)`.
+
+> No version tag, no crates.io / Docker Hub / npm publish — git commit only.
 ## R3 — Spec sync 2026-05-27 (contrix-spec @ b47ff6ec)
 
 - UI-1 / UI-2: Agent list status badges (`active` / `paused` / `deactivated`) with pause / resume / deactivate / rotate-key / grants actions wired to `/agents/{id}/deactivate`; draft / action_request / approve / reject lifecycle stubbed.
