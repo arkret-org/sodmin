@@ -180,7 +180,7 @@ pub struct SpaceMember {
     /// expires_at`) on top of the effective identity event refs. Drives
     /// the "identity pending decryption" placeholder when the local cache
     /// disagrees. Wire shape: `member_roster_entry.member_display_state_digest`.
-    #[serde(default, alias = "identity_state_digest")]
+    #[serde(default)]
     pub member_display_state_digest: Option<String>,
     /// R3.2 (ROST-1) — disclosed principal/holder DID. This is the
     /// disclosure gate for the four handle-claim fields below: when the
@@ -1465,7 +1465,7 @@ pub struct RealmIdentityAuditRow {
     pub identity_event_ids: Vec<String>,
     /// R3.2 (UI-SOD-2) — renamed from `identity_state_digest`. Roster
     /// display-selection digest (member_roster_entry shape).
-    #[serde(default, skip_serializing_if = "Option::is_none", alias = "identity_state_digest")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub member_display_state_digest: Option<String>,
     /// R3.2 (UI-SOD-2) — disclosed principal/holder DID. Gates the
     /// handle-claim fields below (dependentRequired).
