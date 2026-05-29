@@ -17,37 +17,34 @@ concurrency:
 
 jobs:
   prepare:
-    runs-on: ubuntu-latest
+    name: Resolve image tags
+    runs-on: ubuntu-24.04-arm64
+
     permissions:
       contents: read
-      packages: write
+
     outputs:
       gitea_registry: ${{ steps.image.outputs.gitea_registry }}
       gitea_registry_user: ${{ steps.image.outputs.gitea_registry_user }}
-      use_gitea_registry: ${{ steps.image.outputs.use_gitea_registry }}
-      use_dockerhub: ${{ steps.image.outputs.use_dockerhub }}
-      cache_image: ${{ steps.image.outputs.cache_image }}
-      push_images: ${{ steps.image.outputs.push_images }}
       images: ${{ steps.image.outputs.images }}
-      tags: ${{ steps.meta.outputs.tags }}
-      labels: ${{ steps.meta.outputs.labels }}
-      build_id: ${{ steps.build-id.outputs.value }}
+      push_images: ${{ steps.image.outputs.push_images }}
+      suffixes: ${{ steps.tags.outputs.suffixes }}
+      use_dockerhub: ${{ steps.image.outputs.use_dockerhub }}
+      use_gitea_registry: ${{ steps.image.outputs.use_gitea_registry }}
 
     steps:
-      - name: Check out source
-        uses: actions/checkout@v4
-
-      - name: Resolve image names
+      - name: Resolve image repositories
         id: image
         shell: bash
         env:
+          DOCKERHUB_NAMESPACE: ${{ vars.DOCKERHUB_NAMESPACE }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+          DOCKERHUB_USER: ${{ vars.DOCKERHUB_USER }}
+          EVENT_NAME: ${{ gitea.event_name }}
+          REGISTRY_TOKEN: ${{ secrets.REGISTRY_TOKEN }}
+          REGISTRY_USER: ${{ vars.REGISTRY_USER }}
           REPOSITORY: ${{ gitea.repository }}
           SERVER_URL: ${{ gitea.server_url }}
-          EVENT_NAME: ${{ gitea.event_name }}
-          REGISTRY_USER: ${{ vars.REGISTRY_USER }}
-          REGISTRY_TOKEN: ${{ secrets.REGISTRY_TOKEN }}
-          DOCKERHUB_USER: ${{ vars.DOCKERHUB_USER }}
-          DOCKERHUB_NAMESPACE: ${{ vars.DOCKERHUB_NAMESPACE }}
         run: |
           set -euo pipefail
 
@@ -55,29 +52,20 @@ jobs:
           registry_host="${SERVER_URL#http://}"
           registry_host="${registry_host#https://}"
           registry_host="${registry_host%%/*}"
-          gitea_image="$registry_host/$REPOSITORY"
-          use_gitea_registry="false"
-          use_dockerhub="false"
-          cache_image=""
 
           images=()
+          use_gitea_registry="false"
+          use_dockerhub="false"
 
           if [ -n "${REGISTRY_USER:-}" ] && [ -n "${REGISTRY_TOKEN:-}" ]; then
             use_gitea_registry="true"
-            cache_image="$gitea_image"
-            images+=("$gitea_image")
+            images+=("$registry_host/$REPOSITORY")
           fi
 
-          if [ -n "${DOCKERHUB_USER:-}" ]; then
+          if [ -n "${DOCKERHUB_USER:-}" ] && [ -n "${DOCKERHUB_TOKEN:-}" ]; then
             dockerhub_namespace="${DOCKERHUB_NAMESPACE:-$DOCKERHUB_USER}"
-            dockerhub_image="$dockerhub_namespace/$repo_name"
             use_dockerhub="true"
-            if [ -z "$cache_image" ]; then
-              cache_image="$dockerhub_image"
-            fi
-            images+=("$dockerhub_image")
-          else
-            dockerhub_image=""
+            images+=("$dockerhub_namespace/$repo_name")
           fi
 
           if [ "${#images[@]}" -eq 0 ]; then
@@ -92,260 +80,82 @@ jobs:
           {
             echo "gitea_registry=$registry_host"
             echo "gitea_registry_user=${REGISTRY_USER:-}"
-            echo "use_gitea_registry=$use_gitea_registry"
-            echo "use_dockerhub=$use_dockerhub"
-            echo "cache_image=$cache_image"
             echo "push_images=$push_images"
+            echo "use_dockerhub=$use_dockerhub"
+            echo "use_gitea_registry=$use_gitea_registry"
             echo "images<<EOF"
             printf "%s\n" "${images[@]}"
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
 
-      - name: Compute build identifier
-        id: build-id
+      - name: Compute tag suffixes
+        id: tags
         shell: bash
         env:
-          GIT_SHA: ${{ gitea.sha }}
-        run: |
-          set -euo pipefail
-          echo "value=${GIT_SHA:0:12}" >> "$GITHUB_OUTPUT"
-
-      - name: Extract Docker metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ steps.image.outputs.images }}
-          tags: |
-            type=ref,event=branch
-            type=ref,event=pr
-            type=ref,event=tag
-            type=sha,format=short,prefix=sha-
-            type=raw,value=latest,enable={{is_default_branch}}
-
-  smoke-test:
-    needs:
-      - prepare
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-
-    steps:
-      - name: Check out source
-        uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Log in to Gitea registry
-        if: needs.prepare.outputs.use_gitea_registry == 'true'
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ needs.prepare.outputs.gitea_registry }}
-          username: ${{ needs.prepare.outputs.gitea_registry_user }}
-          password: ${{ secrets.REGISTRY_TOKEN }}
-
-      - name: Log in to Docker Hub
-        if: needs.prepare.outputs.use_gitea_registry != 'true' && needs.prepare.outputs.use_dockerhub == 'true'
-        uses: docker/login-action@v3
-        with:
-          username: ${{ vars.DOCKERHUB_USER }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Compute smoke-test cache refs
-        id: smoke-cache
-        shell: bash
-        env:
-          CACHE_IMAGE: ${{ needs.prepare.outputs.cache_image }}
-          PUSH_IMAGES: ${{ needs.prepare.outputs.push_images }}
+          GITEA_SHA: ${{ gitea.sha }}
         run: |
           set -euo pipefail
 
-          cache_from=""
-          cache_to=""
+          ref_name="${{ gitea.ref_name }}"
+          ref_type="${{ gitea.ref_type }}"
+          short_sha="${GITEA_SHA:0:12}"
+          safe_ref="${ref_name//\//-}"
 
-          if [ -n "$CACHE_IMAGE" ]; then
-            cache_from="type=registry,ref=${CACHE_IMAGE}:buildcache-amd64"
+          suffixes=("sha-${short_sha}")
 
-            if [ "$PUSH_IMAGES" = "true" ]; then
-              cache_to="type=registry,ref=${CACHE_IMAGE}:buildcache-amd64,mode=max"
+          if [ "$ref_type" = "branch" ]; then
+            suffixes+=("$safe_ref")
+
+            if [ "$safe_ref" = "main" ]; then
+              suffixes+=("latest")
             fi
           fi
 
-          echo "cache_from=$cache_from" >> "$GITHUB_OUTPUT"
-          echo "cache_to=$cache_to" >> "$GITHUB_OUTPUT"
+          if [ "$ref_type" = "tag" ] && [[ "$ref_name" == v* ]]; then
+            version="${ref_name#v}"
+            suffixes+=("$version")
 
-      - name: Smoke test runtime configuration
-        shell: bash
-        env:
-          CACHE_FROM: ${{ steps.smoke-cache.outputs.cache_from }}
-          CACHE_TO: ${{ steps.smoke-cache.outputs.cache_to }}
-        run: |
-          set -euo pipefail
-
-          build_args=(--load --tag sodmin-smoke)
-
-          if [ -n "${CACHE_FROM:-}" ]; then
-            build_args+=(--cache-from "$CACHE_FROM")
-          fi
-
-          if [ -n "${CACHE_TO:-}" ]; then
-            build_args+=(--cache-to "$CACHE_TO")
-          fi
-
-          docker buildx build "${build_args[@]}" .
-
-          run_case() {
-            local name="$1"
-            shift
-
-            local cid
-            cid="$(docker run -d --name "$name" "$@" sodmin-smoke)"
-
-            sleep 2
-
-            if [ "$(docker inspect -f '{{.State.Running}}' "$cid")" != "true" ]; then
-              docker logs "$cid"
-              exit 1
-            fi
-
-            docker exec "$cid" nginx -t
-
-            # Verify healthz endpoint returns 200 (index.html present).
-            docker exec "$cid" wget --spider -q http://localhost:${SODMIN_PORT:-80}/healthz
-
-            case "$name" in
-              sodmin-no-coauth)
-                docker exec "$cid" sh -c "! grep -q 'location /auth/' /etc/nginx/conf.d/default.conf"
-                ;;
-              sodmin-with-coauth)
-                docker exec "$cid" grep -q 'https://auth.example.com' /usr/share/nginx/html/config.json
-                docker exec "$cid" grep -q 'location /auth/' /etc/nginx/conf.d/default.conf
-                ;;
-            esac
-
-            docker rm -f "$cid" >/dev/null
-          }
-
-          run_case sodmin-no-coauth \
-            -e SOLAND_URL=http://soland:8008
-
-          run_case sodmin-with-coauth \
-            -e SOLAND_URL=http://soland:8008 \
-            -e COAUTH_URL=http://coauth:7080 \
-            -e COAUTH_PUBLIC_URL=https://auth.example.com
-
-  build-platform:
-    needs:
-      - prepare
-      - smoke-test
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - arch: amd64
-            platform: linux/amd64
-          - arch: arm64
-            platform: linux/arm64
-
-    steps:
-      - name: Check out source
-        uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Log in to Gitea registry
-        if: needs.prepare.outputs.use_gitea_registry == 'true'
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ needs.prepare.outputs.gitea_registry }}
-          username: ${{ needs.prepare.outputs.gitea_registry_user }}
-          password: ${{ secrets.REGISTRY_TOKEN }}
-
-      - name: Log in to Docker Hub
-        if: needs.prepare.outputs.use_dockerhub == 'true' && (needs.prepare.outputs.push_images == 'true' || needs.prepare.outputs.use_gitea_registry != 'true')
-        uses: docker/login-action@v3
-        with:
-          username: ${{ vars.DOCKERHUB_USER }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Compute build cache refs
-        id: build-cache
-        shell: bash
-        env:
-          CACHE_IMAGE: ${{ needs.prepare.outputs.cache_image }}
-          PUSH_IMAGES: ${{ needs.prepare.outputs.push_images }}
-          ARCH: ${{ matrix.arch }}
-        run: |
-          set -euo pipefail
-
-          cache_from=""
-          cache_to=""
-
-          if [ -n "$CACHE_IMAGE" ]; then
-            cache_from="type=registry,ref=${CACHE_IMAGE}:buildcache-${ARCH}"
-
-            if [ "$PUSH_IMAGES" = "true" ]; then
-              cache_to="type=registry,ref=${CACHE_IMAGE}:buildcache-${ARCH},mode=max"
+            if [[ "$version" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+              suffixes+=("${BASH_REMATCH[1]}.${BASH_REMATCH[2]}" "${BASH_REMATCH[1]}" "latest")
             fi
           fi
-
-          echo "cache_from=$cache_from" >> "$GITHUB_OUTPUT"
-          echo "cache_to=$cache_to" >> "$GITHUB_OUTPUT"
-
-      - name: Compute platform tags
-        id: platform-tags
-        shell: bash
-        env:
-          IMAGES: ${{ needs.prepare.outputs.images }}
-          BUILD_ID: ${{ needs.prepare.outputs.build_id }}
-          ARCH: ${{ matrix.arch }}
-        run: |
-          set -euo pipefail
-
-          tags=()
-
-          while IFS= read -r image; do
-            [ -n "$image" ] || continue
-            tags+=("${image}:build-${BUILD_ID}-${ARCH}")
-          done <<EOF
-          $IMAGES
-          EOF
 
           {
-            echo "tags<<EOF"
-            printf "%s\n" "${tags[@]}"
+            echo "suffixes<<EOF"
+            printf "%s\n" "${suffixes[@]}" | awk '!seen[$0]++'
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
 
-      - name: Build platform image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: ./Dockerfile
-          platforms: ${{ matrix.platform }}
-          pull: true
-          push: ${{ needs.prepare.outputs.push_images == 'true' }}
-          tags: ${{ steps.platform-tags.outputs.tags }}
-          labels: ${{ needs.prepare.outputs.labels }}
-          cache-from: ${{ steps.build-cache.outputs.cache_from }}
-          cache-to: ${{ steps.build-cache.outputs.cache_to }}
-
-  merge-manifest:
+  build-arm64:
+    name: Build ARM64 image
+    runs-on: ubuntu-24.04-arm64
     needs:
       - prepare
-      - build-platform
-    if: needs.prepare.outputs.push_images == 'true'
-    runs-on: ubuntu-latest
+
     permissions:
       contents: read
       packages: write
 
     steps:
+      - name: Check out sodmin
+        uses: actions/checkout@v4
+        with:
+          path: sodmin
+
+      - name: Check out coauth
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ gitea.repository_owner }}/coauth
+          path: coauth
+          ref: main
+
+      - name: Check out Contrix Rust SDK
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ gitea.repository_owner }}/contrix-rust-sdk
+          path: contrix-rust-sdk
+          ref: main
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -364,23 +174,84 @@ jobs:
           username: ${{ vars.DOCKERHUB_USER }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Merge multi-arch manifests
+      - name: Compute ARM64 tags
+        id: tags
         shell: bash
         env:
-          TAGS: ${{ needs.prepare.outputs.tags }}
-          BUILD_ID: ${{ needs.prepare.outputs.build_id }}
+          IMAGES: ${{ needs.prepare.outputs.images }}
+          SUFFIXES: ${{ needs.prepare.outputs.suffixes }}
+        run: |
+          set -euo pipefail
+
+          tags=()
+          while IFS= read -r image; do
+            [ -n "$image" ] || continue
+            while IFS= read -r suffix; do
+              [ -n "$suffix" ] || continue
+              tags+=("${image}:${suffix}-arm64" "${image}:${suffix}")
+            done <<< "$SUFFIXES"
+          done <<< "$IMAGES"
+
+          {
+            echo "tags<<EOF"
+            printf "%s\n" "${tags[@]}" | awk '!seen[$0]++'
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Build ARM64 image
+        shell: bash
+        env:
+          TAGS: ${{ steps.tags.outputs.tags }}
+        run: |
+          set -euo pipefail
+
+          tag_args=()
+          while IFS= read -r tag; do
+            [ -n "$tag" ] || continue
+            tag_args+=("-t" "$tag")
+          done <<< "$TAGS"
+
+          docker buildx build \
+            --load \
+            --platform linux/arm64 \
+            --pull \
+            "${tag_args[@]}" \
+            -f sodmin/Dockerfile \
+            .
+
+      - name: Smoke test ARM64 image
+        shell: bash
+        env:
+          TAGS: ${{ steps.tags.outputs.tags }}
+        run: |
+          set -euo pipefail
+
+          image="$(printf "%s\n" "$TAGS" | sed '/^$/d' | head -n1)"
+          cid="$(docker run -d --name sodmin-smoke -e SOLAND_URL=http://soland:8008 "$image")"
+
+          cleanup() {
+            docker rm -f "$cid" >/dev/null 2>&1 || true
+          }
+          trap cleanup EXIT
+
+          sleep 2
+          if [ "$(docker inspect -f '{{.State.Running}}' "$cid")" != "true" ]; then
+            docker logs "$cid"
+            exit 1
+          fi
+
+          docker exec "$cid" nginx -t
+          docker exec "$cid" wget --spider -q http://localhost:${SODMIN_PORT:-80}/healthz
+
+      - name: Push ARM64 image tags
+        if: needs.prepare.outputs.push_images == 'true'
+        shell: bash
+        env:
+          TAGS: ${{ steps.tags.outputs.tags }}
         run: |
           set -euo pipefail
 
           while IFS= read -r tag; do
             [ -n "$tag" ] || continue
-
-            image="${tag%:*}"
-
-            docker buildx imagetools create \
-              --tag "$tag" \
-              "${image}:build-${BUILD_ID}-amd64" \
-              "${image}:build-${BUILD_ID}-arm64"
-          done <<EOF
-          $TAGS
-          EOF
+            docker push "$tag"
+          done <<< "$TAGS"
