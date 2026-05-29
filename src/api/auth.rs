@@ -85,13 +85,7 @@ fn oauth_public_url(path: &str) -> Option<String> {
 }
 
 fn make_err(msg: String) -> HttpError {
-    HttpError {
-        message: msg,
-        status: 0,
-        body: None,
-        request_id: None,
-        retry_after_ms: None,
-    }
+    HttpError::message(msg)
 }
 
 fn is_public_oauth_url(url: &str) -> bool {

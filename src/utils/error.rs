@@ -31,6 +31,33 @@ pub struct HttpError {
     pub retry_after_ms: Option<u64>,
 }
 
+impl HttpError {
+    /// Construct an `HttpError` from a message with no HTTP status
+    /// (status 0) and no optional metadata. For client-side / encode
+    /// failures that never reached the server.
+    pub fn message(msg: impl Into<String>) -> Self {
+        HttpError {
+            message: msg.into(),
+            status: 0,
+            body: None,
+            request_id: None,
+            retry_after_ms: None,
+        }
+    }
+
+    /// Construct an `HttpError` with an explicit HTTP status and message,
+    /// leaving all optional metadata unset.
+    pub fn from_status(status: u16, msg: impl Into<String>) -> Self {
+        HttpError {
+            message: msg.into(),
+            status,
+            body: None,
+            request_id: None,
+            retry_after_ms: None,
+        }
+    }
+}
+
 impl fmt::Display for HttpError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.message)?;
@@ -172,13 +199,7 @@ mod tests {
     use super::{HttpError, display_error, format_optional_endpoint_error, redact_pii};
 
     fn err(status: u16, message: &str) -> HttpError {
-        HttpError {
-            message: message.to_string(),
-            status,
-            body: None,
-            request_id: None,
-            retry_after_ms: None,
-        }
+        HttpError::from_status(status, message)
     }
 
     #[test]

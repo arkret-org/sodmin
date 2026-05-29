@@ -3,13 +3,7 @@ use crate::types::*;
 use crate::utils::error::HttpError;
 
 fn json_body<T: serde::Serialize>(value: &T) -> Result<String, HttpError> {
-    serde_json::to_string(value).map_err(|e| HttpError {
-        message: format!("serialize: {e}"),
-        status: 0,
-        body: None,
-        request_id: None,
-        retry_after_ms: None,
-    })
+    serde_json::to_string(value).map_err(|e| HttpError::message(format!("serialize: {e}")))
 }
 
 pub async fn list_agents(page: u64, per_page: u64) -> Result<ListResponse<Agent>, HttpError> {

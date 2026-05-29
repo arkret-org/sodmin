@@ -262,13 +262,9 @@ fn reject_query_credentials(url: &str) -> Result<(), HttpError> {
 fn reject_query_key(key: &str) -> Result<(), HttpError> {
     let decoded = urlencoding::decode(key).unwrap_or_else(|_| key.into());
     if SENSITIVE_QUERY_KEYS.contains(&decoded.to_ascii_lowercase().as_str()) {
-        return Err(HttpError {
-            message: "query string authentication material is not allowed".to_string(),
-            status: 0,
-            body: None,
-            request_id: None,
-            retry_after_ms: None,
-        });
+        return Err(HttpError::message(
+            "query string authentication material is not allowed",
+        ));
     }
     Ok(())
 }

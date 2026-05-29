@@ -26,13 +26,7 @@ use crate::utils::error::HttpError;
 /// branch of the resource future. The dashboard treats this as a
 /// `not_configured` empty state — distinct from an unreachable fetch.
 fn http_skip(message: &str) -> HttpError {
-    HttpError {
-        message: message.to_owned(),
-        status: 0,
-        body: None,
-        request_id: None,
-        retry_after_ms: None,
-    }
+    HttpError::message(message)
 }
 
 /// Aggregate view per service. `hardening` is `None` when the service

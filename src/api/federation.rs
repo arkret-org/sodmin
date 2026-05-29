@@ -54,13 +54,8 @@ pub async fn list_federation_allow_rules(
 pub async fn add_federation_rule(
     request: &AddFederationRuleRequest,
 ) -> Result<FederationAllowRule, HttpError> {
-    let body = serde_json::to_string(request).map_err(|e| HttpError {
-        status: 0,
-        message: format!("failed to encode federation rule: {e}"),
-        body: None,
-        request_id: None,
-        retry_after_ms: None,
-    })?;
+    let body = serde_json::to_string(request)
+        .map_err(|e| HttpError::message(format!("failed to encode federation rule: {e}")))?;
     api_client("/api/admin/v1/federation/allow-rules", "POST", Some(body)).await
 }
 

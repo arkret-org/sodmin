@@ -6,7 +6,7 @@ use crate::components::ui::card::*;
 use crate::components::ui::icons::Icon;
 use crate::components::ui::loading::StatsSkeleton;
 use crate::types::{ServerDescribeResBody, ServerStatusResponse};
-use crate::utils::cache::{get_cached, set_cached};
+use crate::utils::cache::cached;
 use crate::utils::i18n::t;
 use crate::utils::perf;
 
@@ -15,81 +15,41 @@ const CACHE_TTL_MS: f64 = 300_000.0;
 #[component]
 pub fn Dashboard() -> Element {
     let stats = use_resource(|| async {
-        if let Some(cached) = get_cached("dashboard_stats", CACHE_TTL_MS) {
-            return serde_json::from_str(&cached).ok();
-        }
-        match server::get_server_stats().await.ok() {
-            Some(val) => {
-                if let Ok(json) = serde_json::to_string(&val) {
-                    set_cached("dashboard_stats", &json);
-                }
-                Some(val)
-            }
-            None => None,
-        }
+        cached("dashboard_stats", CACHE_TTL_MS, || async {
+            server::get_server_stats().await.ok()
+        })
+        .await
     });
 
     let server_info = use_resource(|| async {
-        if let Some(cached) = get_cached("dashboard_server_info", CACHE_TTL_MS) {
-            return serde_json::from_str(&cached).ok();
-        }
-        match server::get_server_info().await.ok() {
-            Some(val) => {
-                if let Ok(json) = serde_json::to_string(&val) {
-                    set_cached("dashboard_server_info", &json);
-                }
-                Some(val)
-            }
-            None => None,
-        }
+        cached("dashboard_server_info", CACHE_TTL_MS, || async {
+            server::get_server_info().await.ok()
+        })
+        .await
     });
 
     let server_describe = use_resource(|| async {
-        if let Some(cached) = get_cached("dashboard_server_describe", CACHE_TTL_MS) {
-            return serde_json::from_str(&cached).ok();
-        }
-        match server::get_server_describe().await.ok() {
-            Some(val) => {
-                if let Ok(json) = serde_json::to_string(&val) {
-                    set_cached("dashboard_server_describe", &json);
-                }
-                Some(val)
-            }
-            None => None,
-        }
+        cached("dashboard_server_describe", CACHE_TTL_MS, || async {
+            server::get_server_describe().await.ok()
+        })
+        .await
     });
 
     let coauth_describe = use_resource(|| async {
         if !crate::utils::session::has_coauth() {
             return None;
         }
-        if let Some(cached) = get_cached("dashboard_coauth_describe", CACHE_TTL_MS) {
-            return serde_json::from_str(&cached).ok();
-        }
-        match server::get_coauth_server_describe().await.ok() {
-            Some(val) => {
-                if let Ok(json) = serde_json::to_string(&val) {
-                    set_cached("dashboard_coauth_describe", &json);
-                }
-                Some(val)
-            }
-            None => None,
-        }
+        cached("dashboard_coauth_describe", CACHE_TTL_MS, || async {
+            server::get_coauth_server_describe().await.ok()
+        })
+        .await
     });
 
     let server_status = use_resource(|| async {
-        if let Some(cached) = get_cached("dashboard_server_status", CACHE_TTL_MS) {
-            return serde_json::from_str(&cached).ok();
-        }
-        match server::get_server_status().await.ok() {
-            Some(val) => {
-                if let Ok(json) = serde_json::to_string(&val) {
-                    set_cached("dashboard_server_status", &json);
-                }
-                Some(val)
-            }
-            None => None,
-        }
+        cached("dashboard_server_status", CACHE_TTL_MS, || async {
+            server::get_server_status().await.ok()
+        })
+        .await
     });
 
     let is_loading = stats.read().is_none();
