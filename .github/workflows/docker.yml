@@ -35,6 +35,7 @@ jobs:
           repository: ${{ github.repository_owner }}/coauth
           path: coauth
           ref: main
+          token: ${{ secrets.CI_REPO_TOKEN || github.token }}
 
       - name: Check out contrix-rust-sdk
         uses: actions/checkout@v4
@@ -42,6 +43,7 @@ jobs:
           repository: ${{ github.repository_owner }}/contrix-rust-sdk
           path: contrix-rust-sdk
           ref: main
+          token: ${{ secrets.CI_REPO_TOKEN || github.token }}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
