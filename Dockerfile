@@ -55,7 +55,7 @@ RUN --network=default \
     --mount=type=cache,id=sodmin-cargo-registry,target=/usr/local/cargo/registry \
     --mount=type=cache,id=sodmin-cargo-git,target=/usr/local/cargo/git \
     --mount=type=cache,id=sodmin-target,target=/workspace/sodmin/target \
-    for i in 1 2 3; do dx build --release && break || echo "Retry $i..." && sleep 10; done && \
+    for i in 1 2 3; do dx build --release --debug-symbols false && break || echo "Retry $i..." && sleep 10; done && \
     dist_dir="$(find /workspace/sodmin/target/dx -type d -path '*/release/web/public' | head -n 1)" && \
     test -n "$dist_dir" && \
     cp -r "$dist_dir" /workspace/dist
