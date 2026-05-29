@@ -46,7 +46,11 @@ impl HttpError {
     }
 
     /// Construct an `HttpError` with an explicit HTTP status and message,
-    /// leaving all optional metadata unset.
+    /// leaving all optional metadata unset. Public companion to
+    /// [`HttpError::message`]; the live request path in `api/client.rs`
+    /// builds errors with real `request_id`/`retry_after_ms` metadata, so
+    /// this status-only constructor is currently exercised only by tests.
+    #[allow(dead_code)]
     pub fn from_status(status: u16, msg: impl Into<String>) -> Self {
         HttpError {
             message: msg.into(),
