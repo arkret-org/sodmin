@@ -229,7 +229,7 @@ jobs:
           set -euo pipefail
 
           image="$(printf "%s\n" "$TAGS" | sed '/^$/d' | head -n1)"
-          cid="$(docker run -d --name sodmin-smoke -e SOLAND_URL=http://soland:8008 "$image")"
+          cid="$(docker run -d --name sodmin-smoke --add-host soland:127.0.0.1 -e SOLAND_URL=http://soland:8008 "$image")"
 
           cleanup() {
             docker rm -f "$cid" >/dev/null 2>&1 || true
