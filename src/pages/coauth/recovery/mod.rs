@@ -12,34 +12,10 @@
 
 use dioxus::prelude::*;
 
-use crate::components::ui::badge::{Badge, BadgeVariant};
-use crate::components::ui::button::{Button, ButtonSize, ButtonVariant};
 use crate::components::ui::card::*;
+use crate::components::ui::empty_state::EmptyState;
 use crate::components::ui::page_header::PageHeader;
-use crate::components::ui::table::*;
-use crate::components::ui::toast::{ToastVariant, show_toast};
 use crate::utils::i18n::t;
-
-/// Stub recovery policy row — replaced in R3.1 by the soland response
-/// shape (`RecoveryPolicy { id, kind, status, … }`).
-struct StubPolicy {
-    id: &'static str,
-    kind: &'static str,
-    status: &'static str,
-}
-
-const STUB_POLICIES: &[StubPolicy] = &[
-    StubPolicy {
-        id: "cx:recovery:passphrase",
-        kind: "passphrase",
-        status: "active",
-    },
-    StubPolicy {
-        id: "cx:recovery:hardware-key",
-        kind: "hardware_key",
-        status: "active",
-    },
-];
 
 #[component]
 pub fn RecoveryPolicyList() -> Element {
@@ -55,47 +31,15 @@ pub fn RecoveryPolicyList() -> Element {
             Card {
                 CardHeader {
                     CardTitle { {t("recovery.list_title")} }
+                    CardDescription {
+                        "No synthetic recovery policies are rendered. Wire the coauth recovery policy endpoint before enabling inspect or rotate actions."
+                    }
                 }
                 CardContent {
-                    p { class: "text-xs text-muted-foreground mb-2",
-                        {t("recovery.placeholder")}
-                    }
-                    Table {
-                        TableHeader {
-                            TableRow {
-                                TableHead { {t("recovery.policy_id")} }
-                                TableHead { {t("recovery.policy_type")} }
-                                TableHead { {t("recovery.policy_status")} }
-                                TableHead { class: "text-right".to_string(), {t("recovery.policy_actions")} }
-                            }
-                        }
-                        TableBody {
-                            for policy in STUB_POLICIES.iter() {
-                                TableRow {
-                                    TableCell { class: "font-mono text-xs".to_string(), "{policy.id}" }
-                                    TableCell { "{policy.kind}" }
-                                    TableCell {
-                                        Badge { variant: BadgeVariant::Success, "{policy.status}" }
-                                    }
-                                    TableCell { class: "text-right".to_string(),
-                                        div { class: "flex justify-end gap-1",
-                                            Button {
-                                                variant: ButtonVariant::Outline,
-                                                size: ButtonSize::Sm,
-                                                onclick: |_| show_toast("Inspect: wired in R3.1", ToastVariant::Default),
-                                                {t("recovery.inspect")}
-                                            }
-                                            Button {
-                                                variant: ButtonVariant::Outline,
-                                                size: ButtonSize::Sm,
-                                                onclick: |_| show_toast("Rotate: wired in R3.1", ToastVariant::Default),
-                                                {t("recovery.rotate")}
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
+                    EmptyState {
+                        icon: "key".to_string(),
+                        title: "Recovery policy endpoint unavailable".to_string(),
+                        description: t("recovery.placeholder"),
                     }
                 }
             }

@@ -740,6 +740,7 @@ pub async fn approve_account_risk_action(
         "ticket": draft.ticket,
         "approved_by": draft.approved_by,
         "approval_note": draft.approval_note,
+        "approval_proof_jws": draft.approval_proof_jws,
     });
     api_client(&url, "POST", Some(body.to_string())).await
 }

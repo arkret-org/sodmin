@@ -9,6 +9,7 @@
 use dioxus::prelude::*;
 
 use crate::api::realm_links::{self, LinkDirection};
+use crate::components::selection_required::{is_placeholder_resource_id, selection_required_state};
 use crate::components::ui::badge::{Badge, BadgeVariant};
 use crate::components::ui::button::{Button, ButtonVariant};
 use crate::components::ui::card::*;
@@ -46,6 +47,10 @@ fn link_kind_label(link_kind: &str) -> String {
 
 #[component]
 pub fn RealmLinks(realm_id: String) -> Element {
+    if is_placeholder_resource_id(&realm_id) {
+        return selection_required_state("Realm");
+    }
+
     let id_outbound = realm_id.clone();
     let id_inbound = realm_id.clone();
 

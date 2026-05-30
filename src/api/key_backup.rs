@@ -38,8 +38,8 @@ pub async fn upsert_recovery_policy(policy: &RecoveryPolicy) -> Result<RecoveryP
         "/api/v1/keys/recovery-policies/{}",
         urlencoding::encode(&policy.policy_id)
     );
-    let body = serde_json::to_string(policy)
-        .map_err(|e| HttpError::message(format!("serialize: {e}")))?;
+    let body =
+        serde_json::to_string(policy).map_err(|e| HttpError::message(format!("serialize: {e}")))?;
     api_client(&url, "PUT", Some(body)).await
 }
 

@@ -1,7 +1,9 @@
 use dioxus::prelude::*;
 
 use crate::api::coauth;
+use crate::components::dangerous_action_dialog::DangerousActionDialog;
 use crate::components::ui::button::{Button, ButtonVariant};
+use crate::components::ui::input::{Input, Label};
 
 /// Render the risk-action state-machine panel.
 ///
@@ -20,6 +22,9 @@ pub fn risk_action_panel(
     let mut action_status = use_signal(String::new);
     let mut last_proposal = use_signal(|| Option::<coauth::CoauthAccountRiskActionProposal>::None);
     let mut last_approval = use_signal(|| Option::<coauth::CoauthAccountRiskActionApproval>::None);
+    let mut proposal_reason = use_signal(String::new);
+    let mut proposal_ticket = use_signal(String::new);
+    let mut pending_proposal_action = use_signal::<Option<String>>(|| None);
 
     // State machine gating
     let allowed_transitions = &current.allowed_next_transitions;
@@ -35,12 +40,16 @@ pub fn risk_action_panel(
         || allowed_contains("propose")
         || allowed_contains("queue");
     let can_approve = allowed_contains("approve");
+    let approval_signing_available = risk_action_approval_signing_available();
     let can_execute = allowed_contains("execute");
     let allowed_summary = if allowed_transitions.is_empty() {
         "(none — backend has not exposed any next transition)".to_string()
     } else {
         allowed_transitions.join(", ")
     };
+    let proposal_reason_ready = !proposal_reason.read().trim().is_empty();
+    let proposal_ticket_ready = !proposal_ticket.read().trim().is_empty();
+    let can_queue_proposal = can_submit && proposal_reason_ready && proposal_ticket_ready;
 
     rsx! {
         div { class: "rounded-lg border p-4 space-y-4",
@@ -136,7 +145,35 @@ pub fn risk_action_panel(
                 div { "Lifecycle: " span { class: "font-mono", "{lifecycle_state}" } }
                 div { "Allowed next: " span { class: "font-mono", "{allowed_summary}" } }
                 div { class: "mt-1",
-                    "Buttons that map to a transition not in the allowed list are disabled."
+                    "Buttons that map to a transition not in the allowed list are disabled. Reason and ticket are required before a proposal can be queued."
+                }
+                if !approval_signing_available {
+                    div { class: "mt-1 text-amber-700",
+                        "Risk-action approval now requires a detached EdDSA JWS from the authenticated admin DID. sodmin does not hold that signing key yet, so approval is disabled fail-closed."
+                    }
+                }
+            }
+
+            div { class: "grid gap-3 rounded-md border p-3 md:grid-cols-2",
+                div { class: "space-y-1",
+                    Label { r#for: "risk-action-reason".to_string(), "Reason" }
+                    Input {
+                        id: "risk-action-reason".to_string(),
+                        placeholder: "Human-reviewed reason for this account action".to_string(),
+                        value: proposal_reason.read().clone(),
+                        required: true,
+                        oninput: move |evt: FormEvent| proposal_reason.set(evt.value()),
+                    }
+                }
+                div { class: "space-y-1",
+                    Label { r#for: "risk-action-ticket".to_string(), "Ticket" }
+                    Input {
+                        id: "risk-action-ticket".to_string(),
+                        placeholder: "SEC-1234 / support case / incident id".to_string(),
+                        value: proposal_ticket.read().clone(),
+                        required: true,
+                        oninput: move |evt: FormEvent| proposal_ticket.set(evt.value()),
+                    }
                 }
             }
 
@@ -145,24 +182,13 @@ pub fn risk_action_panel(
                     Button {
                         key: "{action_label.0}",
                         variant: ButtonVariant::Outline,
-                        disabled: !can_submit,
+                        disabled: !can_queue_proposal,
                         onclick: {
-                            let account_id = account_id.clone();
                             let action = action_label.0.to_string();
                             move |_| {
-                                let account_id = account_id.clone();
-                                let action = action.clone();
-                                spawn(async move {
-                                    let draft = build_risk_action_draft(&action, &account_id);
-                                    match coauth::submit_account_risk_action(&account_id, &draft).await {
-                                        Ok(proposal) => {
-                                            last_proposal.set(Some(proposal.clone()));
-                                            last_approval.set(None);
-                                            action_status.set(format_risk_action_status(&proposal));
-                                        }
-                                        Err(error) => action_status.set(format!("{} proposal failed: {}", action, error.message)),
-                                    }
-                                });
+                                if can_queue_proposal {
+                                    pending_proposal_action.set(Some(action.clone()));
+                                }
                             }
                         },
                         "{action_label.1}"
@@ -171,7 +197,7 @@ pub fn risk_action_panel(
                 if let Some(proposal) = last_proposal() {
                     Button {
                         variant: ButtonVariant::Secondary,
-                        disabled: !can_approve,
+                        disabled: !can_approve || !approval_signing_available,
                         onclick: {
                             let account_id = account_id.clone();
                             move |_| {
@@ -211,6 +237,53 @@ pub fn risk_action_panel(
                             }
                         },
                         "Execute approved action"
+                    }
+                }
+            }
+
+            if let Some(action) = pending_proposal_action() {
+                {
+                    let phrase = risk_action_phrase(&action);
+                    let description = format!(
+                        "Queue `{}` for account `{}` with the supplied reason and ticket. Type `{}` to confirm.",
+                        action, account_id, phrase
+                    );
+                    rsx! {
+                        DangerousActionDialog {
+                            open: true,
+                            title: format!("Queue risk action: {action}"),
+                            description,
+                            confirmation_phrase: phrase,
+                            confirm_text: "Queue proposal".to_string(),
+                            on_cancel: move |_| pending_proposal_action.set(None),
+                            on_confirm: {
+                                let account_id = account_id.clone();
+                                let action = action.clone();
+                                move |_| {
+                                    let account_id = account_id.clone();
+                                    let action = action.clone();
+                                    let reason = proposal_reason.read().trim().to_string();
+                                    let ticket = proposal_ticket.read().trim().to_string();
+                                    if reason.is_empty() || ticket.is_empty() {
+                                        action_status.set("Reason and ticket are required before queuing a risk-action proposal.".to_string());
+                                        pending_proposal_action.set(None);
+                                        return;
+                                    }
+                                    pending_proposal_action.set(None);
+                                    spawn(async move {
+                                        let draft = build_risk_action_draft(&action, reason, ticket);
+                                        match coauth::submit_account_risk_action(&account_id, &draft).await {
+                                            Ok(proposal) => {
+                                                last_proposal.set(Some(proposal.clone()));
+                                                last_approval.set(None);
+                                                action_status.set(format_risk_action_status(&proposal));
+                                            }
+                                            Err(error) => action_status.set(format!("{} proposal failed: {}", action, error.message)),
+                                        }
+                                    });
+                                }
+                            },
+                        }
                     }
                 }
             }
@@ -353,14 +426,15 @@ fn detail_row(label: &str, value: &str) -> Element {
     }
 }
 
-fn build_risk_action_draft(action: &str, account_id: &str) -> coauth::CoauthAccountRiskActionDraft {
+fn build_risk_action_draft(
+    action: &str,
+    reason: String,
+    ticket: String,
+) -> coauth::CoauthAccountRiskActionDraft {
     coauth::CoauthAccountRiskActionDraft {
         action: action.to_string(),
-        reason: Some(format!(
-            "sodmin proposal for account {} action {}",
-            account_id, action
-        )),
-        ticket: Some(format!("SODMIN-{}-{}", action, account_id)),
+        reason: Some(reason),
+        ticket: Some(ticket),
         approved_by: None,
     }
 }
@@ -371,12 +445,21 @@ fn build_risk_action_approval_draft(
     coauth::CoauthAccountRiskActionApprovalDraft {
         action: proposal.action.clone(),
         ticket: proposal.ticket.clone(),
-        approved_by: proposal.approved_by.clone(),
+        approved_by: None,
         approval_note: Some(format!(
             "sodmin approval for proposal {} action {}",
             proposal.proposal_id, proposal.action
         )),
+        approval_proof_jws: String::new(),
     }
+}
+
+fn risk_action_approval_signing_available() -> bool {
+    // coauth requires a detached EdDSA JWS over the approval transcript.
+    // sodmin currently authenticates with a bearer token and does not possess
+    // the admin DID private key, so the UI must not submit unverifiable
+    // approvals.
+    false
 }
 
 fn build_risk_action_execute_draft(
@@ -414,6 +497,10 @@ fn format_risk_action_status(proposal: &coauth::CoauthAccountRiskActionProposal)
         proposal.approved_by.as_deref().unwrap_or("pending"),
         proposal.todo,
     )
+}
+
+fn risk_action_phrase(action: &str) -> String {
+    format!("QUEUE {}", action.to_ascii_uppercase())
 }
 
 fn format_risk_action_approval_status(

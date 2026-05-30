@@ -8,17 +8,12 @@
 
 use dioxus::prelude::*;
 
-use crate::components::deactivation_fanout_panel::{
-    DeactivationFanoutPanel, FanoutDomain, placeholder_snapshot,
-};
 use crate::components::ui::button::{Button, ButtonVariant};
+use crate::components::ui::empty_state::EmptyState;
 use crate::components::ui::page_header::PageHeader;
-use crate::components::ui::toast::{ToastVariant, show_toast};
 
 #[component]
 pub fn DeactivationReviewPage() -> Element {
-    let mut snapshot = use_signal(|| placeholder_snapshot("did:web:bob.example"));
-
     rsx! {
         div { class: "space-y-6",
             PageHeader {
@@ -26,32 +21,26 @@ pub fn DeactivationReviewPage() -> Element {
                 description: "Per-subject 7-domain fanout result. Failed domains can be retried independently. Round R2/R3 T07.".to_string(),
                 Button {
                     variant: ButtonVariant::Outline,
-                    onclick: move |_| {
-                        // TODO(round23-T07): re-fetch
-                        // /api/admin/v1/identity/deactivations/{id}/describe
-                        // for the most recent fanout state.
-                        snapshot.set(placeholder_snapshot("did:web:bob.example"));
-                        show_toast("Refreshed (placeholder).", ToastVariant::Default);
-                    },
+                    disabled: true,
                     "Refresh"
                 }
             }
-            {
-                let snap = snapshot.read().clone();
-                rsx! {
-                    DeactivationFanoutPanel {
-                        snapshot: snap,
-                        on_retry: move |domain: FanoutDomain| {
-                            // TODO(round23-T07): POST
-                            // /api/admin/v1/identity/deactivations/{id}/retry
-                            // with body `{domain: "<slug>"}`.
-                            show_toast(
-                                &format!("Retry queued for `{}` (placeholder).", domain.slug()),
-                                ToastVariant::Default,
-                            );
-                        }
-                    }
+
+            div {
+                class: "rounded-md border border-amber-600 bg-amber-600/10 px-3 py-2 text-sm",
+                role: "alert",
+                p { class: "font-semibold text-amber-700 dark:text-amber-200",
+                    "Deactivation fanout describe endpoint is not available yet."
                 }
+                p { class: "text-xs text-amber-700/90 dark:text-amber-200/90",
+                    "This page no longer renders synthetic fanout data. Wire `/api/admin/v1/identity/deactivations/<id>/describe` before enabling refresh or retry."
+                }
+            }
+
+            EmptyState {
+                icon: "alert-triangle".to_string(),
+                title: "No deactivation selected".to_string(),
+                description: "Open this workflow from an actual account or Realm deactivation record once the backend describe endpoint is published.".to_string(),
             }
         }
     }

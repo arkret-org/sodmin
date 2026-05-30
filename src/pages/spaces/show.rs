@@ -285,7 +285,7 @@ pub fn SpaceShow(space_id: String) -> Element {
                                                     if next_cursor.is_some() {
                                                         Button {
                                                             variant: ButtonVariant::Outline,
-                                                            onclick: move |_| { /* TODO(R4): cursor pagination */ },
+                                                            disabled: true,
                                                             {t("spaces.members_load_more")}
                                                         }
                                                     }

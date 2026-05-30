@@ -268,7 +268,7 @@ fn AuthenticatedLayout() -> Element {
     let admin_probe = use_resource(move || async move {
         match auth::verify_admin().await {
             Ok(flag) => Some(flag),
-            Err(_) => cached.or(Some(true)),
+            Err(_) => cached,
         }
     });
 

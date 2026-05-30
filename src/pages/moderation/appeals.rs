@@ -20,14 +20,8 @@
 //! the same Anchor batch; this UI just surfaces the auto-pairing in a
 //! callout so the admin knows what they are about to submit.
 //!
-//! Wire to `/api/admin/v1/moderation/appeals`; list + describe handlers
-//! are not yet generated in the soland describe contract, so the page
-//! renders against a local in-memory mock when the route 404s, same
-//! 404-tolerant pattern used by `pages/moderation/reports.rs`.
-//
-// TODO: swap the static placeholder dataset for the real
-// `/api/admin/v1/moderation/appeals` describe rows once soland publishes
-// them.
+//! Wire to `/api/admin/v1/moderation/appeals`; sodmin fails closed on
+//! separation-of-duties when soland omits the original issuer DID.
 
 use dioxus::prelude::*;
 
@@ -98,7 +92,6 @@ impl AppealLifecycle {
 enum Verdict {
     Uphold,
     Overturn,
-    Modify,
 }
 
 impl Verdict {
@@ -106,7 +99,6 @@ impl Verdict {
         match self {
             Verdict::Uphold => "Uphold",
             Verdict::Overturn => "Overturn",
-            Verdict::Modify => "Modify",
         }
     }
 }
@@ -164,13 +156,7 @@ fn project_appeal_row(dto: moderation_admin::AppealRowDto) -> AppealRow {
         appeal_id: dto.appeal_id,
         decision_ref: dto.decision_ref.unwrap_or_default(),
         target_ref: dto.target_ref.unwrap_or_default(),
-        // The backend list response does not yet ship the original
-        // decision issuer's DID. Until the soland describe contract
-        // joins decisions and appeals, leave this blank — the
-        // separation-of-duties UI guard then hides the Review button
-        // for everyone except development_mode admins, which is the
-        // conservative default.
-        original_issuer_did: String::new(),
+        original_issuer_did: dto.original_issuer_did.unwrap_or_default(),
         appellant_did: dto.appellant.unwrap_or_default(),
         reason_text_ref: dto.reason_text_ref.unwrap_or_default(),
         evidence_refs: dto.evidence_refs,
@@ -312,7 +298,6 @@ pub fn ModerationAppealsPage() -> Element {
                 let verdict_label = pending.map(|v| v.label()).unwrap_or("");
                 let description = match pending {
                     Some(Verdict::Overturn) => "Overturn auto-pairs `cx.moderation.decision.lift` in the same Anchor batch.".to_string(),
-                    Some(Verdict::Modify) => "Modify requires a fresh `cx.moderation.decision` event to be supplied; this flow is not yet wired.".to_string(),
                     _ => "Recording an appeal decision is final.".to_string(),
                 };
                 rsx! {
@@ -378,7 +363,6 @@ pub fn ModerationAppealsPage() -> Element {
                                     let verdict_str = match verdict {
                                         Verdict::Uphold => "uphold",
                                         Verdict::Overturn => "overturn",
-                                        Verdict::Modify => "modify",
                                     };
                                     let body = moderation_admin::DecideAppealRequest {
                                         verdict: verdict_str.to_owned(),
@@ -430,6 +414,7 @@ fn appeal_detail_card(
         && row
             .original_issuer_did
             .eq_ignore_ascii_case(current_admin_did);
+    let issuer_known = !row.original_issuer_did.trim().is_empty();
 
     let evidence_block: Element = if row.evidence_refs.is_empty() {
         rsx! {
@@ -546,7 +531,11 @@ fn appeal_detail_card(
 
                 div { class: "border-t pt-3 space-y-2",
                     h3 { class: "text-sm font-semibold", "Review this appeal" }
-                    if admin_is_issuer {
+                    if !issuer_known {
+                        p { class: "rounded-md border border-amber-600/40 bg-amber-600/10 p-2 text-xs text-amber-700 dark:text-amber-300",
+                            "Review disabled: soland did not return the original decision issuer DID for this appeal. The separation-of-duties check is therefore indeterminate, so sodmin fails closed until the describe contract includes the issuer."
+                        }
+                    } else if admin_is_issuer {
                         // Separation-of-duties — hide the picker entirely.
                         p { class: "rounded-md border border-amber-600/40 bg-amber-600/10 p-2 text-xs text-amber-700 dark:text-amber-300",
                             "Separation of duties: you issued the original decision (",
@@ -577,10 +566,6 @@ fn appeal_detail_card(
                                 variant: ButtonVariant::Outline,
                                 size: ButtonSize::Sm,
                                 disabled: true,
-                                onclick: move |_| {
-                                    verdict_picker.set(Some(Verdict::Modify));
-                                    confirm_open.set(true);
-                                },
                                 "Modify (requires fresh decision — pending)"
                             }
                         }

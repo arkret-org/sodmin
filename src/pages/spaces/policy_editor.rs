@@ -9,6 +9,7 @@
 use dioxus::prelude::*;
 
 use crate::api::space_policy_admin;
+use crate::components::selection_required::{is_placeholder_resource_id, selection_required_state};
 use crate::components::ui::button::{Button, ButtonVariant};
 use crate::components::ui::dialog::ConfirmDialog;
 use crate::components::ui::error_banner::ErrorBanner;
@@ -22,6 +23,10 @@ use coauth_admin_types::space_policy_admin::{SpacePolicy, UpdateSpacePolicyReque
 
 #[component]
 pub fn PolicyEditorPage(space_id: String) -> Element {
+    if is_placeholder_resource_id(&space_id) {
+        return selection_required_state("Space");
+    }
+
     let mut history_visibility = use_signal(String::new);
     let mut join_rule = use_signal(String::new);
     let mut guest_access = use_signal(String::new);

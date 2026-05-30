@@ -9,15 +9,12 @@
 //! Below the editor the page lists each Realm member with their
 //! effective `delivery_binding.recipient_service_did` and a routability
 //! check against the allowed list.
-//
-// TODO(realm-rework): once the Realm link-graph visualisation lands,
-// embed it under the routability table — for now a placeholder card
-// is rendered.
 
 use dioxus::prelude::*;
 
 use crate::api::delivery_binding;
 use crate::components::delivery_binding_handover_panel::DeliveryBindingHandoverPanel;
+use crate::components::selection_required::{is_placeholder_resource_id, selection_required_state};
 use crate::components::ui::badge::{Badge, BadgeVariant};
 use crate::components::ui::button::{Button, ButtonSize, ButtonVariant};
 use crate::components::ui::card::*;
@@ -32,6 +29,10 @@ use crate::utils::i18n::t;
 
 #[component]
 pub fn DeliveryBindingPolicy(realm_id: String) -> Element {
+    if is_placeholder_resource_id(&realm_id) {
+        return selection_required_state("Realm");
+    }
+
     let id_for_policy = realm_id.clone();
     let id_for_members = realm_id.clone();
     let id_for_handovers = realm_id.clone();
@@ -292,20 +293,6 @@ pub fn DeliveryBindingPolicy(realm_id: String) -> Element {
                     ErrorBanner { message: e.message.clone(), on_retry: move |_| handovers_data.restart() }
                 },
                 None => rsx! { PageSkeleton {} },
-            }
-
-            // TODO(realm-rework): replace this placeholder with the real
-            // Realm link-graph visualisation once the data surface ships.
-            Card {
-                CardHeader {
-                    CardTitle { {t("delivery_binding.link_graph_title")} }
-                    CardDescription { {t("delivery_binding.link_graph_subtitle")} }
-                }
-                CardContent {
-                    p { class: "text-sm text-muted-foreground py-6 text-center",
-                        {t("delivery_binding.link_graph_placeholder")}
-                    }
-                }
             }
         }
     }

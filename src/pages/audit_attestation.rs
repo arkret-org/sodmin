@@ -27,59 +27,44 @@ use crate::api::server;
 use crate::components::ui::badge::{Badge, BadgeVariant};
 use crate::components::ui::button::{Button, ButtonVariant};
 use crate::components::ui::card::*;
+use crate::components::ui::empty_state::EmptyState;
+use crate::components::ui::error_banner::ErrorBanner;
+use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::toast::{ToastVariant, show_toast};
+use crate::types::ListResponse;
 
 /// Coarse status returned by the principal server for a stored
 /// attestation evidence row. Real `cx.schema.attestation_evidence.v1`
 /// has a much richer chain shape — this is the admin projection.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Deserialize, Default)]
 struct AttestationRow {
+    #[serde(default)]
     evidence_id: String,
+    #[serde(default)]
     audit_agent_did: String,
+    #[serde(default)]
     platform_family: String,
     /// Days remaining until `validity.not_after` lapses. Negative when
     /// expired.
+    #[serde(default)]
     validity_remaining_days: i64,
+    #[serde(default)]
     chain_verified: bool,
+    #[serde(default)]
     revocation_checked: bool,
 }
 
-fn placeholder_rows() -> Vec<AttestationRow> {
-    vec![
-        AttestationRow {
-            evidence_id: "att:01904100-0000-7000-8000-000000000001".into(),
-            audit_agent_did: "did:web:audit-agent-01.example".into(),
-            platform_family: "tee_sgx".into(),
-            validity_remaining_days: 14,
-            chain_verified: true,
-            revocation_checked: true,
-        },
-        AttestationRow {
-            evidence_id: "att:01904100-0000-7000-8000-000000000002".into(),
-            audit_agent_did: "did:web:audit-agent-02.example".into(),
-            platform_family: "tee_tdx".into(),
-            validity_remaining_days: 2,
-            chain_verified: true,
-            revocation_checked: false,
-        },
-        AttestationRow {
-            evidence_id: "att:01904100-0000-7000-8000-000000000003".into(),
-            audit_agent_did: "did:web:audit-agent-03.example".into(),
-            platform_family: "software_test_only".into(),
-            validity_remaining_days: -1,
-            chain_verified: false,
-            revocation_checked: false,
-        },
-    ]
+async fn list_attestation_rows()
+-> Result<ListResponse<AttestationRow>, crate::utils::error::HttpError> {
+    crate::api::client::api_client("/api/admin/v1/audit/attestation-evidence", "GET", None).await
 }
 
 #[component]
 pub fn AuditAttestationPage() -> Element {
     let mut draft = use_signal(String::new);
     let mut parse_error = use_signal::<Option<String>>(|| None);
-
-    let rows = placeholder_rows();
+    let mut rows_data = use_resource(|| async move { list_attestation_rows().await });
 
     rsx! {
         div { class: "space-y-6",
@@ -161,14 +146,35 @@ pub fn AuditAttestationPage() -> Element {
                 CardHeader {
                     CardTitle { class: "text-lg".to_string(), "Active evidence rows" }
                     CardDescription {
-                        "Validity window + chain / revocation status per row."
+                        "Validity window + chain / revocation status per row. No synthetic rows are rendered."
                     }
                 }
                 CardContent {
-                    ul { class: "space-y-2",
-                        for row in rows.iter() {
-                            {evidence_row_card(row)}
-                        }
+                    match &*rows_data.read() {
+                        Some(Ok(resp)) => if resp.data.is_empty() {
+                            rsx! {
+                                EmptyState {
+                                    icon: "shield".to_string(),
+                                    title: "No attestation evidence rows".to_string(),
+                                    description: "The principal server returned an empty attestation evidence list.".to_string(),
+                                }
+                            }
+                        } else {
+                            rsx! {
+                                ul { class: "space-y-2",
+                                    for row in resp.data.iter() {
+                                        {evidence_row_card(row)}
+                                    }
+                                }
+                            }
+                        },
+                        Some(Err(e)) => rsx! {
+                            ErrorBanner {
+                                message: format!("Attestation evidence list unavailable: {}", e.message),
+                                on_retry: move |_| rows_data.restart(),
+                            }
+                        },
+                        None => rsx! { PageSkeleton {} },
                     }
                 }
             }

@@ -24,9 +24,9 @@ pub async fn get_agent(id: &str) -> Result<Agent, HttpError> {
 
 // ── CXP-0008 personal-agent surface (soland P2 aa76b91) ──
 //
-// The 11 new soland endpoints. UI form payloads are TODO(P3-impl)
-// stubs; the wire calls below MUST be exercised so the contract is
-// asserted from the admin SPA.
+// The 11 new soland endpoints. The admin UI supplies explicit
+// controller DID / key proof / grant action form data before exercising
+// these calls so privileged agent operations are not fired by accident.
 
 /// `GET /api/v1/agents` — list controller-self native personal agents.
 pub async fn list_personal_agents(

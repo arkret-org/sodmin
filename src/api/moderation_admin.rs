@@ -87,6 +87,13 @@ pub struct AppealRowDto {
     /// `submitted` | `under_review` | `decided` | `closed`.
     #[serde(default)]
     pub appeal_state: Option<String>,
+    #[serde(
+        default,
+        alias = "original_decision_issuer_did",
+        alias = "issuer_did",
+        alias = "decision_issuer_did"
+    )]
+    pub original_issuer_did: Option<String>,
 }
 
 #[derive(Debug, Clone, Default, serde::Deserialize)]

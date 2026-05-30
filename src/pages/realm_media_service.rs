@@ -17,6 +17,7 @@
 
 use dioxus::prelude::*;
 
+use crate::components::selection_required::{is_placeholder_resource_id, selection_required_state};
 use crate::components::ui::badge::{Badge, BadgeVariant};
 use crate::components::ui::button::{Button, ButtonSize, ButtonVariant};
 use crate::components::ui::card::*;
@@ -59,6 +60,10 @@ impl FocusDraft {
 
 #[component]
 pub fn RealmMediaService(realm_id: String) -> Element {
+    if is_placeholder_resource_id(&realm_id) {
+        return selection_required_state("Realm");
+    }
+
     // TODO(R3.1): hydrate from soland GET. Until the wire surface lands
     // we boot with a single blank draft so the operator can edit and the
     // save button has something to round-trip.

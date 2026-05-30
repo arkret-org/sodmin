@@ -13,6 +13,7 @@
 use dioxus::prelude::*;
 
 use crate::api::anchor_admin;
+use crate::components::selection_required::{is_placeholder_resource_id, selection_required_state};
 use crate::components::ui::badge::{Badge, BadgeVariant};
 use crate::components::ui::button::{Button, ButtonVariant};
 use crate::components::ui::card::*;
@@ -29,6 +30,10 @@ use crate::utils::session;
 
 #[component]
 pub fn AnchorerPage(space_id: String) -> Element {
+    if is_placeholder_resource_id(&space_id) {
+        return selection_required_state("Space");
+    }
+
     let space_id_for_fetch = space_id.clone();
     let mut data = use_resource(move || {
         let id = space_id_for_fetch.clone();

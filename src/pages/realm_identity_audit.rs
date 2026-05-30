@@ -72,7 +72,7 @@ pub fn RealmIdentityAudit(realm_id: String) -> Element {
                 description: t("realm_identity_audit.subtitle"),
                 Button {
                     variant: ButtonVariant::Outline,
-                    onclick: move |_| {},
+                    disabled: true,
                     {t("common.refresh")}
                 }
             }
