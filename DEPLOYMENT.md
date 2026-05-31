@@ -94,10 +94,10 @@ admin DID — typically via the Coauth Capabilities admin page at
 seeds the six actions:
 
 * `cx.circle.create` (medium risk, no constraints)
-* `cx.circle.manage` (medium risk, requires `allowed_circle_refs`)
+* `cx.circle.manage` (medium risk, requires `allowed_circle_ids`)
 * `cx.circle.member.add` (low risk, no constraints)
-* `cx.circle.member.manage` (medium risk, requires `allowed_circle_refs`)
-* `cx.circle.member.add.others` (high risk, requires `allowed_circle_refs`)
+* `cx.circle.member.manage` (medium risk, requires `allowed_circle_ids`)
+* `cx.circle.member.add.others` (high risk, requires `allowed_circle_ids`)
 * `cx.circle.audit` (high risk, paired with `audit_pair_required` check)
 
 Without these grants every Circle admin call returns 403 with

@@ -21,7 +21,7 @@
 //! matching the SDK §1.6 convention. Membership keys that are signed
 //! into the wire as DIDs use `_did` (`actor_did`) because the
 //! reducer keys Circle membership on DID, not on internal actor ids.
-//! The legacy `_ref` suffix is reserved for `allowed_circle_refs`
+//! The legacy `_ref` suffix is forbidden for `allowed_circle_ids`
 //! (a plural list of typed refs inside a GrantConstraint) — the only
 //! place the SDK still uses that token.
 

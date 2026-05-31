@@ -42,7 +42,7 @@ struct AttestationRow {
     #[serde(default)]
     evidence_id: String,
     #[serde(default)]
-    audit_agent_did: String,
+    audit_agent_principal_id: String,
     #[serde(default)]
     platform_family: String,
     /// Days remaining until `validity.not_after` lapses. Negative when
@@ -83,7 +83,7 @@ pub fn AuditAttestationPage() -> Element {
                 CardContent { class: "space-y-3".to_string(),
                     textarea {
                         class: "w-full min-h-[180px] rounded-md border border-input bg-background p-2 font-mono text-xs",
-                        placeholder: "{{\n  \"evidence_id\": \"att:...\",\n  \"audit_agent_did\": \"did:web:...\",\n  \"platform\": {{\"family\": \"tee_sgx\", ...}},\n  ...\n}}",
+                        placeholder: "{{\n  \"evidence_id\": \"att:...\",\n  \"audit_agent_principal_id\": \"did:web:...\",\n  \"platform\": {{\"family\": \"tee_sgx\", ...}},\n  ...\n}}",
                         value: draft.read().clone(),
                         oninput: move |evt| {
                             parse_error.set(None);
@@ -210,7 +210,7 @@ fn evidence_row_card(row: &AttestationRow) -> Element {
             div { class: "flex flex-wrap items-start justify-between gap-2",
                 div { class: "space-y-1",
                     p { class: "font-mono text-xs break-all", "{row.evidence_id}" }
-                    p { class: "font-mono text-xs text-muted-foreground", "{row.audit_agent_did}" }
+                    p { class: "font-mono text-xs text-muted-foreground", "{row.audit_agent_principal_id}" }
                     p { class: "font-mono text-[10px] uppercase tracking-wider text-muted-foreground", "{row.platform_family}" }
                 }
                 div { class: "flex flex-wrap gap-1",

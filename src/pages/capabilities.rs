@@ -30,12 +30,12 @@ pub fn CapabilityList() -> Element {
 
     // P3A.4 — CXP-0007 Circle capability picker. Surfaces the six
     // cx.circle.* actions as a quick-select and exposes the
-    // `allowed_circle_refs` constraint editor (CSV of cx:circle:...
+    // `allowed_circle_ids` constraint editor (CSV of cx:circle:...
     // ids). For actions whose `required_constraints` include
-    // `allowed_circle_refs` (manage / member.manage / member.add.others)
+    // `allowed_circle_ids` (manage / member.manage / member.add.others)
     // the CSV is non-optional — soland's reducer rejects unconstrained
     // grants for those actions with `cx.error.validation`.
-    let mut circle_allowed_refs = use_signal(String::new);
+    let mut circle_allowed_ids = use_signal(String::new);
 
     // T6.2 §5 — constraint editor signals.
     let mut edit_expires_at = use_signal(String::new);
@@ -241,16 +241,16 @@ pub fn CapabilityList() -> Element {
                                 }
                             }
                             div { class: "space-y-1",
-                                Label { r#for: "cap-allowed-circle-refs".to_string(),
-                                    {t("capability.allowed_circle_refs")}
+                                Label { r#for: "cap-allowed-circle-ids".to_string(),
+                                    {t("capability.allowed_circle_ids")}
                                 }
                                 Input {
-                                    value: circle_allowed_refs.read().clone(),
+                                    value: circle_allowed_ids.read().clone(),
                                     placeholder: "cx:circle:...,cx:circle:...".to_string(),
-                                    oninput: move |evt: FormEvent| circle_allowed_refs.set(evt.value()),
+                                    oninput: move |evt: FormEvent| circle_allowed_ids.set(evt.value()),
                                 }
                                 p { class: "text-xs text-muted-foreground",
-                                    {t("capability.allowed_circle_refs_hint")}
+                                    {t("capability.allowed_circle_ids_hint")}
                                 }
                             }
                             div { class: "space-y-1",
@@ -280,23 +280,23 @@ pub fn CapabilityList() -> Element {
                                 disabled: *grant_loading.read(),
                                 onclick: move |_| {
                                     grant_loading.set(true);
-                                    // P3A.4 — pack allowed_circle_refs
+                                    // P3A.4 — pack allowed_circle_ids
                                     // into GrantConstraint when the
                                     // operator filled the CSV. soland's
                                     // authz layer reads
-                                    // constraints.allowed_circle_refs
+                                    // constraints.allowed_circle_ids
                                     // verbatim.
-                                    let circle_refs: Vec<String> = circle_allowed_refs
+                                    let circle_ids: Vec<String> = circle_allowed_ids
                                         .read()
                                         .split(',')
                                         .map(|s| s.trim().to_string())
                                         .filter(|s| !s.is_empty())
                                         .collect();
-                                    let constraints = if circle_refs.is_empty() {
+                                    let constraints = if circle_ids.is_empty() {
                                         None
                                     } else {
                                         Some(serde_json::json!({
-                                            "allowed_circle_refs": circle_refs,
+                                            "allowed_circle_ids": circle_ids,
                                         }))
                                     };
                                     let req = GrantCapabilityRequest {

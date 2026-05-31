@@ -2040,9 +2040,9 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "capability.cx_circle_section",
                 "Circle capabilities (CXP-0007)",
             ),
-            ("capability.allowed_circle_refs", "Allowed circle refs"),
+            ("capability.allowed_circle_ids", "Allowed circle IDs"),
             (
-                "capability.allowed_circle_refs_hint",
+                "capability.allowed_circle_ids_hint",
                 "Comma-separated cx:circle:... ids. Required for cx.circle.manage, cx.circle.member.manage, and cx.circle.member.add.others.",
             ),
             // P3A.8 — CXP-0007 error codes (returned by reducer)
@@ -2200,8 +2200,8 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "media_service_binding.v1 — Realm-level foci binding profile.",
             ),
             (
-                "server_status.profile.accountable_to_strict_reject",
-                "accountable_to.strict_reject.v1 — fail-closed on missing accountability grants.",
+                "server_status.profile.accountable_principals_strict_reject",
+                "accountable_principals.strict_reject.v1 — fail-closed on missing accountability grants.",
             ),
             (
                 "server_status.profile.key_backup_memory_hard",
@@ -3336,9 +3336,9 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ),
             ("capability.cx_circle_audit", "cx.circle.audit"),
             ("capability.cx_circle_section", "Circle 能力（CXP-0007）"),
-            ("capability.allowed_circle_refs", "受限 Circle 列表"),
+            ("capability.allowed_circle_ids", "受限 Circle ID 列表"),
             (
-                "capability.allowed_circle_refs_hint",
+                "capability.allowed_circle_ids_hint",
                 "逗号分隔的 cx:circle:... 标识符。cx.circle.manage、cx.circle.member.manage、cx.circle.member.add.others 必填。",
             ),
             // P3A.8 — CXP-0007 错误码（来自 reducer）
@@ -3490,8 +3490,8 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "media_service_binding.v1 —— Realm 级 foci 绑定 profile。",
             ),
             (
-                "server_status.profile.accountable_to_strict_reject",
-                "accountable_to.strict_reject.v1 —— 缺失 accountability grant 时 fail-closed。",
+                "server_status.profile.accountable_principals_strict_reject",
+                "accountable_principals.strict_reject.v1 —— 缺失 accountability grant 时 fail-closed。",
             ),
             (
                 "server_status.profile.key_backup_memory_hard",

@@ -5,6 +5,12 @@ this file. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0
 this project is pre-1.0 so wire-breaking changes can land in any release until
 the SDK pins down its 1.0 contract.
 
+## R3.4 — Spec sync 2026-05-31 (contrix-spec @ c2848a4)
+
+- Synced protocol-facing names and fixtures to `c2848a4`: event envelope schema naming, `_ids` grant constraints, accountability principal vocabulary, `cx:rtc_participant:` media participants, agent session start fields, and key-backup signature algorithm naming where applicable.
+
+> No version tag, no crates.io / Docker Hub / npm publish — git commit only.
+
 ## R3.3 — Spec sync 2026-05-28 (contrix-spec @ cced4b8)
 
 - R3.3 spec sync — pin to contrix-spec @ cced4b8 (CXP-0011). `resolve_target` operator diagnostic page deferred to R3.3.1.
@@ -23,7 +29,7 @@ the SDK pins down its 1.0 contract.
 - UI-1 / UI-2: Agent list status badges (`active` / `paused` / `deactivated`) with pause / resume / deactivate / rotate-key / grants actions wired to `/agents/{id}/deactivate`; draft / action_request / approve / reject lifecycle stubbed.
 - UI-3: Realm settings page `/realms/:realm_id/media-service` for editing `media_service.foci[]` (livekit / mediasoup / janus / contrix-native / moq-relay) with a migration banner for legacy `sfu_endpoint`.
 - UI-4 / UI-5: Recovery policy stub view at `/coauth/recovery` listing receipts with `proof_summary[]`; handle homograph inline NFC + script-mixed warning on `/actors/create`.
-- UI-6: Server profile chip surface at `/server-status` showing declared / absent state for `accountable_to.strict_reject.v1`, `media_service_binding.v1` (+ livekit / contrix_native), and `key_backup.memory_hard.v1`.
+- UI-6: Server profile chip surface at `/server-status` showing declared / absent state for `accountable_principals.strict_reject.v1`, `media_service_binding.v1` (+ livekit / contrix_native), and `key_backup.memory_hard.v1`.
 - UI-7: localized en + zh-CN strings for the new errcodes (`pairing_request_expired`, `proof_invalid`, `agent_paused`, `agent_deactivated`, `accountability_grant_missing`, `handle_homograph_forbidden`, `participant_binding_invalid`, `legacy_single_endpoint_media_service`) rendered via `ErrorBanner`.
 
 > No version tag, no crates.io / Docker Hub / npm publish — git commit only.
@@ -41,7 +47,7 @@ soland P2A + coauth P2B.
   routes added to `build.rs` REQUIRED_SOLAND so a missing route fails
   the wasm build at contract-check time.
 - **Added** Capability grant dialog (P3A.4) gains a quick-select for the
-  six `cx.circle.*` actions and an `allowed_circle_refs` CSV input
+  six `cx.circle.*` actions and an `allowed_circle_ids` CSV input
   that emits the GrantConstraint server-side.
 - **Added** Audit log (P3A.5) renders the new `effective_scope` field
   with a deep link into `/circles/:id` for Circle-scoped events, and

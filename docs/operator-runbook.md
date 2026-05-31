@@ -3,19 +3,19 @@
 This runbook covers operational tasks the sodmin operator drives that have
 **non-trivial blast radius**. The single biggest one is flipping a realm
 into the strict-reject accountability posture (the
-`cx.profile.accountable_to.strict_reject.v1` profile).
+`cx.profile.accountable_principals.strict_reject.v1` profile).
 
 For onboarding flows, the agent lifecycle, recovery rotation, and the
 media-service config UI, see [`admin-onboarding.md`](./admin-onboarding.md).
 
-## Flipping `accountable_to.strict_reject` safely
+## Flipping `accountable_principals.strict_reject` safely
 
 Strict-reject is a realm-scoped profile that converts soft accountability
-warnings into hard rejects across the entire `accountable_to` chain. The
+warnings into hard rejects across the entire `accountable_principal_ids` chain. The
 companion narratives are:
 
 - coauth side: [`coauth/docs/en/topics/deployment_hardening.md`](../../coauth/docs/en/topics/deployment_hardening.md)
-- soland side: [`soland/docs/runbook.md` → Strict-reject profile toggle](../../soland/docs/runbook.md#strict-reject-profile-toggle-cxprofileaccountable_tostrict_rejectv1)
+- soland side: [`soland/docs/runbook.md` → Strict-reject profile toggle](../../soland/docs/runbook.md#strict-reject-profile-toggle-cxprofileaccountable_principalsstrict_rejectv1)
 
 The sodmin operator is the **canonical actor** of the flip; this runbook is
 the operational checklist for the human at the keyboard.
@@ -44,7 +44,7 @@ the operational checklist for the human at the keyboard.
 
 1. Navigate to `/realms/{id}/profiles`.
 2. Click **Edit profile set**.
-3. Add `cx.profile.accountable_to.strict_reject.v1` to the realm's
+3. Add `cx.profile.accountable_principals.strict_reject.v1` to the realm's
    declared profile set.
 4. The form prompts for a **justification** (free-text, 32–512 chars) —
    this lands in the audit row. Write something a future ops engineer
@@ -57,7 +57,7 @@ the operational checklist for the human at the keyboard.
 The submission produces three artifacts:
 
 - A `cx.realm.profile.update` event in soland.
-- A `profile.accountable_to.strict_reject.flip` audit row with
+- A `profile.accountable_principals.strict_reject.flip` audit row with
   `direction = on`, the operator's actor_id, the justification, and the
   prior/new state digests.
 - An `op:flip` row in sodmin's own action log.
@@ -68,7 +68,7 @@ Monitor these dashboards in `/monitoring/strict-reject-flip`:
 
 | Metric | Expected behavior | Red flag |
 |---|---|---|
-| `coauth_accountable_to_reject_total{profile="strict"}` | Rises from 0, levels off within (stale-baseline + 20%) | Continues climbing after 10 min; alert |
+| `coauth_accountable_principals_reject_total{profile="strict"}` | Rises from 0, levels off within (stale-baseline + 20%) | Continues climbing after 10 min; alert |
 | `coauth_session_grant_failure_total{reason="agent_paused"|"agent_deactivated"|"accountability_grant_missing"}` | Flat at pre-flip baseline | Spike — indicates a deeper failure that strict-reject is now surfacing |
 | `floria_delivery_profile_total{reason="accountability_reject"}` | Tiny spike, then flat | Sustained climb |
 | `soland_realm_profile_update_total{profile_id="strict_reject"}` | Increments once | Increments more than once — someone else is flipping; abort |
@@ -101,7 +101,7 @@ rollback directive:
 
 1. Navigate to `/realms/{id}/profiles`.
 2. Click **Edit profile set**.
-3. Remove `cx.profile.accountable_to.strict_reject.v1` from the declared
+3. Remove `cx.profile.accountable_principals.strict_reject.v1` from the declared
    profile set.
 4. Confirmation phrase: realm short id again.
 5. Submit. The form does NOT require justification for rollback (so that

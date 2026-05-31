@@ -724,8 +724,8 @@ fn r3_profile_status_section(profiles: &[String]) -> Element {
             "server_status.profile.media_service_binding",
         ),
         (
-            "cx.profile.accountable_to.strict_reject.v1",
-            "server_status.profile.accountable_to_strict_reject",
+            "cx.profile.accountable_principals.strict_reject.v1",
+            "server_status.profile.accountable_principals_strict_reject",
         ),
         (
             "cx.profile.key_backup.memory_hard.v1",

@@ -140,7 +140,7 @@ read on-call without rendering.
     │  /agents/personal → "Provision new agent" wizard
     │  - choose DID method (did:key by default; did:web for cross-realm)
     │  - generate key pair (browser-side; private key never leaves the wizard)
-    │  - paste accountable_to chain (defaults to the operator's own grant)
+    │  - paste accountable_principal_ids chain (defaults to the operator's own grant)
     │  - submit
     │     → POST cx.account.agent_key_pair to coauth
     │     → soland materializes the agent_state cell (Active)

@@ -500,7 +500,7 @@ pub struct AgentProvisionResponse {
     #[serde(default)]
     pub agent_principal_id: String,
     #[serde(default)]
-    pub agent_did: Option<String>,
+    pub agent_id: Option<String>,
     #[serde(default)]
     pub initial_grant_ids: Vec<String>,
 }
