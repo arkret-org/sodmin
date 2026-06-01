@@ -158,7 +158,7 @@ pub struct SpaceMember {
     #[serde(default)]
     pub delivery_status: Option<String>,
     /// Per-Space delivery binding for this member. When present the
-    /// admin UI MUST surface recipient_service_did, binding_source,
+    /// admin UI MUST surface member_delivery_binding.recipient_service_did, binding_source,
     /// expiry, and the rebind action.
     #[serde(default)]
     pub delivery_binding: Option<MemberDeliveryBinding>,
@@ -239,7 +239,7 @@ pub struct MemberDeliveryBinding {
     /// Reference to the policy event that authorised this binding
     /// (`join_policy` / `organization_policy` / `space_policy` sources).
     #[serde(default)]
-    pub policy_ref: Option<String>,
+    pub policy_event_ref: Option<String>,
 }
 
 // ── Device types ──
@@ -1072,7 +1072,7 @@ pub enum HandleBindingState {
 /// @ b56cab1). Mirrors the SDK `contrix_core::model::handle::HandleClaim`;
 /// only the fields the admin UI renders / runs selection over are kept.
 ///
-/// Note: `claim_type=service_handle` is REMOVED in v1 — the enum only
+/// Note: `claim_kind=service_handle` is REMOVED in v1 — the enum only
 /// accepts `handle_binding` / `organization_handle`.
 #[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq)]
 pub struct HandleClaim {
@@ -1090,7 +1090,7 @@ pub struct HandleClaim {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub issuer: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub claim_type: Option<String>,
+    pub claim_kind: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub binding_state: Option<HandleBindingState>,
     /// Audience scope (e.g. `cx:realm:*`). When present, only matches a
@@ -1187,7 +1187,7 @@ pub struct HandleRecord {
     #[serde(default)]
     pub issuer_did: Option<String>,
     #[serde(default)]
-    pub subject_did: Option<String>,
+    pub subject_id: Option<String>,
     #[serde(default)]
     pub assigned_at: Option<String>,
     #[serde(default)]
@@ -1208,20 +1208,20 @@ pub struct HandleAuditEvent {
     #[serde(default)]
     pub action: String,
     #[serde(default)]
-    pub actor_did: Option<String>,
+    pub actor_id: Option<String>,
     #[serde(default)]
     pub timestamp: Option<String>,
     #[serde(default)]
     pub reason: Option<String>,
     #[serde(default)]
-    pub previous_subject_did: Option<String>,
+    pub previous_subject_id: Option<String>,
     #[serde(default)]
-    pub new_subject_did: Option<String>,
+    pub new_subject_id: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct HandleReassignRequest {
-    pub new_subject_did: String,
+    pub new_subject_id: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub reason: Option<String>,
 }
@@ -1642,7 +1642,7 @@ mod tests {
             "canonical_uri": "cx:handle:@alice",
             "aliases": ["@alice", "@alice.example"],
             "issuer_did": "did:web:auth.example.com",
-            "subject_did": "did:key:zABC",
+            "subject_id": "did:key:zABC",
             "status": "active"
         }))
         .expect("handle record should deserialize");

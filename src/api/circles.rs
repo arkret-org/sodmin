@@ -7,7 +7,7 @@
 //! - `GET    /api/v1/circles/{circle_id}`               read Circle
 //! - `POST   /api/v1/circles`                           create Circle
 //! - `POST   /api/v1/circles/{circle_id}/members`       add / re-state member
-//! - `DELETE /api/v1/circles/{circle_id}/members/{actor_did}` remove member
+//! - `DELETE /api/v1/circles/{circle_id}/members/{actor_id}` remove member
 //! - `POST   /api/v1/circles/{circle_id}/scope-rotate`  rotate the MLS scope
 //! - `POST   /api/v1/circles/{circle_id}/archive`       archive
 //! - `POST   /api/v1/circles/{circle_id}/tombstone`     tombstone
@@ -47,7 +47,7 @@ pub async fn create_circle(req: &CreateCircleRequest) -> Result<Circle, HttpErro
 /// Add a member (or transition member state) inside the Circle.
 /// Defaults to `active` server-side when `state` is `None`. Requires
 /// `cx.circle.member.add` for self-join or `cx.circle.member.add.others`
-/// when `actor_did != session.actor`. The strict-subset invariant
+/// when `actor_id != session.actor`. The strict-subset invariant
 /// (member must already be a Realm member) is enforced by the reducer.
 pub async fn add_circle_member(
     circle_id: &str,
@@ -61,12 +61,12 @@ pub async fn add_circle_member(
 /// Remove a member (transitions to `removed`).
 pub async fn remove_circle_member(
     circle_id: &str,
-    actor_did: &str,
+    actor_id: &str,
 ) -> Result<CircleMembershipResponse, HttpError> {
     let url = format!(
         "/api/v1/circles/{}/members/{}",
         urlencoding::encode(circle_id),
-        urlencoding::encode(actor_did),
+        urlencoding::encode(actor_id),
     );
     api_client(&url, "DELETE", None).await
 }

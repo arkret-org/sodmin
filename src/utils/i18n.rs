@@ -1434,7 +1434,7 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "handles.reassign_body",
                 "Force-rebinds this canonical URI to a new subject DID. The previous owner loses ownership immediately. Audit-logged.",
             ),
-            ("handles.new_subject_did", "New subject DID"),
+            ("handles.new_subject_id", "New subject ID"),
             ("handles.reassign_ok", "Handle reassigned"),
             ("handles.reassign_fail", "Failed to reassign handle"),
             ("handles.detail_title", "Handle detail"),
@@ -1480,7 +1480,7 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ),
             (
                 "delivery_binding.allowed_edit_hint",
-                "Comma-separated list of recipient_service_did values. Add/remove inline.",
+                "Comma-separated list of member_delivery_binding.recipient_service_did values. Add/remove inline.",
             ),
             ("delivery_binding.add_recipient", "Add"),
             ("delivery_binding.save", "Save policy"),
@@ -1492,7 +1492,7 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("delivery_binding.members_title", "Member routability"),
             (
                 "delivery_binding.members_subtitle",
-                "Each member's effective recipient_service_did checked against the allow list above.",
+                "Each member's effective member_delivery_binding.recipient_service_did checked against the allow list above.",
             ),
             (
                 "delivery_binding.members_empty",
@@ -1931,7 +1931,7 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("circle.tombstone", "Tombstone"),
             ("circle.add_member", "Add member"),
             ("circle.remove_member", "Remove"),
-            ("circle.actor_did", "Actor DID"),
+            ("circle.actor_id", "Actor ID"),
             ("circle.member_state", "State"),
             ("circle.empty_members", "No members yet."),
             ("circle.empty_title", "No Circles in this Realm"),
@@ -1949,7 +1949,7 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "Members must already belong to the parent Realm. soland rejects out-of-subset adds with `circle_member_must_be_realm_member`.",
             ),
             ("circle.error_required", "realm_id and title are required."),
-            ("circle.error_actor_required", "actor_did is required."),
+            ("circle.error_actor_required", "actor_id is required."),
             ("circle.created_toast", "Circle created."),
             ("circle.archived_toast", "Circle archived."),
             (
@@ -2309,7 +2309,7 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "handles_by_subject.lookup_body",
                 "Enter a holder/principal DID. MemberIdentity no longer carries a handle — handles come from signed cx.schema.handle_claim.v1 evidence.",
             ),
-            ("handles_by_subject.subject_did", "Subject DID"),
+            ("handles_by_subject.subject_id", "Subject ID"),
             ("handles_by_subject.lookup", "Look up"),
             (
                 "handles_by_subject.enter_did",
@@ -2769,7 +2769,7 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "handles.reassign_body",
                 "强制将该 canonical URI 绑定到新的主体 DID，原所有者将立即失去所有权。已记入审计。",
             ),
-            ("handles.new_subject_did", "新主体 DID"),
+            ("handles.new_subject_id", "新主体 ID"),
             ("handles.reassign_ok", "已重新分配 handle"),
             ("handles.reassign_fail", "重新分配 handle 失败"),
             ("handles.detail_title", "Handle 详情"),
@@ -2811,7 +2811,7 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("delivery_binding.allowed_empty", "允许清单为空。"),
             (
                 "delivery_binding.allowed_edit_hint",
-                "用逗号分隔的 recipient_service_did 列表，可直接增删。",
+                "用逗号分隔的 member_delivery_binding.recipient_service_did 列表，可直接增删。",
             ),
             ("delivery_binding.add_recipient", "添加"),
             ("delivery_binding.save", "保存策略"),
@@ -2820,7 +2820,7 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("delivery_binding.members_title", "成员可达性"),
             (
                 "delivery_binding.members_subtitle",
-                "对照上方允许清单，逐个检查成员的 recipient_service_did。",
+                "对照上方允许清单，逐个检查成员的 member_delivery_binding.recipient_service_did。",
             ),
             ("delivery_binding.members_empty", "此 Realm 暂无成员。"),
             ("delivery_binding.member_actor", "成员"),
@@ -3242,7 +3242,7 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("circle.tombstone", "墓碑（不可逆）"),
             ("circle.add_member", "添加成员"),
             ("circle.remove_member", "移除"),
-            ("circle.actor_did", "Actor DID"),
+            ("circle.actor_id", "Actor ID"),
             ("circle.member_state", "状态"),
             ("circle.empty_members", "暂无成员。"),
             ("circle.empty_title", "此 Realm 暂无 Circle"),
@@ -3260,7 +3260,7 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "成员必须已属于父 Realm。soland 会以 `circle_member_must_be_realm_member` 拒绝越界添加。",
             ),
             ("circle.error_required", "realm_id 与 title 均为必填。"),
-            ("circle.error_actor_required", "actor_did 必填。"),
+            ("circle.error_actor_required", "actor_id 必填。"),
             ("circle.created_toast", "Circle 已创建。"),
             ("circle.archived_toast", "Circle 已归档。"),
             ("circle.tombstoned_toast", "Circle 已墓碑（终态）。"),
@@ -3292,7 +3292,7 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("realm.classification", "Realm 类别"),
             (
                 "realm.classification_hint",
-                "主体控制 Realm 承担 DID 颁发与恢复；协作 Realm 仅作内容范围。CXP-0007 规定该分类在创建后不可变更。",
+                "主体控制 Realm 承担 DID 颁发与恢复；Collaboration Realm 仅作内容范围。CXP-0007 规定该分类在创建后不可变更。",
             ),
             // P3A.5 — audit effective_scope + Circle 事件筛选
             ("audit.effective_scope", "有效范围"),
@@ -3584,7 +3584,7 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "handles_by_subject.lookup_body",
                 "输入 holder/principal DID。MemberIdentity 不再携带 handle —— handle 来自已签名的 cx.schema.handle_claim.v1 凭证。",
             ),
-            ("handles_by_subject.subject_did", "主体 DID"),
+            ("handles_by_subject.subject_id", "主体 ID"),
             ("handles_by_subject.lookup", "查询"),
             (
                 "handles_by_subject.enter_did",

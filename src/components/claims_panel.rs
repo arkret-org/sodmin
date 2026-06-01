@@ -35,8 +35,8 @@ pub fn ClaimsPanel(
                 ul { class: "space-y-2",
                     for claim in claims.iter() {
                         {
-                            let claim_type_for_button = claim.claim_type.clone();
-                            let claim_type_display = claim.claim_type.clone();
+                            let claim_id_for_button = claim.id.clone();
+                            let claim_kind_display = claim.claim_kind.clone();
                             let value = claim.value.clone().unwrap_or_else(|| "-".to_string());
                             let state = claim.state.clone().unwrap_or_else(|| "-".to_string());
                             let source = claim.source.clone().unwrap_or_else(|| "-".to_string());
@@ -51,12 +51,12 @@ pub fn ClaimsPanel(
                             rsx! {
                                 li { class: "rounded-md border p-3 space-y-2",
                                     div { class: "flex items-start justify-between gap-3",
-                                        div { class: "font-medium", "{claim_type_display}" }
+                                        div { class: "font-medium", "{claim_kind_display}" }
                                         if !already_revoked {
                                             Button {
                                                 variant: ButtonVariant::Destructive,
                                                 onclick: move |_| {
-                                                    pending_revoke.set(Some(claim_type_for_button.clone()));
+                                                    pending_revoke.set(Some(claim_id_for_button.clone()));
                                                     revoke_error.set(None);
                                                 },
                                                 "Revoke"
@@ -99,25 +99,24 @@ pub fn ClaimsPanel(
                     .read()
                     .clone()
                     .map(|c| format!(
-                        "This will revoke the {} claim on this account via coauth's claims revoke endpoint.",
-                        c
+                        "This will revoke claim record {} on account {} via coauth's claims revoke endpoint.",
+                        c,
+                        account_id
                     ))
                     .unwrap_or_default(),
                 confirm_text: if *revoke_in_flight.read() { "Revoking...".to_string() } else { "Revoke".to_string() },
                 cancel_text: "Cancel".to_string(),
                 destructive: true,
                 on_confirm: {
-                    let account_id = account_id.clone();
                     move |_| {
-                        let account_id = account_id.clone();
-                        let claim_type = match pending_revoke.read().clone() {
+                        let claim_id = match pending_revoke.read().clone() {
                             Some(c) => c,
                             None => return,
                         };
                         spawn(async move {
                             revoke_in_flight.set(true);
                             revoke_error.set(None);
-                            match coauth::revoke_account_claim(&account_id, &claim_type).await {
+                            match coauth::revoke_account_claim(&claim_id).await {
                                 Ok(()) => {
                                     revoke_in_flight.set(false);
                                     pending_revoke.set(None);

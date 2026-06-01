@@ -48,7 +48,7 @@ pub fn HandleList() -> Element {
     let mut page = use_signal(|| 1u64);
     let mut show_revoke = use_signal(|| None::<String>);
     let mut show_reassign = use_signal(|| None::<String>);
-    let mut new_subject_did = use_signal(String::new);
+    let mut new_subject_id = use_signal(String::new);
     let mut reassign_loading = use_signal(|| false);
 
     let page_val = *page.read();
@@ -150,7 +150,7 @@ pub fn HandleList() -> Element {
                                                             onclick: {
                                                                 let id = id_for_reassign.clone();
                                                                 move |_| {
-                                                                    new_subject_did.set(String::new());
+                                                                    new_subject_id.set(String::new());
                                                                     show_reassign.set(Some(id.clone()));
                                                                 }
                                                             },
@@ -223,16 +223,16 @@ pub fn HandleList() -> Element {
                     h2 { class: "text-lg font-semibold", {t("handles.reassign_title")} }
                     p { class: "text-sm text-muted-foreground", {t("handles.reassign_body")} }
                     div { class: "space-y-1",
-                        Label { r#for: "handle-new-subject".to_string(), {t("handles.new_subject_did")} }
+                        Label { r#for: "handle-new-subject".to_string(), {t("handles.new_subject_id")} }
                         // Round 4 — DID input with inline regex
                         // validation (`^did:[a-z0-9]+:[^\s]+$`).
                         DidInput {
-                            value: new_subject_did.read().clone(),
-                            oninput: move |evt: FormEvent| new_subject_did.set(evt.value()),
+                            value: new_subject_id.read().clone(),
+                            oninput: move |evt: FormEvent| new_subject_id.set(evt.value()),
                         }
                     }
                     {
-                        let subject = new_subject_did.read().trim().to_string();
+                        let subject = new_subject_id.read().trim().to_string();
                         let subject_valid = did::is_valid_did(&subject);
                         rsx! {
                             div { class: "flex justify-end gap-2",
@@ -246,7 +246,7 @@ pub fn HandleList() -> Element {
                                     disabled: *reassign_loading.read() || !subject_valid,
                                     onclick: move |_| {
                                         if let Some(id) = show_reassign.read().clone() {
-                                            let subject = new_subject_did.read().trim().to_string();
+                                            let subject = new_subject_id.read().trim().to_string();
                                             // Round 4 — never submit a
                                             // DID that fails local
                                             // validation; the SDK would
@@ -257,7 +257,7 @@ pub fn HandleList() -> Element {
                                             reassign_loading.set(true);
                                             spawn(async move {
                                                 let req = HandleReassignRequest {
-                                                    new_subject_did: subject,
+                                                    new_subject_id: subject,
                                                     reason: None,
                                                 };
                                                 match handles::reassign_handle(&id, &req).await {
@@ -298,7 +298,7 @@ pub fn HandleShow(handle_id: String) -> Element {
 
     let mut show_revoke = use_signal(|| false);
     let mut show_reassign = use_signal(|| false);
-    let mut new_subject_did = use_signal(String::new);
+    let mut new_subject_id = use_signal(String::new);
     let mut reassign_loading = use_signal(|| false);
 
     let id_revoke = handle_id.clone();
@@ -324,7 +324,7 @@ pub fn HandleShow(handle_id: String) -> Element {
                     let canonical = handle.canonical_uri.clone();
                     let aliases = if handle.aliases.is_empty() { "-".to_string() } else { handle.aliases.join(", ") };
                     let issuer = handle.issuer_did.clone().unwrap_or_else(|| "-".to_string());
-                    let subject = handle.subject_did.clone().unwrap_or_else(|| "-".to_string());
+                    let subject = handle.subject_id.clone().unwrap_or_else(|| "-".to_string());
                     let assigned = handle.assigned_at.clone().unwrap_or_else(|| "-".to_string());
                     let expires = handle.expires_at.clone().unwrap_or_else(|| "-".to_string());
                     let last_re = handle.last_reassignment_at.clone().unwrap_or_else(|| "-".to_string());
@@ -358,7 +358,7 @@ pub fn HandleShow(handle_id: String) -> Element {
                                         variant: ButtonVariant::Outline,
                                         disabled: is_revoked,
                                         onclick: move |_| {
-                                            new_subject_did.set(String::new());
+                                            new_subject_id.set(String::new());
                                             show_reassign.set(true);
                                         },
                                         {t("handles.reassign")}
@@ -407,7 +407,7 @@ pub fn HandleShow(handle_id: String) -> Element {
                                             {
                                                 let when = ev.timestamp.clone().unwrap_or_else(|| "-".to_string());
                                                 let action = ev.action.clone();
-                                                let actor = ev.actor_did.clone().unwrap_or_else(|| "-".to_string());
+                                                let actor = ev.actor_id.clone().unwrap_or_else(|| "-".to_string());
                                                 let reason = ev.reason.clone().unwrap_or_else(|| "-".to_string());
                                                 rsx! {
                                                     TableRow {
@@ -462,16 +462,16 @@ pub fn HandleShow(handle_id: String) -> Element {
                     h2 { class: "text-lg font-semibold", {t("handles.reassign_title")} }
                     p { class: "text-sm text-muted-foreground", {t("handles.reassign_body")} }
                     div { class: "space-y-1",
-                        Label { r#for: "handle-detail-new-subject".to_string(), {t("handles.new_subject_did")} }
+                        Label { r#for: "handle-detail-new-subject".to_string(), {t("handles.new_subject_id")} }
                         // Round 4 — DID input with inline regex
                         // validation.
                         DidInput {
-                            value: new_subject_did.read().clone(),
-                            oninput: move |evt: FormEvent| new_subject_did.set(evt.value()),
+                            value: new_subject_id.read().clone(),
+                            oninput: move |evt: FormEvent| new_subject_id.set(evt.value()),
                         }
                     }
                     {
-                        let subject_valid = did::is_valid_did(new_subject_did.read().trim());
+                        let subject_valid = did::is_valid_did(new_subject_id.read().trim());
                         rsx! {
                             div { class: "flex justify-end gap-2",
                                 Button {
@@ -483,7 +483,7 @@ pub fn HandleShow(handle_id: String) -> Element {
                                     variant: ButtonVariant::Default,
                                     disabled: *reassign_loading.read() || !subject_valid,
                                     onclick: move |_| {
-                                        let subject = new_subject_did.read().trim().to_string();
+                                        let subject = new_subject_id.read().trim().to_string();
                                         // Round 4 — DID must match
                                         // `^did:[a-z0-9]+:[^\s]+$`.
                                         if !did::is_valid_did(&subject) {
@@ -493,7 +493,7 @@ pub fn HandleShow(handle_id: String) -> Element {
                                         reassign_loading.set(true);
                                         spawn(async move {
                                             let req = HandleReassignRequest {
-                                                new_subject_did: subject,
+                                                new_subject_id: subject,
                                                 reason: None,
                                             };
                                             match handles::reassign_handle(&id, &req).await {

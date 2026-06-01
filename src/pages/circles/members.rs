@@ -76,7 +76,7 @@ pub fn CircleMembers(circle_id: String) -> Element {
                                             return;
                                         }
                                         let req = CircleMemberRequest {
-                                            actor_did: new_actor.read().trim().to_string(),
+                                            actor_id: new_actor.read().trim().to_string(),
                                             state: Some(new_state.read().clone()),
                                         };
                                         let cid = cid_add.clone();
@@ -100,7 +100,7 @@ pub fn CircleMembers(circle_id: String) -> Element {
                                     },
                                     div { class: "grid gap-3 md:grid-cols-[1fr_180px_auto]",
                                         div { class: "space-y-1",
-                                            Label { r#for: "circle-new-member".to_string(), {t("circle.actor_did")} }
+                                            Label { r#for: "circle-new-member".to_string(), {t("circle.actor_id")} }
                                             Input {
                                                 id: "circle-new-member".to_string(),
                                                 value: new_actor.read().clone(),
@@ -148,7 +148,7 @@ pub fn CircleMembers(circle_id: String) -> Element {
                                     Table {
                                         TableHeader {
                                             TableRow {
-                                                TableHead { {t("circle.actor_did")} }
+                                                TableHead { {t("circle.actor_id")} }
                                                 TableHead { class: "text-right".to_string(), {t("common.actions")} }
                                             }
                                         }

@@ -185,7 +185,9 @@ pub struct CoauthManagedDidBinding {
 #[non_exhaustive]
 pub struct CoauthAccountClaim {
     #[serde(default)]
-    pub claim_type: String,
+    pub id: String,
+    #[serde(default)]
+    pub claim_kind: String,
     #[serde(default)]
     pub value: Option<String>,
     #[serde(default)]
@@ -695,14 +697,11 @@ pub async fn remove_account_did_binding(account_id: &str, did: &str) -> Result<(
     Ok(())
 }
 
-/// Revoke a single claim attached to the account. The claim is keyed by
-/// its `claim_type` (e.g. `email`, `principal_did`); coauth's claims
-/// admin routes accept the type as a path segment.
-pub async fn revoke_account_claim(account_id: &str, claim_type: &str) -> Result<(), HttpError> {
+/// Revoke a single claim by its record ULID.
+pub async fn revoke_account_claim(claim_id: &str) -> Result<(), HttpError> {
     let url = format!(
-        "/api/admin/v1/accounts/{}/claims/{}/revoke",
-        urlencoding::encode(account_id),
-        urlencoding::encode(claim_type),
+        "/api/admin/v1/claims/{}/revoke",
+        urlencoding::encode(claim_id),
     );
     let _: serde_json::Value = api_client(&url, "POST", None).await?;
     Ok(())
@@ -830,7 +829,8 @@ fn map_admin_account_claim(
     record: coauth_admin_types::AdminAccountClaimRecord,
 ) -> CoauthAccountClaim {
     CoauthAccountClaim {
-        claim_type: record.claim_type,
+        id: record.id,
+        claim_kind: record.claim_kind,
         value: record.value,
         state: Some(record.state),
         source: Some(record.source),

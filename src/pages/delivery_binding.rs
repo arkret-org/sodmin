@@ -7,8 +7,8 @@
 //! `policy_frontier` is reducer-owned and surfaced read-only.
 //!
 //! Below the editor the page lists each Realm member with their
-//! effective `delivery_binding.recipient_service_did` and a routability
-//! check against the allowed list.
+//! effective `member_delivery_binding.recipient_service_did` and a
+//! routability check against the allowed list.
 
 use dioxus::prelude::*;
 

@@ -90,7 +90,7 @@ pub fn HandlesBySubject(subject: Option<String>) -> Element {
                             }
                         },
                         div { class: "flex-1 space-y-1",
-                            Label { r#for: "subject-did".to_string(), {t("handles_by_subject.subject_did")} }
+                            Label { r#for: "subject-did".to_string(), {t("handles_by_subject.subject_id")} }
                             Input {
                                 id: "subject-did".to_string(),
                                 r#type: "text".to_string(),

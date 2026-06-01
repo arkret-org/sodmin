@@ -87,8 +87,6 @@ pub struct SubmitPartialSignatureResponse {
     /// final Anchor signature on the next worker tick).
     #[serde(default)]
     pub threshold_met: bool,
-    #[serde(default)]
-    pub signer_did: Option<String>,
 }
 
 #[cfg(test)]
