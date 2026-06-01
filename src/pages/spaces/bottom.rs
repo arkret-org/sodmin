@@ -324,16 +324,13 @@ pub(crate) fn repair_strategy_for_entry(
 /// Pick the default `BottomRepairStrategy` to seed into the confirmation
 /// modal based on the bottom entry shape:
 ///
-/// - **Conflict** with a non-empty `candidate_heads` list: pre-select
-///   the first head with `HeadInWinner`. The operator confirms or backs
-///   out (and a future iteration can offer a head picker before the
-///   modal opens).
-/// - Otherwise (non-conflict bottoms, or conflicts with no surfaced
-///   candidates): default to `Manual` with an empty effects list and a
-///   note describing the kind. soland's repair handler will reject an
-///   empty manual payload, so this is intentionally a safe placeholder
-///   that fails closed if the operator clicks "Submit" without first
-///   filling in effects.
+/// - **Conflict** with a non-empty `candidate_heads` list: pre-select the first head with
+///   `HeadInWinner`. The operator confirms or backs out (and a future iteration can offer a head
+///   picker before the modal opens).
+/// - Otherwise (non-conflict bottoms, or conflicts with no surfaced candidates): default to
+///   `Manual` with an empty effects list and a note describing the kind. soland's repair handler
+///   will reject an empty manual payload, so this is intentionally a safe placeholder that fails
+///   closed if the operator clicks "Submit" without first filling in effects.
 pub(crate) fn default_repair_strategy(entry: &BottomEntry) -> BottomRepairStrategy {
     match (
         BottomKind::from_wire(&entry.kind),

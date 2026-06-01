@@ -2,16 +2,13 @@
 //!
 //! sodmin is a Dioxus WASM SPA. CSP enforcement happens in two places:
 //!
-//! 1. **Server / CDN** — production deployments MUST set the
-//!    `Content-Security-Policy` HTTP response header at the proxy /
-//!    CDN tier so the browser receives the policy *before* the WASM
-//!    bundle runs. The header form is the canonical, primary
-//!    enforcement.
+//! 1. **Server / CDN** — production deployments MUST set the `Content-Security-Policy` HTTP
+//!    response header at the proxy / CDN tier so the browser receives the policy *before* the WASM
+//!    bundle runs. The header form is the canonical, primary enforcement.
 //!
-//! 2. **`<meta http-equiv="Content-Security-Policy">`** — defense-
-//!    in-depth fallback for static-hosted dev bundles. The Dioxus
-//!    `Meta` element in `main.rs` injects the same policy string
-//!    so a misconfigured proxy still gets a strict policy.
+//! 2. **`<meta http-equiv="Content-Security-Policy">`** — defense- in-depth fallback for
+//!    static-hosted dev bundles. The Dioxus `Meta` element in `main.rs` injects the same policy
+//!    string so a misconfigured proxy still gets a strict policy.
 //!
 //! The policy is **nonce-based for future inline scripts**. Right
 //! now Dioxus injects its bootstrap inline-script during dev (the

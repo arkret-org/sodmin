@@ -5,7 +5,8 @@
 //! used by the rest of sodmin (see `api/spaces.rs`); the soland routes
 //! land at:
 //!
-//! - `GET  /api/admin/v1/spaces/{id}/anchorer`                 — describe current anchorer cell value
+//! - `GET  /api/admin/v1/spaces/{id}/anchorer`                 — describe current anchorer cell
+//!   value
 //! - `POST /api/admin/v1/spaces/{id}/anchorer/reconfigure`     — submit reconfig Move
 //! - `GET  /api/admin/v1/spaces/{id}/bottom`                   — list ⊥ cells in this Space
 //! - `POST /api/admin/v1/spaces/{id}/bottom/{cell_id}/repair`  — submit repair Move

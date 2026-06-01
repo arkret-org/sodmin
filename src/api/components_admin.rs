@@ -3,16 +3,13 @@
 //!
 //! Endpoints:
 //!
-//! - `GET /api/admin/v1/components` — server-wide list of registered
-//!   `cx.component.*` types, their cell_family, criticality, pinned spec
-//!   version and loaded impl version. The page compares spec vs impl and
-//!   surfaces a drift indicator on each row.
-//! - `POST /api/admin/v1/components/{type}/refresh` — admin override for
-//!   drifted components: ask the server to re-load the impl from the
-//!   pinned spec version (clears stale caches, re-imports the reducer
-//!   bundle, etc.). soland is expected to short-circuit when there's no
-//!   drift; on 404 the UI surfaces a "not yet wired" toast (see
-//!   `pages/spaces/components.rs`).
+//! - `GET /api/admin/v1/components` — server-wide list of registered `cx.component.*` types, their
+//!   cell_family, criticality, pinned spec version and loaded impl version. The page compares spec
+//!   vs impl and surfaces a drift indicator on each row.
+//! - `POST /api/admin/v1/components/{type}/refresh` — admin override for drifted components: ask
+//!   the server to re-load the impl from the pinned spec version (clears stale caches, re-imports
+//!   the reducer bundle, etc.). soland is expected to short-circuit when there's no drift; on 404
+//!   the UI surfaces a "not yet wired" toast (see `pages/spaces/components.rs`).
 
 use crate::api::client::{api_client, build_url};
 use crate::types::components::{ComponentRefreshResponse, ComponentRegistryEntry};

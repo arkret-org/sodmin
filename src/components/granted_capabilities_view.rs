@@ -21,8 +21,7 @@
 
 use dioxus::prelude::*;
 
-use crate::api::capabilities;
-use crate::api::coauth;
+use crate::api::{capabilities, coauth};
 use crate::components::ui::badge::{Badge, BadgeVariant};
 use crate::components::ui::loading::PageSkeleton;
 use crate::types::CapabilityGrant;

@@ -3,11 +3,10 @@
 //!
 //! Endpoints:
 //!
-//! - `GET /api/admin/v1/moderation/reports` — paginated list of open
-//!   reports (default; `?status=…` widens the projection).
-//! - `POST /api/admin/v1/moderation/reports/{id}/resolve` — admin
-//!   decision body `{decision: "resolve" | "dismiss", note?}`. Same
-//!   404-tolerant pattern as the rest of Stream H'.
+//! - `GET /api/admin/v1/moderation/reports` — paginated list of open reports (default; `?status=…`
+//!   widens the projection).
+//! - `POST /api/admin/v1/moderation/reports/{id}/resolve` — admin decision body `{decision:
+//!   "resolve" | "dismiss", note?}`. Same 404-tolerant pattern as the rest of Stream H'.
 
 use crate::api::client::{api_client, build_url};
 use crate::api::generated::soland_admin::{ModerationReport, ResolveReportRequest};

@@ -1,12 +1,10 @@
 //! B-C key-backup admin page (`/key-backup`).
 //!
 //! Three panes:
-//!   1. Backup series list with frontier status + per-series 3-class 409
-//!      counters (`series_chain_broken` / `series_seq_not_monotonic` /
-//!      `series_predecessor_not_found`).
-//!   2. Recovery policy editor (lifecycle pending/active/retired; KDF
-//!      profile; epoch hash). Deep validators are
-//!      `TODO(P3-impl)` server-side.
+//!   1. Backup series list with frontier status + per-series 3-class 409 counters
+//!      (`series_chain_broken` / `series_seq_not_monotonic` / `series_predecessor_not_found`).
+//!   2. Recovery policy editor (lifecycle pending/active/retired; KDF profile; epoch hash). Deep
+//!      validators are `TODO(P3-impl)` server-side.
 //!   3. Recovery receipt history.
 
 use dioxus::prelude::*;

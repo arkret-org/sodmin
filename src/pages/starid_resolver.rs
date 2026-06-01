@@ -233,8 +233,9 @@ fn status_class(describe: &StaridDescribe) -> StatusClass {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use chrono::TimeZone;
+
+    use super::*;
 
     fn empty_describe() -> StaridDescribe {
         StaridDescribe::default()

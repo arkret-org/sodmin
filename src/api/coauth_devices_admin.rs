@@ -2,12 +2,11 @@
 //!
 //! Endpoints:
 //!
-//! - `GET /api/admin/v1/accounts/{account_id}/devices` — coauth list
-//!   of devices registered to a single account. Cursor-paginated.
-//! - `POST /api/admin/v1/accounts/{account_id}/devices/{device_id}/revoke`
-//!   — coauth revoke. The cascade revoke of session grants on the
-//!   soland side is wired in coauth round 23; the admin UI just calls
-//!   the coauth route. 404-tolerant on the client side.
+//! - `GET /api/admin/v1/accounts/{account_id}/devices` — coauth list of devices registered to a
+//!   single account. Cursor-paginated.
+//! - `POST /api/admin/v1/accounts/{account_id}/devices/{device_id}/revoke` — coauth revoke. The
+//!   cascade revoke of session grants on the soland side is wired in coauth round 23; the admin UI
+//!   just calls the coauth route. 404-tolerant on the client side.
 
 use crate::api::client::{api_client, build_url};
 use crate::types::coauth_devices::CoauthDeviceRow;

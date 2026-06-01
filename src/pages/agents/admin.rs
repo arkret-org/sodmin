@@ -11,6 +11,7 @@
 
 use std::collections::HashSet;
 
+use coauth_admin_types::applets_admin::ApprovalActionRequest;
 use dioxus::prelude::*;
 
 use crate::api::applets_agents_directory_admin as admin_api;
@@ -33,7 +34,6 @@ use crate::utils::audit::{AdminAuditOutcome, emit_admin_audit_server};
 use crate::utils::error::format_optional_endpoint_error;
 use crate::utils::i18n::t;
 use crate::utils::search::matches_name_or_id;
-use coauth_admin_types::applets_admin::ApprovalActionRequest;
 
 const PAGE_SIZE: u64 = 25;
 const BULK_CONCURRENCY: usize = 5;
@@ -545,9 +545,9 @@ mod tests {
 
     #[test]
     fn dialog_copy_picks_distinct_keys_per_action() {
-        let (t1, _, _) = agent_dialog_copy(RowAction::Approve);
-        let (t2, _, _) = agent_dialog_copy(RowAction::Suspend);
-        let (t3, _, _) = agent_dialog_copy(RowAction::Revoke);
+        let (t1, ..) = agent_dialog_copy(RowAction::Approve);
+        let (t2, ..) = agent_dialog_copy(RowAction::Suspend);
+        let (t3, ..) = agent_dialog_copy(RowAction::Revoke);
         assert!(t1.contains("approve"));
         assert!(t2.contains("suspend"));
         assert!(t3.contains("revoke"));

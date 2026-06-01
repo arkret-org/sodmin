@@ -3,17 +3,14 @@
 //!
 //! Endpoints:
 //!
-//! - `GET /api/admin/v1/spaces/{id}/mls/covered-frontier` — soland
-//!   projects the lattice or-set state for the
-//!   `cx:cell:cx.component.mls.covered_frontier.v1:<space_id>` cell along
-//!   with the current governance frontier so the admin can compute lag.
-//! - `POST /api/admin/v1/spaces/{id}/mls/covered-frontier/advance` —
-//!   admin override that asks the principal-server to manually fold the
-//!   current `governance_frontier` into the covered_frontier or-set. Used
-//!   when MLS members are offline and can't ack on their own; the
-//!   override is a coarse hammer (it doesn't replace per-epoch MLS
-//!   commits) so the page only surfaces it when lag > threshold. On 404
-//!   the UI surfaces a "not yet wired" toast.
+//! - `GET /api/admin/v1/spaces/{id}/mls/covered-frontier` — soland projects the lattice or-set
+//!   state for the `cx:cell:cx.component.mls.covered_frontier.v1:<space_id>` cell along with the
+//!   current governance frontier so the admin can compute lag.
+//! - `POST /api/admin/v1/spaces/{id}/mls/covered-frontier/advance` — admin override that asks the
+//!   principal-server to manually fold the current `governance_frontier` into the covered_frontier
+//!   or-set. Used when MLS members are offline and can't ack on their own; the override is a coarse
+//!   hammer (it doesn't replace per-epoch MLS commits) so the page only surfaces it when lag >
+//!   threshold. On 404 the UI surfaces a "not yet wired" toast.
 
 use crate::api::client::api_client;
 use crate::types::covered_frontier::{CoveredFrontierAdvanceResponse, CoveredFrontierSnapshot};

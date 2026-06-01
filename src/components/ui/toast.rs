@@ -2,7 +2,6 @@ use dioxus::prelude::*;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum ToastVariant {
-    Default,
     Success,
     Error,
 }
@@ -89,7 +88,6 @@ pub fn Toaster() -> Element {
                 {
                     let toast_id = toast.id;
                     let bg_class = match toast.variant {
-                        ToastVariant::Default => "bg-background border",
                         ToastVariant::Success => "bg-green-500 text-white",
                         ToastVariant::Error => "bg-destructive text-destructive-foreground",
                     };

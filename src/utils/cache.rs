@@ -35,10 +35,10 @@ where
     F: FnOnce() -> Fut,
     Fut: std::future::Future<Output = Option<T>>,
 {
-    if let Some(hit) = get_cached(key, ttl_ms) {
-        if let Ok(v) = serde_json::from_str(&hit) {
-            return Some(v);
-        }
+    if let Some(hit) = get_cached(key, ttl_ms)
+        && let Ok(v) = serde_json::from_str(&hit)
+    {
+        return Some(v);
     }
     let val = fetch().await?;
     if let Ok(json) = serde_json::to_string(&val) {

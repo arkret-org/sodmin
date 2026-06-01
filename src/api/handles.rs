@@ -2,14 +2,12 @@
 //!
 //! Endpoints (all 404-tolerant — older servers may not yet expose them):
 //!
-//! - `GET /api/admin/v1/handles` — paginated list of `cx.handle.*`
-//!   cells visible to the current admin scope.
+//! - `GET /api/admin/v1/handles` — paginated list of `cx.handle.*` cells visible to the current
+//!   admin scope.
 //! - `GET /api/admin/v1/handles/{id}` — single handle row.
-//! - `GET /api/admin/v1/handles/{id}/audit` — handle audit trail from
-//!   the T3.2 audit table.
+//! - `GET /api/admin/v1/handles/{id}/audit` — handle audit trail from the T3.2 audit table.
 //! - `POST /api/admin/v1/handles/{id}/revoke` — publish a revoke Move.
-//! - `POST /api/admin/v1/handles/{id}/reassign` — force a re-bind to a
-//!   new subject DID.
+//! - `POST /api/admin/v1/handles/{id}/reassign` — force a re-bind to a new subject DID.
 
 use crate::api::client::{api_client, build_url};
 use crate::types::*;

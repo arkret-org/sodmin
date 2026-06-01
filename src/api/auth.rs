@@ -8,33 +8,26 @@
 //!
 //! This module's contract is therefore:
 //!
-//! - **Login** — `start_oauth_login` opens the OAuth authorize URL.
-//!   PKCE verifier / state / nonce live in `sessionStorage` (still
-//!   readable from JS, but they are *one-shot*: invalid after the
+//! - **Login** — `start_oauth_login` opens the OAuth authorize URL. PKCE verifier / state / nonce
+//!   live in `sessionStorage` (still readable from JS, but they are *one-shot*: invalid after the
 //!   callback consumes them, so leakage has zero replay value).
-//! - **Callback** — `handle_oauth_callback` exchanges the code with
-//!   `credentials: "include"`. coauth sets the session cookie. On
-//!   success, sodmin stores ONLY a non-secret `session_active=1`
-//!   marker plus the userinfo block (id / display name / avatar).
-//!   None of these carry entropy.
-//! - **API calls** — `api::client::api_client` now sends every
-//!   request with `credentials: "include"` so the cookie travels with
-//!   the request automatically. There is no `Authorization: Bearer`
-//!   header from the SPA.
-//! - **Refresh** — when the cookie has expired the server returns
-//!   401, the client invokes `handle_unauthorized` which calls
-//!   `/oauth2/refresh` (also with `credentials: "include"`) and the
-//!   server sets a new cookie. No JS-visible refresh_token.
-//! - **Logout** — `logout` POSTs to `/oauth2/revoke` (same cookie
-//!   credentials), then clears the JS-visible session marker +
-//!   userinfo + the SPA-side cached config.
+//! - **Callback** — `handle_oauth_callback` exchanges the code with `credentials: "include"`.
+//!   coauth sets the session cookie. On success, sodmin stores ONLY a non-secret `session_active=1`
+//!   marker plus the userinfo block (id / display name / avatar). None of these carry entropy.
+//! - **API calls** — `api::client::api_client` now sends every request with `credentials:
+//!   "include"` so the cookie travels with the request automatically. There is no `Authorization:
+//!   Bearer` header from the SPA.
+//! - **Refresh** — when the cookie has expired the server returns 401, the client invokes
+//!   `handle_unauthorized` which calls `/oauth2/refresh` (also with `credentials: "include"`) and
+//!   the server sets a new cookie. No JS-visible refresh_token.
+//! - **Logout** — `logout` POSTs to `/oauth2/revoke` (same cookie credentials), then clears the
+//!   JS-visible session marker + userinfo + the SPA-side cached config.
 
 use gloo_net::http::Request;
 use serde::Deserialize;
 use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::JsFuture;
-use web_sys::RequestCredentials;
-use web_sys::RequestMode;
+use web_sys::{RequestCredentials, RequestMode};
 
 use crate::utils::crypto::{base64url_encode, random_token};
 use crate::utils::error::HttpError;

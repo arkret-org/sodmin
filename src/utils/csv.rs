@@ -18,9 +18,9 @@
 /// Build a CSV string from a header row + body rows.
 ///
 /// * `headers` is a list of column names.
-/// * `rows` is a list of rows where each row is a list of cells. Cells
-///   are padded with empty strings up to `headers.len()` and truncated
-///   beyond it, so a malformed row never produces a ragged CSV.
+/// * `rows` is a list of rows where each row is a list of cells. Cells are padded with empty
+///   strings up to `headers.len()` and truncated beyond it, so a malformed row never produces a
+///   ragged CSV.
 ///
 /// Pure function — no I/O. Call [`trigger_csv_download`] separately
 /// when running in the browser.
@@ -79,8 +79,7 @@ fn escape_csv_field(s: &str) -> String {
 /// unit tests don't pull in `web-sys::Document` paths.
 #[cfg(target_arch = "wasm32")]
 pub fn export_to_csv(filename: &str, csv: &str) {
-    use wasm_bindgen::JsCast;
-    use wasm_bindgen::JsValue;
+    use wasm_bindgen::{JsCast, JsValue};
     use web_sys::{Blob, BlobPropertyBag, HtmlAnchorElement, Url};
 
     let window = match web_sys::window() {

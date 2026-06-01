@@ -4,6 +4,7 @@
 //! depth. Reads from soland's `GET /api/admin/v1/federation/status`
 //! (404-tolerant — surfaces "endpoint not yet wired" toast).
 
+use coauth_admin_types::federation_admin::FederationPeerHealth;
 use dioxus::prelude::*;
 
 use crate::api::federation_status_admin;
@@ -15,7 +16,6 @@ use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::table::*;
 use crate::utils::i18n::t;
-use coauth_admin_types::federation_admin::FederationPeerHealth;
 
 #[component]
 pub fn FederationStatusPage(space_id: String) -> Element {

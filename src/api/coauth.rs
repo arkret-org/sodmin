@@ -137,9 +137,11 @@ pub struct CoauthRegistrationToken {
     pub is_revoked: bool,
 }
 
-pub use coauth_admin_types::ConnectorHealthRow as CoauthConnectorHealth;
-pub use coauth_admin_types::NotificationChannelStatus as CoauthNotificationChannel;
-pub use coauth_admin_types::NotificationTemplateEntry as CoauthNotificationTemplate;
+pub use coauth_admin_types::{
+    ConnectorHealthRow as CoauthConnectorHealth,
+    NotificationChannelStatus as CoauthNotificationChannel,
+    NotificationTemplateEntry as CoauthNotificationTemplate,
+};
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 #[non_exhaustive]
@@ -222,8 +224,10 @@ pub struct CoauthRiskActionHook {
     pub todo: String,
 }
 
-pub use coauth_admin_types::AdminBridgeDescribe as CoauthAdminBridgeDescribe;
-pub use coauth_admin_types::IntegrationManifest as CoauthIntegrationManifest;
+pub use coauth_admin_types::{
+    AdminBridgeDescribe as CoauthAdminBridgeDescribe,
+    IntegrationManifest as CoauthIntegrationManifest,
+};
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 #[non_exhaustive]
@@ -248,14 +252,16 @@ pub struct CoauthAccountDetail {
     pub integration_manifest: CoauthIntegrationManifest,
 }
 
-pub use coauth_admin_types::AccountRiskActionApprovalRequest as CoauthAccountRiskActionApprovalDraft;
-pub use coauth_admin_types::AccountRiskActionApprovalResponse as CoauthAccountRiskActionApproval;
-pub use coauth_admin_types::AccountRiskActionCurrentResponse as CoauthAccountRiskActionCurrentState;
-pub use coauth_admin_types::AccountRiskActionExecuteRequest as CoauthAccountRiskActionExecuteDraft;
-pub use coauth_admin_types::AccountRiskActionHistoryResponse as CoauthAccountRiskActionHistoryEnvelopeShared;
-pub use coauth_admin_types::AccountRiskActionProposalRequest as CoauthAccountRiskActionDraft;
-pub use coauth_admin_types::AccountRiskActionProposalResponse as CoauthAccountRiskActionProposal;
-pub use coauth_admin_types::AccountRiskActionTransitionRecord as CoauthAccountRiskActionHistoryEntry;
+pub use coauth_admin_types::{
+    AccountRiskActionApprovalRequest as CoauthAccountRiskActionApprovalDraft,
+    AccountRiskActionApprovalResponse as CoauthAccountRiskActionApproval,
+    AccountRiskActionCurrentResponse as CoauthAccountRiskActionCurrentState,
+    AccountRiskActionExecuteRequest as CoauthAccountRiskActionExecuteDraft,
+    AccountRiskActionHistoryResponse as CoauthAccountRiskActionHistoryEnvelopeShared,
+    AccountRiskActionProposalRequest as CoauthAccountRiskActionDraft,
+    AccountRiskActionProposalResponse as CoauthAccountRiskActionProposal,
+    AccountRiskActionTransitionRecord as CoauthAccountRiskActionHistoryEntry,
+};
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 #[non_exhaustive]

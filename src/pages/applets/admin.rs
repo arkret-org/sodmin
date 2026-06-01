@@ -8,6 +8,7 @@
 //! line via `utils::audit::emit_admin_audit` (in addition to the
 //! soland-side audit row that the HTTP endpoint writes itself).
 
+use coauth_admin_types::applets_admin::{ApprovalActionRequest, ApprovalStatus};
 use dioxus::prelude::*;
 
 use crate::api::applets_agents_directory_admin as admin_api;
@@ -24,7 +25,6 @@ use crate::components::ui::toast::{ToastVariant, show_toast};
 use crate::utils::audit::{AdminAuditOutcome, emit_admin_audit};
 use crate::utils::error::format_optional_endpoint_error;
 use crate::utils::i18n::t;
-use coauth_admin_types::applets_admin::{ApprovalActionRequest, ApprovalStatus};
 
 const PAGE_SIZE: u64 = 25;
 

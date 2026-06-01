@@ -11,8 +11,9 @@
 //! `regex_lite` is used (already a sodmin dependency) so we do not pull
 //! the full `regex` crate into the wasm bundle.
 
-use regex_lite::Regex;
 use std::sync::OnceLock;
+
+use regex_lite::Regex;
 
 /// Round 4 — tightened DID grammar. `method` segment is now `[a-z0-9]+`
 /// only; the body after the second `:` is any non-whitespace.

@@ -5,8 +5,7 @@
 //! that bind the agent's MLS leaf key to a remote-attestation chain
 //! (SGX / TDX / SEV-SNP / TPM2). This admin page lets the operator:
 //!
-//! - submit a new evidence document (JSON pasted into the form, or
-//!   uploaded as a file)
+//! - submit a new evidence document (JSON pasted into the form, or uploaded as a file)
 //! - browse existing rows
 //! - see the validity window remaining in days
 //! - see the chain-verification + revocation status badges

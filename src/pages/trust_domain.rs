@@ -11,11 +11,9 @@
 //! from one domain cannot be replayed into another. The page therefore:
 //!
 //! 1. Shows the current value as read-only.
-//! 2. Requires the admin to flip a "re-confirm" toggle before the edit
-//!    field becomes writable.
-//! 3. Validates the new value against the
-//!    `cx:trust_domain:<lowercase-scope>` grammar before allowing
-//!    submit.
+//! 2. Requires the admin to flip a "re-confirm" toggle before the edit field becomes writable.
+//! 3. Validates the new value against the `cx:trust_domain:<lowercase-scope>` grammar before
+//!    allowing submit.
 //! 4. Surfaces a loud warning callout describing the invalidation.
 
 use dioxus::prelude::*;

@@ -1512,11 +1512,12 @@ pub struct RealmIdentityAuditRow {
 
 #[cfg(test)]
 mod tests {
+    use serde_json::json;
+
     use super::{
         HandleRecord, ServerDescribeResBody, UpdateCapabilityRequest,
         UpdateDeliveryBindingPolicyRequest,
     };
-    use serde_json::json;
 
     #[test]
     fn server_describe_accepts_principal_server_profile_status() {

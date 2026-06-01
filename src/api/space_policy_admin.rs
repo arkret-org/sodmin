@@ -1,8 +1,8 @@
 //! HTTP client for the soland Space Policy editor
 //!
 //! - `GET  /api/admin/v1/spaces/{id}/policy` — current `cx.component.space.policy.v1` value.
-//! - `POST /api/admin/v1/spaces/{id}/policy` — write a new policy. soland
-//!   wraps the body into a cas-register Move.
+//! - `POST /api/admin/v1/spaces/{id}/policy` — write a new policy. soland wraps the body into a
+//!   cas-register Move.
 
 use coauth_admin_types::space_policy_admin::{SpacePolicy, UpdateSpacePolicyRequest};
 

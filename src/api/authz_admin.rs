@@ -3,15 +3,13 @@
 //!
 //! Endpoints:
 //!
-//! - `GET /api/admin/v1/authz/capabilities` — list capability grants
-//!   visible to the current admin scope. Optional cursor and filters
-//!   (holder / peer / scope) narrow the projection. The page mirrors
-//!   coauth's account-list cursor model: server emits `links.next`,
-//!   sodmin pushes/pops cursors on the client.
-//! - `POST /api/admin/v1/authz/capabilities/{grant_id}/revoke` — admin
-//!   revoke. Same 404-tolerant pattern as the other Stream H' admin
-//!   actions: when soland hasn't wired the route yet, the page surfaces
-//!   a "not yet wired" toast rather than a generic error.
+//! - `GET /api/admin/v1/authz/capabilities` — list capability grants visible to the current admin
+//!   scope. Optional cursor and filters (holder / peer / scope) narrow the projection. The page
+//!   mirrors coauth's account-list cursor model: server emits `links.next`, sodmin pushes/pops
+//!   cursors on the client.
+//! - `POST /api/admin/v1/authz/capabilities/{grant_id}/revoke` — admin revoke. Same 404-tolerant
+//!   pattern as the other Stream H' admin actions: when soland hasn't wired the route yet, the page
+//!   surfaces a "not yet wired" toast rather than a generic error.
 
 use crate::api::client::{api_client, build_url};
 use crate::api::generated::soland_admin::{AuthzCapabilityGrant, AuthzGrantFilter};

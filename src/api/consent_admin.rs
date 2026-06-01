@@ -3,18 +3,15 @@
 //!
 //! Endpoints:
 //!
-//! - `GET /api/admin/v1/spaces/{id}/consent` — read the joined or-set
-//!   value of `cx:cell:cx.component.consent.v1:<holder_did>` for every
-//!   holder visible inside the Space. soland is responsible for redaction:
-//!   it MUST NOT expose holder-private peer relations beyond the public
-//!   admin-visible projection (DID / peer DID / scope / status / created_at).
-//! - `POST /api/admin/v1/consent/{consent_id}/resolve` — admin override
-//!   for **pending** consent rows. Same shape as the invite-quarantine
-//!   resolve route: `{decision: approve|reject, note?}`. soland is
-//!   expected to validate that the consent row is currently `Pending`
-//!   and reject otherwise. The endpoint may not yet be wired on the
-//!   backend; the caller surfaces a "not yet wired" toast on 404 (see
-//!   `pages/spaces/consent.rs`).
+//! - `GET /api/admin/v1/spaces/{id}/consent` — read the joined or-set value of
+//!   `cx:cell:cx.component.consent.v1:<holder_did>` for every holder visible inside the Space.
+//!   soland is responsible for redaction: it MUST NOT expose holder-private peer relations beyond
+//!   the public admin-visible projection (DID / peer DID / scope / status / created_at).
+//! - `POST /api/admin/v1/consent/{consent_id}/resolve` — admin override for **pending** consent
+//!   rows. Same shape as the invite-quarantine resolve route: `{decision: approve|reject, note?}`.
+//!   soland is expected to validate that the consent row is currently `Pending` and reject
+//!   otherwise. The endpoint may not yet be wired on the backend; the caller surfaces a "not yet
+//!   wired" toast on 404 (see `pages/spaces/consent.rs`).
 //!
 //! The describe surface is intentionally read-only beyond this admin
 //! resolve override — admins can't grant arbitrary consent on behalf of

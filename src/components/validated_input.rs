@@ -8,12 +8,11 @@
 //! variant which fires when the trimmed value is empty.
 //!
 //! Wired into:
-//! * [`crate::pages::agents::personal::ProvisionWizard`] step 1 — the
-//!   `controller_did` field uses [`ValidationKind::Did`].
-//! * [`crate::components::did_binding_panel::DidBindingPanel`] — the
-//!   `Add binding` form uses [`ValidationKind::Did`] for the DID and
-//!   [`ValidationKind::Required`] for the control_proof opaque blob.
-//!
+//! * [`crate::pages::agents::personal::ProvisionWizard`] step 1 — the `controller_did` field uses
+//!   [`ValidationKind::Did`].
+//! * [`crate::components::did_binding_panel::DidBindingPanel`] — the `Add binding` form uses
+//!   [`ValidationKind::Did`] for the DID and [`ValidationKind::Required`] for the control_proof
+//!   opaque blob.
 use dioxus::prelude::*;
 
 use crate::components::ui::input::Input;

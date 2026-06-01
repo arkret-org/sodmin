@@ -13,16 +13,13 @@
 //!
 //! Wire-correctness invariants enforced by this page:
 //!
-//! 1. **No plaintext 3PID.** The wire (and therefore the row) never
-//!    carries the email / phone number. We only display opaque evidence
-//!    (token_commitment digest / lookup_table_ref / pepper_id).
-//! 2. **`send_failed` displayed truthfully.** This is a *terminal*
-//!    failure (the auth server never delivered the OOB code). The UI
-//!    must surface it as a hard failure and must NOT collapse it into
-//!    a generic "pending" or "completed" bucket — papering over
-//!    `send_failed` would be lying to the operator about a permanent
-//!    delivery failure.
-//!
+//! 1. **No plaintext 3PID.** The wire (and therefore the row) never carries the email / phone
+//!    number. We only display opaque evidence (token_commitment digest / lookup_table_ref /
+//!    pepper_id).
+//! 2. **`send_failed` displayed truthfully.** This is a *terminal* failure (the auth server never
+//!    delivered the OOB code). The UI must surface it as a hard failure and must NOT collapse it
+//!    into a generic "pending" or "completed" bucket — papering over `send_failed` would be lying
+//!    to the operator about a permanent delivery failure.
 use dioxus::prelude::*;
 
 use crate::api::invites_3pid;

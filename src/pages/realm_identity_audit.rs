@@ -16,7 +16,6 @@
 //! Data plumbing is not yet wired through soland's admin API — the
 //! page renders a stub-state today and ships the full live view once
 //! the SDK `MemberIdentity` decrypt pipeline (yougen MID-4) lands.
-//
 // TODO: hook `api::spaces::list_realm_identity_audit(realm_id)` once
 // soland exposes the admin endpoint that aggregates the effective
 // identity projection per actor.

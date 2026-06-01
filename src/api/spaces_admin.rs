@@ -2,10 +2,9 @@
 //!
 //! Endpoints:
 //!
-//! - `GET /api/admin/v1/spaces` — list of Spaces visible to the
-//!   current admin scope. Cursor-paginated.
-//! - `GET /api/admin/v1/spaces/{id}/hierarchy` — parent + immediate
-//!   children for a single Space.
+//! - `GET /api/admin/v1/spaces` — list of Spaces visible to the current admin scope.
+//!   Cursor-paginated.
+//! - `GET /api/admin/v1/spaces/{id}/hierarchy` — parent + immediate children for a single Space.
 //!
 //! Both routes are 404-tolerant on the client side — the
 //! `format_optional_endpoint_error` helper turns 404 into a clear

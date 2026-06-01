@@ -158,12 +158,10 @@ impl AnchorerReconfigRequest {
     /// typed reason when violated. Mirrors the soland-side validator.
     ///
     /// - `single_did`: `single_did != admin_did`
-    /// - `threshold`:  `!threshold_dids.contains(admin_did)` AND the
-    ///   lex-smallest `threshold_dids` entry (the leader per spec
-    ///   multisig §4) is not `admin_did`
+    /// - `threshold`:  `!threshold_dids.contains(admin_did)` AND the lex-smallest `threshold_dids`
+    ///   entry (the leader per spec multisig §4) is not `admin_did`
     /// - `open_set`:   `!open_set_members.contains(admin_did)`
-    /// - `mixed`:      `mixed_primary != admin_did` AND
-    ///   `!mixed_recovery.contains(admin_did)`
+    /// - `mixed`:      `mixed_primary != admin_did` AND `!mixed_recovery.contains(admin_did)`
     pub fn self_sign_violation(&self, admin_did: &str) -> Option<SelfSignViolation> {
         match self.kind.as_str() {
             "single_did" => {

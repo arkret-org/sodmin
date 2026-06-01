@@ -11,6 +11,7 @@
 //! entry that's rejected is simply not listed; there's no "soft-revoke"
 //! concept for a directory listing.
 
+use coauth_admin_types::applets_admin::ApprovalActionRequest;
 use dioxus::prelude::*;
 
 use crate::api::applets_agents_directory_admin as admin_api;
@@ -27,7 +28,6 @@ use crate::pages::applets::admin::approval_variant;
 use crate::utils::audit::{AdminAuditOutcome, emit_admin_audit};
 use crate::utils::error::format_optional_endpoint_error;
 use crate::utils::i18n::t;
-use coauth_admin_types::applets_admin::ApprovalActionRequest;
 
 const PAGE_SIZE: u64 = 25;
 

@@ -2,12 +2,11 @@
 //!
 //! Two screens:
 //!
-//! - [`HandleList`] is a paginated table of `cx.handle.*` cells with
-//!   issuer / expiry / last-reassignment columns and inline revoke +
-//!   reassign affordances.
-//! - [`HandleShow`] is the per-handle detail page; it pulls the audit
-//!   trail from `/api/admin/v1/handles/{id}/audit` (T3.2's audit
-//!   table) and exposes the revoke + force-reassign actions.
+//! - [`HandleList`] is a paginated table of `cx.handle.*` cells with issuer / expiry /
+//!   last-reassignment columns and inline revoke + reassign affordances.
+//! - [`HandleShow`] is the per-handle detail page; it pulls the audit trail from
+//!   `/api/admin/v1/handles/{id}/audit` (T3.2's audit table) and exposes the revoke +
+//!   force-reassign actions.
 //!
 //! R3.1 (HDLREN-1) — the canonical wire form is `<localpart>:<domain>`;
 //! the retired `contrix://` URI form is gone. Both columns here render

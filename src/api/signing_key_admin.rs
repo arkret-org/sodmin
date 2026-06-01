@@ -3,13 +3,11 @@
 //!
 //! Endpoints:
 //!
-//! - `GET  /api/admin/v1/spaces/{id}/anchorer/signing-key` — describe
-//!   the current AnchorerWorker signing key (origin, DID#kid, last
-//!   rotation).
-//! - `POST /api/admin/v1/spaces/{id}/anchorer/rotate-signing-key` —
-//!   trigger a key rotation. The principal-server generates a fresh
-//!   key, swaps the worker's signer atomically, and reports the new
-//!   verification method id.
+//! - `GET  /api/admin/v1/spaces/{id}/anchorer/signing-key` — describe the current AnchorerWorker
+//!   signing key (origin, DID#kid, last rotation).
+//! - `POST /api/admin/v1/spaces/{id}/anchorer/rotate-signing-key` — trigger a key rotation. The
+//!   principal-server generates a fresh key, swaps the worker's signer atomically, and reports the
+//!   new verification method id.
 //!
 //! Both routes follow the 404-tolerant pattern — when soland hasn't
 //! wired the route yet the caller surfaces a "not yet wired" toast

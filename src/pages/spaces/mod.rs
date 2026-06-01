@@ -6,7 +6,6 @@
 //! yet. Modules that touch the security boundary are flagged below; the
 //! rest will be revisited once the directory exposes container-Space
 //! rows distinctly.
-//
 // TODO(realm-rework): split this module into `realms` (security
 // boundary: policy_editor, signing_keys, anchorer, multisig,
 // admin_list, federation_status, covered_frontier, consent,

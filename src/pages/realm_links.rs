@@ -5,7 +5,6 @@
 //! Each row is a card with a chip for the `link_kind`
 //! (`governed_by`, `discoverable_from`, `mirror_of`, …) and the
 //! target Realm identifier.
-//!
 use dioxus::prelude::*;
 
 use crate::api::realm_links::{self, LinkDirection};

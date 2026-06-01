@@ -8,12 +8,11 @@
 //! The check is intentionally lightweight and conservative:
 //!
 //! 1. Length must be in `1..=128` bytes.
-//! 2. Reject zero-width / bidi control codepoints (U+200B..U+200F,
-//!    U+202A..U+202E, U+2060..U+2069, U+FEFF).
-//! 3. Reject script-mixed labels (ASCII Latin letters mixed with
-//!    non-ASCII letters).
-//! 4. Reject the minimal-confusable subset (a small hand-rolled table of
-//!    Cyrillic/Greek codepoints that visually fold to ASCII letters).
+//! 2. Reject zero-width / bidi control codepoints (U+200B..U+200F, U+202A..U+202E, U+2060..U+2069,
+//!    U+FEFF).
+//! 3. Reject script-mixed labels (ASCII Latin letters mixed with non-ASCII letters).
+//! 4. Reject the minimal-confusable subset (a small hand-rolled table of Cyrillic/Greek codepoints
+//!    that visually fold to ASCII letters).
 //!
 //! `is_safe_handle_localpart` returns `Ok(())` when the input is clean,
 //! `Err(reason)` otherwise. The full UTS#39 skeleton table is the SDK's
@@ -123,9 +122,9 @@ impl HomographReason {
 /// - canonical `localpart:domain[:port]` (returned as-is, lower-cased)
 /// - display sigil `@localpart:domain[:port]` (strip leading `@`)
 /// - interop `acct:localpart@domain[:port]` (rewrite to canonical)
-/// - retired `contrix://domain/users/localpart` URI form (rewrite to
-///   canonical; the admin UI is the last surface where this can leak
-///   in from a copy-paste, so we accept it as input but never emit it)
+/// - retired `contrix://domain/users/localpart` URI form (rewrite to canonical; the admin UI is the
+///   last surface where this can leak in from a copy-paste, so we accept it as input but never emit
+///   it)
 ///
 /// Returns `Err` when the input is empty after trimming or carries
 /// structural noise we can't recover from (e.g. multiple `@`). The
@@ -137,9 +136,8 @@ pub fn normalize_to_canonical(input: &str) -> Result<String, HandleNormalizeErro
         return Err(HandleNormalizeError::Empty);
     }
 
-    // 1. Retired `contrix://` URI form. We accept on input so a stale
-    //    bookmark / copy-paste round-trips into canonical; we never
-    //    emit it on output.
+    // 1. Retired `contrix://` URI form. We accept on input so a stale bookmark / copy-paste
+    //    round-trips into canonical; we never emit it on output.
     if let Some(rest) = trimmed.strip_prefix("contrix://") {
         let mut parts = rest.splitn(3, '/');
         let domain = parts.next().unwrap_or("").to_ascii_lowercase();

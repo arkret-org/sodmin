@@ -7,13 +7,10 @@
 //! deployment for production at a glance.
 //!
 //! The banner is intentionally cheap to render:
-//!   - One `use_resource` shared at the layout level (one HTTP call per
-//!     mount, not per page).
-//!   - Renders nothing while the describe call is in flight or when the
-//!     server reports `development_mode == false` (or omits the field —
-//!     older soland builds predate T1.4).
-//!   - No close button: the banner is the safety signal, hiding it
-//!     defeats the purpose.
+//!   - One `use_resource` shared at the layout level (one HTTP call per mount, not per page).
+//!   - Renders nothing while the describe call is in flight or when the server reports
+//!     `development_mode == false` (or omits the field — older soland builds predate T1.4).
+//!   - No close button: the banner is the safety signal, hiding it defeats the purpose.
 
 use dioxus::prelude::*;
 
