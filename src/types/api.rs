@@ -494,7 +494,7 @@ pub struct AgentProvisionRequest {
 }
 
 /// CXP-0008 — agent provision wizard response (returns the freshly
-/// minted `cx:agent_principal:<uuid7>` id).
+/// issued agent principal DID).
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AgentProvisionResponse {
     #[serde(default)]

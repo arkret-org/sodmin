@@ -510,7 +510,7 @@ fn ProvisionWizard(props: ProvisionWizardProps) -> Element {
                         ValidatedInput {
                             kind: ValidationKind::Did,
                             value: controller_did.read().clone(),
-                            placeholder: "did:cx:abc123…".to_string(),
+                            placeholder: "did:web:alice.example".to_string(),
                             oninput: move |evt: FormEvent| controller_did.set(evt.value()),
                         }
                         Label { class: "text-sm".to_string(), "Display name (optional)" }
@@ -531,7 +531,7 @@ fn ProvisionWizard(props: ProvisionWizardProps) -> Element {
                         }
                         textarea {
                             class: "w-full min-h-[140px] rounded-md border border-input bg-background p-2 font-mono text-xs",
-                            placeholder: "{{\"kind\":\"self_asserted\",\"verification_method\":\"did:cx:agent#key-1\"}}",
+                            placeholder: "{{\"kind\":\"self_asserted\",\"verification_method\":\"did:web:agent.example#key-1\"}}",
                             value: agent_key_proof.read().clone(),
                             oninput: move |evt| agent_key_proof.set(evt.value()),
                         }
