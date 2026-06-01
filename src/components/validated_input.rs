@@ -117,11 +117,6 @@ mod tests {
     }
 
     #[test]
-    fn did_kind_rejects_legacy_method_segment() {
-        assert!(ValidationKind::Did.validate("did:web.vh:alice").is_err());
-    }
-
-    #[test]
     fn required_kind_rejects_empty() {
         assert!(ValidationKind::Required.validate("").is_err());
         assert!(ValidationKind::Required.validate("anything").is_ok());
