@@ -21,8 +21,8 @@ use crate::components::ui::card::*;
 use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::toast::{ToastVariant, show_toast};
 
-/// Absolute hard ceiling on the ephemeral signal window. Mirrors
-/// `contrix_core::model::round23::EPHEMERAL_ABSOLUTE_HARD_CEILING_MS`.
+/// Absolute hard ceiling on the ephemeral signal window. Mirrors the SDK
+/// `EPHEMERAL_ABSOLUTE_HARD_CEILING_MS`.
 pub const EPHEMERAL_HARD_CEILING_MS: u32 = 300_000;
 
 /// Floor for the slider — sub-second windows aren't meaningful for the

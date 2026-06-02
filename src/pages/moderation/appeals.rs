@@ -83,8 +83,8 @@ impl AppealLifecycle {
     }
 }
 
-/// Verdict the reviewing admin can record. Mirrors
-/// `contrix_core::model::round23::AppealVerdict`. Modify requires the
+/// Verdict the reviewing admin can record. Mirrors the SDK
+/// `AppealVerdict`. Modify requires the
 /// admin to also submit a fresh `cx.moderation.decision` event — that
 /// flow is intentionally not wired yet, so the picker greys Modify out
 /// with a tooltip.

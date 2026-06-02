@@ -51,9 +51,9 @@ mod tests {
     fn rejects_pre_round4_method_segments() {
         // Pre-round-4 permitted `.`, `-`, `_`, `:` in the method
         // segment; round 4 wire-breaks this.
-        assert!(!is_valid_did("did:web.vh:alice")); // ROUND4-ALLOW: negative test
-        assert!(!is_valid_did("did:web-vh:alice")); // ROUND4-ALLOW: negative test
-        assert!(!is_valid_did("did:web_vh:alice")); // ROUND4-ALLOW: negative test
+        assert!(!is_valid_did("did:web.vh:alice")); // DRIFT-ALLOW: negative test
+        assert!(!is_valid_did("did:web-vh:alice")); // DRIFT-ALLOW: negative test
+        assert!(!is_valid_did("did:web_vh:alice")); // DRIFT-ALLOW: negative test
         assert!(!is_valid_did("did:Web:alice")); // upper-case rejected.
     }
 
