@@ -16,7 +16,7 @@
 use dioxus::prelude::*;
 
 use crate::components::ui::input::Input;
-use crate::utils::did;
+use crate::utils::security::did;
 
 /// Validation rule enforced by [`ValidatedInput`]. Each variant maps to
 /// a single, well-known invariant — composite rules should layer two

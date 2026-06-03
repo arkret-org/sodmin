@@ -7,7 +7,7 @@
 //! moved.
 //!
 //! The panel is hidden when the deployment hasn't wired
-//! `starid_public_url` (see `utils::session::has_starid()`); the page
+//! `starid_public_url` (see `utils::net::session::has_starid()`); the page
 //! itself stays reachable so a deep link from the docs renders a
 //! "Starid not configured" empty state with a config-docs pointer.
 
@@ -20,7 +20,7 @@ use crate::components::ui::card::*;
 use crate::components::ui::error_banner::ErrorBanner;
 use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
-use crate::utils::error::HttpError;
+use crate::utils::net::error::HttpError;
 use crate::utils::i18n::t;
 
 #[component]

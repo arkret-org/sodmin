@@ -2,9 +2,9 @@ use gloo_net::http::{Headers, Request, RequestBuilder};
 use serde::de::DeserializeOwned;
 use web_sys::RequestCredentials;
 
-use crate::utils::crypto::random_token;
-use crate::utils::error::{AdminErrorEnvelope, HttpError, display_error};
-use crate::utils::perf;
+use crate::utils::security::crypto::random_token;
+use crate::utils::net::error::{AdminErrorEnvelope, HttpError, display_error};
+use crate::utils::net::perf;
 
 pub const HEADER_REQUEST_ID: &str = "X-Cokret-Request-Id";
 pub const HEADER_IDEMPOTENCY_KEY: &str = "Idempotency-Key";
@@ -143,7 +143,7 @@ where
         };
         // P5 — fire-and-forget opt-in telemetry. Internal no-op when
         // disabled / endpoint unset; never blocks the caller.
-        crate::utils::telemetry::report_http_error(url, &err);
+        crate::utils::net::telemetry::report_http_error(url, &err);
         return Err(err);
     }
 

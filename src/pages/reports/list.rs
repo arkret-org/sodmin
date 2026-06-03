@@ -80,7 +80,7 @@ pub fn ReportList() -> Element {
                                             let space_id = report.space_id.clone().unwrap_or_else(|| "-".to_string());
                                             let reporter_id = report.reporter_id.clone().unwrap_or_else(|| "-".to_string());
                                             let reason = report.reason.clone().unwrap_or_else(|| "-".to_string());
-                                            let created_at = crate::utils::date::format_optional_iso_datetime(report.created_at.as_deref());
+                                            let created_at = crate::utils::fmt::date::format_optional_iso_datetime(report.created_at.as_deref());
 
                                             let variant = match status.as_str() {
                                                 "resolved" => BadgeVariant::Success,

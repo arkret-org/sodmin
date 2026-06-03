@@ -15,7 +15,7 @@
 //! See `api::auth` for the write path (login / logout / refresh / OAuth
 //! callback). This module is intentionally read-only and re-exports the
 //! small number of cached read helpers from there so callers can
-//! `use crate::utils::session::*` and get the full picture.
+//! `use crate::utils::net::session::*` and get the full picture.
 
 use crate::utils::storage;
 

@@ -1,6 +1,6 @@
 /// Shape of `/config.json` served by the deployment. Only the coauth
 /// public URL is currently consumed; `pages::login` writes it into
-/// storage on app boot so `utils::session::coauth_public_url` can read
+/// storage on app boot so `utils::net::session::coauth_public_url` can read
 /// it back from any layer.
 #[derive(Debug, Clone, Default, serde::Deserialize)]
 pub struct RuntimeConfig {
@@ -8,7 +8,7 @@ pub struct RuntimeConfig {
     pub coauth_public_url: String,
     /// P5 — optional opt-in browser-error telemetry endpoint. When set
     /// AND the operator has flipped `sodmin_telemetry_opt_in` in
-    /// localStorage, `utils::telemetry::report_http_error` posts
+    /// localStorage, `utils::net::telemetry::report_http_error` posts
     /// structured (no-PII) error events here.
     #[serde(default)]
     pub telemetry_endpoint: String,

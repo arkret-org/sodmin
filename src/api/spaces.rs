@@ -1,6 +1,6 @@
 use crate::api::client::{api_client, build_url};
 use crate::types::*;
-use crate::utils::error::HttpError;
+use crate::utils::net::error::HttpError;
 
 /// Cursor-paginated space list. `search` is a best-effort
 /// `filter[name_or_id]` parameter; backends that haven't shipped it

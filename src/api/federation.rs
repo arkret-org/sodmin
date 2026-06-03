@@ -1,6 +1,6 @@
 use crate::api::client::{api_client, build_url};
 use crate::types::*;
-use crate::utils::error::HttpError;
+use crate::utils::net::error::HttpError;
 
 /// Cursor-paginated federation peer list. `search` is a best-effort
 /// `filter[name_or_id]` (i.e. domain) parameter; backends that haven't

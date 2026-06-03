@@ -11,7 +11,7 @@ use dioxus::prelude::*;
 use crate::api::coauth::{self, CoauthAccountClaim};
 use crate::components::ui::button::{Button, ButtonVariant};
 use crate::components::ui::dialog::ConfirmDialog;
-use crate::utils::error::HttpError;
+use crate::utils::net::error::HttpError;
 
 #[component]
 pub fn ClaimsPanel(

@@ -24,7 +24,7 @@
 
 use std::cell::OnceCell;
 
-use crate::utils::crypto::random_token;
+use crate::utils::security::crypto::random_token;
 
 /// A 16-byte (~22 base64url chars) per-page nonce. Held in a
 /// `thread_local!` so it's stable for the lifetime of a single SPA

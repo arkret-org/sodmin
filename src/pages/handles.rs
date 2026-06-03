@@ -13,9 +13,9 @@
 //! the soland-supplied `canonical_uri` verbatim (which is already
 //! `<localpart>:<domain>` post-R3.1); the operator-facing display
 //! sigil `@<localpart>:<domain>` is rendered alongside via
-//! [`utils::handle::display_sigil`] for readability. Inputs that
+//! [`utils::security::handle::display_sigil`] for readability. Inputs that
 //! arrive as sigil / acct: / retired URI shapes are normalised back
-//! to canonical via [`utils::handle::normalize_to_canonical`] before
+//! to canonical via [`utils::security::handle::normalize_to_canonical`] before
 //! they hit soland.
 
 use dioxus::prelude::*;
@@ -35,8 +35,8 @@ use crate::components::ui::table::*;
 use crate::components::ui::toast::{ToastVariant, show_toast};
 use crate::router::Route;
 use crate::types::HandleReassignRequest;
-use crate::utils::did;
-use crate::utils::handle::display_sigil;
+use crate::utils::security::did;
+use crate::utils::security::handle::display_sigil;
 use crate::utils::i18n::t;
 
 const PAGE_SIZE: u64 = 25;

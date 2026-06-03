@@ -14,7 +14,7 @@
 
 use crate::api::client::api_client;
 use crate::types::covered_frontier::{CoveredFrontierAdvanceResponse, CoveredFrontierSnapshot};
-use crate::utils::error::HttpError;
+use crate::utils::net::error::HttpError;
 
 /// Fetch the covered_frontier snapshot for a Space.
 pub async fn get_covered_frontier(realm_id: &str) -> Result<CoveredFrontierSnapshot, HttpError> {

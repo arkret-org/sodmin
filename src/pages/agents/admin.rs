@@ -3,7 +3,7 @@
 //! Cursor-paginated list of soland-side agent registrations with
 //! per-row Approve / Suspend / Revoke buttons. ConfirmDialog destructive
 //! on Suspend / Revoke. 404-tolerant. Each click emits a structured
-//! client-side audit line via `utils::audit::emit_admin_audit`.
+//! client-side audit line via `utils::net::audit::emit_admin_audit`.
 //!
 //! Round 3 additions: row + header checkboxes for bulk revoke, a shared
 //! `SearchInput` plumbed through `filter[name_or_id]` with a
@@ -30,10 +30,10 @@ use crate::components::ui::pagination::CursorPagination;
 use crate::components::ui::table::*;
 use crate::components::ui::toast::{ToastVariant, show_toast};
 use crate::pages::applets::admin::{RowAction, approval_variant};
-use crate::utils::audit::{AdminAuditOutcome, emit_admin_audit_server};
-use crate::utils::error::format_optional_endpoint_error;
+use crate::utils::net::audit::{AdminAuditOutcome, emit_admin_audit_server};
+use crate::utils::net::error::format_optional_endpoint_error;
 use crate::utils::i18n::t;
-use crate::utils::search::matches_name_or_id;
+use crate::utils::fmt::search::matches_name_or_id;
 
 const PAGE_SIZE: u64 = 25;
 const BULK_CONCURRENCY: usize = 5;

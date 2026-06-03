@@ -4,7 +4,7 @@ use crate::api::auth;
 use crate::components::ui::button::{Button, ButtonVariant};
 use crate::router::Route;
 use crate::utils::i18n::t;
-use crate::utils::session;
+use crate::utils::net::session;
 
 /// Rendered by `AuthenticatedLayout` when the current user is
 /// authenticated but does **not** have homeserver admin privileges.

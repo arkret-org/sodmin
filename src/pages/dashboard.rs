@@ -8,7 +8,7 @@ use crate::components::ui::loading::StatsSkeleton;
 use crate::types::{ServerDescribeResBody, ServerStatusResponse};
 use crate::utils::cache::cached;
 use crate::utils::i18n::t;
-use crate::utils::perf;
+use crate::utils::net::perf;
 
 const CACHE_TTL_MS: f64 = 300_000.0;
 
@@ -36,7 +36,7 @@ pub fn Dashboard() -> Element {
     });
 
     let coauth_describe = use_resource(|| async {
-        if !crate::utils::session::has_coauth() {
+        if !crate::utils::net::session::has_coauth() {
             return None;
         }
         cached("dashboard_coauth_describe", CACHE_TTL_MS, || async {

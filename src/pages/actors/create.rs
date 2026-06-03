@@ -8,7 +8,7 @@ use crate::components::ui::loading::Spinner;
 use crate::components::ui::page_header::PageHeader;
 use crate::router::Route;
 use crate::types::CreateActorRequest;
-use crate::utils::handle::{HomographReason, is_safe_handle_localpart, normalize_to_canonical};
+use crate::utils::security::handle::{HomographReason, is_safe_handle_localpart, normalize_to_canonical};
 use crate::utils::i18n::t;
 
 #[component]

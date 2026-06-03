@@ -26,7 +26,7 @@ use crate::components::ui::toast::{ToastVariant, show_toast};
 use crate::types::anchor::{
     AnchorerKind, AnchorerReconfigRequest, AnchorerValue, SubmitMoveResponse,
 };
-use crate::utils::session;
+use crate::utils::net::session;
 
 #[component]
 pub fn AnchorerPage(space_id: String) -> Element {

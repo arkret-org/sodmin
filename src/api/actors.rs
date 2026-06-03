@@ -1,6 +1,6 @@
 use crate::api::client::{api_client, build_url};
 use crate::types::*;
-use crate::utils::error::HttpError;
+use crate::utils::net::error::HttpError;
 
 pub async fn list_actors(
     page: u64,

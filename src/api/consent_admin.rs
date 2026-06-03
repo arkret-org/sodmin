@@ -21,7 +21,7 @@
 
 use crate::api::client::api_client;
 use crate::types::consent::{ConsentGrant, ConsentResolveDecision, ConsentResolveRequest};
-use crate::utils::error::HttpError;
+use crate::utils::net::error::HttpError;
 
 /// Fetch the list of consent grants visible inside the Space.
 ///

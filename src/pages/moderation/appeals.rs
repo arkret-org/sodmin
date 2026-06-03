@@ -34,7 +34,7 @@ use crate::components::ui::empty_state::EmptyState;
 use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::table::*;
 use crate::components::ui::toast::{ToastVariant, show_toast};
-use crate::utils::session;
+use crate::utils::net::session;
 
 /// Wall-clock window after which an appeal auto-closes
 /// (`cx.moderation.appeal.close.auto_closed=true`). Spec: 30 days.

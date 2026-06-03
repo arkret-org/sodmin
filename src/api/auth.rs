@@ -29,8 +29,8 @@ use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::JsFuture;
 use web_sys::{RequestCredentials, RequestMode};
 
-use crate::utils::crypto::{base64url_encode, random_token};
-use crate::utils::error::HttpError;
+use crate::utils::security::crypto::{base64url_encode, random_token};
+use crate::utils::net::error::HttpError;
 use crate::utils::storage;
 
 const OAUTH_CLIENT_ID: &str = "sodmin";
@@ -62,13 +62,13 @@ fn get_or_create_device_id() -> String {
     {
         return device_id;
     }
-    let device_id = crate::utils::password::generate_device_id();
+    let device_id = crate::utils::security::password::generate_device_id();
     storage::set_item(OAUTH_DEVICE_ID_STORAGE_KEY, &device_id);
     device_id
 }
 
 fn coauth_public_base() -> Option<String> {
-    crate::utils::session::coauth_public_url()
+    crate::utils::net::session::coauth_public_url()
         .map(|v| v.trim().trim_end_matches('/').to_string())
         .filter(|v| !v.is_empty())
 }
@@ -327,7 +327,7 @@ fn extract_id_token_nonce(id_token: &str) -> Option<String> {
     if parts.len() < 2 {
         return None;
     }
-    let payload_bytes = crate::utils::crypto::base64url_decode(parts[1])?;
+    let payload_bytes = crate::utils::security::crypto::base64url_decode(parts[1])?;
     let payload: serde_json::Value = serde_json::from_slice(&payload_bytes).ok()?;
     payload.get("nonce")?.as_str().map(String::from)
 }

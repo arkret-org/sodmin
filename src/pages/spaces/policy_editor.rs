@@ -6,7 +6,7 @@
 //! through ConfirmDialog because policy mutations land permanently in
 //! the Anchor frontier.
 
-use coauth_admin_types::space_policy_admin::{SpacePolicy, UpdateSpacePolicyRequest};
+use crate::types::space_policy::{SpacePolicy, UpdateSpacePolicyRequest};
 use dioxus::prelude::*;
 
 use crate::api::space_policy_admin;
@@ -18,7 +18,7 @@ use crate::components::ui::input::{Input, Label};
 use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::toast::{ToastVariant, show_toast};
-use crate::utils::error::format_optional_endpoint_error;
+use crate::utils::net::error::format_optional_endpoint_error;
 use crate::utils::i18n::t;
 
 #[component]

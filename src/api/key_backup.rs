@@ -4,7 +4,7 @@
 
 use crate::api::client::{api_client, build_url};
 use crate::types::{KeyBackupSeries, ListResponse, RecoveryPolicy, RecoveryReceipt};
-use crate::utils::error::HttpError;
+use crate::utils::net::error::HttpError;
 
 /// `GET /_cokret/self/keys/backups?series_id=&backup_class=` — list backup
 /// envelopes grouped by series. Empty `series_id` returns the per-series

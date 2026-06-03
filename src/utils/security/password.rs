@@ -1,9 +1,9 @@
 //! Device-id generation. Backed by the same cryptographically-secure
-//! entropy source (`crate::utils::crypto::random_bytes`) as PKCE / state
+//! entropy source (`crate::utils::security::crypto::random_bytes`) as PKCE / state
 //! / nonce so there is a single random source in the codebase rather
 //! than a second, non-cryptographic `Math.random()` path.
 
-use crate::utils::crypto::random_bytes;
+use crate::utils::security::crypto::random_bytes;
 
 const ALPHANUM: &str = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 

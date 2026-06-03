@@ -1,6 +1,6 @@
 use crate::api::client::{api_client, build_url};
 use crate::types::*;
-use crate::utils::error::HttpError;
+use crate::utils::net::error::HttpError;
 
 fn json_body<T: serde::Serialize>(value: &T) -> Result<String, HttpError> {
     serde_json::to_string(value).map_err(|e| HttpError::message(format!("serialize: {e}")))

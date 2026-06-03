@@ -4,9 +4,9 @@ use crate::components::theme::{get_resolved_theme, set_theme};
 use crate::components::ui::icons::Icon;
 use crate::components::ui::notifications::{self, NOTIFICATIONS, NotificationSeverity};
 use crate::router::Route;
-use crate::utils::date::format_timestamp;
+use crate::utils::fmt::date::format_timestamp;
 use crate::utils::i18n::{Language, current_language, set_language, t};
-use crate::utils::session;
+use crate::utils::net::session;
 
 #[component]
 pub fn AppHeader(collapsed: Signal<bool>, mobile_sidebar_open: Signal<bool>) -> Element {

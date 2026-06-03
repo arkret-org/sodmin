@@ -19,7 +19,7 @@
 //!
 //! Data plumbing is minimal: the page issues the directory call and
 //! re-derives the primary handle locally via the SDK-mirror
-//! [`crate::utils::primary_handle::select_primary_handle`].
+//! [`crate::utils::security::primary_handle::select_primary_handle`].
 
 use chrono::Utc;
 use dioxus::prelude::*;
@@ -34,10 +34,10 @@ use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::table::*;
 use crate::types::{HandleBindingState, HandleClaim, ListHandlesForSubjectRequest};
-use crate::utils::did;
-use crate::utils::handle::display_sigil;
+use crate::utils::security::did;
+use crate::utils::security::handle::display_sigil;
 use crate::utils::i18n::t;
-use crate::utils::primary_handle::{PrimaryHandleSelectInput, select_primary_handle_string};
+use crate::utils::security::primary_handle::{PrimaryHandleSelectInput, select_primary_handle_string};
 
 #[component]
 pub fn HandlesBySubject(subject: Option<String>) -> Element {

@@ -15,7 +15,7 @@ pub fn ServerStatus() -> Element {
     let mut status_data = use_resource(|| async { server::get_server_status().await.ok() });
     let mut admin_describe = use_resource(|| async { server::get_server_describe().await.ok() });
     let mut coauth_describe = use_resource(|| async {
-        if !crate::utils::session::has_coauth() {
+        if !crate::utils::net::session::has_coauth() {
             return None;
         }
         server::get_coauth_server_describe().await.ok()
@@ -25,7 +25,7 @@ pub fn ServerStatus() -> Element {
     let status = status_data.read().clone().flatten();
     let admin_d = admin_describe.read().clone().flatten();
     let coauth_d = coauth_describe.read().clone().flatten();
-    let coauth_configured = crate::utils::session::has_coauth();
+    let coauth_configured = crate::utils::net::session::has_coauth();
     let status_resolved = status_data.read().is_some();
 
     rsx! {

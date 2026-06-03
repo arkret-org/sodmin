@@ -11,7 +11,7 @@ use crate::components::ui::pagination::Pagination;
 use crate::components::ui::table::*;
 use crate::components::ui::toast::{ToastVariant, show_toast};
 use crate::router::Route;
-use crate::utils::csv::{build_csv, export_to_csv};
+use crate::utils::fmt::csv::{build_csv, export_to_csv};
 use crate::utils::i18n::t;
 
 const PAGE_SIZE: u64 = 25;

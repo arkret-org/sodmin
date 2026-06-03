@@ -5,7 +5,7 @@
 //! destructive on Suspend / Revoke but not on Approve. 404-tolerant —
 //! surfaces "endpoint not yet wired" toast when soland hasn't shipped
 //! the surface yet. Each click emits a structured client-side audit
-//! line via `utils::audit::emit_admin_audit` (in addition to the
+//! line via `utils::net::audit::emit_admin_audit` (in addition to the
 //! soland-side audit row that the HTTP endpoint writes itself).
 
 use coauth_admin_types::applets_admin::{ApprovalActionRequest, ApprovalStatus};
@@ -22,8 +22,8 @@ use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::table::*;
 use crate::components::ui::toast::{ToastVariant, show_toast};
-use crate::utils::audit::{AdminAuditOutcome, emit_admin_audit};
-use crate::utils::error::format_optional_endpoint_error;
+use crate::utils::net::audit::{AdminAuditOutcome, emit_admin_audit};
+use crate::utils::net::error::format_optional_endpoint_error;
 use crate::utils::i18n::t;
 
 const PAGE_SIZE: u64 = 25;

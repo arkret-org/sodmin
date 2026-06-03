@@ -24,7 +24,7 @@ use crate::types::anchor::{
     AnchorDagSnapshot, AnchorerReconfigRequest, AnchorerValue, BottomEntry, BottomRepairRequest,
     BottomRepairStrategy, CompactionRequest, SignAnchorResponse, SubmitMoveResponse,
 };
-use crate::utils::error::HttpError;
+use crate::utils::net::error::HttpError;
 
 /// Fetch the current anchorer cell value for a Space.
 ///

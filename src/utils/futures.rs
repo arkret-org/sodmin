@@ -41,7 +41,7 @@ where
     F: Future<Output = T>,
 {
     type Output = Vec<T>;
-    fn poll(self: Pin<&mut Self>, ck: &mut Context<'_>) -> Poll<Self::Output> {
+    fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
         let this = self.get_mut();
         let mut all_done = true;
         for slot in this.slots.iter_mut() {

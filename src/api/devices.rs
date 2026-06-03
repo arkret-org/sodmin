@@ -1,12 +1,12 @@
 use crate::api::client::{api_client, build_url};
 use crate::types::*;
-use crate::utils::error::HttpError;
+use crate::utils::net::error::HttpError;
 
 /// Cursor-paginated device list. `cursor` is the opaque token returned
 /// by the previous page (or `None` for the first page). `search` is a
 /// best-effort `name_or_id` filter — backends that don't yet plumb it
 /// just return the unfiltered page and the page does its own
-/// client-side filter (`utils::search::matches_name_or_id`).
+/// client-side filter (`utils::fmt::search::matches_name_or_id`).
 pub async fn list_devices(
     cursor: Option<&str>,
     limit: u64,

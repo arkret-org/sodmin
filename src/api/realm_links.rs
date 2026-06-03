@@ -14,7 +14,7 @@
 
 use crate::api::client::api_client;
 use crate::types::{ListResponse, RealmLinkRow};
-use crate::utils::error::HttpError;
+use crate::utils::net::error::HttpError;
 
 /// Direction of the link list query. The wire surface accepts
 /// `outbound` (this Realm → others) or `inbound` (others → this Realm).

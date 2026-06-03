@@ -25,7 +25,7 @@ use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::table::*;
 use crate::components::ui::toast::{ToastVariant, show_toast};
 use crate::types::components::{ComponentCriticality, ComponentImplStatus};
-use crate::utils::error::format_optional_endpoint_error;
+use crate::utils::net::error::format_optional_endpoint_error;
 
 #[component]
 pub fn ComponentsPage() -> Element {

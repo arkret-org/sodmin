@@ -4,7 +4,7 @@
 //! discovery directory) with per-row Approve / Reject buttons.
 //! ConfirmDialog destructive on Reject. 404-tolerant. Each click emits
 //! a structured client-side audit line via
-//! `utils::audit::emit_admin_audit`.
+//! `utils::net::audit::emit_admin_audit`.
 //!
 //! Note: directory entries use Approve/Reject (publish/delist) rather
 //! than the Suspend lifecycle that applets and agents have — a Pending
@@ -25,8 +25,8 @@ use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::table::*;
 use crate::components::ui::toast::{ToastVariant, show_toast};
 use crate::pages::applets::admin::approval_variant;
-use crate::utils::audit::{AdminAuditOutcome, emit_admin_audit};
-use crate::utils::error::format_optional_endpoint_error;
+use crate::utils::net::audit::{AdminAuditOutcome, emit_admin_audit};
+use crate::utils::net::error::format_optional_endpoint_error;
 use crate::utils::i18n::t;
 
 const PAGE_SIZE: u64 = 25;

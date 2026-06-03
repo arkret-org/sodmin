@@ -1,7 +1,7 @@
 use dioxus::prelude::*;
 
 use crate::utils::i18n::t;
-use crate::utils::telemetry;
+use crate::utils::net::telemetry;
 
 /// Shared inline error banner used on list/detail pages.
 ///
@@ -24,7 +24,7 @@ pub fn ErrorBanner(
     let has_meta = errcode.is_some() || request_id.is_some() || retry_after_ms.is_some();
     // R3 P1 backfill (ENG-5) — fire-and-forget telemetry ping when the
     // banner mounts with a known wire errcode. No-op when telemetry is
-    // disabled / the user has not opted in (see `utils::telemetry`).
+    // disabled / the user has not opted in (see `utils::net::telemetry`).
     {
         let telemetry_code = errcode.clone();
         use_effect(move || {

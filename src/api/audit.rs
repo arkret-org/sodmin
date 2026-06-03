@@ -1,6 +1,6 @@
 use crate::api::client::{api_client, build_url};
 use crate::types::*;
-use crate::utils::error::HttpError;
+use crate::utils::net::error::HttpError;
 
 /// Multi-dimensional filter for `/_soland/admin/audit` queries. Empty fields
 /// are dropped before encoding so the wire form only carries what the

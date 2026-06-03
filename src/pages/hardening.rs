@@ -20,7 +20,7 @@ use crate::components::ui::button::{Button, ButtonVariant};
 use crate::components::ui::card::*;
 use crate::components::ui::page_header::PageHeader;
 use crate::types::api::HardeningStatus;
-use crate::utils::error::HttpError;
+use crate::utils::net::error::HttpError;
 
 /// Build a sentinel `HttpError` for the "service not configured"
 /// branch of the resource future. The dashboard treats this as a
@@ -52,13 +52,13 @@ struct ServiceHardening {
 pub fn HardeningDashboard() -> Element {
     let mut soland_health = use_resource(|| async { server::get_soland_health().await });
     let mut coauth_health = use_resource(|| async {
-        if !crate::utils::session::has_coauth() {
+        if !crate::utils::net::session::has_coauth() {
             return Err(http_skip("coauth not configured"));
         }
         server::get_coauth_health().await
     });
     let mut starid_health = use_resource(|| async {
-        if !crate::utils::session::has_starid() {
+        if !crate::utils::net::session::has_starid() {
             return Err(http_skip("starid not configured"));
         }
         server::get_starid_health().await
@@ -81,7 +81,7 @@ pub fn HardeningDashboard() -> Element {
                 "Auth (coauth)",
                 "OAuth/session issuer + admin identity provider.",
                 coauth.as_ref(),
-                if crate::utils::session::has_coauth() {
+                if crate::utils::net::session::has_coauth() {
                     None
                 } else {
                     Some("coauth public URL is not configured.".to_owned())
@@ -92,7 +92,7 @@ pub fn HardeningDashboard() -> Element {
                 "Identity (starid)",
                 "did:webvh writer + resolver.",
                 starid.as_ref(),
-                if crate::utils::session::has_starid() {
+                if crate::utils::net::session::has_starid() {
                     None
                 } else {
                     Some("starid public URL is not configured.".to_owned())
@@ -183,7 +183,7 @@ fn service_from_health(
     slug: &'static str,
     label: &'static str,
     description: &'static str,
-    fetched: Option<&Result<server::HealthEnvelope, crate::utils::error::HttpError>>,
+    fetched: Option<&Result<server::HealthEnvelope, crate::utils::net::error::HttpError>>,
     not_configured_label: Option<String>,
 ) -> ServiceHardening {
     let (hardening, unreachable) = match (fetched, &not_configured_label) {

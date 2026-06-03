@@ -24,7 +24,7 @@ use dioxus::prelude::*;
 use crate::components::ui::badge::{Badge, BadgeVariant};
 use crate::components::ui::button::{Button, ButtonSize, ButtonVariant};
 use crate::components::ui::card::*;
-use crate::utils::date::format_optional_iso_datetime;
+use crate::utils::fmt::date::format_optional_iso_datetime;
 
 /// Stable identifier for each of the seven local fanout domains.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

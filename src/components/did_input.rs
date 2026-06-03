@@ -8,13 +8,13 @@
 //!
 //! Use this in any admin form that needs a DID — handle reassignment,
 //! capability grants, DID-binding edits, etc. The parent is responsible
-//! for blocking submit when [`crate::utils::did::is_valid_did`] returns
+//! for blocking submit when [`crate::utils::security::did::is_valid_did`] returns
 //! `false` for the trimmed value.
 
 use dioxus::prelude::*;
 
 use crate::components::ui::input::Input;
-use crate::utils::did;
+use crate::utils::security::did;
 use crate::utils::i18n::t;
 
 #[component]

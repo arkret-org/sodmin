@@ -3,7 +3,7 @@ use dioxus::prelude::*;
 use crate::components::ui::icons::Icon;
 use crate::router::Route;
 use crate::utils::i18n::t;
-use crate::utils::session::{self, bridge, scope};
+use crate::utils::net::session::{self, bridge, scope};
 
 struct NavItem {
     title: String,

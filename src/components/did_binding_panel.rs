@@ -16,7 +16,7 @@ use crate::components::ui::button::{Button, ButtonVariant};
 use crate::components::ui::dialog::ConfirmDialog;
 use crate::components::ui::input::Label;
 use crate::components::validated_input::{ValidatedInput, ValidationKind};
-use crate::utils::error::HttpError;
+use crate::utils::net::error::HttpError;
 
 #[component]
 pub fn DidBindingPanel(
@@ -94,7 +94,7 @@ pub fn DidBindingPanel(
                 div { class: "space-y-2",
                     Label { r#for: "new-did".to_string(), "DID" }
                     // P5 — ValidatedInput for the round-4 DID grammar,
-                    // identical regex to `crate::utils::did::is_valid_did`.
+                    // identical regex to `crate::utils::security::did::is_valid_did`.
                     ValidatedInput {
                         kind: ValidationKind::Did,
                         placeholder: "did:web:example.org:account:alice".to_string(),

@@ -11,7 +11,7 @@ use coauth_admin_types::federation_admin::FederationStatusRow;
 use serde::{Deserialize, Serialize};
 
 use crate::api::client::{api_client, build_url};
-use crate::utils::error::HttpError;
+use crate::utils::net::error::HttpError;
 
 /// Top-level envelope returned by `GET /_soland/admin/federation/status`.
 /// soland MAY return either a flat list or a wrapped envelope; the API

@@ -205,7 +205,7 @@ pub struct SpaceMember {
     /// evidence. Each claim's `subject` MUST equal this entry's
     /// `subject_id`. Disclosure-gated on `subject_id`. The SPA runs
     /// §3.2.1 primary-handle selection over this set to derive the
-    /// display handle (see [`crate::utils::primary_handle`]).
+    /// display handle (see [`crate::utils::security::primary_handle`]).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub handle_claims: Option<Vec<HandleClaim>>,
     /// R3.2 (ROST-1) — `true` when `handle_claims` was truncated / only
@@ -215,7 +215,7 @@ pub struct SpaceMember {
     /// SPA-local derived display handle. R3.2: this is NOT a wire field —
     /// the roster MUST NOT carry a handle string directly. The SPA
     /// populates it by running §3.2.1 selection over `handle_claims`
-    /// (`crate::utils::primary_handle::select_primary_handle`). `None`
+    /// (`crate::utils::security::primary_handle::select_primary_handle`). `None`
     /// means selection has not run / no verified candidate yet.
     /// TODO(R3.2.1): wire the selection pass at projection-join time.
     #[serde(skip)]
@@ -1158,7 +1158,7 @@ pub struct ListHandlesForSubjectResponse {
     pub claims: Vec<HandleClaim>,
     /// Server-side §3.2.1 primary-handle selection result, when the
     /// directory ran it. The SPA MAY re-derive locally via
-    /// [`crate::utils::primary_handle::select_primary_handle`].
+    /// [`crate::utils::security::primary_handle::select_primary_handle`].
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub primary_handle: Option<String>,
     #[serde(default)]
@@ -1482,7 +1482,7 @@ pub struct RealmIdentityAuditRow {
     pub actor_id: String,
     /// R3.2 (UI-SOD-3) — SPA-derived primary handle. NOT a wire field:
     /// the operator view runs §3.2.1 selection over `handle_claims` to
-    /// fill this (`crate::utils::primary_handle::select_primary_handle`).
+    /// fill this (`crate::utils::security::primary_handle::select_primary_handle`).
     /// `None` means no verified candidate / selection not yet run.
     #[serde(skip)]
     pub primary_handle: Option<String>,

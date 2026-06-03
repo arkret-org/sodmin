@@ -1,6 +1,6 @@
 use crate::api::client::{api_client, build_url};
 use crate::types::*;
-use crate::utils::error::HttpError;
+use crate::utils::net::error::HttpError;
 
 pub async fn get_media_statistics() -> Result<MediaStatistics, HttpError> {
     api_client("/_soland/admin/media/statistics", "GET", None).await

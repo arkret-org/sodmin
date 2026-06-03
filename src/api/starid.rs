@@ -7,8 +7,8 @@
 
 use crate::api::client::api_client;
 pub use crate::api::generated::starid::StaridDescribe;
-use crate::utils::error::HttpError;
-use crate::utils::session;
+use crate::utils::net::error::HttpError;
+use crate::utils::net::session;
 
 /// Raised when the operator has not configured `starid_public_url`. The
 /// page surfaces this as a "Starid not configured" empty-state instead

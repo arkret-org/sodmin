@@ -14,7 +14,7 @@
 
 use crate::api::client::api_client;
 use crate::types::{ListHandlesForSubjectRequest, ListHandlesForSubjectResponse};
-use crate::utils::error::HttpError;
+use crate::utils::net::error::HttpError;
 
 /// `POST /_cokret/find/directory/list-handles-for-subject`.
 pub const LIST_HANDLES_FOR_SUBJECT: &str = "/_cokret/find/directory/list-handles-for-subject";

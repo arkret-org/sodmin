@@ -26,7 +26,7 @@
 
 use serde::Serialize;
 
-use crate::utils::error::HttpError;
+use crate::utils::net::error::HttpError;
 use crate::utils::storage;
 
 /// localStorage key for the operator opt-in flag.

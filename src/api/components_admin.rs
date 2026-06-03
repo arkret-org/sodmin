@@ -13,7 +13,7 @@
 
 use crate::api::client::{api_client, build_url};
 use crate::types::components::{ComponentRefreshResponse, ComponentRegistryEntry};
-use crate::utils::error::HttpError;
+use crate::utils::net::error::HttpError;
 
 /// Fetch the full server-wide component registry. soland walks its
 /// reducer registry and returns one entry per component_type the server

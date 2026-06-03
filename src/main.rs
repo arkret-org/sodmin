@@ -31,7 +31,7 @@ fn main() {
 }
 
 /// Install the `<meta http-equiv="Content-Security-Policy">` tag built
-/// from `utils::csp::csp_meta_value()`. Idempotent: if the tag has
+/// from `utils::security::csp::csp_meta_value()`. Idempotent: if the tag has
 /// already been emitted (e.g. by the server-rendered shell) we leave
 /// it alone — never overwrite a stricter policy.
 fn install_csp_meta() {
@@ -55,7 +55,7 @@ fn install_csp_meta() {
         return;
     };
     let _ = meta.set_attribute("http-equiv", "Content-Security-Policy");
-    let _ = meta.set_attribute("content", &utils::csp::csp_meta_value());
+    let _ = meta.set_attribute("content", &utils::security::csp::csp_meta_value());
     let _ = head.append_child(&meta);
 }
 

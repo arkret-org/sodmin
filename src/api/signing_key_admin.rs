@@ -15,7 +15,7 @@
 
 use crate::api::client::api_client;
 use crate::types::signing_key::{RotateSigningKeyResponse, SigningKeyDescribe};
-use crate::utils::error::HttpError;
+use crate::utils::net::error::HttpError;
 
 /// Fetch the current AnchorerWorker signing-key describe view.
 pub async fn get_signing_key(realm_id: &str) -> Result<SigningKeyDescribe, HttpError> {

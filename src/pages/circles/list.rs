@@ -32,7 +32,7 @@ pub fn CircleList() -> Element {
         let realm = realm_snapshot.clone();
         async move {
             if realm.trim().is_empty() {
-                Ok::<_, crate::utils::error::HttpError>(
+                Ok::<_, crate::utils::net::error::HttpError>(
                     crate::types::circles::ListCirclesResponse::default(),
                 )
             } else {

@@ -17,7 +17,7 @@ use crate::api::client::api_client;
 use crate::types::multisig::{
     PendingMultisigAnchor, SubmitPartialSignatureRequest, SubmitPartialSignatureResponse,
 };
-use crate::utils::error::HttpError;
+use crate::utils::net::error::HttpError;
 
 /// List Anchors awaiting partial signatures inside a Space.
 pub async fn list_pending(realm_id: &str) -> Result<Vec<PendingMultisigAnchor>, HttpError> {

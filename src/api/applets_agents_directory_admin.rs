@@ -9,7 +9,7 @@ use coauth_admin_types::applets_admin::{
 };
 
 use crate::api::client::{api_client, build_url};
-use crate::utils::error::HttpError;
+use crate::utils::net::error::HttpError;
 
 #[derive(Debug, Clone, Default)]
 pub struct AppletAdminPage {

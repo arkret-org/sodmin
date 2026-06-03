@@ -55,7 +55,7 @@ struct AttestationRow {
 }
 
 async fn list_attestation_rows()
--> Result<ListResponse<AttestationRow>, crate::utils::error::HttpError> {
+-> Result<ListResponse<AttestationRow>, crate::utils::net::error::HttpError> {
     crate::api::client::api_client("/_soland/admin/audit/attestation-evidence", "GET", None).await
 }
 

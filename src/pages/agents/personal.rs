@@ -634,5 +634,5 @@ fn ProvisionWizard(props: ProvisionWizardProps) -> Element {
 /// (`^did:[a-z0-9]+:[^\s]+$`). Final write paths go through the
 /// SDK's identifier parser which fails-closed on legacy forms.
 fn is_valid_did(s: &str) -> bool {
-    crate::utils::did::is_valid_did(s.trim())
+    crate::utils::security::did::is_valid_did(s.trim())
 }

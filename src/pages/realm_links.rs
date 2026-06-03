@@ -16,7 +16,7 @@ use crate::components::ui::error_banner::ErrorBanner;
 use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
 use crate::types::RealmLinkRow;
-use crate::utils::date::format_optional_iso_datetime;
+use crate::utils::fmt::date::format_optional_iso_datetime;
 use crate::utils::i18n::t;
 
 /// Map a free-form `link_kind` to the badge variant used to colour the
@@ -113,7 +113,7 @@ pub fn RealmLinks(realm_id: String) -> Element {
 }
 
 fn render_link_list<F>(
-    data: &Option<Result<crate::types::ListResponse<RealmLinkRow>, crate::utils::error::HttpError>>,
+    data: &Option<Result<crate::types::ListResponse<RealmLinkRow>, crate::utils::net::error::HttpError>>,
     retry: F,
     outbound: bool,
 ) -> Element
@@ -181,10 +181,10 @@ fn render_link_row(row: &RealmLinkRow, outbound: bool) -> Element {
 fn render_link_graph(
     realm_id: &str,
     outbound: &Option<
-        Result<crate::types::ListResponse<RealmLinkRow>, crate::utils::error::HttpError>,
+        Result<crate::types::ListResponse<RealmLinkRow>, crate::utils::net::error::HttpError>,
     >,
     inbound: &Option<
-        Result<crate::types::ListResponse<RealmLinkRow>, crate::utils::error::HttpError>,
+        Result<crate::types::ListResponse<RealmLinkRow>, crate::utils::net::error::HttpError>,
     >,
 ) -> Element {
     let outbound_rows = match outbound {

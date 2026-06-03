@@ -13,7 +13,7 @@
 
 use crate::api::client::api_client;
 use crate::types::*;
-use crate::utils::error::HttpError;
+use crate::utils::net::error::HttpError;
 
 pub async fn get_delivery_binding_policy(
     realm_id: &str,

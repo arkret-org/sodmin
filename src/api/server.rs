@@ -1,7 +1,7 @@
 use crate::api::client::api_client;
 use crate::api::openapi_contract::soland as soland_paths;
 use crate::types::*;
-use crate::utils::error::HttpError;
+use crate::utils::net::error::HttpError;
 
 pub async fn get_server_info() -> Result<ServerInfo, HttpError> {
     api_client(soland_paths::SERVER_INFO, "GET", None).await
@@ -12,7 +12,7 @@ pub async fn get_server_describe() -> Result<ServerDescribeResBody, HttpError> {
 }
 
 pub async fn get_coauth_server_describe() -> Result<ServerDescribeResBody, HttpError> {
-    let url = crate::utils::session::coauth_public_url()
+    let url = crate::utils::net::session::coauth_public_url()
         .map(|base| format!("{}/_cokret/describe", base.trim_end_matches('/')))
         .unwrap_or_else(|| "/_cokret/describe".to_string());
     api_client(&url, "GET", None).await
@@ -140,7 +140,7 @@ pub async fn get_soland_health() -> Result<HealthEnvelope, HttpError> {
 
 /// T8.3 — fetch coauth `/health` against the configured upstream URL.
 pub async fn get_coauth_health() -> Result<HealthEnvelope, HttpError> {
-    let url = crate::utils::session::coauth_public_url()
+    let url = crate::utils::net::session::coauth_public_url()
         .map(|base| format!("{}/health", base.trim_end_matches('/')))
         .unwrap_or_else(|| "/health".to_string());
     api_client(&url, "GET", None).await
@@ -148,7 +148,7 @@ pub async fn get_coauth_health() -> Result<HealthEnvelope, HttpError> {
 
 /// T8.3 — fetch starid `/health` against the configured upstream URL.
 pub async fn get_starid_health() -> Result<HealthEnvelope, HttpError> {
-    let url = crate::utils::session::starid_public_url()
+    let url = crate::utils::net::session::starid_public_url()
         .map(|base| format!("{}/health", base.trim_end_matches('/')))
         .unwrap_or_else(|| "/health".to_string());
     api_client(&url, "GET", None).await

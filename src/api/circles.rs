@@ -15,14 +15,14 @@
 //! The reducer surfaces canonical CXP-0007 reason codes (e.g.
 //! `circle_realm_mismatch`, `circle_member_must_be_realm_member`,
 //! `circle_not_active`) via the standard `AppError.code` field, which the
-//! admin UI maps to localised strings in `utils::error`.
+//! admin UI maps to localised strings in `utils::net::error`.
 
 use crate::api::client::{api_client, build_url};
 use crate::types::circles::{
     Circle, CircleMemberRequest, CircleMembershipResponse, CircleScopeRotateResponse,
     CreateCircleRequest, ListCirclesResponse,
 };
-use crate::utils::error::HttpError;
+use crate::utils::net::error::HttpError;
 
 /// List Circles inside a Realm. Requires `ck.circle.audit` to enumerate
 /// outside the caller's own membership; soland enforces the visibility

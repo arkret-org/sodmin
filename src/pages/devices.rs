@@ -14,9 +14,9 @@ use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::pagination::CursorPagination;
 use crate::components::ui::table::*;
 use crate::components::ui::toast::{ToastVariant, show_toast};
-use crate::utils::csv::{build_csv, export_to_csv};
+use crate::utils::fmt::csv::{build_csv, export_to_csv};
 use crate::utils::i18n::t;
-use crate::utils::search::matches_name_or_id;
+use crate::utils::fmt::search::matches_name_or_id;
 
 const PAGE_SIZE: u64 = 25;
 const BULK_CONCURRENCY: usize = 5;
