@@ -3,7 +3,7 @@
 //!
 //! Read from `GET /_soland/admin/spaces/{id}/mls/covered-frontier` —
 //! soland projects the lattice or-set state for the
-//! `ck:cell:cx.component.mls.covered_frontier.v1:<realm_id>` cell. The
+//! `ck:cell:ck.component.mls.covered_frontier.v1:<realm_id>` cell. The
 //! cell records which governance Anchors / Moves the MLS group has
 //! acknowledged. We compare the current governance frontier against the
 //! covered set to compute a *lag count* — how many governance Moves the

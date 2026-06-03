@@ -63,7 +63,7 @@ pub fn RelaxedWindowPage() -> Element {
         div { class: "space-y-6",
             PageHeader {
                 title: "Relaxed ephemeral window".to_string(),
-                description: "Soft per-deployment cap on `expires_at - sent_at` for `cx.presence` / `cx.typing` / `ck.receipt.read` / `ck.call.signal`. Round R2/R3 T09.".to_string(),
+                description: "Soft per-deployment cap on `expires_at - sent_at` for `ck.presence` / `ck.typing` / `ck.receipt.read` / `ck.call.signal`. Round R2/R3 T09.".to_string(),
             }
 
             Card {

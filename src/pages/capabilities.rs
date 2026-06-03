@@ -29,12 +29,12 @@ pub fn CapabilityList() -> Element {
     let mut grant_loading = use_signal(|| false);
 
     // P3A.4 — CXP-0007 Circle capability picker. Surfaces the six
-    // cx.circle.* actions as a quick-select and exposes the
+    // ck.circle.* actions as a quick-select and exposes the
     // `allowed_circle_ids` constraint editor (CSV of ck:circle:...
     // ids). For actions whose `required_constraints` include
     // `allowed_circle_ids` (manage / member.manage / member.add.others)
     // the CSV is non-optional — soland's reducer rejects unconstrained
-    // grants for those actions with `cx.error.validation`.
+    // grants for those actions with `ck.error.validation`.
     let mut circle_allowed_ids = use_signal(String::new);
 
     // T6.2 §5 — constraint editor signals.
@@ -213,7 +213,7 @@ pub fn CapabilityList() -> Element {
                                 }
                             }
                             // P3A.4 — Quick-select for the 6 CXP-0007
-                            // cx.circle.* actions. Selecting one
+                            // ck.circle.* actions. Selecting one
                             // populates the capability_name field.
                             div { class: "space-y-1",
                                 Label { r#for: "cap-circle-quick".to_string(),

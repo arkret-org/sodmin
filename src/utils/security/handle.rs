@@ -27,7 +27,7 @@
 //! display sigil `@<localpart>:<domain>` to operators, but MUST
 //! normalize back to the canonical bytes via
 //! [`normalize_to_canonical`] before submitting to soland so soland's
-//! `cx.handle.*` reducers see the wire shape they verify against.
+//! `ck.handle.*` reducers see the wire shape they verify against.
 //!
 //! See `cokret_core::model::handle::Handle` for the SDK-side parser /
 //! formatter; this module is the admin-SPA mirror.
@@ -130,7 +130,7 @@ pub fn normalize_to_canonical(input: &str) -> Result<String, HandleNormalizeErro
     // admin-UI-only convenience the SDK parser does not perform, but the
     // authoritative localpart / domain / port validation + canonical
     // lowercasing is delegated to the SDK `Handle` parser so the admin UI
-    // accepts exactly what soland's `cx.handle.*` reducers verify.
+    // accepts exactly what soland's `ck.handle.*` reducers verify.
 
     // 1. Retired `cokret://` URI form. We accept on input so a stale bookmark / copy-paste
     //    round-trips into canonical; we never emit it on output.

@@ -75,7 +75,7 @@ UI "hiding" of buttons and links is a usability affordance, **never** a
 security boundary. The backend (soland for admin endpoints, coauth for
 auth/identity endpoints) MUST enforce capability checks on every
 admin-scoped route, and MUST reject disallowed actions with
-`cx.error.capability_denied`. If a sodmin operator forges a request
+`ck.error.capability_denied`. If a sodmin operator forges a request
 through DevTools or curl with a stale token, the server-side RBAC layer
 is the one that says no.
 
@@ -90,7 +90,7 @@ action.
 
 Sodmin's `/circles/*` surfaces (P3A.3) call into soland's `/_cokret/self/circles/*`
 admin layer. Before an operator can use those pages, coauth must have
-issued the matching `cx.circle.*` capability grants to the operator's
+issued the matching `ck.circle.*` capability grants to the operator's
 admin DID — typically via the Coauth Capabilities admin page at
 `/coauth/capabilities`, or by running the bootstrap migration that
 seeds the six actions:
@@ -103,7 +103,7 @@ seeds the six actions:
 * `ck.circle.audit` (high risk, paired with `audit_pair_required` check)
 
 Without these grants every Circle admin call returns 403 with
-`cx.error.capability_denied`. The sodmin UI surfaces that as
+`ck.error.capability_denied`. The sodmin UI surfaces that as
 "Administrator capability denied" — coauth side fix.
 
 `connect-src` in `docker-entrypoint.sh` MUST include the soland,

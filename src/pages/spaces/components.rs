@@ -2,7 +2,7 @@
 //!
 //! Server-wide component registry view. Reads from
 //! `GET /_soland/admin/components` and renders one row per
-//! `cx.component.*` type with the cell_family it projects into, the
+//! `ck.component.*` type with the cell_family it projects into, the
 //! criticality classification, the spec version pinned by the bundle, the
 //! impl version actually loaded, and an Active/Stub/Disabled status.
 //! When `spec_version` and `impl_version` disagree (or the impl reports
@@ -52,7 +52,7 @@ pub fn ComponentsPage() -> Element {
                             EmptyState {
                                 icon: "package".to_string(),
                                 title: "No components registered".to_string(),
-                                description: "Server returned an empty registry — no cx.component.* types loaded.".to_string(),
+                                description: "Server returned an empty registry — no ck.component.* types loaded.".to_string(),
                             }
                         }
                     } else {

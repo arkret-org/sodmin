@@ -47,12 +47,12 @@ soland P2A + coauth P2B.
   routes added to `build.rs` REQUIRED_SOLAND so a missing route fails
   the wasm build at contract-check time.
 - **Added** Capability grant dialog (P3A.4) gains a quick-select for the
-  six `cx.circle.*` actions and an `allowed_circle_ids` CSV input
+  six `ck.circle.*` actions and an `allowed_circle_ids` CSV input
   that emits the GrantConstraint server-side.
 - **Added** Audit log (P3A.5) renders the new `effective_scope` field
   with a deep link into `/circles/:id` for Circle-scoped events, and
   the filter row grows an event-kind dropdown covering the seven
-  `cx.circle.*` event kinds.
+  `ck.circle.*` event kinds.
 - **Added** Realm classification badges (P3A.6): new
   `RealmClassificationBadge` component renders the Principal
   Control / Collaboration / unknown distinction. The Realm/Space
@@ -85,7 +85,7 @@ See [`../_todos.md`](../_todos.md) for the workstream context.
 - **Added** `/server/trust-domain` config page now also surfaces the
   Round R4 hardening — `trust_domain` immutability on existing Realms,
   cross-domain replay defence, and the warning that rotating the value
-  invalidates outstanding `cx.cross_signing.reset` proofs.
+  invalidates outstanding `ck.cross_signing.reset` proofs.
 - **Added** delivery-binding handover panel rendering the new error codes
   `delivery_binding_stale` / `delivery_binding_handed_over` /
   `historical_only`. Stale entries surface `new_recipient_service_did` and
@@ -105,20 +105,20 @@ See [`../_todos.md`](../_todos.md) for the workstream context.
   pending-state list (`submitted` / `under_review`), per-row 30-day auto-close
   countdown, and a detail panel that surfaces the original decision,
   appellant, evidence references, reviewer assignment trail, and decision
-  history. Verdict picker writes `cx.moderation.appeal.decision` with the
+  history. Verdict picker writes `ck.moderation.appeal.decision` with the
   Uphold / Overturn / Modify options; Overturn is annotated as auto-pairing
-  `cx.moderation.decision.lift` in the same Anchor batch. Separation-of-duties:
+  `ck.moderation.decision.lift` in the same Anchor batch. Separation-of-duties:
   the "Review this appeal" picker is hidden whenever the logged-in admin DID
   equals the issuer of the original moderation decision (mirrors the reducer
   rule "reviewer.did != original_decision.issuer_did").
 - **Deactivation 7-domain fanout panel (T07)** — new
   `components::deactivation_fanout_panel` renders the local-PS fanout result
-  for `cx.identity.deactivate` across the seven cascade domains (`session`,
+  for `ck.identity.deactivate` across the seven cascade domains (`session`,
   `device`, `applet`, `keypackage`, `push`, `to_device`, `capability`). Failed
   rows render red with a per-domain Retry button. Wired into a new
   `/deactivations/review` page and reused on the realm destroy page below.
 - **Realm destroy confirmation dialog (T07)** — new
-  `components::realm_destroy_dialog` gates `cx.realm.destroy` behind five
+  `components::realm_destroy_dialog` gates `ck.realm.destroy` behind five
   explicit normative checkboxes (no further ordinary writes, snapshots /
   backfill / GC will run, no successor Realm, erasure receipt + legal hold
   precedence, 30-day federation fanout window) plus a typed-`DESTROY`
@@ -126,14 +126,14 @@ See [`../_todos.md`](../_todos.md) for the workstream context.
   panel + an erasure-receipt block (local-PS today; cross-PS still
   `TODO(round23-T07)`).
 - **Audit attestation evidence admin (T10)** — new `/audit/attestation` route
-  with an upload form for `cx.schema.attestation_evidence.v1` JSON documents,
+  with an upload form for `ck.schema.attestation_evidence.v1` JSON documents,
   a list of active rows with validity-remaining chips and `chain_verified` /
   `revocation_checked` status badges. Per-cert chain visualization remains
   `TODO(round23-T10)`.
 - **Trust domain deployment setting (T08)** — new `/server/trust-domain` page
   reads/writes the deployment-wide `ck:trust_domain:<scope>` value. Loud red
   warning callout: "Changing trust_domain INVALIDATES every existing
-  `cx.cross_signing.reset` proof". The edit field is locked until the admin
+  `ck.cross_signing.reset` proof". The edit field is locked until the admin
   explicitly re-confirms via a checkbox, and validates against the
   `ck:trust_domain:<lowercase-scope>` grammar (≤128 chars after the prefix)
   before submission.

@@ -1,6 +1,6 @@
 //! HTTP client for the soland Space Policy editor
 //!
-//! - `GET  /_soland/admin/spaces/{id}/policy` — current `cx.component.space.policy.v1` value.
+//! - `GET  /_soland/admin/spaces/{id}/policy` — current `ck.component.space.policy.v1` value.
 //! - `POST /_soland/admin/spaces/{id}/policy` — write a new policy. soland wraps the body into a
 //!   cas-register Move.
 

@@ -112,7 +112,7 @@ pub async fn ensure_sidecar_thread(id: &str) -> Result<serde_json::Value, HttpEr
 
 /// coauth `POST /_cokret/self/agents/{id}/accountability-grant` — step 3 of
 /// the provisioning wizard. Issued by coauth (7c9adf7); the request
-/// MUST carry a sodmin/soland Bearer token (`cx.agent.manage` scope).
+/// MUST carry a sodmin/soland Bearer token (`ck.agent.manage` scope).
 pub async fn issue_accountability_grant(
     agent_id: &str,
     req: &AccountabilityGrantRequest,

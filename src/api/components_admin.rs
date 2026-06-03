@@ -3,7 +3,7 @@
 //!
 //! Endpoints:
 //!
-//! - `GET /_soland/admin/components` — server-wide list of registered `cx.component.*` types, their
+//! - `GET /_soland/admin/components` — server-wide list of registered `ck.component.*` types, their
 //!   cell_family, criticality, pinned spec version and loaded impl version. The page compares spec
 //!   vs impl and surfaces a drift indicator on each row.
 //! - `POST /_soland/admin/components/{type}/refresh` — admin override for drifted components: ask

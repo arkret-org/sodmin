@@ -38,7 +38,7 @@ mod tests {
             "supported_methods": ["did:webvh", "did:web"],
             "supported_receipts": ["starid-local-sha256-v1"],
             "protocol_version": "1.0",
-            "profiles": ["cx.identity.webvh.v1", "cx.identity.registry.v1"],
+            "profiles": ["ck.identity.webvh.v1", "ck.identity.registry.v1"],
             "head_version_id": "42-zABCDEF",
             "witness_count": 7,
             "freshness": "2026-05-09T10:11:12Z"

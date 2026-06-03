@@ -37,7 +37,7 @@ use crate::components::ui::toast::{ToastVariant, show_toast};
 use crate::utils::net::session;
 
 /// Wall-clock window after which an appeal auto-closes
-/// (`cx.moderation.appeal.close.auto_closed=true`). Spec: 30 days.
+/// (`ck.moderation.appeal.close.auto_closed=true`). Spec: 30 days.
 const APPEAL_AUTO_CLOSE_DAYS: i64 = 30;
 
 /// Lifecycle state of an appeal as projected from the four

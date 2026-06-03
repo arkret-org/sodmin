@@ -2,7 +2,7 @@
 //
 // Drives the sodmin SPA against a sodmin dev instance + a soland dev
 // stack that has the `/_cokret/self/circles/*` routes wired (soland P2A.2)
-// and a coauth that ships the six `cx.circle.*` capability actions
+// and a coauth that ships the six `ck.circle.*` capability actions
 // (coauth P2B.2). The test is intentionally narrow: it creates a
 // Circle, adds a legitimate (Realm-member) actor, attempts to add an
 // out-of-Realm actor and asserts the reducer rejection surfaces in
@@ -108,7 +108,7 @@ test.describe("P3A.9 Circle admin happy path", () => {
       page.getByText(/archived|已归档/i),
     ).toBeVisible({ timeout: 10_000 });
 
-    // ── Audit log surfaces the cx.circle.* events ────────────────
+    // ── Audit log surfaces the ck.circle.* events ────────────────
     await page.goto(`${BASE_URL}/audit`);
     // Filter to the ck.circle.create event kind via the new dropdown.
     await page
@@ -137,7 +137,7 @@ test.describe("P3A.9 Circle admin happy path", () => {
     await page.goto(`${BASE_URL}/capabilities`);
     await page.getByRole("button", { name: /grant|授予/i }).click();
     await page.getByLabel(/grantee/i).fill(grantee);
-    // Use the cx.circle.* quick-select dropdown shipped in P3A.4.
+    // Use the ck.circle.* quick-select dropdown shipped in P3A.4.
     await page
       .locator("select#cap-circle-quick")
       .selectOption("ck.circle.member.add");

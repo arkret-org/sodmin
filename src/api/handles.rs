@@ -2,7 +2,7 @@
 //!
 //! Endpoints (all 404-tolerant — older servers may not yet expose them):
 //!
-//! - `GET /_soland/admin/handles` — paginated list of `cx.handle.*` cells visible to the current
+//! - `GET /_soland/admin/handles` — paginated list of `ck.handle.*` cells visible to the current
 //!   admin scope.
 //! - `GET /_soland/admin/handles/{id}` — single handle row.
 //! - `GET /_soland/admin/handles/{id}/audit` — handle audit trail from the T3.2 audit table.

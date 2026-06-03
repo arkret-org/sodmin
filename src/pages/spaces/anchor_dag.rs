@@ -2,7 +2,7 @@
 //!
 //! Visualises the latest Anchor leaves, the current frontier, the latest
 //! `state_root` and exposes a "trigger compaction" button that POSTs (today,
-//! stub-POSTs) to soland's `cx.admin.anchors.sign` endpoint
+//! stub-POSTs) to soland's `ck.admin.anchors.sign` endpoint
 //! (`POST /_soland/admin/anchors/sign`).
 
 use dioxus::prelude::*;

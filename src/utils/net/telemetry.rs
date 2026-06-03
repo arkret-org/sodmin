@@ -7,7 +7,7 @@
 //! capability denials) are POSTed to that endpoint as a structured
 //! payload — no PII, no message bodies, only:
 //!
-//! * `errcode` (e.g. `cx.error.capability_denied`)
+//! * `errcode` (e.g. `ck.error.capability_denied`)
 //! * `status` HTTP status code
 //! * `request_id` from the `X-Cokret-Request-Id` header
 //! * `path` (the request path, query string stripped)
@@ -108,7 +108,7 @@ pub fn report_http_error(path: &str, error: &HttpError) {
         .body
         .as_ref()
         .map(|b| b.errcode.as_str())
-        .unwrap_or("cx.error.http_status");
+        .unwrap_or("ck.error.http_status");
     let event = ErrorEvent {
         errcode,
         status: error.status,

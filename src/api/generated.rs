@@ -236,7 +236,7 @@ mod tests {
             "grant_id": "grant-1",
             "holder_did": "did:web:alice.example",
             "peer_did": "did:web:bob.example",
-            "scope": "cx.cell.write",
+            "scope": "ck.cell.write",
             "status": "active"
         }"#;
         let grant: AuthzCapabilityGrant = serde_json::from_str(raw).unwrap();

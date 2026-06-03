@@ -1183,7 +1183,7 @@ impl ListHandlesForSubjectResponse {
 
 // ── Handle management (T6.2 §2) ──
 
-/// One row in `GET /_soland/admin/handles`. Mirrors the `cx.handle.*` cell
+/// One row in `GET /_soland/admin/handles`. Mirrors the `ck.handle.*` cell
 /// projection — `canonical_uri` is the cell subject, `aliases` is the
 /// projected handle set, `issuer_did` is the principal that signed the
 /// most recent assignment Move.
@@ -1239,7 +1239,7 @@ pub struct HandleReassignRequest {
 
 // ── Delivery binding policy (T6.2 §3) ──
 
-/// Effective `cx.cell.realm.delivery_binding_policy` for a Realm
+/// Effective `ck.cell.realm.delivery_binding_policy` for a Realm
 /// (security boundary; pre realm-rework these were called Spaces).
 /// `allowed_recipient_services` and `binding_source_policy` are
 /// operator-mutable; `policy_frontier` is written by the soland
@@ -1540,7 +1540,7 @@ mod tests {
             "supported_features": ["events.describe", "events.submit"],
             "supported_operations": ["ck.events.submit"],
             "supported_reducer_profiles": ["ck.reducer.v1"],
-            "supported_schema_profiles": ["cx.schema.core.v1"],
+            "supported_schema_profiles": ["ck.schema.core.v1"],
             "limits": {
                 "profile_status": {
                     "conformance": "limited_reference",
@@ -1569,7 +1569,7 @@ mod tests {
             "service_did": "did:web:auth.example.com",
             "service_type": "auth_account_server",
             "protocol_version": "1.0",
-            "supported_profiles": ["cx.profile.auth_account.v1"],
+            "supported_profiles": ["ck.profile.auth_account.v1"],
             "auth_metadata": {
                 "issuer_did": "did:web:auth.example.com#issuer",
                 "oauth_issuer": "https://auth.example.com"

@@ -1,6 +1,6 @@
 //! Round R2/R3 — 7-domain deactivation fanout panel (T07).
 //!
-//! When an admin runs `cx.identity.deactivate` (or `ck.realm.destroy`),
+//! When an admin runs `ck.identity.deactivate` (or `ck.realm.destroy`),
 //! the principal server cascades the deactivation across seven
 //! independent local domains. This panel renders the per-domain result
 //! so the operator can spot a partial fanout and retry the failing
@@ -85,7 +85,7 @@ pub struct FanoutDomainResult {
     pub domain: FanoutDomain,
     pub state: FanoutState,
     /// Last error code (if state == Failed) — typically one of the new
-    /// round 2+3 errors (e.g. `cx.error.fanout_partial`).
+    /// round 2+3 errors (e.g. `ck.error.fanout_partial`).
     pub error_code: Option<String>,
     pub attempt_count: u32,
 }
@@ -113,12 +113,12 @@ impl FanoutState {
 }
 
 /// Top-level snapshot of all seven domains for one
-/// `cx.identity.deactivate` (or `ck.realm.destroy`) invocation.
+/// `ck.identity.deactivate` (or `ck.realm.destroy`) invocation.
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct FanoutSnapshot {
     pub subject_id: String,
     pub domains: Vec<FanoutDomainResult>,
-    /// Only present on `ck.realm.destroy`. For `cx.identity.deactivate`
+    /// Only present on `ck.realm.destroy`. For `ck.identity.deactivate`
     /// this is `None`.
     pub erasure_receipt: Option<ErasureReceiptStatus>,
 }
@@ -176,8 +176,8 @@ pub fn placeholder_snapshot(subject_id: impl Into<String>) -> FanoutSnapshot {
                 _ => FanoutState::Succeeded,
             },
             error_code: match *d {
-                FanoutDomain::Push => Some("cx.error.fanout_partial".to_string()),
-                FanoutDomain::ToDevice => Some("cx.error.fanout_partial".to_string()),
+                FanoutDomain::Push => Some("ck.error.fanout_partial".to_string()),
+                FanoutDomain::ToDevice => Some("ck.error.fanout_partial".to_string()),
                 _ => None,
             },
             attempt_count: (i as u32) + 1,

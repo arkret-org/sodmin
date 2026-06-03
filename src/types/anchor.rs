@@ -829,11 +829,11 @@ mod tests {
             note: Some("schema error - hand-rewrite the cell".into()),
             effects: vec![
                 serde_json::json!({
-                    "cell": "ck:cell:cx.component.x.v1:demo",
+                    "cell": "ck:cell:ck.component.x.v1:demo",
                     "op": {"type": "cas_register", "value": {"foo": 1}},
                 }),
                 serde_json::json!({
-                    "cell": "ck:cell:cx.component.y.v1:demo",
+                    "cell": "ck:cell:ck.component.y.v1:demo",
                     "op": {"type": "set_membership_add", "value": "did:ck:carol"},
                 }),
             ],

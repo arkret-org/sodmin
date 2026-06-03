@@ -1,6 +1,6 @@
 //! DTO shapes for the consent admin surface.
 //!
-//! These mirror the join-projection of `ck:cell:cx.component.consent.v1:<holder_did>`
+//! These mirror the join-projection of `ck:cell:ck.component.consent.v1:<holder_did>`
 //! consent or-set values that soland exposes via the admin describe endpoint.
 //!
 //! IMPORTANT: this is *admin-visible aggregated metadata*, not the raw
@@ -11,7 +11,7 @@
 use serde::{Deserialize, Serialize};
 
 /// Status of a single consent grant entry. Matches soland's reducer enum
-/// for `cx.component.consent.v1` cells.
+/// for `ck.component.consent.v1` cells.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum ConsentStatus {

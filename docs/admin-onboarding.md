@@ -7,13 +7,13 @@ do real work. The flow is:
 1. **DID setup** — the admin's own controller DID is bound to a coauth account.
 2. **SSO config** — coauth knows the upstream identity provider so the admin can sign in.
 3. **First login** — the admin opens sodmin in a browser and completes the OAuth2 PKCE flow.
-4. **Capability grant flow** — coauth issues the `cx.*` admin scopes the admin needs to drive sodmin.
+4. **Capability grant flow** — coauth issues the `ck.*` admin scopes the admin needs to drive sodmin.
 
 P5 — until an admin has both a bound DID **and** the right capability
 grants, sodmin will surface every destructive action with a "not in
 your grant list" hint via the `GrantedCapabilitiesView` component,
 and the backend will reject any forged request with
-`cx.error.capability_denied`.
+`ck.error.capability_denied`.
 
 ## 1. Admin DID Setup
 
@@ -86,7 +86,7 @@ refuses to load the admin surface. Mark the account admin via the
 
 Being signed in as an admin does NOT, by itself, grant the right to
 drive every admin operation. The Cokret model is capability-based:
-each admin action is gated by a specific `cx.*` capability scope,
+each admin action is gated by a specific `ck.*` capability scope,
 and the operator must hold that scope (or a covering parent scope)
 before the backend will accept the request.
 
@@ -94,10 +94,10 @@ For sodmin administration the recommended starter grant set is:
 
 | Capability | Why |
 | --- | --- |
-| `cx.agent.manage` | Meta-scope for the 11 personal-agent admin endpoints. |
+| `ck.agent.manage` | Meta-scope for the 11 personal-agent admin endpoints. |
 | `ck.circle.create` / `ck.circle.manage` | Create and administer Circles (P3A.4). |
 | `ck.realm.admin` | Destroy / classify Realms. |
-| `cx.audit.read` | Read the audit log on `/audit`. |
+| `ck.audit.read` | Read the audit log on `/audit`. |
 
 Grant capabilities via **Capabilities** (`/capabilities`) — click
 **Grant capability**, fill in the grantee DID (the admin's bound
@@ -112,7 +112,7 @@ destructive form (e.g. **Provision new agent** on `/agents/personal`).
 The `GrantedCapabilitiesView` panel at the top of the wizard will
 list the operator's current grants and highlight whether the action's
 required capability is present. If not, the **Submit** click will
-fail with `cx.error.capability_denied` — request the missing grant
+fail with `ck.error.capability_denied` — request the missing grant
 from a higher-privileged admin or via the coauth bootstrap migration.
 
 ## Troubleshooting
@@ -120,7 +120,7 @@ from a higher-privileged admin or via the coauth bootstrap migration.
 * **403 on every admin call** — capability grant missing; check `/capabilities`.
 * **Session expired immediately after sign-in** — cookie domain mismatch between sodmin and coauth; check `COAUTH_PUBLIC_URL` in `docker-entrypoint.sh`.
 * **`/healthz/deep` returns 503** — soland is unreachable from sodmin; check `SOLAND_URL` and the network policy between the two containers.
-* **`cx.error.capability_denied` on a button that's visible** — UI hiding is cosmetic only; the backend is the source of truth. Request the grant.
+* **`ck.error.capability_denied` on a button that's visible** — UI hiding is cosmetic only; the backend is the source of truth. Request the grant.
 
 For deployment topology and the full port / path routing table see
 [DEPLOYMENT.md](../DEPLOYMENT.md).
@@ -207,7 +207,7 @@ Notes:
     │  - if green, "Submit" enables
     ▼
 [submit]
-    │  - POST cx.recovery.policy.create to soland
+    │  - POST ck.recovery.policy.create to soland
     │  - soland writes the policy row + audit
     │  - policy stack now shows the new version as active
     ▼

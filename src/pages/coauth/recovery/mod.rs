@@ -1,6 +1,6 @@
 //! R3 (UI-4) — Recovery policy admin surface (stub).
 //!
-//! Lists `cx.coauth.recovery.*` policies, lets the operator inspect /
+//! Lists `ck.coauth.recovery.*` policies, lets the operator inspect /
 //! rotate one, and renders the recovery receipt history including
 //! `proof_summary[]`.
 //!

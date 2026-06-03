@@ -102,7 +102,7 @@ pub fn AuthzCapabilitiesPage() -> Element {
                         Label { r#for: "authz-scope-filter".to_string(), {t("authz_caps.filter_scope")} }
                         Input {
                             value: scope_filter.read().clone(),
-                            placeholder: "cx.cell....".to_string(),
+                            placeholder: "ck.cell....".to_string(),
                             oninput: move |evt: FormEvent| {
                                 reset_to_first_page();
                                 scope_filter.set(evt.value());

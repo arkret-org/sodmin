@@ -13,7 +13,7 @@
 //! `crate::routing::circles` in soland (see the matching
 //! `CircleResponse` / `ListCirclesResponse` / `CreateCircleRequest`
 //! definitions there). Lifecycle state strings track the spec's
-//! `cx.circle.state` registry — see
+//! `ck.circle.state` registry — see
 //! `cokret-spec/spec/v1/artifacts/registry/circle-state-registry.json`.
 //!
 //! P3A.7 naming rule: typed entity references inside this crate use

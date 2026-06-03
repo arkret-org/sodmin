@@ -3,7 +3,7 @@
 //! Mounted at `/agents/personal` (list) and
 //! `/agents/personal/:agent_id` (detail). Drives the 11 new soland
 //! HTTP endpoints + the coauth `accountability_grant` mint via the
-//! `cx.agent.manage` admin scope.
+//! `ck.agent.manage` admin scope.
 //!
 //! TODO(P3-impl): soft validation of accountability-grant freshness
 //! windows, deep validators on capability grant scopes, axe-core

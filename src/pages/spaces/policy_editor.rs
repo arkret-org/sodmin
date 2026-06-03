@@ -1,6 +1,6 @@
 //! Space policy editor
 //!
-//! Form to view and edit a Space's `cx.component.space.policy.v1`
+//! Form to view and edit a Space's `ck.component.space.policy.v1`
 //! components. Submit constructs a cas-register Move via
 //! `POST /_soland/admin/spaces/{id}/policy`. The Submit flow goes
 //! through ConfirmDialog because policy mutations land permanently in

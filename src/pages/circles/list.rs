@@ -152,7 +152,7 @@ fn circle_row(c: &Circle) -> Element {
     }
 }
 
-/// Map a `cx.circle.state` string to a badge variant + i18n key.
+/// Map a `ck.circle.state` string to a badge variant + i18n key.
 pub(crate) fn state_badge(state: &str) -> (BadgeVariant, &'static str) {
     match state {
         "active" => (BadgeVariant::Success, "circle.state_active"),

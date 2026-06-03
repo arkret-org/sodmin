@@ -170,7 +170,7 @@ pub fn format_admin_error(
     let mut message = if let Some(ref eb) = error_body {
         display_error(&eb.errcode, status, eb.error.as_deref().unwrap_or(""))
     } else {
-        display_error("cx.error.http_status", status, text)
+        display_error("ck.error.http_status", status, text)
     };
     let retry_after_ms = error_body
         .as_ref()
@@ -335,7 +335,7 @@ mod tests {
     fn admin_error_preserves_retry_after() {
         let (_, body) = format_admin_error(
             429,
-            r#"{"errcode":"cx.error.rate_limited","error":"slow down"}"#,
+            r#"{"errcode":"ck.error.rate_limited","error":"slow down"}"#,
             Some(2000),
         );
 

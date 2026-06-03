@@ -4,7 +4,7 @@
 //! Endpoints:
 //!
 //! - `GET /_soland/admin/spaces/{id}/mls/covered-frontier` — soland projects the lattice or-set
-//!   state for the `ck:cell:cx.component.mls.covered_frontier.v1:<realm_id>` cell along with the
+//!   state for the `ck:cell:ck.component.mls.covered_frontier.v1:<realm_id>` cell along with the
 //!   current governance frontier so the admin can compute lag.
 //! - `POST /_soland/admin/spaces/{id}/mls/covered-frontier/advance` — admin override that asks the
 //!   principal-server to manually fold the current `governance_frontier` into the covered_frontier

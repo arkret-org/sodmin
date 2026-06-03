@@ -118,7 +118,7 @@ pub async fn get_anchor_dag(realm_id: &str) -> Result<AnchorDagSnapshot, HttpErr
 /// Trigger a signed compaction Anchor.
 ///
 /// `POST /_soland/admin/spaces/{id}/anchor-dag/compact`. soland's handler
-/// is the admin-facing entry point onto `cx.admin.anchors.sign`; it folds
+/// is the admin-facing entry point onto `ck.admin.anchors.sign`; it folds
 /// up to `max_moves` moves into a fresh compaction Anchor and returns
 /// the new anchor id + state_root.
 pub async fn trigger_compaction(realm_id: &str) -> Result<SignAnchorResponse, HttpError> {

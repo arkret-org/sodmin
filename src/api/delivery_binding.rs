@@ -1,7 +1,7 @@
 //! HTTP client for the soland delivery-binding-policy admin surface
 //! (T6.2 §3, realm-rework).
 //!
-//! The cell lives at `cx.cell.realm.{realm_id}.delivery_binding_policy`.
+//! The cell lives at `ck.cell.realm.{realm_id}.delivery_binding_policy`.
 //! `allowed_recipient_services` and `binding_source_policy` are
 //! operator-mutable; `policy_frontier` is reducer-owned and read-only
 //! on the admin surface.

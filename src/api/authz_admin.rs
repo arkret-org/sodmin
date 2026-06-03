@@ -61,7 +61,7 @@ pub async fn list_capability_grants(
 }
 
 /// Revoke a single capability grant. soland is expected to emit an
-/// idempotent `cx.cell.authz.capability.revoke.v1` Move; the route is
+/// idempotent `ck.cell.authz.capability.revoke.v1` Move; the route is
 /// 404-tolerant on the client side.
 pub async fn revoke_capability_grant(grant_id: &str) -> Result<(), HttpError> {
     let url = format!(

@@ -121,7 +121,7 @@ pub fn display_error(errcode: &str, status: u16, message: &str) -> String {
     }
 
     // soland's error envelope carries bare snake_case errcodes straight
-    // from the spec error-code-registry (there is no `cx.error.*`
+    // from the spec error-code-registry (there is no `ck.error.*`
     // prefix in the registry, and `schema` is registered as
     // `schema_violation`). Match those literal registry codes only.
     let fallback = match errcode {
@@ -280,7 +280,7 @@ mod tests {
     #[test]
     fn admin_error_envelope_round_trips_required_scope() {
         use super::AdminErrorEnvelope;
-        let raw = r#"{"errcode":"cx.error.capability_denied","required_scope":"ck:scope:realm:01HXY/admin.write"}"#;
+        let raw = r#"{"errcode":"ck.error.capability_denied","required_scope":"ck:scope:realm:01HXY/admin.write"}"#;
         let env: AdminErrorEnvelope = serde_json::from_str(raw).expect("parse");
         assert_eq!(
             env.required_scope.as_deref(),
@@ -294,7 +294,7 @@ mod tests {
     #[test]
     fn admin_error_envelope_omits_missing_required_scope() {
         use super::AdminErrorEnvelope;
-        let raw = r#"{"errcode":"cx.error.validation"}"#;
+        let raw = r#"{"errcode":"ck.error.validation"}"#;
         let env: AdminErrorEnvelope = serde_json::from_str(raw).expect("parse");
         assert!(env.required_scope.is_none());
         let out = serde_json::to_string(&env).expect("serialize");

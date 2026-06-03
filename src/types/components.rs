@@ -2,7 +2,7 @@
 //! (Stream H', H'6).
 //!
 //! Read from `GET /_soland/admin/components` — server-wide registry status:
-//! the list of `cx.component.*` types the server knows about, the
+//! the list of `ck.component.*` types the server knows about, the
 //! cell_family they project into, the criticality classification (per spec
 //! component-criticality table), the spec version pinned by the bundle and
 //! the implementation version actually shipped. When `spec_version !=
