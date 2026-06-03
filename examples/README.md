@@ -23,14 +23,14 @@ for the full mapping.
 
 The compose file references sibling repos via relative build contexts.
 Coauth + sodmin both use an **umbrella build context** (`../..` →
-`cokret-dev/`) so the workspace `Cargo.toml` path-deps
+`cokret/`) so the workspace `Cargo.toml` path-deps
 `../cokret-rust-sdk/...` and `../coauth/crates/admin-types` resolve
 inside the build sandbox. Soland uses a **named additional context**
 (`additional_contexts.cokret-rust-sdk: ../../cokret-rust-sdk`)
 because its Dockerfile copies the SDK via `COPY --from=cokret-rust-sdk`.
 
 ```
-cokret-dev/
+cokret/
   cokret-rust-sdk/                      <-- required (path-dep target)
   coauth/                                 <-- required (path-dep + image)
   soland/

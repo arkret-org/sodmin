@@ -1,6 +1,6 @@
 # sodmin Dockerfile.
 #
-# Build context: the cokret-dev umbrella directory (parent of sodmin).
+# Build context: the cokret umbrella directory (parent of sodmin).
 # The Cargo workspace at sodmin/Cargo.toml has path-deps on sibling
 # repos that must be present in the build sandbox:
 #
@@ -39,7 +39,7 @@ WORKDIR /workspace
 
 # Copy the sibling path-deps FIRST so cargo fetch / dx build can resolve
 # the workspace `path = "../<sibling>/..."` entries. Order matches the
-# umbrella layout: cokret-dev/{cokret-rust-sdk,coauth,sodmin}/.
+# umbrella layout: cokret/{cokret-rust-sdk,coauth,sodmin}/.
 COPY cokret-rust-sdk/ /workspace/cokret-rust-sdk
 COPY coauth/ /workspace/coauth
 COPY sodmin/ /workspace/sodmin

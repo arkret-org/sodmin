@@ -15,7 +15,7 @@ git config core.hooksPath .githooks
 The hook runs `cargo fmt --all -- --check` and `cargo clippy --no-deps -- -D
 warnings` on staged Rust changes. If `.githooks/pre-commit` is missing on
 a branch, copy it from
-[`cokret-rust-sdk`](https://github.com/cokret-dev/cokret-rust-sdk) and
+[`cokret-rust-sdk`](https://github.com/cokret/cokret-rust-sdk) and
 adapt to your local toolchain.
 
 ## Scope
@@ -221,5 +221,5 @@ See the cross-project [`../_todos.md`](../_todos.md). Remaining deferred work in
 
 <!-- circle-rollout milestone pointer -->
 > **Active milestone tracking** (local-only, gitignored): see
-> `_sodmin_todos.md` in the parent `cokret-dev/` directory for the
+> `_sodmin_todos.md` in the parent `cokret/` directory for the
 > circle-rollout (CXP-0007) work item list and per-stage checkpoints.
