@@ -1,7 +1,7 @@
 //! Consent admin panel (Stream H', H'5).
 //!
 //! Read-mostly view over the consent cell or-set values exposed by the
-//! soland describe endpoint `GET /api/admin/v1/spaces/{id}/consent`.
+//! soland describe endpoint `GET /_soland/admin/spaces/{id}/consent`.
 //! The page lists one row per (holder, peer, scope) triple, with a
 //! holder-DID filter to narrow down by user.
 //!
@@ -9,7 +9,7 @@
 //! capability is bound to the holder's signing key. The one narrow
 //! exception is the **resolve** override on `Pending` rows, which lets
 //! an operator approve or reject a stuck pending request via
-//! `POST /api/admin/v1/consent/{consent_id}/resolve`. We render
+//! `POST /_soland/admin/consent/{consent_id}/resolve`. We render
 //! Approve/Reject buttons only on `Pending` rows, gate the action on
 //! the row carrying a `consent_id`, and use the same 404-tolerant
 //! pattern as the other Stream H' admin actions.

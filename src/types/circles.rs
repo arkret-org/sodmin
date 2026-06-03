@@ -1,5 +1,5 @@
 //! CXP-0007 Circle types — wire shapes for the soland
-//! `/api/v1/circles/*` admin surface.
+//! `/_cokret/self/circles/*` admin surface.
 //!
 //! A Circle is an encrypted sub-boundary inside a Realm (the security
 //! boundary). It carries its own MLS group, member list, and lifecycle
@@ -85,7 +85,7 @@ impl Circle {
     }
 }
 
-/// `GET /api/v1/circles?realm_id=...` response.
+/// `GET /_cokret/self/circles?realm_id=...` response.
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ListCirclesResponse {
     #[serde(default)]
@@ -94,7 +94,7 @@ pub struct ListCirclesResponse {
     pub circles: Vec<Circle>,
 }
 
-/// `POST /api/v1/circles` request body. Defaults mirror the soland
+/// `POST /_cokret/self/circles` request body. Defaults mirror the soland
 /// handler — operators can omit visibility / join_rule and let the
 /// server apply the spec's defaults.
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -115,7 +115,7 @@ pub struct CreateCircleRequest {
     pub encryption_profile: Option<String>,
 }
 
-/// `POST /api/v1/circles/{id}/members` request body.
+/// `POST /_cokret/self/circles/{id}/members` request body.
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct CircleMemberRequest {
     pub actor_id: String,
@@ -125,7 +125,7 @@ pub struct CircleMemberRequest {
     pub state: Option<String>,
 }
 
-/// `POST /api/v1/circles/{id}/members` response.
+/// `POST /_cokret/self/circles/{id}/members` response.
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct CircleMembershipResponse {
     #[serde(default)]
@@ -136,7 +136,7 @@ pub struct CircleMembershipResponse {
     pub state: String,
 }
 
-/// `POST /api/v1/circles/{id}/scope-rotate` response.
+/// `POST /_cokret/self/circles/{id}/scope-rotate` response.
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct CircleScopeRotateResponse {
     #[serde(default)]

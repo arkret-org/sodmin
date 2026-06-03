@@ -229,15 +229,15 @@ pub fn CapabilityList() -> Element {
                                         }
                                     },
                                     option { value: "", "— {t(\"capability.cx_circle_section\")} —" }
-                                    option { value: "cx.circle.create", "cx.circle.create" }
-                                    option { value: "cx.circle.manage", "cx.circle.manage" }
-                                    option { value: "cx.circle.member.add", "cx.circle.member.add" }
-                                    option { value: "cx.circle.member.manage", "cx.circle.member.manage" }
+                                    option { value: "ck.circle.create", "ck.circle.create" }
+                                    option { value: "ck.circle.manage", "ck.circle.manage" }
+                                    option { value: "ck.circle.member.add", "ck.circle.member.add" }
+                                    option { value: "ck.circle.member.manage", "ck.circle.member.manage" }
                                     option {
-                                        value: "cx.circle.member.add.others",
-                                        "cx.circle.member.add.others"
+                                        value: "ck.circle.member.add.others",
+                                        "ck.circle.member.add.others"
                                     }
-                                    option { value: "cx.circle.audit", "cx.circle.audit" }
+                                    option { value: "ck.circle.audit", "ck.circle.audit" }
                                 }
                             }
                             div { class: "space-y-1",

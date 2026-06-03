@@ -1,7 +1,7 @@
 //! Audit attestation_evidence admin page.
 //!
 //! Operators of an `attested_audit.e2ee.v1` deployment join Audit Agents
-//! into the Realm by anchoring `cx.schema.attestation_evidence.v1` rows
+//! into the Realm by anchoring `ck.schema.attestation_evidence.v1` rows
 //! that bind the agent's MLS leaf key to a remote-attestation chain
 //! (SGX / TDX / SEV-SNP / TPM2). This admin page lets the operator:
 //!
@@ -34,7 +34,7 @@ use crate::components::ui::toast::{ToastVariant, show_toast};
 use crate::types::ListResponse;
 
 /// Coarse status returned by the principal server for a stored
-/// attestation evidence row. Real `cx.schema.attestation_evidence.v1`
+/// attestation evidence row. Real `ck.schema.attestation_evidence.v1`
 /// has a much richer chain shape — this is the admin projection.
 #[derive(Debug, Clone, serde::Deserialize, Default)]
 struct AttestationRow {
@@ -56,7 +56,7 @@ struct AttestationRow {
 
 async fn list_attestation_rows()
 -> Result<ListResponse<AttestationRow>, crate::utils::error::HttpError> {
-    crate::api::client::api_client("/api/admin/v1/audit/attestation-evidence", "GET", None).await
+    crate::api::client::api_client("/_soland/admin/audit/attestation-evidence", "GET", None).await
 }
 
 #[component]
@@ -69,14 +69,14 @@ pub fn AuditAttestationPage() -> Element {
         div { class: "space-y-6",
             PageHeader {
                 title: "Audit attestation evidence".to_string(),
-                description: "Submit and review `cx.schema.attestation_evidence.v1` documents binding Audit Agents to a remote-attestation chain.".to_string(),
+                description: "Submit and review `ck.schema.attestation_evidence.v1` documents binding Audit Agents to a remote-attestation chain.".to_string(),
             }
 
             Card {
                 CardHeader {
                     CardTitle { class: "text-lg".to_string(), "Submit new evidence" }
                     CardDescription {
-                        "Paste a JSON document matching the `cx.schema.attestation_evidence.v1` schema. The principal server re-validates the chain and the MLS leaf binding before anchoring."
+                        "Paste a JSON document matching the `ck.schema.attestation_evidence.v1` schema. The principal server re-validates the chain and the MLS leaf binding before anchoring."
                     }
                 }
                 CardContent { class: "space-y-3".to_string(),

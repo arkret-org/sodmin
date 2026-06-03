@@ -373,7 +373,7 @@ pub async fn verify_admin() -> Result<bool, HttpError> {
 
     // S5: admin probe sends the cookie automatically via
     // credentials: "include"; no Authorization header.
-    let response = Request::get("/api/admin/v1/server/info")
+    let response = Request::get("/_soland/admin/server/info")
         .header("Accept", "application/json")
         .credentials(RequestCredentials::Include)
         .send()
@@ -449,7 +449,7 @@ pub async fn logout() -> Result<(), HttpError> {
     let body = format!("client_id={OAUTH_CLIENT_ID}");
     let _ = send_oauth_form_request("/oauth2/revoke", &body).await;
 
-    let _ = Request::post("/api/v1/auth/logout")
+    let _ = Request::post("/_cokret/gate/auth/logout")
         .header("Accept", "application/json")
         .credentials(RequestCredentials::Include)
         .send()

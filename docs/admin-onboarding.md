@@ -95,8 +95,8 @@ For sodmin administration the recommended starter grant set is:
 | Capability | Why |
 | --- | --- |
 | `cx.agent.manage` | Meta-scope for the 11 personal-agent admin endpoints. |
-| `cx.circle.create` / `cx.circle.manage` | Create and administer Circles (P3A.4). |
-| `cx.realm.admin` | Destroy / classify Realms. |
+| `ck.circle.create` / `ck.circle.manage` | Create and administer Circles (P3A.4). |
+| `ck.realm.admin` | Destroy / classify Realms. |
 | `cx.audit.read` | Read the audit log on `/audit`. |
 
 Grant capabilities via **Capabilities** (`/capabilities`) — click
@@ -142,7 +142,7 @@ read on-call without rendering.
     │  - generate key pair (browser-side; private key never leaves the wizard)
     │  - paste accountable_principal_ids chain (defaults to the operator's own grant)
     │  - submit
-    │     → POST cx.account.agent_key_pair to coauth
+    │     → POST ck.account.agent_key_pair to coauth
     │     → soland materializes the agent_state cell (Active)
     ▼
 [Active]   (agent serves traffic; appears in /agents/personal listing)

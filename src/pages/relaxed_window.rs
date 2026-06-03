@@ -1,6 +1,6 @@
 //! Round R2/R3 — Relaxed ephemeral window slider (T09).
 //!
-//! `cx.schema.ephemeral_envelope.v1` enforces an absolute hard ceiling
+//! `ck.schema.ephemeral_envelope.v1` enforces an absolute hard ceiling
 //! of 300_000 ms (5 minutes) on `expires_at - sent_at`. Operators may
 //! set a *softer* "relaxed window" below the hard ceiling so their
 //! deployment intentionally drops ephemeral signals earlier; this page
@@ -63,7 +63,7 @@ pub fn RelaxedWindowPage() -> Element {
         div { class: "space-y-6",
             PageHeader {
                 title: "Relaxed ephemeral window".to_string(),
-                description: "Soft per-deployment cap on `expires_at - sent_at` for `cx.presence` / `cx.typing` / `cx.receipt.read` / `cx.call.signal`. Round R2/R3 T09.".to_string(),
+                description: "Soft per-deployment cap on `expires_at - sent_at` for `cx.presence` / `cx.typing` / `ck.receipt.read` / `ck.call.signal`. Round R2/R3 T09.".to_string(),
             }
 
             Card {

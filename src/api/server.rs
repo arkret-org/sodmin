@@ -13,8 +13,8 @@ pub async fn get_server_describe() -> Result<ServerDescribeResBody, HttpError> {
 
 pub async fn get_coauth_server_describe() -> Result<ServerDescribeResBody, HttpError> {
     let url = crate::utils::session::coauth_public_url()
-        .map(|base| format!("{}/api/v1/server/describe", base.trim_end_matches('/')))
-        .unwrap_or_else(|| "/api/v1/server/describe".to_string());
+        .map(|base| format!("{}/_cokret/describe", base.trim_end_matches('/')))
+        .unwrap_or_else(|| "/_cokret/describe".to_string());
     api_client(&url, "GET", None).await
 }
 
@@ -39,14 +39,14 @@ pub struct UpdateTrustDomainRequest {
 }
 
 pub async fn get_trust_domain() -> Result<TrustDomainSetting, HttpError> {
-    api_client("/api/admin/v1/server/trust-domain", "GET", None).await
+    api_client("/_soland/admin/server/trust-domain", "GET", None).await
 }
 
 pub async fn update_trust_domain(
     body: &UpdateTrustDomainRequest,
 ) -> Result<TrustDomainSetting, HttpError> {
     let payload = serde_json::to_string(body).unwrap_or_default();
-    api_client("/api/admin/v1/server/trust-domain", "PUT", Some(payload)).await
+    api_client("/_soland/admin/server/trust-domain", "PUT", Some(payload)).await
 }
 
 #[derive(Debug, Clone, serde::Deserialize, Default)]
@@ -66,14 +66,14 @@ pub struct UpdateRelaxedWindowRequest {
 }
 
 pub async fn get_relaxed_window() -> Result<RelaxedWindowSetting, HttpError> {
-    api_client("/api/admin/v1/server/relaxed-window", "GET", None).await
+    api_client("/_soland/admin/server/relaxed-window", "GET", None).await
 }
 
 pub async fn update_relaxed_window(
     body: &UpdateRelaxedWindowRequest,
 ) -> Result<RelaxedWindowSetting, HttpError> {
     let payload = serde_json::to_string(body).unwrap_or_default();
-    api_client("/api/admin/v1/server/relaxed-window", "PUT", Some(payload)).await
+    api_client("/_soland/admin/server/relaxed-window", "PUT", Some(payload)).await
 }
 
 pub async fn submit_attestation_evidence(
@@ -81,7 +81,7 @@ pub async fn submit_attestation_evidence(
 ) -> Result<serde_json::Value, HttpError> {
     let payload = serde_json::to_string(body).unwrap_or_default();
     api_client(
-        "/api/admin/v1/audit/attestation-evidence",
+        "/_soland/admin/audit/attestation-evidence",
         "POST",
         Some(payload),
     )
@@ -103,7 +103,7 @@ pub async fn destroy_realm(
     body: &DestroyRealmRequest,
 ) -> Result<serde_json::Value, HttpError> {
     let url = format!(
-        "/api/admin/v1/realms/{}/destroy",
+        "/_soland/admin/realms/{}/destroy",
         urlencoding::encode(realm_id)
     );
     let payload = serde_json::to_string(body).unwrap_or_default();
@@ -115,7 +115,7 @@ pub async fn retry_realm_destroy(
     body: &RetryRealmDestroyRequest,
 ) -> Result<serde_json::Value, HttpError> {
     let url = format!(
-        "/api/admin/v1/realms/{}/destroy/retry",
+        "/_soland/admin/realms/{}/destroy/retry",
         urlencoding::encode(realm_id)
     );
     let payload = serde_json::to_string(body).unwrap_or_default();

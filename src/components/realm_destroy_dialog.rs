@@ -1,6 +1,6 @@
 //! Round R2/R3 — Realm destroy confirmation dialog (T07).
 //!
-//! `cx.realm.destroy` is irreversible at the principal server: once
+//! `ck.realm.destroy` is irreversible at the principal server: once
 //! anchored, no further ordinary writes are accepted, all snapshots /
 //! backfill / GC schedules collapse, federation fanout fires on a
 //! 30-day window, and erasure receipts / legal holds take precedence
@@ -63,7 +63,7 @@ pub fn RealmDestroyDialog(props: RealmDestroyDialogProps) -> Element {
                 div { class: "space-y-1",
                     h2 { class: "text-lg font-semibold text-destructive", "Destroy Realm" }
                     p { class: "text-sm text-muted-foreground",
-                        "You are about to anchor a `cx.realm.destroy` event on "
+                        "You are about to anchor a `ck.realm.destroy` event on "
                         span { class: "font-mono", "{realm_id}" }
                         ". This is irreversible."
                     }
@@ -122,7 +122,7 @@ pub fn RealmDestroyDialog(props: RealmDestroyDialogProps) -> Element {
                                 props.on_confirm.call(());
                             }
                         },
-                        "Anchor cx.realm.destroy"
+                        "Anchor ck.realm.destroy"
                     }
                 }
             }

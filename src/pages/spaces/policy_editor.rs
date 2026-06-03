@@ -2,7 +2,7 @@
 //!
 //! Form to view and edit a Space's `cx.component.space.policy.v1`
 //! components. Submit constructs a cas-register Move via
-//! `POST /api/admin/v1/spaces/{id}/policy`. The Submit flow goes
+//! `POST /_soland/admin/spaces/{id}/policy`. The Submit flow goes
 //! through ConfirmDialog because policy mutations land permanently in
 //! the Anchor frontier.
 

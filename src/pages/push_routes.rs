@@ -1,4 +1,4 @@
-//! T6.2 §4 — `cx.device.push_route` admin inspector.
+//! T6.2 §4 — `ck.device.push_route` admin inspector.
 //!
 //! Surfaces all push routes for a given principal. The 4-tuple
 //! `(principal_id, device_id, transport, route_id)` is shown for each

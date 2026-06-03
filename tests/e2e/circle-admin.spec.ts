@@ -1,7 +1,7 @@
 // P3A.9 — CXP-0007 Circle admin happy-path Playwright e2e.
 //
 // Drives the sodmin SPA against a sodmin dev instance + a soland dev
-// stack that has the `/api/v1/circles/*` routes wired (soland P2A.2)
+// stack that has the `/_cokret/self/circles/*` routes wired (soland P2A.2)
 // and a coauth that ships the six `cx.circle.*` capability actions
 // (coauth P2B.2). The test is intentionally narrow: it creates a
 // Circle, adds a legitimate (Realm-member) actor, attempts to add an
@@ -110,18 +110,18 @@ test.describe("P3A.9 Circle admin happy path", () => {
 
     // ── Audit log surfaces the cx.circle.* events ────────────────
     await page.goto(`${BASE_URL}/audit`);
-    // Filter to the cx.circle.create event kind via the new dropdown.
+    // Filter to the ck.circle.create event kind via the new dropdown.
     await page
       .locator("select")
       .filter({ hasText: /cx\.circle/i })
-      .selectOption("cx.circle.create");
+      .selectOption("ck.circle.create");
     await page.getByRole("button", { name: /apply|应用/i }).first().click();
     await expect(page.getByText(/cx\.circle\.create/i).first()).toBeVisible({
       timeout: 15_000,
     });
   });
 
-  test("capability grant for cx.circle.member.add lets a non-admin add itself", async ({
+  test("capability grant for ck.circle.member.add lets a non-admin add itself", async ({
     page,
   }) => {
     // This sub-test depends on the dev stack pre-provisioning a
@@ -140,7 +140,7 @@ test.describe("P3A.9 Circle admin happy path", () => {
     // Use the cx.circle.* quick-select dropdown shipped in P3A.4.
     await page
       .locator("select#cap-circle-quick")
-      .selectOption("cx.circle.member.add");
+      .selectOption("ck.circle.member.add");
     await page.getByRole("button", { name: /^grant$|^授予$/i }).click();
     await expect(page.getByText(/granted/i)).toBeVisible({ timeout: 10_000 });
   });

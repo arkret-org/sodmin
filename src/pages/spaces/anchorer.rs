@@ -1,9 +1,9 @@
 //! Anchorer cell admin page (Stream H', H'2).
 //!
-//! Renders the current `ck:cell:cx.component.anchorer.v1:<space>` cell
+//! Renders the current `ck:cell:ck.component.anchorer.v1:<space>` cell
 //! value (single_did / threshold / open_set / mixed) and exposes a form
 //! that constructs an anchorer-reconfig Move. The submit path posts to
-//! soland's `/admin/spaces/{id}/anchorer/reconfigure` endpoint;
+//! soland's `/_soland/admin/spaces/{id}/anchorer/reconfigure` endpoint;
 //! soland builds the typed Move + signs with the admin's signer flow.
 //!
 //! Spec rule: a new anchorer cannot self-sign itself in. We mirror that

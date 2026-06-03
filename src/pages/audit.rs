@@ -156,11 +156,11 @@ pub fn AuditLog() -> Element {
                                 draft.write().event_kind = evt.value();
                             },
                             option { value: "", "—" }
-                            option { value: "cx.circle.create", {t("audit.filter_event_kind_circle_create")} }
-                            option { value: "cx.circle.update", {t("audit.filter_event_kind_circle_update")} }
-                            option { value: "cx.circle.archive", {t("audit.filter_event_kind_circle_archive")} }
-                            option { value: "cx.circle.tombstone", {t("audit.filter_event_kind_circle_tombstone")} }
-                            option { value: "cx.circle.member.state", {t("audit.filter_event_kind_circle_member_state")} }
+                            option { value: "ck.circle.create", {t("audit.filter_event_kind_circle_create")} }
+                            option { value: "ck.circle.update", {t("audit.filter_event_kind_circle_update")} }
+                            option { value: "ck.circle.archive", {t("audit.filter_event_kind_circle_archive")} }
+                            option { value: "ck.circle.tombstone", {t("audit.filter_event_kind_circle_tombstone")} }
+                            option { value: "ck.circle.member.state", {t("audit.filter_event_kind_circle_member_state")} }
                             option { value: "cx.circle.capability.grant", {t("audit.filter_event_kind_circle_capability_grant")} }
                             option { value: "cx.circle.capability.revoke", {t("audit.filter_event_kind_circle_capability_revoke")} }
                         }

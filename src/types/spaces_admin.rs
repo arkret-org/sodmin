@@ -1,14 +1,14 @@
 //! DTO shapes for the soland Spaces admin surface.
 //!
-//! Mirrors `GET /admin/spaces` (list) and
-//! `GET /admin/spaces/{id}/hierarchy` (per-space hierarchy).
+//! Mirrors `GET /_soland/admin/spaces` (list) and
+//! `GET /_soland/admin/spaces/{id}/hierarchy` (per-space hierarchy).
 
 use serde::{Deserialize, Serialize};
 
 /// Health badge for a single Space row. `Active` is the happy path
 /// (Move/Anchor accepting writes); `Frozen` means the space is
 /// quarantined (admin-induced or replication lag); `Destroyed` means a
-/// `cx.space.tombstone` event (the spec container-tombstone event kind,
+/// `ck.space.tombstone` event (the spec container-tombstone event kind,
 /// per spec_digest §4.1) has landed and the space is in the
 /// tombstone-period for audit reads.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -63,7 +63,7 @@ impl SpaceAdminRow {
 }
 
 /// One node in the hierarchy tree returned by
-/// `GET /admin/spaces/{id}/hierarchy`. `parent` is at most one
+/// `GET /_soland/admin/spaces/{id}/hierarchy`. `parent` is at most one
 /// step up; `children` is the full set of immediate children. Deeper
 /// transitive ancestry must be paginated by following each parent in a
 /// follow-up request.

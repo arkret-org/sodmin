@@ -10,8 +10,8 @@ This document covers local/container deployment only. The project does not push 
 
 | Variable | Required | Purpose |
 | --- | --- | --- |
-| `SOLAND_URL` | yes | Internal URL for the soland Principal Server upstream. Requests to `/api/v1/` and soland admin routes proxy here. |
-| `COAUTH_URL` | recommended | Internal URL for coauth admin/auth endpoints. Enables `/auth/`, `/api/v1/auth/`, `/api/admin/`, `/authorize`, `/oauth2/`, and `/.well-known/` proxy locations. |
+| `SOLAND_URL` | yes | Internal URL for the soland Principal Server upstream. Requests to `/_cokret/` and the `/_soland/admin/` operator surface proxy here. |
+| `COAUTH_URL` | recommended | Internal URL for coauth admin/auth endpoints. Enables `/auth/`, `/_cokret/gate/`, the coauth `/_soland/admin/*` resource roots, `/authorize`, `/oauth2/`, and `/.well-known/` proxy locations. |
 | `COAUTH_PUBLIC_URL` | recommended | Browser-facing coauth origin written to `/config.json` for OAuth2 PKCE redirects. |
 | `SODMIN_PORT` | no | nginx listen port. Defaults to `80`. |
 | `SODMIN_TELEMETRY_ENDPOINT` | no | P5 — opt-in browser-error telemetry sink. When set, `/config.json` exposes the URL and `utils::telemetry` POSTs structured (no-PII) error events. Operator must also flip `localStorage.sodmin_telemetry_opt_in=1`. |
@@ -29,11 +29,13 @@ CSP header and the routing table below.
 | `/healthz` | sodmin nginx | Static liveness probe — serves `index.html` so missing bundle returns 503. |
 | `/healthz/deep` | sodmin nginx → `${SOLAND_URL}/healthz` | P5 — readiness probe; returns 503 if soland is unreachable within 2s. |
 | `/config.json` | sodmin nginx | Runtime config rendered at boot from env. |
-| `/api/v1/events/` | `${SOLAND_URL}` | Event ingestion. |
-| `/api/v1/sync/` | `${SOLAND_URL}` | Sync long-poll. |
-| `/api/v1/directory/` | `${SOLAND_URL}` | Directory queries. |
-| `/api/admin/` | `${COAUTH_URL}` | All coauth admin endpoints (RBAC enforced server-side). |
-| `/auth/` and `/api/v1/auth/` | `${COAUTH_URL}` | Token + session endpoints. |
+| `/_cokret/self/events/` | `${SOLAND_URL}` | Event ingestion. |
+| `/_cokret/self/sync/` | `${SOLAND_URL}` | Sync long-poll. |
+| `/_cokret/find/directory/` | `${SOLAND_URL}` | Directory queries. |
+| `/_cokret/` (other trust circles) | `${SOLAND_URL}` | Remaining self/root/find/peer/open/edge surface. |
+| coauth `/_soland/admin/*` resource roots (accounts, claims, oauth2-sessions, personal-sessions, upstream-oauth-*, user-registration-tokens, connector-health, notification-*, audit-feed, bridge) | `${COAUTH_URL}` | coauth admin endpoints (RBAC enforced server-side); longest-prefix match wins over soland. |
+| `/_soland/admin/` (everything else) | `${SOLAND_URL}` | soland operator surface (spaces, moderation, federation, server, media, etc.). |
+| `/auth/` and `/_cokret/gate/` | `${COAUTH_URL}` | Token + session endpoints. |
 | `/authorize`, `/oauth2/`, `/.well-known/` | `${COAUTH_URL}` | OAuth2 PKCE flow + discovery. |
 | `*.wasm`, `*.js`, `*.css`, images | sodmin nginx (`Cache-Control: public, immutable`) | Bundle assets. |
 
@@ -86,19 +88,19 @@ action.
 
 ## CXP-0007 Circle administration
 
-Sodmin's `/circles/*` surfaces (P3A.3) call into soland's `/api/v1/circles/*`
+Sodmin's `/circles/*` surfaces (P3A.3) call into soland's `/_cokret/self/circles/*`
 admin layer. Before an operator can use those pages, coauth must have
 issued the matching `cx.circle.*` capability grants to the operator's
 admin DID — typically via the Coauth Capabilities admin page at
 `/coauth/capabilities`, or by running the bootstrap migration that
 seeds the six actions:
 
-* `cx.circle.create` (medium risk, no constraints)
-* `cx.circle.manage` (medium risk, requires `allowed_circle_ids`)
-* `cx.circle.member.add` (low risk, no constraints)
-* `cx.circle.member.manage` (medium risk, requires `allowed_circle_ids`)
-* `cx.circle.member.add.others` (high risk, requires `allowed_circle_ids`)
-* `cx.circle.audit` (high risk, paired with `audit_pair_required` check)
+* `ck.circle.create` (medium risk, no constraints)
+* `ck.circle.manage` (medium risk, requires `allowed_circle_ids`)
+* `ck.circle.member.add` (low risk, no constraints)
+* `ck.circle.member.manage` (medium risk, requires `allowed_circle_ids`)
+* `ck.circle.member.add.others` (high risk, requires `allowed_circle_ids`)
+* `ck.circle.audit` (high risk, paired with `audit_pair_required` check)
 
 Without these grants every Circle admin call returns 403 with
 `cx.error.capability_denied`. The sodmin UI surfaces that as

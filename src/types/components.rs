@@ -1,7 +1,7 @@
 //! DTO shapes for the component registry / version drift admin surface
 //! (Stream H', H'6).
 //!
-//! Read from `GET /api/admin/v1/components` — server-wide registry status:
+//! Read from `GET /_soland/admin/components` — server-wide registry status:
 //! the list of `cx.component.*` types the server knows about, the
 //! cell_family they project into, the criticality classification (per spec
 //! component-criticality table), the spec version pinned by the bundle and
@@ -74,7 +74,7 @@ impl ComponentImplStatus {
 /// One row in the component registry table.
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ComponentRegistryEntry {
-    /// e.g. `cx.component.anchorer.v1`.
+    /// e.g. `ck.component.anchorer.v1`.
     pub component_type: String,
     /// e.g. `cas_register`, `or_set`, `lww_register`.
     pub cell_family: String,
@@ -92,7 +92,7 @@ pub struct ComponentRegistryEntry {
     pub note: Option<String>,
 }
 
-/// Response from the `POST /api/admin/v1/components/{type}/refresh`
+/// Response from the `POST /_soland/admin/components/{type}/refresh`
 /// route. soland reports the new resolved impl version (or echoes the
 /// existing one when no refresh was needed) and a short status string.
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -162,7 +162,7 @@ mod tests {
     #[test]
     fn drift_detected_when_versions_differ() {
         let entry = ComponentRegistryEntry {
-            component_type: "cx.component.anchorer.v1".into(),
+            component_type: "ck.component.anchorer.v1".into(),
             cell_family: "cas_register".into(),
             criticality: "critical".into(),
             spec_version: "v1.2".into(),

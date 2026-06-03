@@ -4,9 +4,9 @@
 //! rotate one, and renders the recovery receipt history including
 //! `proof_summary[]`.
 //!
-//! The data API ships in R3.1 (`/api/admin/v1/recovery/policies`,
-//! `/api/admin/v1/recovery/policies/{id}/rotate`,
-//! `/api/admin/v1/recovery/receipts`). Until then this page renders the
+//! The data API ships in R3.1 (`/_soland/admin/recovery/policies`,
+//! `/_soland/admin/recovery/policies/{id}/rotate`,
+//! `/_soland/admin/recovery/receipts`). Until then this page renders the
 //! wire surface as a "coming soon" stub so the route is exercised by
 //! the SPA and operators see where the workflow will live.
 
@@ -57,7 +57,7 @@ pub fn RecoveryPolicyList() -> Element {
                     // with one row per receipt and an expandable
                     // proof_summary[] subtable (proof_type / verifier /
                     // verified_at). Receipts originate from
-                    // `/api/admin/v1/recovery/receipts`.
+                    // `/_soland/admin/recovery/receipts`.
                 }
             }
         }

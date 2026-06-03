@@ -160,7 +160,7 @@ pub struct SpaceMember {
     pub role: Option<String>,
     #[serde(default)]
     pub joined_at: Option<String>,
-    /// Spec 0a5ab85 — `cx.member.state{join}.delivery_status`. Drives
+    /// Spec 0a5ab85 — `ck.member.state{join}.delivery_status`. Drives
     /// the admin UI "routable" / "unroutable" indicator.
     #[serde(default)]
     pub delivery_status: Option<String>,
@@ -175,7 +175,7 @@ pub struct SpaceMember {
     /// backwards-compatible.
     #[serde(default)]
     pub membership: Option<String>,
-    /// R3.1 (ROST-1) — effective `cx.member.identity.update` event
+    /// R3.1 (ROST-1) — effective `ck.member.identity.update` event
     /// ids. Admin rows MUST source `display_name` / `primary_handle`
     /// from the joined effective MemberIdentity rather than the
     /// legacy in-roster fields when this list is non-empty (MID-1).
@@ -201,7 +201,7 @@ pub struct SpaceMember {
     /// visible effective handle claims. Disclosure-gated on `subject_id`.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub handle_claim_digests: Option<Vec<String>>,
-    /// R3.2 (ROST-1) — inlined full signed `cx.schema.handle_claim.v1`
+    /// R3.2 (ROST-1) — inlined full signed `ck.schema.handle_claim.v1`
     /// evidence. Each claim's `subject` MUST equal this entry's
     /// `subject_id`. Disclosure-gated on `subject_id`. The SPA runs
     /// §3.2.1 primary-handle selection over this set to derive the
@@ -309,7 +309,7 @@ pub struct GrantCapabilityRequest {
     pub expires_at: Option<String>,
 }
 
-/// PATCH body for `/admin/capabilities/{id}` — fine-grained
+/// PATCH body for `/_soland/admin/capabilities/{id}` — fine-grained
 /// edits to an existing grant's constraints. All fields optional; the
 /// admin only sends the keys that actually changed.
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -444,7 +444,7 @@ pub struct Agent {
     /// CXP-0008 — reducer-stamped actor kind. Native personal agents
     /// use `agent`; Applet-managed ghost actors use `integration` or
     /// `agent` plus provenance/accountability metadata.
-    /// Populated by soland's `cx.agent.list` / `cx.agent.get`.
+    /// Populated by soland's `ck.agent.list` / `ck.agent.get`.
     #[serde(default)]
     pub actor_kind: Option<String>,
     /// CXP-0008 — controller DID. Native personal agents are 1:1 bound
@@ -534,7 +534,7 @@ pub struct AccountabilityGrantResponse {
 // ── Key-backup admin types (B-C) ──
 
 /// B-C — recovery policy lifecycle. Mirrors
-/// `cx.schema.recovery_policy.v1#lifecycle`.
+/// `ck.schema.recovery_policy.v1#lifecycle`.
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct RecoveryPolicy {
     #[serde(default)]
@@ -836,7 +836,7 @@ pub struct ServerDescribeResBody {
     #[serde(default)]
     pub service_did: String,
     /// Round 4 — required `trust_domain` per ServerDescribe v2 (spec
-    /// a77b995). Anchors `cx.cross_signing.publish` proofs and federation
+    /// a77b995). Anchors `ck.cross_signing.publish` proofs and federation
     /// canonical transcripts; mismatch is the wire-breaker.
     #[serde(default)]
     pub trust_domain: Option<String>,
@@ -877,7 +877,7 @@ pub struct ServerDescribeResBody {
     #[serde(default)]
     pub rate_limit: serde_json::Value,
     /// T1.4 — soland surfaces its dev-mode posture directly on
-    /// `/api/v1/server/describe` (and `/health`). Sodmin uses this to
+    /// `/_cokret/describe` (and `/health`). Sodmin uses this to
     /// render the red top-of-page banner. `None` for older servers that
     /// predate the field.
     #[serde(default)]
@@ -1059,7 +1059,7 @@ pub struct HandleAvailabilityResult {
     pub error: Option<String>,
 }
 
-// ── Handle claim evidence (R3.2 — cx.schema.handle_claim.v1) ──
+// ── Handle claim evidence (R3.2 — ck.schema.handle_claim.v1) ──
 
 /// Binding lifecycle state of a [`HandleClaim`]. Mirrors the SDK
 /// `cokret_core::model::handle::HandleBindingState`. Only `Verified`
@@ -1073,10 +1073,10 @@ pub enum HandleBindingState {
     Expired,
 }
 
-/// R3.2 — local mirror of the signed `cx.schema.handle_claim.v1` object
+/// R3.2 — local mirror of the signed `ck.schema.handle_claim.v1` object
 /// the wire now carries inline inside roster entries
 /// (`member_roster_entry.handle_claims[]`) and the
-/// `cx.directory.list_handles_for_subject` response. Handle lifecycle has
+/// `ck.directory.list_handles_for_subject` response. Handle lifecycle has
 /// fully moved off `MemberIdentity` onto this claim object (cokret-spec
 /// @ b56cab1). Mirrors the SDK `cokret_core::model::handle::HandleClaim`;
 /// only the fields the admin UI renders / runs selection over are kept.
@@ -1107,7 +1107,7 @@ pub struct HandleClaim {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub audience: Option<String>,
     /// ISO-8601 issuance timestamp. Canonical wire name is `created_at`
-    /// (`cx.schema.handle_claim.v1`); the §3.2.1 primary-handle
+    /// (`ck.schema.handle_claim.v1`); the §3.2.1 primary-handle
     /// selection tie-break orders on this.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub created_at: Option<String>,
@@ -1119,8 +1119,8 @@ pub struct HandleClaim {
     pub claim_digest: Option<String>,
 }
 
-/// R3.2 (UI-SOD-4) — request body for `cx.directory.list_handles_for_subject`
-/// (`POST /api/v1/directory/list-handles-for-subject`). Known
+/// R3.2 (UI-SOD-4) — request body for `ck.directory.list_handles_for_subject`
+/// (`POST /_cokret/find/directory/list-handles-for-subject`). Known
 /// holder/principal DID → currently visible signed handle claims, the
 /// inverse of `resolve_handle`. Mirrors the SDK
 /// `DirectoryListHandlesForSubjectReqBody`.
@@ -1144,8 +1144,8 @@ pub struct ListHandlesForSubjectRequest {
 }
 
 /// R3.2 (UI-SOD-4) — response body for
-/// `cx.directory.list_handles_for_subject`. Schema
-/// `cx.schema.list_handles_for_subject_response.v1`. Every
+/// `ck.directory.list_handles_for_subject`. Schema
+/// `ck.schema.list_handles_for_subject_response.v1`. Every
 /// `claims[].subject` MUST equal [`Self::subject`] (byte-equal);
 /// mismatching claims MUST be dropped or the response failed closed —
 /// see [`Self::visible_claims`]. Mirrors the SDK
@@ -1172,7 +1172,7 @@ pub struct ListHandlesForSubjectResponse {
 impl ListHandlesForSubjectResponse {
     /// Fail-closed view of `claims`: drops any claim whose `subject` is
     /// not byte-equal to the response `subject` (schema invariant of
-    /// `cx.schema.list_handles_for_subject_response.v1`).
+    /// `ck.schema.list_handles_for_subject_response.v1`).
     pub fn visible_claims(&self) -> Vec<&HandleClaim> {
         self.claims
             .iter()
@@ -1183,7 +1183,7 @@ impl ListHandlesForSubjectResponse {
 
 // ── Handle management (T6.2 §2) ──
 
-/// One row in `GET /api/admin/v1/handles`. Mirrors the `cx.handle.*` cell
+/// One row in `GET /_soland/admin/handles`. Mirrors the `cx.handle.*` cell
 /// projection — `canonical_uri` is the cell subject, `aliases` is the
 /// projected handle set, `issuer_did` is the principal that signed the
 /// most recent assignment Move.
@@ -1209,7 +1209,7 @@ pub struct HandleRecord {
     pub status: Option<String>,
 }
 
-/// Single audit event for `GET /api/admin/v1/handles/{id}/audit`. The
+/// Single audit event for `GET /_soland/admin/handles/{id}/audit`. The
 /// audit table is what T3.2 created — we surface the minimum the
 /// operator needs to triage.
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -1410,10 +1410,10 @@ impl ThirdPartyInviteRow {
     }
 }
 
-// ── Realm link graph (R5.2, Round R1.2 — cx.realm.link projection) ──
+// ── Realm link graph (R5.2, Round R1.2 — ck.realm.link projection) ──
 
 /// One outbound / inbound typed link between two Realm boundaries.
-/// Backed by `cx.realm.link` reducer_input events. Common `link_kind`
+/// Backed by `ck.realm.link` reducer_input events. Common `link_kind`
 /// values include `governed_by`, `discoverable_from`, `mirror_of`.
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct RealmLinkRow {
@@ -1443,7 +1443,7 @@ pub struct RealmLinkRow {
 
 // ── Push route / device route (T6.2 §4) ──
 
-/// Surface for `cx.device.push_route` cells, grouped by principal so
+/// Surface for `ck.device.push_route` cells, grouped by principal so
 /// the operator can inspect what each user is currently subscribed to
 /// without leaking the raw `push_target_id`.
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -1473,7 +1473,7 @@ pub struct PushRouteRow {
 
 /// MID-3 — read-only row in the per-Realm identity-audit diagnostic
 /// page. One row per actor; lists the current effective
-/// `cx.member.identity.update` event ids + the projection digest the
+/// `ck.member.identity.update` event ids + the projection digest the
 /// SPA computed. Used to triage cross-actor identity drift without
 /// hitting the soland audit log directly.
 #[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq)]
@@ -1536,10 +1536,10 @@ mod tests {
             "service_did": "did:web:soland.local",
             "service_type": "principal_server",
             "protocol_version": "1.0",
-            "supported_profiles": ["cx.profile.principal_server.v1"],
+            "supported_profiles": ["ck.profile.principal_server.v1"],
             "supported_features": ["events.describe", "events.submit"],
-            "supported_operations": ["cx.events.submit"],
-            "supported_reducer_profiles": ["cx.reducer.v1"],
+            "supported_operations": ["ck.events.submit"],
+            "supported_reducer_profiles": ["ck.reducer.v1"],
             "supported_schema_profiles": ["cx.schema.core.v1"],
             "limits": {
                 "profile_status": {
@@ -1555,7 +1555,7 @@ mod tests {
         assert_eq!(describe.protocol_version.as_deref(), Some("1.0"));
         assert_eq!(
             describe.supported_reducer_profiles,
-            vec!["cx.reducer.v1".to_string()]
+            vec!["ck.reducer.v1".to_string()]
         );
         assert_eq!(
             describe.limits["profile_status"]["conformance"],
@@ -1576,7 +1576,7 @@ mod tests {
             },
             "identity_registry_resolver": {
                 "mode": "delegated_resolver",
-                "endpoint": "https://auth.example.com/api/v1/identity/resolve",
+                "endpoint": "https://auth.example.com/_cokret/root/identity/resolve",
                 "delegated_resolver": {
                     "kind": "public_did_resolver",
                     "resolver": "https://resolver.example.com/"
@@ -1606,13 +1606,13 @@ mod tests {
     fn server_describe_reads_supported_profiles() {
         let describe: ServerDescribeResBody = serde_json::from_value(json!({
             "service_did": "did:web:identity.example",
-            "supported_profiles": ["cx.profile.identity_registry.v1"]
+            "supported_profiles": ["ck.profile.identity_registry.v1"]
         }))
         .expect("supported_profiles should deserialize");
 
         assert_eq!(
             describe.supported_profiles,
-            vec!["cx.profile.identity_registry.v1".to_string()]
+            vec!["ck.profile.identity_registry.v1".to_string()]
         );
     }
 
@@ -1620,8 +1620,8 @@ mod tests {
     fn server_describe_reads_conformance_buckets() {
         let describe: ServerDescribeResBody = serde_json::from_value(json!({
             "service_did": "did:web:soland.local",
-            "verified_profiles": ["cx.profile.principal_server.v1"],
-            "claimed_profiles": ["cx.profile.identity_registry.v1"],
+            "verified_profiles": ["ck.profile.principal_server.v1"],
+            "claimed_profiles": ["ck.profile.identity_registry.v1"],
             "experimental_features": ["events.replay.v2"],
             "compat_surfaces": ["legacy.federation.v0"],
             "plaintext_visible_services": ["floria"],
@@ -1630,11 +1630,11 @@ mod tests {
 
         assert_eq!(
             describe.verified_profiles,
-            vec!["cx.profile.principal_server.v1".to_string()]
+            vec!["ck.profile.principal_server.v1".to_string()]
         );
         assert_eq!(
             describe.claimed_profiles,
-            vec!["cx.profile.identity_registry.v1".to_string()]
+            vec!["ck.profile.identity_registry.v1".to_string()]
         );
         assert_eq!(
             describe.experimental_features,

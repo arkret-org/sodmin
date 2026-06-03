@@ -1,14 +1,14 @@
 //! Component criticality / version drift admin page (Stream H', H'6).
 //!
 //! Server-wide component registry view. Reads from
-//! `GET /api/admin/v1/components` and renders one row per
+//! `GET /_soland/admin/components` and renders one row per
 //! `cx.component.*` type with the cell_family it projects into, the
 //! criticality classification, the spec version pinned by the bundle, the
 //! impl version actually loaded, and an Active/Stub/Disabled status.
 //! When `spec_version` and `impl_version` disagree (or the impl reports
 //! nothing) we paint a "drift" alert badge on that row, plus a
 //! `Refresh from spec` action that POSTs to
-//! `/api/admin/v1/components/{type}/refresh`. The action follows the
+//! `/_soland/admin/components/{type}/refresh`. The action follows the
 //! same 404-tolerant pattern as the other Stream H' admin overrides —
 //! when the backend hasn't wired the route yet the operator sees a
 //! "endpoint not yet wired" toast rather than a generic error.

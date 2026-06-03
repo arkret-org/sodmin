@@ -1,7 +1,7 @@
 //! R5.2 — Realm link-graph admin page.
 //!
 //! Renders the outbound (`this Realm → others`) and inbound
-//! (`others → this Realm`) `cx.realm.link` rows for a single Realm.
+//! (`others → this Realm`) `ck.realm.link` rows for a single Realm.
 //! Each row is a card with a chip for the `link_kind`
 //! (`governed_by`, `discoverable_from`, `mirror_of`, …) and the
 //! target Realm identifier.

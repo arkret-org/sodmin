@@ -3,10 +3,10 @@
 //!
 //! Endpoints:
 //!
-//! - `GET  /admin/spaces/{id}/multisig/pending` — list pending Anchors awaiting threshold
+//! - `GET  /_soland/admin/spaces/{id}/multisig/pending` — list pending Anchors awaiting threshold
 //!   (`k of n`). Each row includes the anchor_id, threshold, collected partials count, and missing
 //!   signers DIDs.
-//! - `POST /admin/spaces/{id}/multisig/{anchor_id}/partial` — submit the current admin's
+//! - `POST /_soland/admin/spaces/{id}/multisig/{anchor_id}/partial` — submit the current admin's
 //!   partial signature toward the pending Anchor. soland resolves the admin DID from the bearer
 //!   token, signs the anchor's `state_root` with the bound signing key, and folds the resulting
 //!   partial into the pending signature set.

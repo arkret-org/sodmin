@@ -18,13 +18,13 @@ pub async fn list_federation_peers(
     if !search.is_empty() {
         params.push(("filter[name_or_id]", search));
     }
-    let url = build_url("/api/admin/v1/federation/peers", &params)?;
+    let url = build_url("/_soland/admin/federation/peers", &params)?;
     api_client(&url, "GET", None).await
 }
 
 pub async fn get_federation_peer(domain: &str) -> Result<FederationPeer, HttpError> {
     let url = format!(
-        "/api/admin/v1/federation/peers/{}",
+        "/_soland/admin/federation/peers/{}",
         urlencoding::encode(domain)
     );
     api_client(&url, "GET", None).await
@@ -32,7 +32,7 @@ pub async fn get_federation_peer(domain: &str) -> Result<FederationPeer, HttpErr
 
 pub async fn reset_federation_connection(domain: &str) -> Result<(), HttpError> {
     let url = format!(
-        "/api/admin/v1/federation/peers/{}/reset",
+        "/_soland/admin/federation/peers/{}/reset",
         urlencoding::encode(domain)
     );
     api_client(&url, "POST", None).await
@@ -47,7 +47,7 @@ pub async fn list_federation_allow_rules(
     if let Some(c) = cursor.filter(|c| !c.is_empty()) {
         params.push(("cursor", c));
     }
-    let url = build_url("/api/admin/v1/federation/allow-rules", &params)?;
+    let url = build_url("/_soland/admin/federation/allow-rules", &params)?;
     api_client(&url, "GET", None).await
 }
 
@@ -56,12 +56,12 @@ pub async fn add_federation_rule(
 ) -> Result<FederationAllowRule, HttpError> {
     let body = serde_json::to_string(request)
         .map_err(|e| HttpError::message(format!("failed to encode federation rule: {e}")))?;
-    api_client("/api/admin/v1/federation/allow-rules", "POST", Some(body)).await
+    api_client("/_soland/admin/federation/allow-rules", "POST", Some(body)).await
 }
 
 pub async fn defederate_federation_peer(domain: &str) -> Result<(), HttpError> {
     let url = format!(
-        "/api/admin/v1/federation/peers/{}/defederate",
+        "/_soland/admin/federation/peers/{}/defederate",
         urlencoding::encode(domain)
     );
     api_client(&url, "POST", None).await
@@ -69,7 +69,7 @@ pub async fn defederate_federation_peer(domain: &str) -> Result<(), HttpError> {
 
 pub async fn delete_federation_allow_rule(id: &str) -> Result<(), HttpError> {
     let url = format!(
-        "/api/admin/v1/federation/allow-rules/{}",
+        "/_soland/admin/federation/allow-rules/{}",
         urlencoding::encode(id)
     );
     api_client(&url, "DELETE", None).await

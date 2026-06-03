@@ -3,9 +3,9 @@
 //!
 //! Endpoints:
 //!
-//! - `GET /api/admin/v1/moderation/reports` — paginated list of open reports (default; `?status=…`
+//! - `GET /_soland/admin/moderation/reports` — paginated list of open reports (default; `?status=…`
 //!   widens the projection).
-//! - `POST /api/admin/v1/moderation/reports/{id}/resolve` — admin decision body `{decision:
+//! - `POST /_soland/admin/moderation/reports/{id}/resolve` — admin decision body `{decision:
 //!   "resolve" | "dismiss", note?}`. Same 404-tolerant pattern as the rest of Stream H'.
 
 use crate::api::client::{api_client, build_url};
@@ -40,7 +40,7 @@ pub async fn list_reports(
     if let Some(cursor) = cursor.filter(|c| !c.is_empty()) {
         params.push(("cursor", cursor));
     }
-    let url = build_url("/api/admin/v1/moderation/reports", &params)?;
+    let url = build_url("/_soland/admin/moderation/reports", &params)?;
     let resp: ModerationReportEnvelope = api_client(&url, "GET", None).await?;
     Ok(ModerationReportPage {
         data: resp.data,
@@ -51,7 +51,7 @@ pub async fn list_reports(
 
 pub async fn resolve_report(report_id: &str, body: &ResolveReportRequest) -> Result<(), HttpError> {
     let url = format!(
-        "/api/admin/v1/moderation/reports/{}/resolve",
+        "/_soland/admin/moderation/reports/{}/resolve",
         urlencoding::encode(report_id)
     );
     let payload = serde_json::to_string(body).unwrap_or_default();
@@ -61,7 +61,7 @@ pub async fn resolve_report(report_id: &str, body: &ResolveReportRequest) -> Res
 
 // ── Moderation appeals ──────────────────────────────────────────────
 
-/// Wire shape returned by `GET /admin/moderation/appeals`.
+/// Wire shape returned by `GET /_soland/admin/moderation/appeals`.
 /// Each entry is one row per `appeal_id`, with the latest event of
 /// that appeal (the soland helper collapses the event history to the
 /// most recent state). Fields are deserialised loosely so we can

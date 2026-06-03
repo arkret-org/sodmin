@@ -33,7 +33,7 @@ pub async fn revoke_capability(id: &str) -> Result<(), HttpError> {
     api_client(&url, "POST", None).await
 }
 
-/// PATCH `/admin/capabilities/{id}` — fine-grained constraint
+/// PATCH `/_soland/admin/capabilities/{id}` — fine-grained constraint
 /// edits (T6.2 §5). Sends only the changed fields; the server merges
 /// them into the existing grant and publishes a Move.
 pub async fn update_capability(

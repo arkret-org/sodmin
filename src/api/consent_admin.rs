@@ -3,11 +3,11 @@
 //!
 //! Endpoints:
 //!
-//! - `GET /api/admin/v1/spaces/{id}/consent` — read the joined or-set value of
+//! - `GET /_soland/admin/spaces/{id}/consent` — read the joined or-set value of
 //!   `ck:cell:cx.component.consent.v1:<holder_did>` for every holder visible inside the Space.
 //!   soland is responsible for redaction: it MUST NOT expose holder-private peer relations beyond
 //!   the public admin-visible projection (DID / peer DID / scope / status / created_at).
-//! - `POST /api/admin/v1/consent/{consent_id}/resolve` — admin override for **pending** consent
+//! - `POST /_soland/admin/consent/{consent_id}/resolve` — admin override for **pending** consent
 //!   rows. Same shape as the invite-quarantine resolve route: `{decision: approve|reject, note?}`.
 //!   soland is expected to validate that the consent row is currently `Pending` and reject
 //!   otherwise. The endpoint may not yet be wired on the backend; the caller surfaces a "not yet
@@ -25,12 +25,12 @@ use crate::utils::error::HttpError;
 
 /// Fetch the list of consent grants visible inside the Space.
 ///
-/// `GET /api/admin/v1/spaces/{id}/consent`. soland projects each consent
+/// `GET /_soland/admin/spaces/{id}/consent`. soland projects each consent
 /// cell's joined or-set value into one row per (holder, peer, scope)
 /// triple.
 pub async fn list_consent_grants(space_id: &str) -> Result<Vec<ConsentGrant>, HttpError> {
     let url = format!(
-        "/api/admin/v1/spaces/{}/consent",
+        "/_soland/admin/spaces/{}/consent",
         urlencoding::encode(space_id)
     );
     api_client(&url, "GET", None).await
@@ -38,7 +38,7 @@ pub async fn list_consent_grants(space_id: &str) -> Result<Vec<ConsentGrant>, Ht
 
 /// Resolve a pending consent row by admin decision.
 ///
-/// `POST /api/admin/v1/consent/{consent_id}/resolve` with body
+/// `POST /_soland/admin/consent/{consent_id}/resolve` with body
 /// `{decision: approve|reject, note?}`. Mirrors the invite-quarantine
 /// resolve route shape that soland already implements; the returned
 /// envelope is the same shape — a single resource describing the
@@ -53,7 +53,7 @@ pub async fn resolve(
     note: Option<String>,
 ) -> Result<ConsentGrant, HttpError> {
     let url = format!(
-        "/api/admin/v1/consent/{}/resolve",
+        "/_soland/admin/consent/{}/resolve",
         urlencoding::encode(consent_id)
     );
     let body = ConsentResolveRequest { decision, note };

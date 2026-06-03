@@ -2,7 +2,7 @@
 //
 // Verifies that sodmin renders the red "DEVELOPMENT MODE" banner when the
 // connected soland reports `development_mode == true` on its
-// `/api/v1/server/describe` surface. The banner is the operator's
+// `/_cokret/describe` surface. The banner is the operator's
 // safety signal that proof verification is relaxed and admin endpoints
 // accept any authenticated session — losing it is a regression we want
 // loud feedback on.

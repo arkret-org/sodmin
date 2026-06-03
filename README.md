@@ -56,7 +56,7 @@ After the Phase 1–4 terminology inversion (Round R1.x):
 The admin pages under "Spaces" in the sidebar still drive the security
 boundary; the URL routes have been renamed to `/realms/:id/...` with
 `/spaces/:id/...` kept as a back-compat alias. The new **Realm links**
-page exposes the typed `cx.realm.link` edges between boundaries.
+page exposes the typed `ck.realm.link` edges between boundaries.
 
 ## Round R4 (protocol review closures)
 
@@ -90,18 +90,18 @@ Spec rounds 2+3 (2026-05-20) added several operator surfaces — see
 normative source. The new admin pages:
 
 - **Moderation appeals** (`/moderation/appeals`) — pending-state list +
-  detail/decision panel for the `cx.moderation.appeal.{submit,review,
+  detail/decision panel for the `ck.moderation.appeal.{submit,review,
   decision,close}` flow. Enforces separation-of-duties (reviewer DID
   must differ from the original decision issuer).
 - **Trust domain** (`/server/trust-domain`) — read/write the
   deployment-wide `ck:trust_domain:<scope>`. Loud-red warning:
   rotating this value invalidates every outstanding
-  `cx.cross_signing.reset` proof.
+  `ck.cross_signing.reset` proof.
 - **Deactivation review** (`/deactivations/review`) — 7-domain fanout
   panel (session / device / applet / keypackage / push / to-device /
   capability) with per-domain retry. Reused on the Realm destroy page.
 - **Audit attestation** (`/audit/attestation`) — upload + browse
-  `cx.schema.attestation_evidence.v1` documents.
+  `ck.schema.attestation_evidence.v1` documents.
 - **Relaxed window** (`/server/relaxed-window`) — slider capped at the
   300 000 ms hard ceiling; greyed out when an audit profile is active.
 
@@ -151,7 +151,7 @@ Required and optional environment variables:
 | Variable | Required | Purpose |
 | --- | --- | --- |
 | `SOLAND_URL` | yes | Internal URL of the soland Principal Server reached by the proxy. |
-| `COAUTH_URL` | recommended | Internal URL of the coauth admin service. Enables the `/auth/`, `/api/v1/auth/`, `/api/admin/`, `/authorize`, `/oauth2/`, `/.well-known/` proxy locations. |
+| `COAUTH_URL` | recommended | Internal URL of the coauth admin service. Enables the `/auth/`, `/_cokret/gate/`, coauth `/_soland/admin/*` resource roots, `/authorize`, `/oauth2/`, `/.well-known/` proxy locations. |
 | `COAUTH_PUBLIC_URL` | recommended | Browser-facing coauth origin. Written to `/config.json` for the OAuth2 PKCE redirect. |
 | `SODMIN_PORT` | no | nginx listen port (default `80`). |
 
@@ -196,7 +196,7 @@ which is build output and should not be committed.
 
 ## Dashboard Discovery
 
-The dashboard reads native Cokret discovery metadata from `/api/v1/server/describe` and `/api/admin/v1/server/info`. Discovery-backed fields currently rendered include service DID, coauth issuer DID, delegated/public DID resolver endpoint, supported profiles, reducer/schema profiles, event-kind registry version, OpenAPI version, health summary, and conformance declarations.
+The dashboard reads native Cokret discovery metadata from `/_cokret/describe` and `/_soland/admin/server/info`. Discovery-backed fields currently rendered include service DID, coauth issuer DID, delegated/public DID resolver endpoint, supported profiles, reducer/schema profiles, event-kind registry version, OpenAPI version, health summary, and conformance declarations.
 
 If discovery is unavailable or an older backend omits a field, the UI renders `-` or `Unknown` and does not treat the profile as implemented.
 

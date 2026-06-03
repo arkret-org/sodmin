@@ -5,7 +5,7 @@
 //! breadcrumb in the browser console + any attached log sink, so an
 //! operator can correlate a sodmin click with the soland-side audit row
 //! it produced. The actual audit-log row is appended *server-side* by
-//! soland on receipt of `POST /api/admin/v1/{resource}/{id}/{action}`;
+//! soland on receipt of `POST /_soland/admin/{resource}/{id}/{action}`;
 //! this client-side trace is purely a defensive UX aid (correlation +
 //! "did the click actually fire" debugging).
 //!
@@ -113,7 +113,7 @@ pub fn emit_admin_audit(
     );
 }
 
-/// Wire shape POSTed to `/api/admin/v1/audit/client-event`. The
+/// Wire shape POSTed to `/_soland/admin/audit/client-event`. The
 /// envelope is intentionally schema-stable so soland's reducer can map
 /// it straight to its audit row without a sodmin-specific adapter.
 ///
@@ -137,7 +137,7 @@ pub struct AdminAuditClientEvent {
     pub note: Option<String>,
 }
 
-/// Build the wire payload for the `/api/admin/v1/audit/client-event`
+/// Build the wire payload for the `/_soland/admin/audit/client-event`
 /// POST. Pure helper — split out so we can unit-test the shape
 /// without compiling the wasm fetch path.
 #[cfg_attr(not(any(target_arch = "wasm32", test)), allow(dead_code))]
@@ -162,7 +162,7 @@ pub fn build_client_event(
 
 /// Server-side admin audit POST. Mirrors [`emit_admin_audit`] but
 /// additionally fires a best-effort `POST
-/// /api/admin/v1/audit/client-event` so the audit row also lands in
+/// /_soland/admin/audit/client-event` so the audit row also lands in
 /// the soland audit feed (not only the browser console).
 ///
 /// 404 / 5xx is intentionally tolerated — soland may not have wired
@@ -193,7 +193,7 @@ pub fn emit_admin_audit_server(
 
     dioxus::prelude::spawn(async move {
         let res: Result<serde_json::Value, _> =
-            crate::api::client::api_client("/api/admin/v1/audit/client-event", "POST", Some(body))
+            crate::api::client::api_client("/_soland/admin/audit/client-event", "POST", Some(body))
                 .await;
         if let Err(e) = res {
             // Don't toast — this is a fire-and-forget breadcrumb. Just

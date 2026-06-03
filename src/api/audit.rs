@@ -2,7 +2,7 @@ use crate::api::client::{api_client, build_url};
 use crate::types::*;
 use crate::utils::error::HttpError;
 
-/// Multi-dimensional filter for `/admin/audit` queries. Empty fields
+/// Multi-dimensional filter for `/_soland/admin/audit` queries. Empty fields
 /// are dropped before encoding so the wire form only carries what the
 /// operator actually filtered on.
 #[derive(Debug, Clone, Default)]
@@ -15,7 +15,7 @@ pub struct AuditFilter {
     pub until: Option<String>,
     /// CXP-0007 (P3A.5) — server-side filter on event kind. When set,
     /// soland constrains the audit feed to the matching `cx.*` kind
-    /// strings (e.g. `cx.circle.create`).
+    /// strings (e.g. `ck.circle.create`).
     pub event_kind: Option<String>,
     /// CXP-0007 (P3A.5) — server-side filter on effective scope (a
     /// `ck:realm:...` or `ck:circle:...` id).

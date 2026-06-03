@@ -1,6 +1,6 @@
 //! Round R2/R3 — 7-domain deactivation fanout panel (T07).
 //!
-//! When an admin runs `cx.identity.deactivate` (or `cx.realm.destroy`),
+//! When an admin runs `cx.identity.deactivate` (or `ck.realm.destroy`),
 //! the principal server cascades the deactivation across seven
 //! independent local domains. This panel renders the per-domain result
 //! so the operator can spot a partial fanout and retry the failing
@@ -16,7 +16,7 @@
 //! 6. `to_device`     — queued to-device messages drained
 //! 7. `capability`    — capability-cache invalidation
 //!
-//! For `cx.realm.destroy` the same panel is reused; in addition the
+//! For `ck.realm.destroy` the same panel is reused; in addition the
 //! caller wires an "erasure receipt" cross-PS bar.
 
 use dioxus::prelude::*;
@@ -113,12 +113,12 @@ impl FanoutState {
 }
 
 /// Top-level snapshot of all seven domains for one
-/// `cx.identity.deactivate` (or `cx.realm.destroy`) invocation.
+/// `cx.identity.deactivate` (or `ck.realm.destroy`) invocation.
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct FanoutSnapshot {
     pub subject_id: String,
     pub domains: Vec<FanoutDomainResult>,
-    /// Only present on `cx.realm.destroy`. For `cx.identity.deactivate`
+    /// Only present on `ck.realm.destroy`. For `cx.identity.deactivate`
     /// this is `None`.
     pub erasure_receipt: Option<ErasureReceiptStatus>,
 }
@@ -194,7 +194,7 @@ pub fn placeholder_snapshot(subject_id: impl Into<String>) -> FanoutSnapshot {
 pub struct DeactivationFanoutPanelProps {
     pub snapshot: FanoutSnapshot,
     /// Optional "Retry this domain" handler. The parent typically wires
-    /// this to `POST /api/admin/v1/identity/deactivations/{id}/retry`
+    /// this to `POST /_soland/admin/identity/deactivations/{id}/retry`
     /// with the failing slug.
     #[props(default)]
     pub on_retry: EventHandler<FanoutDomain>,
@@ -278,7 +278,7 @@ pub fn DeactivationFanoutPanel(props: DeactivationFanoutPanelProps) -> Element {
                     }
                 }
 
-                // Erasure receipt — only present for `cx.realm.destroy`.
+                // Erasure receipt — only present for `ck.realm.destroy`.
                 if let Some(r) = receipt {
                     {erasure_receipt_block(&r)}
                 }

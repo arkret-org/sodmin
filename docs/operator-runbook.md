@@ -3,7 +3,7 @@
 This runbook covers operational tasks the sodmin operator drives that have
 **non-trivial blast radius**. The single biggest one is flipping a realm
 into the strict-reject accountability posture (the
-`cx.profile.accountable_principals.strict_reject.v1` profile).
+`ck.profile.accountable_principals.strict_reject.v1` profile).
 
 For onboarding flows, the agent lifecycle, recovery rotation, and the
 media-service config UI, see [`admin-onboarding.md`](./admin-onboarding.md).
@@ -44,7 +44,7 @@ the operational checklist for the human at the keyboard.
 
 1. Navigate to `/realms/{id}/profiles`.
 2. Click **Edit profile set**.
-3. Add `cx.profile.accountable_principals.strict_reject.v1` to the realm's
+3. Add `ck.profile.accountable_principals.strict_reject.v1` to the realm's
    declared profile set.
 4. The form prompts for a **justification** (free-text, 32–512 chars) —
    this lands in the audit row. Write something a future ops engineer
@@ -56,7 +56,7 @@ the operational checklist for the human at the keyboard.
 
 The submission produces three artifacts:
 
-- A `cx.realm.profile.update` event in soland.
+- A `ck.realm.profile.update` event in soland.
 - A `profile.accountable_principals.strict_reject.flip` audit row with
   `direction = on`, the operator's actor_id, the justification, and the
   prior/new state digests.
@@ -101,7 +101,7 @@ rollback directive:
 
 1. Navigate to `/realms/{id}/profiles`.
 2. Click **Edit profile set**.
-3. Remove `cx.profile.accountable_principals.strict_reject.v1` from the declared
+3. Remove `ck.profile.accountable_principals.strict_reject.v1` from the declared
    profile set.
 4. Confirmation phrase: realm short id again.
 5. Submit. The form does NOT require justification for rollback (so that

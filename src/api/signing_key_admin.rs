@@ -3,9 +3,9 @@
 //!
 //! Endpoints:
 //!
-//! - `GET  /api/admin/v1/spaces/{id}/anchorer/signing-key` — describe the current AnchorerWorker
+//! - `GET  /_soland/admin/spaces/{id}/anchorer/signing-key` — describe the current AnchorerWorker
 //!   signing key (origin, DID#kid, last rotation).
-//! - `POST /admin/spaces/{id}/anchorer/rotate-signing-key` — trigger a key rotation. The
+//! - `POST /_soland/admin/spaces/{id}/anchorer/rotate-signing-key` — trigger a key rotation. The
 //!   principal-server generates a fresh key, swaps the worker's signer atomically, and reports the
 //!   new verification method id.
 //!
@@ -20,7 +20,7 @@ use crate::utils::error::HttpError;
 /// Fetch the current AnchorerWorker signing-key describe view.
 pub async fn get_signing_key(realm_id: &str) -> Result<SigningKeyDescribe, HttpError> {
     let url = format!(
-        "/api/admin/v1/spaces/{}/anchorer/signing-key",
+        "/_soland/admin/spaces/{}/anchorer/signing-key",
         urlencoding::encode(realm_id)
     );
     api_client(&url, "GET", None).await

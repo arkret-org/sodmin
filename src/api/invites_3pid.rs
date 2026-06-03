@@ -5,5 +5,5 @@ use crate::types::{ListResponse, ThirdPartyInviteRow};
 use crate::utils::error::HttpError;
 
 pub async fn list_third_party_invites() -> Result<ListResponse<ThirdPartyInviteRow>, HttpError> {
-    api_client("/api/admin/v1/invites/3pid", "GET", None).await
+    api_client("/_soland/admin/invites/3pid", "GET", None).await
 }

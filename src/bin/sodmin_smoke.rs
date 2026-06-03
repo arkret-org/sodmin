@@ -148,10 +148,10 @@ pub(crate) fn classify_status(status: u16, tolerate_404: bool) -> CheckOutcome {
 }
 
 /// Pure helper: build a per-Space admin URL like
-/// `<base>/admin/spaces/<id>/<suffix>`. URL-encodes the space id.
+/// `<base>/_soland/admin/spaces/<id>/<suffix>`. URL-encodes the space id.
 pub(crate) fn build_space_url(base_url: &str, space_id: &str, suffix: &str) -> String {
     format!(
-        "{}/admin/spaces/{}/{}",
+        "{}/_soland/admin/spaces/{}/{}",
         base_url.trim_end_matches('/'),
         urlencoding_encode(space_id),
         suffix.trim_start_matches('/'),
@@ -284,7 +284,7 @@ fn run() -> ExitCode {
     // intentionally NOT exercised here — running them post-deploy would
     // mutate state. Smoke checks reachability + auth only.
     let checks = vec![
-        ("admin/health", "GET", format!("{base}/api/admin/v1/health")),
+        ("admin/health", "GET", format!("{base}/_soland/admin/health")),
         (
             "spaces/anchorer (H'1/H'2)",
             "GET",
@@ -308,7 +308,7 @@ fn run() -> ExitCode {
         (
             "components (H'6)",
             "GET",
-            format!("{base}/api/admin/v1/components"),
+            format!("{base}/_soland/admin/components"),
         ),
         (
             "spaces/covered-frontier (H'7)",
@@ -406,7 +406,7 @@ mod tests {
         let url = build_space_url("https://soland.example.com/", "ck:space:demo", "anchorer");
         assert_eq!(
             url,
-            "https://soland.example.com/admin/spaces/ck:space:demo/anchorer"
+            "https://soland.example.com/_soland/admin/spaces/ck:space:demo/anchorer"
         );
     }
 
@@ -419,7 +419,7 @@ mod tests {
         );
         assert_eq!(
             url,
-            "https://soland.example.com/admin/spaces/ck:space:demo/mls/covered-frontier"
+            "https://soland.example.com/_soland/admin/spaces/ck:space:demo/mls/covered-frontier"
         );
     }
 

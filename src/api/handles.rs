@@ -2,12 +2,12 @@
 //!
 //! Endpoints (all 404-tolerant — older servers may not yet expose them):
 //!
-//! - `GET /api/admin/v1/handles` — paginated list of `cx.handle.*` cells visible to the current
+//! - `GET /_soland/admin/handles` — paginated list of `cx.handle.*` cells visible to the current
 //!   admin scope.
-//! - `GET /api/admin/v1/handles/{id}` — single handle row.
-//! - `GET /api/admin/v1/handles/{id}/audit` — handle audit trail from the T3.2 audit table.
-//! - `POST /api/admin/v1/handles/{id}/revoke` — publish a revoke Move.
-//! - `POST /api/admin/v1/handles/{id}/reassign` — force a re-bind to a new subject DID.
+//! - `GET /_soland/admin/handles/{id}` — single handle row.
+//! - `GET /_soland/admin/handles/{id}/audit` — handle audit trail from the T3.2 audit table.
+//! - `POST /_soland/admin/handles/{id}/revoke` — publish a revoke Move.
+//! - `POST /_soland/admin/handles/{id}/reassign` — force a re-bind to a new subject DID.
 
 use crate::api::client::{api_client, build_url};
 use crate::types::*;
@@ -19,7 +19,7 @@ pub async fn list_handles(
     search: &str,
 ) -> Result<ListResponse<HandleRecord>, HttpError> {
     let url = build_url(
-        "/api/admin/v1/handles",
+        "/_soland/admin/handles",
         &[
             ("page", &page.to_string()),
             ("per_page", &per_page.to_string()),
@@ -30,17 +30,17 @@ pub async fn list_handles(
 }
 
 pub async fn get_handle(id: &str) -> Result<HandleRecord, HttpError> {
-    let url = format!("/api/admin/v1/handles/{}", urlencoding::encode(id));
+    let url = format!("/_soland/admin/handles/{}", urlencoding::encode(id));
     api_client(&url, "GET", None).await
 }
 
 pub async fn get_handle_audit(id: &str) -> Result<ListResponse<HandleAuditEvent>, HttpError> {
-    let url = format!("/api/admin/v1/handles/{}/audit", urlencoding::encode(id));
+    let url = format!("/_soland/admin/handles/{}/audit", urlencoding::encode(id));
     api_client(&url, "GET", None).await
 }
 
 pub async fn revoke_handle(id: &str) -> Result<(), HttpError> {
-    let url = format!("/api/admin/v1/handles/{}/revoke", urlencoding::encode(id));
+    let url = format!("/_soland/admin/handles/{}/revoke", urlencoding::encode(id));
     api_client(&url, "POST", None).await
 }
 
@@ -48,7 +48,7 @@ pub async fn reassign_handle(
     id: &str,
     req: &HandleReassignRequest,
 ) -> Result<HandleRecord, HttpError> {
-    let url = format!("/api/admin/v1/handles/{}/reassign", urlencoding::encode(id));
+    let url = format!("/_soland/admin/handles/{}/reassign", urlencoding::encode(id));
     api_client(
         &url,
         "POST",

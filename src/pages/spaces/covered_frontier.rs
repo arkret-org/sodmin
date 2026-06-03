@@ -1,14 +1,14 @@
 //! E2EE covered_frontier lag admin page (Stream H', H'7).
 //!
 //! Renders the snapshot returned by
-//! `GET /api/admin/v1/spaces/{id}/mls/covered-frontier` and shows how
+//! `GET /_soland/admin/spaces/{id}/mls/covered-frontier` and shows how
 //! many governance Moves the MLS group has yet to acknowledge. Above the
 //! configurable threshold the lag count is painted in destructive red
 //! with a warning banner so the admin sees the urgency, AND a
 //! "Manually advance covered_frontier" override button is surfaced so
 //! the operator can fold the current governance frontier into the MLS
 //! cover or-set when members are stuck offline. The override POSTs to
-//! `/api/admin/v1/spaces/{id}/mls/covered-frontier/advance` and follows
+//! `/_soland/admin/spaces/{id}/mls/covered-frontier/advance` and follows
 //! the same 404-tolerant pattern as the other Stream H' admin actions.
 
 use dioxus::prelude::*;

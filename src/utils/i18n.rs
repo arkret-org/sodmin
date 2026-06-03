@@ -1415,7 +1415,7 @@ fn apply_cokret_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("realm_links.outbound_title", "Outbound links"),
             (
                 "realm_links.outbound_subtitle",
-                "Typed cx.realm.link edges from this Realm to others (governed_by / discoverable_from / mirror_of …).",
+                "Typed ck.realm.link edges from this Realm to others (governed_by / discoverable_from / mirror_of …).",
             ),
             (
                 "realm_links.outbound_empty",
@@ -1424,7 +1424,7 @@ fn apply_cokret_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("realm_links.inbound_title", "Inbound links"),
             (
                 "realm_links.inbound_subtitle",
-                "Typed cx.realm.link edges from other Realms pointing at this one.",
+                "Typed ck.realm.link edges from other Realms pointing at this one.",
             ),
             (
                 "realm_links.inbound_empty",
@@ -1447,7 +1447,7 @@ fn apply_cokret_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("push_routes.title", "Push routes"),
             (
                 "push_routes.subtitle",
-                "cx.device.push_route cells grouped by principal. Push target ids are sensitive and stay collapsed until you explicitly reveal them.",
+                "ck.device.push_route cells grouped by principal. Push target ids are sensitive and stay collapsed until you explicitly reveal them.",
             ),
             ("push_routes.search", "Filter by principal id"),
             ("push_routes.principal", "Principal"),
@@ -1611,7 +1611,7 @@ fn apply_cokret_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("starid_resolver.card_title", "Resolver status"),
             (
                 "starid_resolver.card_subtitle",
-                "Aggregate state reported by /api/v1/identity/describe.",
+                "Aggregate state reported by /_cokret/root/identity/describe.",
             ),
             ("starid_resolver.service_did", "Service DID"),
             ("starid_resolver.registry_mode", "Registry mode"),
@@ -1819,7 +1819,7 @@ fn apply_cokret_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ),
             (
                 "circle.scope_hint",
-                "Full MLS-key rotation lands when soland P2A.4 is complete. Today this emits a cx.circle.update Move so authz hooks fire.",
+                "Full MLS-key rotation lands when soland P2A.4 is complete. Today this emits a ck.circle.update Move so authz hooks fire.",
             ),
             ("circle.rotate_scope", "Rotate MLS scope"),
             ("circle.archive", "Archive"),
@@ -1896,19 +1896,19 @@ fn apply_cokret_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("audit.scope_circle", "Circle"),
             ("audit.scope_jump", "Jump to scope"),
             ("audit.filter_event_kind", "Event kind"),
-            ("audit.filter_event_kind_circle_create", "cx.circle.create"),
-            ("audit.filter_event_kind_circle_update", "cx.circle.update"),
+            ("audit.filter_event_kind_circle_create", "ck.circle.create"),
+            ("audit.filter_event_kind_circle_update", "ck.circle.update"),
             (
                 "audit.filter_event_kind_circle_archive",
-                "cx.circle.archive",
+                "ck.circle.archive",
             ),
             (
                 "audit.filter_event_kind_circle_tombstone",
-                "cx.circle.tombstone",
+                "ck.circle.tombstone",
             ),
             (
                 "audit.filter_event_kind_circle_member_state",
-                "cx.circle.member.state",
+                "ck.circle.member.state",
             ),
             (
                 "audit.filter_event_kind_circle_capability_grant",
@@ -1919,18 +1919,18 @@ fn apply_cokret_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "cx.circle.capability.revoke",
             ),
             // P3A.4 — capability editor (cx.circle.*) labels
-            ("capability.cx_circle_create", "cx.circle.create"),
-            ("capability.cx_circle_manage", "cx.circle.manage"),
-            ("capability.cx_circle_member_add", "cx.circle.member.add"),
+            ("capability.cx_circle_create", "ck.circle.create"),
+            ("capability.cx_circle_manage", "ck.circle.manage"),
+            ("capability.cx_circle_member_add", "ck.circle.member.add"),
             (
                 "capability.cx_circle_member_manage",
-                "cx.circle.member.manage",
+                "ck.circle.member.manage",
             ),
             (
                 "capability.cx_circle_member_add_others",
-                "cx.circle.member.add.others",
+                "ck.circle.member.add.others",
             ),
-            ("capability.cx_circle_audit", "cx.circle.audit"),
+            ("capability.cx_circle_audit", "ck.circle.audit"),
             (
                 "capability.cx_circle_section",
                 "Circle capabilities (CXP-0007)",
@@ -1938,7 +1938,7 @@ fn apply_cokret_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("capability.allowed_circle_ids", "Allowed circle IDs"),
             (
                 "capability.allowed_circle_ids_hint",
-                "Comma-separated ck:circle:... ids. Required for cx.circle.manage, cx.circle.member.manage, and cx.circle.member.add.others.",
+                "Comma-separated ck:circle:... ids. Required for ck.circle.manage, ck.circle.member.manage, and ck.circle.member.add.others.",
             ),
             // P3A.8 — CXP-0007 error codes (returned by reducer)
             (
@@ -2168,7 +2168,7 @@ fn apply_cokret_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("realm_identity_audit.title", "Identity audit"),
             (
                 "realm_identity_audit.subtitle",
-                "Per-actor effective cx.member.identity.update event ids and member_display_state_digest projection.",
+                "Per-actor effective ck.member.identity.update event ids and member_display_state_digest projection.",
             ),
             ("realm_identity_audit.stub_title", "Data plumbing pending"),
             (
@@ -2197,12 +2197,12 @@ fn apply_cokret_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("handles_by_subject.title", "Subject → Handles"),
             (
                 "handles_by_subject.subtitle",
-                "Reverse-lookup the signed handle claims currently visible for a holder/principal DID (cx.directory.list_handles_for_subject).",
+                "Reverse-lookup the signed handle claims currently visible for a holder/principal DID (ck.directory.list_handles_for_subject).",
             ),
             ("handles_by_subject.lookup_title", "Look up a subject"),
             (
                 "handles_by_subject.lookup_body",
-                "Enter a holder/principal DID. MemberIdentity no longer carries a handle — handles come from signed cx.schema.handle_claim.v1 evidence.",
+                "Enter a holder/principal DID. MemberIdentity no longer carries a handle — handles come from signed ck.schema.handle_claim.v1 evidence.",
             ),
             ("handles_by_subject.subject_id", "Subject ID"),
             ("handles_by_subject.lookup", "Look up"),
@@ -2740,13 +2740,13 @@ fn apply_cokret_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("realm_links.outbound_title", "出向链接"),
             (
                 "realm_links.outbound_subtitle",
-                "从本 Realm 指向其他 Realm 的 cx.realm.link 类型边（governed_by / discoverable_from / mirror_of …）。",
+                "从本 Realm 指向其他 Realm 的 ck.realm.link 类型边（governed_by / discoverable_from / mirror_of …）。",
             ),
             ("realm_links.outbound_empty", "本 Realm 没有出向链接。"),
             ("realm_links.inbound_title", "入向链接"),
             (
                 "realm_links.inbound_subtitle",
-                "其他 Realm 指向本 Realm 的 cx.realm.link 类型边。",
+                "其他 Realm 指向本 Realm 的 ck.realm.link 类型边。",
             ),
             ("realm_links.inbound_empty", "本 Realm 没有入向链接。"),
             ("realm_links.graph_title", "图形可视化"),
@@ -2763,7 +2763,7 @@ fn apply_cokret_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("push_routes.title", "推送路由"),
             (
                 "push_routes.subtitle",
-                "按 principal 聚合的 cx.device.push_route cell。push_target_id 为敏感字段，默认折叠，必须显式展开。",
+                "按 principal 聚合的 ck.device.push_route cell。push_target_id 为敏感字段，默认折叠，必须显式展开。",
             ),
             ("push_routes.search", "按 principal id 过滤"),
             ("push_routes.principal", "Principal"),
@@ -2922,7 +2922,7 @@ fn apply_cokret_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("starid_resolver.card_title", "解析器状态"),
             (
                 "starid_resolver.card_subtitle",
-                "/api/v1/identity/describe 报告的聚合状态。",
+                "/_cokret/root/identity/describe 报告的聚合状态。",
             ),
             ("starid_resolver.service_did", "服务 DID"),
             ("starid_resolver.registry_mode", "注册模式"),
@@ -3130,7 +3130,7 @@ fn apply_cokret_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ),
             (
                 "circle.scope_hint",
-                "完整的 MLS 密钥轮换将随 soland P2A.4 上线。目前仅发送 cx.circle.update Move 以触发授权挂钩。",
+                "完整的 MLS 密钥轮换将随 soland P2A.4 上线。目前仅发送 ck.circle.update Move 以触发授权挂钩。",
             ),
             ("circle.rotate_scope", "轮换 MLS 域"),
             ("circle.archive", "归档"),
@@ -3195,19 +3195,19 @@ fn apply_cokret_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("audit.scope_circle", "Circle"),
             ("audit.scope_jump", "跳转到该范围"),
             ("audit.filter_event_kind", "事件类型"),
-            ("audit.filter_event_kind_circle_create", "cx.circle.create"),
-            ("audit.filter_event_kind_circle_update", "cx.circle.update"),
+            ("audit.filter_event_kind_circle_create", "ck.circle.create"),
+            ("audit.filter_event_kind_circle_update", "ck.circle.update"),
             (
                 "audit.filter_event_kind_circle_archive",
-                "cx.circle.archive",
+                "ck.circle.archive",
             ),
             (
                 "audit.filter_event_kind_circle_tombstone",
-                "cx.circle.tombstone",
+                "ck.circle.tombstone",
             ),
             (
                 "audit.filter_event_kind_circle_member_state",
-                "cx.circle.member.state",
+                "ck.circle.member.state",
             ),
             (
                 "audit.filter_event_kind_circle_capability_grant",
@@ -3218,23 +3218,23 @@ fn apply_cokret_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "cx.circle.capability.revoke",
             ),
             // P3A.4 — capability 编辑器（cx.circle.*）标签
-            ("capability.cx_circle_create", "cx.circle.create"),
-            ("capability.cx_circle_manage", "cx.circle.manage"),
-            ("capability.cx_circle_member_add", "cx.circle.member.add"),
+            ("capability.cx_circle_create", "ck.circle.create"),
+            ("capability.cx_circle_manage", "ck.circle.manage"),
+            ("capability.cx_circle_member_add", "ck.circle.member.add"),
             (
                 "capability.cx_circle_member_manage",
-                "cx.circle.member.manage",
+                "ck.circle.member.manage",
             ),
             (
                 "capability.cx_circle_member_add_others",
-                "cx.circle.member.add.others",
+                "ck.circle.member.add.others",
             ),
-            ("capability.cx_circle_audit", "cx.circle.audit"),
+            ("capability.cx_circle_audit", "ck.circle.audit"),
             ("capability.cx_circle_section", "Circle 能力（CXP-0007）"),
             ("capability.allowed_circle_ids", "受限 Circle ID 列表"),
             (
                 "capability.allowed_circle_ids_hint",
-                "逗号分隔的 ck:circle:... 标识符。cx.circle.manage、cx.circle.member.manage、cx.circle.member.add.others 必填。",
+                "逗号分隔的 ck:circle:... 标识符。ck.circle.manage、ck.circle.member.manage、ck.circle.member.add.others 必填。",
             ),
             // P3A.8 — CXP-0007 错误码（来自 reducer）
             (
@@ -3443,7 +3443,7 @@ fn apply_cokret_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("realm_identity_audit.title", "身份审计"),
             (
                 "realm_identity_audit.subtitle",
-                "每位 actor 当前有效的 cx.member.identity.update 事件 id 及 member_display_state_digest 投影。",
+                "每位 actor 当前有效的 ck.member.identity.update 事件 id 及 member_display_state_digest 投影。",
             ),
             ("realm_identity_audit.stub_title", "数据接入待完成"),
             (
@@ -3472,12 +3472,12 @@ fn apply_cokret_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("handles_by_subject.title", "Subject → Handles"),
             (
                 "handles_by_subject.subtitle",
-                "按 holder/principal DID 反查当前可见的已签名 handle claim（cx.directory.list_handles_for_subject）。",
+                "按 holder/principal DID 反查当前可见的已签名 handle claim（ck.directory.list_handles_for_subject）。",
             ),
             ("handles_by_subject.lookup_title", "查询主体"),
             (
                 "handles_by_subject.lookup_body",
-                "输入 holder/principal DID。MemberIdentity 不再携带 handle —— handle 来自已签名的 cx.schema.handle_claim.v1 凭证。",
+                "输入 holder/principal DID。MemberIdentity 不再携带 handle —— handle 来自已签名的 ck.schema.handle_claim.v1 凭证。",
             ),
             ("handles_by_subject.subject_id", "主体 ID"),
             ("handles_by_subject.lookup", "查询"),

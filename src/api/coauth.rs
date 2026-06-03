@@ -337,7 +337,7 @@ pub async fn get_viewer() -> Result<CoauthViewer, HttpError> {
     api_client(coauth_paths::VIEWER, "GET", None).await
 }
 
-/// Multi-dimensional filter for `/admin/v1/audit-feed` queries. Empty
+/// Multi-dimensional filter for `/_soland/admin/audit-feed` queries. Empty
 /// fields are dropped before encoding so the wire form only carries
 /// what the operator actually filtered on.
 #[derive(Debug, Clone, Default)]
@@ -405,7 +405,7 @@ pub async fn list_oauth2_sessions(
 
 pub async fn finish_oauth2_session(id: &str) -> Result<(), HttpError> {
     let url = format!(
-        "/api/admin/v1/oauth2-sessions/{}/finish",
+        "/_soland/admin/oauth2-sessions/{}/finish",
         urlencoding::encode(id)
     );
     api_client(&url, "POST", None).await
@@ -428,7 +428,7 @@ pub async fn list_personal_sessions(
 pub async fn create_personal_session(name: &str) -> Result<CoauthPersonalSession, HttpError> {
     let body = serde_json::json!({ "name": name });
     api_client(
-        "/api/admin/v1/personal-sessions",
+        "/_soland/admin/personal-sessions",
         "POST",
         Some(body.to_string()),
     )
@@ -437,7 +437,7 @@ pub async fn create_personal_session(name: &str) -> Result<CoauthPersonalSession
 
 pub async fn revoke_personal_session(id: &str) -> Result<(), HttpError> {
     let url = format!(
-        "/api/admin/v1/personal-sessions/{}/revoke",
+        "/_soland/admin/personal-sessions/{}/revoke",
         urlencoding::encode(id)
     );
     api_client(&url, "POST", None).await
@@ -445,7 +445,7 @@ pub async fn revoke_personal_session(id: &str) -> Result<(), HttpError> {
 
 pub async fn regenerate_personal_session(id: &str) -> Result<CoauthPersonalSession, HttpError> {
     let url = format!(
-        "/api/admin/v1/personal-sessions/{}/regenerate",
+        "/_soland/admin/personal-sessions/{}/regenerate",
         urlencoding::encode(id)
     );
     api_client(&url, "POST", None).await
@@ -469,7 +469,7 @@ pub async fn create_upstream_provider(
     provider: &serde_json::Value,
 ) -> Result<CoauthUpstreamProvider, HttpError> {
     api_client(
-        "/api/admin/v1/upstream-oauth-providers",
+        "/_soland/admin/upstream-oauth-providers",
         "POST",
         Some(provider.to_string()),
     )
@@ -478,7 +478,7 @@ pub async fn create_upstream_provider(
 
 pub async fn delete_upstream_provider(id: &str) -> Result<(), HttpError> {
     let url = format!(
-        "/api/admin/v1/upstream-oauth-providers/{}",
+        "/_soland/admin/upstream-oauth-providers/{}",
         urlencoding::encode(id)
     );
     api_client(&url, "DELETE", None).await
@@ -487,7 +487,7 @@ pub async fn delete_upstream_provider(id: &str) -> Result<(), HttpError> {
 pub async fn toggle_upstream_provider(id: &str, enable: bool) -> Result<(), HttpError> {
     let action = if enable { "enable" } else { "disable" };
     let url = format!(
-        "/api/admin/v1/upstream-oauth-providers/{}/{}",
+        "/_soland/admin/upstream-oauth-providers/{}/{}",
         urlencoding::encode(id),
         action
     );
@@ -510,7 +510,7 @@ pub async fn list_upstream_links(
 
 pub async fn delete_upstream_link(id: &str) -> Result<(), HttpError> {
     let url = format!(
-        "/api/admin/v1/upstream-oauth-links/{}",
+        "/_soland/admin/upstream-oauth-links/{}",
         urlencoding::encode(id)
     );
     api_client(&url, "DELETE", None).await
@@ -535,7 +535,7 @@ pub async fn create_registration_token(
 ) -> Result<CoauthRegistrationToken, HttpError> {
     let body = serde_json::json!({ "uses_allowed": uses_allowed });
     api_client(
-        "/api/admin/v1/user-registration-tokens",
+        "/_soland/admin/user-registration-tokens",
         "POST",
         Some(body.to_string()),
     )
@@ -544,7 +544,7 @@ pub async fn create_registration_token(
 
 pub async fn revoke_registration_token(id: &str) -> Result<(), HttpError> {
     let url = format!(
-        "/api/admin/v1/user-registration-tokens/{}/revoke",
+        "/_soland/admin/user-registration-tokens/{}/revoke",
         urlencoding::encode(id)
     );
     api_client(&url, "POST", None).await
@@ -616,19 +616,19 @@ pub async fn list_accounts_cursor(
 pub async fn get_account_detail(id: &str) -> Result<CoauthAccountDetail, HttpError> {
     let bridge_url = coauth_paths::BRIDGE_DESCRIBE;
     let integration_manifest_url = coauth_paths::INTEGRATION_DESCRIBE;
-    let summary_url = format!("/api/admin/v1/accounts/{}", urlencoding::encode(id));
-    let dids_url = format!("/api/admin/v1/accounts/{}/dids", urlencoding::encode(id));
-    let claims_url = format!("/api/admin/v1/accounts/{}/claims", urlencoding::encode(id));
+    let summary_url = format!("/_soland/admin/accounts/{}", urlencoding::encode(id));
+    let dids_url = format!("/_soland/admin/accounts/{}/dids", urlencoding::encode(id));
+    let claims_url = format!("/_soland/admin/accounts/{}/claims", urlencoding::encode(id));
     let grants_url = format!(
-        "/api/admin/v1/accounts/{}/session-grants",
+        "/_soland/admin/accounts/{}/session-grants",
         urlencoding::encode(id)
     );
     let current_url = format!(
-        "/api/admin/v1/accounts/{}/risk-action/current",
+        "/_soland/admin/accounts/{}/risk-action/current",
         urlencoding::encode(id)
     );
     let history_url = format!(
-        "/api/admin/v1/accounts/{}/risk-action/history",
+        "/_soland/admin/accounts/{}/risk-action/history",
         urlencoding::encode(id)
     );
     let summary: CoauthAdminSingleEnvelope<CoauthAdminAccountRecord> =
@@ -680,7 +680,7 @@ pub async fn add_account_did_binding(
     control_proof: &str,
 ) -> Result<(), HttpError> {
     let url = format!(
-        "/api/admin/v1/accounts/{}/dids",
+        "/_soland/admin/accounts/{}/dids",
         urlencoding::encode(account_id)
     );
     let body = serde_json::json!({
@@ -695,7 +695,7 @@ pub async fn add_account_did_binding(
 /// path so the request body is empty.
 pub async fn remove_account_did_binding(account_id: &str, did: &str) -> Result<(), HttpError> {
     let url = format!(
-        "/api/admin/v1/accounts/{}/dids/{}",
+        "/_soland/admin/accounts/{}/dids/{}",
         urlencoding::encode(account_id),
         urlencoding::encode(did),
     );
@@ -706,7 +706,7 @@ pub async fn remove_account_did_binding(account_id: &str, did: &str) -> Result<(
 /// Revoke a single claim by its record ULID.
 pub async fn revoke_account_claim(claim_id: &str) -> Result<(), HttpError> {
     let url = format!(
-        "/api/admin/v1/claims/{}/revoke",
+        "/_soland/admin/claims/{}/revoke",
         urlencoding::encode(claim_id),
     );
     let _: serde_json::Value = api_client(&url, "POST", None).await?;
@@ -718,7 +718,7 @@ pub async fn submit_account_risk_action(
     draft: &CoauthAccountRiskActionDraft,
 ) -> Result<CoauthAccountRiskActionProposal, HttpError> {
     let url = format!(
-        "/api/admin/v1/accounts/{}/risk-action",
+        "/_soland/admin/accounts/{}/risk-action",
         urlencoding::encode(id)
     );
     let body = serde_json::json!({
@@ -736,7 +736,7 @@ pub async fn approve_account_risk_action(
     draft: &CoauthAccountRiskActionApprovalDraft,
 ) -> Result<CoauthAccountRiskActionApproval, HttpError> {
     let url = format!(
-        "/api/admin/v1/accounts/{}/risk-action/{}/approve",
+        "/_soland/admin/accounts/{}/risk-action/{}/approve",
         urlencoding::encode(id),
         urlencoding::encode(proposal_id)
     );
@@ -756,7 +756,7 @@ pub async fn execute_account_risk_action(
     draft: &CoauthAccountRiskActionExecuteDraft,
 ) -> Result<CoauthAccountRiskActionExecute, HttpError> {
     let url = format!(
-        "/api/admin/v1/accounts/{}/risk-action/{}/execute",
+        "/_soland/admin/accounts/{}/risk-action/{}/execute",
         urlencoding::encode(id),
         urlencoding::encode(proposal_id)
     );
@@ -898,7 +898,7 @@ mod cursor_tests {
     #[test]
     fn extract_cursor_handles_plain_param() {
         assert_eq!(
-            extract_cursor_param("/api/admin/v1/accounts?cursor=ABC123&limit=25"),
+            extract_cursor_param("/_soland/admin/accounts?cursor=ABC123&limit=25"),
             Some("ABC123".to_string()),
         );
     }
@@ -906,14 +906,14 @@ mod cursor_tests {
     #[test]
     fn extract_cursor_handles_jsonapi_bracketed_param() {
         assert_eq!(
-            extract_cursor_param("/api/admin/v1/accounts?page%5Bcursor%5D=DEF456"),
+            extract_cursor_param("/_soland/admin/accounts?page%5Bcursor%5D=DEF456"),
             Some("DEF456".to_string()),
         );
     }
 
     #[test]
     fn extract_cursor_returns_none_when_absent() {
-        assert!(extract_cursor_param("/api/admin/v1/accounts?limit=25").is_none());
+        assert!(extract_cursor_param("/_soland/admin/accounts?limit=25").is_none());
         assert!(extract_cursor_param("").is_none());
     }
 

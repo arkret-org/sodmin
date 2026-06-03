@@ -1,5 +1,5 @@
 //! HTTP client for the soland Realm link-graph admin surface
-//! (R5.2, Round R1.2 — `cx.realm.link` projection).
+//! (R5.2, Round R1.2 — `ck.realm.link` projection).
 //!
 //! A "Realm link" is a typed edge between two security boundaries.
 //! Examples: `governed_by` (parent for capability inheritance),
@@ -38,7 +38,7 @@ pub async fn list_realm_links(
     direction: LinkDirection,
 ) -> Result<ListResponse<RealmLinkRow>, HttpError> {
     let url = format!(
-        "/api/admin/v1/realms/{}/links?direction={}",
+        "/_soland/admin/realms/{}/links?direction={}",
         urlencoding::encode(realm_id),
         direction.as_query(),
     );

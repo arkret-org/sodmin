@@ -20,12 +20,12 @@ pub async fn list_devices(
     if !search.is_empty() {
         params.push(("filter[name_or_id]", search));
     }
-    let url = build_url("/api/admin/v1/devices", &params)?;
+    let url = build_url("/_soland/admin/devices", &params)?;
     api_client(&url, "GET", None).await
 }
 
 pub async fn delete_device(id: &str) -> Result<(), HttpError> {
-    let url = format!("/api/admin/v1/devices/{}", urlencoding::encode(id));
+    let url = format!("/_soland/admin/devices/{}", urlencoding::encode(id));
     api_client(&url, "DELETE", None).await
 }
 
@@ -34,6 +34,6 @@ pub async fn delete_device(id: &str) -> Result<(), HttpError> {
 /// device keys in addition to deleting the row. Used by the device list
 /// "Bulk Revoke" toolbar.
 pub async fn revoke_device(id: &str) -> Result<(), HttpError> {
-    let url = format!("/api/admin/v1/devices/{}/revoke", urlencoding::encode(id));
+    let url = format!("/_soland/admin/devices/{}/revoke", urlencoding::encode(id));
     api_client(&url, "POST", None).await
 }

@@ -3,10 +3,10 @@
 //!
 //! Endpoints:
 //!
-//! - `GET /api/admin/v1/components` — server-wide list of registered `cx.component.*` types, their
+//! - `GET /_soland/admin/components` — server-wide list of registered `cx.component.*` types, their
 //!   cell_family, criticality, pinned spec version and loaded impl version. The page compares spec
 //!   vs impl and surfaces a drift indicator on each row.
-//! - `POST /api/admin/v1/components/{type}/refresh` — admin override for drifted components: ask
+//! - `POST /_soland/admin/components/{type}/refresh` — admin override for drifted components: ask
 //!   the server to re-load the impl from the pinned spec version (clears stale caches, re-imports
 //!   the reducer bundle, etc.). soland is expected to short-circuit when there's no drift; on 404
 //!   the UI surfaces a "not yet wired" toast (see `pages/spaces/components.rs`).
@@ -19,7 +19,7 @@ use crate::utils::error::HttpError;
 /// reducer registry and returns one entry per component_type the server
 /// knows about, regardless of whether any Space has instances.
 pub async fn list_components() -> Result<Vec<ComponentRegistryEntry>, HttpError> {
-    let url = build_url("/api/admin/v1/components", &[])?;
+    let url = build_url("/_soland/admin/components", &[])?;
     api_client(&url, "GET", None).await
 }
 
@@ -32,7 +32,7 @@ pub async fn list_components() -> Result<Vec<ComponentRegistryEntry>, HttpError>
 /// admin client collapses retries.
 pub async fn refresh(component_type: &str) -> Result<ComponentRefreshResponse, HttpError> {
     let url = format!(
-        "/api/admin/v1/components/{}/refresh",
+        "/_soland/admin/components/{}/refresh",
         urlencoding::encode(component_type)
     );
     // Empty JSON body — the component type is in the path. The server

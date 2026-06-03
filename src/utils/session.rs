@@ -77,7 +77,7 @@ pub fn has_starid() -> bool {
 }
 
 /// Storage keys for the session-derived bridge + scope hints written by
-/// the OAuth callback (or by `pages::login` after `/api/v1/server/describe`
+/// the OAuth callback (or by `pages::login` after `/_cokret/describe`
 /// resolves). The sidebar reads these to decide which nav groups to show.
 const ACTIVE_BRIDGES_KEY: &str = "session_active_bridges";
 const ADMIN_SCOPE_KEY: &str = "session_admin_scope";
@@ -124,7 +124,7 @@ fn parse_csv(value: Option<String>) -> Vec<String> {
 /// and `soland` is assumed on (sodmin's whole reason to exist).
 ///
 /// `pages::oauth_callback` / login may overwrite this with the bridges
-/// the server actually advertised in `/api/v1/server/describe`.
+/// the server actually advertised in `/_cokret/describe`.
 pub fn active_bridges() -> Vec<String> {
     let stored = parse_csv(storage::get_item(ACTIVE_BRIDGES_KEY));
     if !stored.is_empty() {

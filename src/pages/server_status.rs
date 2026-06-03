@@ -713,22 +713,22 @@ fn dev_posture_card(describe: &ServerDescribeResBody) -> Element {
 
 /// R3 (UI-6) — render a single-line status row per "new R3 profile" so
 /// the operator can see at a glance which of them the server has
-/// declared in `cx.server.describe.supported_profiles`. The list of
+/// declared in `ck.server.describe.supported_profiles`. The list of
 /// known R3 profiles is held here (not in i18n) because it tracks the
 /// spec one-for-one and the i18n value is only the human label.
 fn r3_profile_status_section(profiles: &[String]) -> Element {
     // (wire profile id, i18n key for the description copy).
     let known: &[(&str, &str)] = &[
         (
-            "cx.profile.media_service_binding.v1",
+            "ck.profile.media_service_binding.v1",
             "server_status.profile.media_service_binding",
         ),
         (
-            "cx.profile.accountable_principals.strict_reject.v1",
+            "ck.profile.accountable_principals.strict_reject.v1",
             "server_status.profile.accountable_principals_strict_reject",
         ),
         (
-            "cx.profile.key_backup.memory_hard.v1",
+            "ck.profile.key_backup.memory_hard.v1",
             "server_status.profile.key_backup_memory_hard",
         ),
     ];

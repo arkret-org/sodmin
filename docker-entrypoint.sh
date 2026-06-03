@@ -134,10 +134,27 @@ server {
 EOF
 
 if [ -n "$COAUTH_URL" ]; then
+    # coauth's admin surface now shares the deployment-local `/_soland/admin/*`
+    # namespace with soland. nginx prefix-matching is longest-match, so the
+    # coauth-specific admin resource roots below win over the generic
+    # `/_soland/admin/` → soland location declared further down. Auth /
+    # session endpoints moved under the `gate` trust circle
+    # (`/_cokret/gate/...`), per cokret-spec service-http-binding.md §2.2.
     if can_resolve_url_host "$COAUTH_URL"; then
         write_proxy_location "/auth/" "$COAUTH_URL"
-        write_proxy_location "/api/v1/auth/" "$COAUTH_URL"
-        write_proxy_location "/api/admin/" "$COAUTH_URL" "\$http_authorization"
+        write_proxy_location "/_cokret/gate/" "$COAUTH_URL"
+        write_proxy_location "/_soland/admin/accounts" "$COAUTH_URL" "\$http_authorization"
+        write_proxy_location "/_soland/admin/claims" "$COAUTH_URL" "\$http_authorization"
+        write_proxy_location "/_soland/admin/oauth2-sessions" "$COAUTH_URL" "\$http_authorization"
+        write_proxy_location "/_soland/admin/personal-sessions" "$COAUTH_URL" "\$http_authorization"
+        write_proxy_location "/_soland/admin/upstream-oauth-providers" "$COAUTH_URL" "\$http_authorization"
+        write_proxy_location "/_soland/admin/upstream-oauth-links" "$COAUTH_URL" "\$http_authorization"
+        write_proxy_location "/_soland/admin/user-registration-tokens" "$COAUTH_URL" "\$http_authorization"
+        write_proxy_location "/_soland/admin/connector-health" "$COAUTH_URL" "\$http_authorization"
+        write_proxy_location "/_soland/admin/notification-channels" "$COAUTH_URL" "\$http_authorization"
+        write_proxy_location "/_soland/admin/notification-templates" "$COAUTH_URL" "\$http_authorization"
+        write_proxy_location "/_soland/admin/audit-feed" "$COAUTH_URL" "\$http_authorization"
+        write_proxy_location "/_soland/admin/bridge/" "$COAUTH_URL" "\$http_authorization"
         write_proxy_location "/authorize" "$COAUTH_URL"
         write_proxy_location "/oauth2/" "$COAUTH_URL"
         write_proxy_location "/.well-known/" "$COAUTH_URL"
@@ -148,8 +165,19 @@ if [ -n "$COAUTH_URL" ]; then
     set \$coauth_backend ${COAUTH_URL};
 EOF
         write_dynamic_proxy_location "/auth/" "coauth_backend"
-        write_dynamic_proxy_location "/api/v1/auth/" "coauth_backend"
-        write_dynamic_proxy_location "/api/admin/" "coauth_backend" "\$http_authorization"
+        write_dynamic_proxy_location "/_cokret/gate/" "coauth_backend"
+        write_dynamic_proxy_location "/_soland/admin/accounts" "coauth_backend" "\$http_authorization"
+        write_dynamic_proxy_location "/_soland/admin/claims" "coauth_backend" "\$http_authorization"
+        write_dynamic_proxy_location "/_soland/admin/oauth2-sessions" "coauth_backend" "\$http_authorization"
+        write_dynamic_proxy_location "/_soland/admin/personal-sessions" "coauth_backend" "\$http_authorization"
+        write_dynamic_proxy_location "/_soland/admin/upstream-oauth-providers" "coauth_backend" "\$http_authorization"
+        write_dynamic_proxy_location "/_soland/admin/upstream-oauth-links" "coauth_backend" "\$http_authorization"
+        write_dynamic_proxy_location "/_soland/admin/user-registration-tokens" "coauth_backend" "\$http_authorization"
+        write_dynamic_proxy_location "/_soland/admin/connector-health" "coauth_backend" "\$http_authorization"
+        write_dynamic_proxy_location "/_soland/admin/notification-channels" "coauth_backend" "\$http_authorization"
+        write_dynamic_proxy_location "/_soland/admin/notification-templates" "coauth_backend" "\$http_authorization"
+        write_dynamic_proxy_location "/_soland/admin/audit-feed" "coauth_backend" "\$http_authorization"
+        write_dynamic_proxy_location "/_soland/admin/bridge/" "coauth_backend" "\$http_authorization"
         write_dynamic_proxy_location "/authorize" "coauth_backend"
         write_dynamic_proxy_location "/oauth2/" "coauth_backend"
         write_dynamic_proxy_location "/.well-known/" "coauth_backend"
@@ -157,14 +185,18 @@ EOF
 fi
 
 if can_resolve_url_host "$SOLAND_URL"; then
-    write_proxy_location "/api/v1/events/" "$SOLAND_URL"
-    write_proxy_location "/api/v1/sync/" "$SOLAND_URL"
-    write_proxy_location "/api/v1/directory/" "$SOLAND_URL"
-    # soland admin surface lives at the bare deployment-local `/admin/*`
-    # namespace (canonical + operator + collection), per cokret-spec
-    # service-http-binding.md §2.1. Distinct from coauth's `/api/admin/*`
-    # auth-admin surface above — the two prefixes do not overlap.
-    write_proxy_location "/admin/" "$SOLAND_URL"
+    write_proxy_location "/_cokret/self/events/" "$SOLAND_URL"
+    write_proxy_location "/_cokret/self/sync/" "$SOLAND_URL"
+    write_proxy_location "/_cokret/find/directory/" "$SOLAND_URL"
+    # All other `/_cokret/*` trust-circle traffic (self/gate/root/find/
+    # peer/open/edge) terminates on soland, per cokret-spec
+    # service-http-binding.md §2.2. The `/_cokret/gate/` coauth override
+    # above is a longer prefix and therefore wins for auth endpoints.
+    write_proxy_location "/_cokret/" "$SOLAND_URL"
+    # soland's deployment-local operator surface at `/_soland/admin/*`.
+    # The coauth-specific admin resource roots declared above are longer
+    # prefixes and win; everything else here lands on soland.
+    write_proxy_location "/_soland/admin/" "$SOLAND_URL"
 else
     if ! grep -q "resolver " /etc/nginx/conf.d/default.conf; then
         [ -n "$RESOLVERS" ] || RESOLVERS="127.0.0.11"
@@ -175,12 +207,14 @@ EOF
     cat >> /etc/nginx/conf.d/default.conf <<EOF
     set \$soland_backend ${SOLAND_URL};
 EOF
-    write_dynamic_proxy_location "/api/v1/events/" "soland_backend"
-    write_dynamic_proxy_location "/api/v1/sync/" "soland_backend"
-    write_dynamic_proxy_location "/api/v1/directory/" "soland_backend"
-    # soland admin surface at the bare `/admin/*` namespace (see the
-    # resolvable branch above for rationale).
-    write_dynamic_proxy_location "/admin/" "soland_backend"
+    write_dynamic_proxy_location "/_cokret/self/events/" "soland_backend"
+    write_dynamic_proxy_location "/_cokret/self/sync/" "soland_backend"
+    write_dynamic_proxy_location "/_cokret/find/directory/" "soland_backend"
+    # All other `/_cokret/*` trust-circle traffic terminates on soland
+    # (see the resolvable branch above for rationale).
+    write_dynamic_proxy_location "/_cokret/" "soland_backend"
+    # soland operator surface at `/_soland/admin/*`.
+    write_dynamic_proxy_location "/_soland/admin/" "soland_backend"
 fi
 
 cat >> /etc/nginx/conf.d/default.conf <<EOF

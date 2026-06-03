@@ -1,17 +1,17 @@
 //! HTTP client for the Move/Anchor/Lattice admin endpoints exposed by
 //! soland (Stream H', C10.F).
 //!
-//! Endpoint shape mirrors the canonical `/admin/...` admin surface
+//! Endpoint shape mirrors the canonical `/_soland/admin/...` admin surface
 //! used by the rest of sodmin (see `api/spaces.rs`); the soland routes
 //! land at:
 //!
-//! - `GET  /admin/spaces/{id}/anchorer`                 — describe current anchorer cell
+//! - `GET  /_soland/admin/spaces/{id}/anchorer`                 — describe current anchorer cell
 //!   value
-//! - `POST /admin/spaces/{id}/anchorer/reconfigure`     — submit reconfig Move
-//! - `GET  /admin/spaces/{id}/bottom`                   — list ⊥ cells in this Space
-//! - `POST /admin/spaces/{id}/bottom/{cell_id}/repair`  — submit repair Move
-//! - `GET  /admin/spaces/{id}/anchor-dag`               — leaves+frontier+state_root
-//! - `POST /admin/spaces/{id}/anchor-dag/compact`       — trigger compaction Anchor
+//! - `POST /_soland/admin/spaces/{id}/anchorer/reconfigure`     — submit reconfig Move
+//! - `GET  /_soland/admin/spaces/{id}/bottom`                   — list ⊥ cells in this Space
+//! - `POST /_soland/admin/spaces/{id}/bottom/{cell_id}/repair`  — submit repair Move
+//! - `GET  /_soland/admin/spaces/{id}/anchor-dag`               — leaves+frontier+state_root
+//! - `POST /_soland/admin/spaces/{id}/anchor-dag/compact`       — trigger compaction Anchor
 //!
 //! The soland handlers translate the typed request bodies into real
 //! Moves / Anchors, sign them with the principal-server's anchorer key
@@ -28,8 +28,8 @@ use crate::utils::error::HttpError;
 
 /// Fetch the current anchorer cell value for a Space.
 ///
-/// `GET /admin/spaces/{id}/anchorer`. soland projects the joined
-/// `ck:cell:cx.component.anchorer.v1:<space>` value plus the surrounding
+/// `GET /_soland/admin/spaces/{id}/anchorer`. soland projects the joined
+/// `ck:cell:ck.component.anchorer.v1:<space>` value plus the surrounding
 /// hint fields (`max_anchor_staleness_ms`, `paused`).
 pub async fn get_anchorer_value(realm_id: &str) -> Result<AnchorerValue, HttpError> {
     let url = format!(
@@ -41,12 +41,12 @@ pub async fn get_anchorer_value(realm_id: &str) -> Result<AnchorerValue, HttpErr
 
 /// Submit an anchorer reconfiguration Move.
 ///
-/// `POST /admin/spaces/{id}/anchorer/reconfigure`. The body shape
+/// `POST /_soland/admin/spaces/{id}/anchorer/reconfigure`. The body shape
 /// is `{ kind, single_did?, threshold_k?, threshold_n?, threshold_dids?, ... }`
 /// (see `AnchorerReconfigRequest::to_reconfigure_body`); soland builds
 /// the typed Move on the server side, signs with the admin's key (or
 /// routes through the admin signer flow tied to the bearer token), and
-/// posts onto `/api/v1/moves`.
+/// posts onto `/_cokret/peer/moves`.
 pub async fn submit_anchorer_reconfig(
     req: &AnchorerReconfigRequest,
 ) -> Result<SubmitMoveResponse, HttpError> {
@@ -67,7 +67,7 @@ pub async fn submit_anchorer_reconfig(
 /// the global "Bottom diagnostics" page in the sidebar (no per-Space
 /// pre-filter).
 ///
-/// `GET /admin/bottom`. Each row carries its `realm_id` so the
+/// `GET /_soland/admin/bottom`. Each row carries its `realm_id` so the
 /// renderer can link out.
 pub async fn list_bottom_entries_global() -> Result<Vec<BottomEntry>, HttpError> {
     let url = build_url("/_soland/admin/bottom", &[])?;
@@ -76,7 +76,7 @@ pub async fn list_bottom_entries_global() -> Result<Vec<BottomEntry>, HttpError>
 
 /// Submit a "construct repair Move" for a single bottom cell.
 ///
-/// `POST /admin/spaces/{id}/bottom/{cell_id}/repair`. The body
+/// `POST /_soland/admin/spaces/{id}/bottom/{cell_id}/repair`. The body
 /// carries the typed `BottomRepairStrategy` — `head_in_winner` (the
 /// admin picks one of the concurrent heads) or `manual` (free-form
 /// effects array, used as the escape hatch for non-conflict bottoms).
@@ -106,7 +106,7 @@ pub async fn submit_bottom_repair(
 /// Fetch the Anchor DAG snapshot (leaves + frontier + state_root + last
 /// compaction timestamp).
 ///
-/// `GET /admin/spaces/{id}/anchor-dag`.
+/// `GET /_soland/admin/spaces/{id}/anchor-dag`.
 pub async fn get_anchor_dag(realm_id: &str) -> Result<AnchorDagSnapshot, HttpError> {
     let url = format!(
         "/_soland/admin/spaces/{}/anchor-dag",
@@ -117,7 +117,7 @@ pub async fn get_anchor_dag(realm_id: &str) -> Result<AnchorDagSnapshot, HttpErr
 
 /// Trigger a signed compaction Anchor.
 ///
-/// `POST /admin/spaces/{id}/anchor-dag/compact`. soland's handler
+/// `POST /_soland/admin/spaces/{id}/anchor-dag/compact`. soland's handler
 /// is the admin-facing entry point onto `cx.admin.anchors.sign`; it folds
 /// up to `max_moves` moves into a fresh compaction Anchor and returns
 /// the new anchor id + state_root.
@@ -178,7 +178,7 @@ mod tests {
     fn repair_request_body_serializes_with_strategy_tag() {
         let req = BottomRepairRequest {
             realm_id: "ck:space:demo".into(),
-            cell_id: "ck:cell:cx.component.anchorer.v1:ck:space:demo".into(),
+            cell_id: "ck:cell:ck.component.anchorer.v1:ck:space:demo".into(),
             strategy: BottomRepairStrategy::HeadInWinner {
                 head: WinnerHead {
                     move_id: "sha256:aaaa".into(),

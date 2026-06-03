@@ -1,6 +1,6 @@
 //! Read-only "Starid resolver status" panel (round C35.4).
 //!
-//! Mirrors the upstream starid resolver's `/api/v1/identity/describe`
+//! Mirrors the upstream starid resolver's `/_cokret/root/identity/describe`
 //! envelope so the operator can see at a glance whether the writer is
 //! healthy, what version of the did:webvh log is at the head, how many
 //! witness attestations have been accepted, and how recently the log

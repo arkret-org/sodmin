@@ -3,10 +3,10 @@
 //!
 //! Endpoints:
 //!
-//! - `GET /api/admin/v1/spaces/{id}/mls/covered-frontier` — soland projects the lattice or-set
+//! - `GET /_soland/admin/spaces/{id}/mls/covered-frontier` — soland projects the lattice or-set
 //!   state for the `ck:cell:cx.component.mls.covered_frontier.v1:<realm_id>` cell along with the
 //!   current governance frontier so the admin can compute lag.
-//! - `POST /api/admin/v1/spaces/{id}/mls/covered-frontier/advance` — admin override that asks the
+//! - `POST /_soland/admin/spaces/{id}/mls/covered-frontier/advance` — admin override that asks the
 //!   principal-server to manually fold the current `governance_frontier` into the covered_frontier
 //!   or-set. Used when MLS members are offline and can't ack on their own; the override is a coarse
 //!   hammer (it doesn't replace per-epoch MLS commits) so the page only surfaces it when lag >
@@ -19,7 +19,7 @@ use crate::utils::error::HttpError;
 /// Fetch the covered_frontier snapshot for a Space.
 pub async fn get_covered_frontier(realm_id: &str) -> Result<CoveredFrontierSnapshot, HttpError> {
     let url = format!(
-        "/api/admin/v1/spaces/{}/mls/covered-frontier",
+        "/_soland/admin/spaces/{}/mls/covered-frontier",
         urlencoding::encode(realm_id)
     );
     api_client(&url, "GET", None).await
@@ -31,7 +31,7 @@ pub async fn get_covered_frontier(realm_id: &str) -> Result<CoveredFrontierSnaps
 /// canonical Move pipeline, and returns the new lag count (typically 0).
 pub async fn advance(realm_id: &str) -> Result<CoveredFrontierAdvanceResponse, HttpError> {
     let url = format!(
-        "/api/admin/v1/spaces/{}/mls/covered-frontier/advance",
+        "/_soland/admin/spaces/{}/mls/covered-frontier/advance",
         urlencoding::encode(realm_id)
     );
     api_client(&url, "POST", Some("{}".to_string())).await

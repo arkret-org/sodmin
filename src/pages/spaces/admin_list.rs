@@ -1,7 +1,7 @@
 //! Soland Spaces admin list
 //!
 //! Cursor-paginated list of Spaces visible to the current admin scope,
-//! backed by `GET /admin/spaces`. Each row shows name, member
+//! backed by `GET /_soland/admin/spaces`. Each row shows name, member
 //! count, health (Active / Frozen / Destroyed) and an "Open detail"
 //! button that links to the existing per-space detail page.
 //!

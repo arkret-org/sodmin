@@ -42,32 +42,32 @@ fn normalize_path(path: &str) -> String {
 }
 
 pub mod coauth {
-    pub const VIEWER: &str = "/api/v1/viewer";
-    pub const AUDIT_FEED: &str = "/api/admin/v1/audit-feed";
-    pub const OAUTH2_SESSIONS: &str = "/api/admin/v1/oauth2-sessions";
-    pub const PERSONAL_SESSIONS: &str = "/api/admin/v1/personal-sessions";
-    pub const UPSTREAM_OAUTH_PROVIDERS: &str = "/api/admin/v1/upstream-oauth-providers";
-    pub const UPSTREAM_OAUTH_LINKS: &str = "/api/admin/v1/upstream-oauth-links";
-    pub const USER_REGISTRATION_TOKENS: &str = "/api/admin/v1/user-registration-tokens";
-    pub const CONNECTOR_HEALTH: &str = "/api/admin/v1/connector-health";
-    pub const NOTIFICATION_CHANNELS: &str = "/api/admin/v1/notification-channels";
-    pub const NOTIFICATION_TEMPLATES: &str = "/api/admin/v1/notification-templates";
-    pub const NOTIFICATION_TEMPLATES_PUBLISH: &str = "/api/admin/v1/notification-templates/publish";
-    pub const ACCOUNTS: &str = "/api/admin/v1/accounts";
-    pub const BRIDGE_DESCRIBE: &str = "/api/admin/v1/bridge/describe";
-    pub const INTEGRATION_DESCRIBE: &str = "/cokret/api/v1/integration/describe";
+    pub const VIEWER: &str = "/_cokret/self/viewer";
+    pub const AUDIT_FEED: &str = "/_soland/admin/audit-feed";
+    pub const OAUTH2_SESSIONS: &str = "/_soland/admin/oauth2-sessions";
+    pub const PERSONAL_SESSIONS: &str = "/_soland/admin/personal-sessions";
+    pub const UPSTREAM_OAUTH_PROVIDERS: &str = "/_soland/admin/upstream-oauth-providers";
+    pub const UPSTREAM_OAUTH_LINKS: &str = "/_soland/admin/upstream-oauth-links";
+    pub const USER_REGISTRATION_TOKENS: &str = "/_soland/admin/user-registration-tokens";
+    pub const CONNECTOR_HEALTH: &str = "/_soland/admin/connector-health";
+    pub const NOTIFICATION_CHANNELS: &str = "/_soland/admin/notification-channels";
+    pub const NOTIFICATION_TEMPLATES: &str = "/_soland/admin/notification-templates";
+    pub const NOTIFICATION_TEMPLATES_PUBLISH: &str = "/_soland/admin/notification-templates/publish";
+    pub const ACCOUNTS: &str = "/_soland/admin/accounts";
+    pub const BRIDGE_DESCRIBE: &str = "/_soland/admin/bridge/describe";
+    pub const INTEGRATION_DESCRIBE: &str = "/_cokret/self/integration/describe";
 }
 
 pub mod soland {
-    pub const SERVER_INFO: &str = "/api/admin/v1/server/info";
-    pub const SERVER_DESCRIBE: &str = "/api/v1/server/describe";
+    pub const SERVER_INFO: &str = "/_soland/admin/server/info";
+    pub const SERVER_DESCRIBE: &str = "/_cokret/describe";
     pub const SERVER_STATUS: &str = "/_soland/admin/server/status";
-    pub const SERVER_STATS: &str = "/api/admin/v1/server/stats";
+    pub const SERVER_STATS: &str = "/_soland/admin/server/stats";
     pub const SPACES: &str = "/_soland/admin/spaces";
-    pub const MODERATION_REPORTS: &str = "/api/admin/v1/moderation/reports";
+    pub const MODERATION_REPORTS: &str = "/_soland/admin/moderation/reports";
     pub const MODERATION_APPEALS: &str = "/_soland/admin/moderation/appeals";
-    pub const FEDERATION_STATUS: &str = "/api/admin/v1/federation/status";
-    pub const AUTHZ_CAPABILITIES: &str = "/api/admin/v1/authz/capabilities";
+    pub const FEDERATION_STATUS: &str = "/_soland/admin/federation/status";
+    pub const AUTHZ_CAPABILITIES: &str = "/_soland/admin/authz/capabilities";
 }
 
 #[cfg(test)]
@@ -80,11 +80,11 @@ mod tests {
         assert!(coauth_has_operation("GET", coauth::ACCOUNTS));
         assert!(coauth_has_operation(
             "POST",
-            "/api/admin/v1/accounts/{id}/risk-action"
+            "/_soland/admin/accounts/{id}/risk-action"
         ));
         assert!(coauth_has_operation(
             "POST",
-            "/api/admin/v1/accounts/{account_id}/risk-action/{proposal_id}/execute"
+            "/_soland/admin/accounts/{account_id}/risk-action/{proposal_id}/execute"
         ));
     }
 
@@ -94,7 +94,7 @@ mod tests {
         assert!(soland_has_operation("GET", soland::SPACES));
         assert!(soland_has_operation(
             "POST",
-            "/api/admin/v1/realms/{realm_id}/destroy"
+            "/_soland/admin/realms/{realm_id}/destroy"
         ));
     }
 }

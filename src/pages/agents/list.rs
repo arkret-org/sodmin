@@ -256,7 +256,7 @@ pub fn AgentList() -> Element {
                         deactivate_target.set(None);
                         spawn(async move {
                             // R3 — canonical HTTP path is
-                            // /api/v1/agents/{id}/deactivate. The
+                            // /_cokret/self/agents/{id}/deactivate. The
                             // legacy /revoke shape is gone.
                             match agents::deactivate_personal_agent(&id).await {
                                 Ok(_) => {

@@ -9,7 +9,7 @@
 //! `sfu_endpoint` shape, a migration banner is rendered above the
 //! editor so the operator knows they're looking at a pre-R3 server.
 //!
-//! TODO(R3.1): plumb the soland `/api/admin/v1/realms/{id}/media-service`
+//! TODO(R3.1): plumb the soland `/_soland/admin/realms/{id}/media-service`
 //! GET / PUT pair through `api::server`. For now the page is a writable
 //! UI scaffold that round-trips through the client-side state — saving
 //! emits a no-op toast so the contract is still exercised in the SPA's
@@ -28,7 +28,7 @@ use crate::router::Route;
 use crate::utils::i18n::t;
 
 /// The five focus types accepted by the cokret-spec v3 media_service
-/// binding profile. Keep in sync with `cx.profile.media_service_binding.v1`.
+/// binding profile. Keep in sync with `ck.profile.media_service_binding.v1`.
 pub const FOCUS_TYPES: &[&str] = &[
     "livekit",
     "mediasoup",
@@ -156,7 +156,7 @@ pub fn RealmMediaService(realm_id: String) -> Element {
                                         variant: ButtonVariant::Default,
                                         onclick: move |_| {
                                             // TODO(R3.1): real PUT against
-                                            // `/api/admin/v1/realms/{id}/media-service`.
+                                            // `/_soland/admin/realms/{id}/media-service`.
                                             // The payload shape is:
                                             //   { "foci": [
                                             //       {"id":"…","type":"livekit",

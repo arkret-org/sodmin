@@ -1,7 +1,7 @@
 //! Federation status admin page
 //!
 //! Per-Space federation peers + last-anchor-pulled-at + outbound queue
-//! depth. Reads from soland's `GET /api/admin/v1/federation/status`
+//! depth. Reads from soland's `GET /_soland/admin/federation/status`
 //! (404-tolerant — surfaces "endpoint not yet wired" toast).
 
 use coauth_admin_types::federation_admin::FederationPeerHealth;

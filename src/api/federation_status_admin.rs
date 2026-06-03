@@ -1,6 +1,6 @@
 //! HTTP client for the soland federation status admin surface.
 //!
-//! Endpoint: `GET /api/admin/v1/federation/status` — per-Space
+//! Endpoint: `GET /_soland/admin/federation/status` — per-Space
 //! federation peers + last-anchor-pulled-at + outbound queue depth.
 //! 404-tolerant on the client side.
 //!
@@ -13,7 +13,7 @@ use serde::{Deserialize, Serialize};
 use crate::api::client::{api_client, build_url};
 use crate::utils::error::HttpError;
 
-/// Top-level envelope returned by `GET /api/admin/v1/federation/status`.
+/// Top-level envelope returned by `GET /_soland/admin/federation/status`.
 /// soland MAY return either a flat list or a wrapped envelope; the API
 /// client supports both shapes.
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -29,6 +29,6 @@ pub async fn get_status(space_id: Option<&str>) -> Result<FederationStatusEnvelo
     if let Some(s) = space_id.filter(|s| !s.is_empty()) {
         params.push(("space_id", s));
     }
-    let url = build_url("/api/admin/v1/federation/status", &params)?;
+    let url = build_url("/_soland/admin/federation/status", &params)?;
     api_client(&url, "GET", None).await
 }

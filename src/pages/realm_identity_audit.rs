@@ -1,7 +1,7 @@
 //! Realm identity audit diagnostic page.
 //!
 //! Read-only operator view that lists, per actor in a Realm, the
-//! current effective `cx.member.identity.update` event ids and the
+//! current effective `ck.member.identity.update` event ids and the
 //! `member_display_state_digest` projection the SPA computed locally.
 //! Since cokret-spec @ b56cab1 `MemberIdentity` no longer carries a
 //! handle, so the handle column is derived by running §3.2.1

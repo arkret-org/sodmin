@@ -1,8 +1,8 @@
 //! Round R2/R3 + Round 4 — Trust domain deployment setting (T08).
 //!
 //! Edits the deployment-wide `ck:trust_domain:<scope>` value that
-//! enters the canonical transcript of every `cx.cross_signing.publish`
-//! (and `cx.cross_signing.reset`) proof, plus every federation S2S
+//! enters the canonical transcript of every `ck.cross_signing.publish`
+//! (and `ck.cross_signing.reset`) proof, plus every federation S2S
 //! signing transcript (`Source-Trust-Domain` / `Destination-Trust-Domain`
 //! per Round 4 spec a77b995).
 //!
@@ -68,7 +68,7 @@ pub fn TrustDomainConfigPage() -> Element {
                     "Old cross_signing.publish proofs not replayable across trust_domain change."
                 }
                 p { class: "text-red-700 dark:text-red-200",
-                    "The trust_domain enters the canonical transcript of every `cx.cross_signing.publish` / `cx.cross_signing.reset` proof and every federation S2S signature (round 4: `Source-Trust-Domain` / `Destination-Trust-Domain` / `Request-Canonical-Digest`). Proofs anchored under the previous domain CANNOT be replayed under the new one — they verify to bytes that include the old domain string. Affected principals will need to issue fresh cross-signing keys and re-publish; federated peers must be re-handshaked."
+                    "The trust_domain enters the canonical transcript of every `ck.cross_signing.publish` / `ck.cross_signing.reset` proof and every federation S2S signature (round 4: `Source-Trust-Domain` / `Destination-Trust-Domain` / `Request-Canonical-Digest`). Proofs anchored under the previous domain CANNOT be replayed under the new one — they verify to bytes that include the old domain string. Affected principals will need to issue fresh cross-signing keys and re-publish; federated peers must be re-handshaked."
                 }
             }
 
@@ -117,7 +117,7 @@ pub fn TrustDomainConfigPage() -> Element {
                             },
                         }
                         span {
-                            "I understand changing this value invalidates every `cx.cross_signing.publish` and `cx.cross_signing.reset` proof anchored to date, and breaks federation signatures that were canonicalised under the previous domain."
+                            "I understand changing this value invalidates every `ck.cross_signing.publish` and `ck.cross_signing.reset` proof anchored to date, and breaks federation signatures that were canonicalised under the previous domain."
                         }
                     }
                     Input {

@@ -3,7 +3,7 @@
 //! Wraps `components::realm_destroy_dialog::RealmDestroyDialog` in a
 //! route shell so an operator can navigate to `/realms/{id}/destroy`,
 //! tick the five normative bullets, type `DESTROY`, and trigger the
-//! `cx.realm.destroy` anchor. After confirmation this page also reuses
+//! `ck.realm.destroy` anchor. After confirmation this page also reuses
 //! the 7-domain fanout panel + erasure-receipt block to surface the
 //! post-destroy cascade.
 
@@ -41,7 +41,7 @@ pub fn RealmDestroyPage(realm_id: String) -> Element {
             if *destroyed.read() {
                 {
                     let mut snap = placeholder_snapshot(realm_id_for_panel.clone());
-                    // For `cx.realm.destroy` the panel renders the
+                    // For `ck.realm.destroy` the panel renders the
                     // erasure-receipt block as well. The placeholder
                     // stays local-only until soland returns peer evidence.
                     snap.erasure_receipt = Some(ErasureReceiptStatus {
@@ -94,7 +94,7 @@ pub fn RealmDestroyPage(realm_id: String) -> Element {
                             Ok(_) => {
                                 dialog_open.set(false);
                                 destroyed.set(true);
-                                show_toast("cx.realm.destroy queued.", ToastVariant::Success);
+                                show_toast("ck.realm.destroy queued.", ToastVariant::Success);
                             }
                             Err(err) => show_toast(
                                 &format!("Realm destroy failed: {err}"),

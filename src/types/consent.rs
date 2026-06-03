@@ -76,7 +76,7 @@ pub enum ConsentResolveDecision {
     Reject,
 }
 
-/// Body POSTed to `/api/admin/v1/consent/{consent_id}/resolve`.
+/// Body POSTed to `/_soland/admin/consent/{consent_id}/resolve`.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ConsentResolveRequest {
     pub decision: ConsentResolveDecision,

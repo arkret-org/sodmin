@@ -1,26 +1,26 @@
 //! Moderation appeal admin.
 //!
-//! List view of pending `cx.moderation.appeal.submit` rows (state =
+//! List view of pending `ck.moderation.appeal.submit` rows (state =
 //! `submitted` / `under_review`) plus a detail panel that surfaces:
 //!
 //! - the original decision being appealed (`decision_ref`)
 //! - appellant + evidence references
-//! - reviewer assignment audit trail (`cx.moderation.appeal.review`)
-//! - decision history (`cx.moderation.appeal.decision`)
+//! - reviewer assignment audit trail (`ck.moderation.appeal.review`)
+//! - decision history (`ck.moderation.appeal.decision`)
 //! - 30-day auto-close countdown
 //!
 //! Separation-of-duties: the "Review this appeal" button is hidden when
 //! the logged-in admin DID equals the issuer of the original moderation
-//! decision (per `cx.moderation.appeal.review` reducer rule
+//! decision (per `ck.moderation.appeal.review` reducer rule
 //! "reviewer.did != original_decision.issuer_did").
 //!
 //! Verdict picker (uphold / overturn / modify) writes
-//! `cx.moderation.appeal.decision` and — when verdict==overturn — the
-//! reducer pairs it with `cx.moderation.decision.lift` automatically in
+//! `ck.moderation.appeal.decision` and — when verdict==overturn — the
+//! reducer pairs it with `ck.moderation.decision.lift` automatically in
 //! the same Anchor batch; this UI just surfaces the auto-pairing in a
 //! callout so the admin knows what they are about to submit.
 //!
-//! Wire to `/admin/moderation/appeals`; sodmin fails closed on
+//! Wire to `/_soland/admin/moderation/appeals`; sodmin fails closed on
 //! separation-of-duties when soland omits the original issuer DID.
 
 use dioxus::prelude::*;
@@ -41,7 +41,7 @@ use crate::utils::session;
 const APPEAL_AUTO_CLOSE_DAYS: i64 = 30;
 
 /// Lifecycle state of an appeal as projected from the four
-/// `cx.moderation.appeal.*` event variants.
+/// `ck.moderation.appeal.*` event variants.
 #[derive(Debug, Clone, PartialEq)]
 enum AppealLifecycle {
     /// Reducer has seen `submit` but no `review` yet — unassigned.
@@ -85,7 +85,7 @@ impl AppealLifecycle {
 
 /// Verdict the reviewing admin can record. Mirrors the SDK
 /// `AppealVerdict`. Modify requires the
-/// admin to also submit a fresh `cx.moderation.decision` event — that
+/// admin to also submit a fresh `ck.moderation.decision` event — that
 /// flow is intentionally not wired yet, so the picker greys Modify out
 /// with a tooltip.
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -119,7 +119,7 @@ struct DecisionEntry {
 }
 
 /// Local projection of an appeal row + its history. Mirrors the
-/// `cx.schema.moderation_appeal.v1` reducer projection.
+/// `ck.schema.moderation_appeal.v1` reducer projection.
 #[derive(Debug, Clone)]
 struct AppealRow {
     appeal_id: String,
@@ -231,7 +231,7 @@ pub fn ModerationAppealsPage() -> Element {
                 EmptyState {
                     icon: "flag".to_string(),
                     title: "No pending appeals".to_string(),
-                    description: "All `cx.moderation.appeal.submit` rows are decided or auto-closed.".to_string(),
+                    description: "All `ck.moderation.appeal.submit` rows are decided or auto-closed.".to_string(),
                 }
             } else {
                 div { class: "rounded-md border",
@@ -297,7 +297,7 @@ pub fn ModerationAppealsPage() -> Element {
                 let open = *confirm_open.read();
                 let verdict_label = pending.map(|v| v.label()).unwrap_or("");
                 let description = match pending {
-                    Some(Verdict::Overturn) => "Overturn auto-pairs `cx.moderation.decision.lift` in the same Anchor batch.".to_string(),
+                    Some(Verdict::Overturn) => "Overturn auto-pairs `ck.moderation.decision.lift` in the same Anchor batch.".to_string(),
                     _ => "Recording an appeal decision is final.".to_string(),
                 };
                 rsx! {
@@ -540,7 +540,7 @@ fn appeal_detail_card(
                         p { class: "rounded-md border border-amber-600/40 bg-amber-600/10 p-2 text-xs text-amber-700 dark:text-amber-300",
                             "Separation of duties: you issued the original decision (",
                             span { class: "font-mono", "{row.original_issuer_did}" },
-                            "). The reducer rejects `cx.moderation.appeal.review` events where reviewer.did matches the original issuer."
+                            "). The reducer rejects `ck.moderation.appeal.review` events where reviewer.did matches the original issuer."
                         }
                     } else {
                         div { class: "flex flex-wrap items-center gap-2",
@@ -570,7 +570,7 @@ fn appeal_detail_card(
                             }
                         }
                         p { class: "text-xs text-muted-foreground",
-                            "Overturn writes `cx.moderation.appeal.decision` with verdict=overturn; the reducer auto-pairs `cx.moderation.decision.lift` in the same Anchor batch."
+                            "Overturn writes `ck.moderation.appeal.decision` with verdict=overturn; the reducer auto-pairs `ck.moderation.decision.lift` in the same Anchor batch."
                         }
                     }
                 }

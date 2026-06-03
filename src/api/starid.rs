@@ -1,7 +1,7 @@
 //! Read-only HTTP client for the upstream starid did:webvh resolver.
 //!
 //! This client exists so the sodmin "Starid resolver status" panel
-//! (round 35.4) can mirror the resolver's `/api/v1/identity/describe`
+//! (round 35.4) can mirror the resolver's `/_cokret/root/identity/describe`
 //! response — service DID + protocol version, head version_id, witness
 //! count, and freshness.
 
@@ -22,7 +22,7 @@ pub async fn get_describe() -> Result<Result<StaridDescribe, HttpError>, StaridN
     let Some(base) = session::starid_public_url() else {
         return Err(StaridNotConfigured);
     };
-    let url = format!("{}/api/v1/identity/describe", base.trim_end_matches('/'));
+    let url = format!("{}/_cokret/root/identity/describe", base.trim_end_matches('/'));
     Ok(api_client(&url, "GET", None).await)
 }
 

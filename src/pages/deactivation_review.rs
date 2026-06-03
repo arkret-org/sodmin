@@ -1,7 +1,7 @@
 //! Round R2/R3 — Deactivation review page (T07).
 //!
 //! Lands the operator on a per-subject view of the
-//! `cx.identity.deactivate` (or `cx.realm.destroy`) fanout result. The
+//! `cx.identity.deactivate` (or `ck.realm.destroy`) fanout result. The
 //! seven-domain fanout panel + an optional erasure-receipt block are
 //! rendered by `components::deactivation_fanout_panel`; this page is
 //! the route shell that fetches a snapshot and wires the retry handler.
@@ -33,7 +33,7 @@ pub fn DeactivationReviewPage() -> Element {
                     "Deactivation fanout describe endpoint is not available yet."
                 }
                 p { class: "text-xs text-amber-700/90 dark:text-amber-200/90",
-                    "This page no longer renders synthetic fanout data. Wire `/api/admin/v1/identity/deactivations/<id>/describe` before enabling refresh or retry."
+                    "This page no longer renders synthetic fanout data. Wire `/_soland/admin/identity/deactivations/<id>/describe` before enabling refresh or retry."
                 }
             }
 

@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 // ── Anchorer cell value ──────────────────────────────────────────────────
 
 /// Discriminator for `AnchorerValue` shapes. Matches soland's CasRegister
-/// content for `ck:cell:cx.component.anchorer.v1:<realm_id>`.
+/// content for `ck:cell:ck.component.anchorer.v1:<realm_id>`.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum AnchorerKind {
@@ -133,7 +133,7 @@ pub enum SelfSignViolation {
 
 /// Profile sent to the "construct anchorer reconfig Move" form. The
 /// admin client converts this into a Move payload before POSTing to
-/// `soland /admin/spaces/{id}/anchorer/reconfigure`.
+/// `soland /_soland/admin/spaces/{id}/anchorer/reconfigure`.
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AnchorerReconfigRequest {
     pub realm_id: String,
@@ -228,7 +228,7 @@ impl AnchorerReconfigRequest {
 
     /// Build the JSON body posted to soland's reconfigure endpoint. The
     /// soland handler is responsible for translating this into a real
-    /// Move that targets `ck:cell:cx.component.anchorer.v1:<space>`,
+    /// Move that targets `ck:cell:ck.component.anchorer.v1:<space>`,
     /// canonicalizing it, signing it with the admin's stored signing key
     /// (or routing it through the admin signer flow), and submitting it
     /// to the Move pipeline.

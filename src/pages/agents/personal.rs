@@ -28,20 +28,20 @@ use crate::types::{AccountabilityGrantRequest, Agent, AgentProvisionRequest};
 const PAGE_SIZE: u64 = 25;
 
 const AGENT_CAPABILITY_ACTIONS: &[&str] = &[
-    "cx.agent.key.authorize",
-    "cx.agent.key.revoke",
-    "cx.agent.key.rotate",
-    "cx.agent.provision",
-    "cx.agent.pause",
-    "cx.agent.resume",
-    "cx.agent.deactivate",
-    "cx.agent.draft.propose",
-    "cx.agent.action_request",
-    "cx.agent.action_approve",
-    "cx.agent.action_reject",
-    "cx.agent.sidecar_thread.ensure",
-    "cx.agent.sidecar_thread.write",
-    "cx.agent.sidecar_thread.publish",
+    "ck.agent.key.authorize",
+    "ck.agent.key.revoke",
+    "ck.agent.key.rotate",
+    "ck.agent.provision",
+    "ck.agent.pause",
+    "ck.agent.resume",
+    "ck.agent.deactivate",
+    "ck.agent.draft.propose",
+    "ck.agent.action_request",
+    "ck.agent.action_approve",
+    "ck.agent.action_reject",
+    "ck.agent.sidecar_thread.ensure",
+    "ck.agent.sidecar_thread.write",
+    "ck.agent.sidecar_thread.publish",
 ];
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -497,10 +497,10 @@ fn ProvisionWizard(props: ProvisionWizardProps) -> Element {
                     div { class: "space-y-3",
                         // P5 — pre-flight capability check so the operator
                         // sees whether their account already holds
-                        // `cx.agent.provision` before submit. UI hint only;
+                        // `ck.agent.provision` before submit. UI hint only;
                         // backend RBAC is canonical.
                         GrantedCapabilitiesView {
-                            required_capability: Some("cx.agent.provision".to_string()),
+                            required_capability: Some("ck.agent.provision".to_string()),
                             title: Some("Required capability".to_string()),
                         }
                         Label { class: "text-sm".to_string(), "Controller DID" }

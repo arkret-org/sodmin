@@ -3,11 +3,11 @@
 //!
 //! Endpoints:
 //!
-//! - `GET /api/admin/v1/authz/capabilities` — list capability grants visible to the current admin
+//! - `GET /_soland/admin/authz/capabilities` — list capability grants visible to the current admin
 //!   scope. Optional cursor and filters (holder / peer / scope) narrow the projection. The page
 //!   mirrors coauth's account-list cursor model: server emits `links.next`, sodmin pushes/pops
 //!   cursors on the client.
-//! - `POST /api/admin/v1/authz/capabilities/{grant_id}/revoke` — admin revoke. Same 404-tolerant
+//! - `POST /_soland/admin/authz/capabilities/{grant_id}/revoke` — admin revoke. Same 404-tolerant
 //!   pattern as the other Stream H' admin actions: when soland hasn't wired the route yet, the page
 //!   surfaces a "not yet wired" toast rather than a generic error.
 
@@ -51,7 +51,7 @@ pub async fn list_capability_grants(
     if let Some(cursor) = cursor.filter(|c| !c.is_empty()) {
         params.push(("cursor", cursor));
     }
-    let url = build_url("/api/admin/v1/authz/capabilities", &params)?;
+    let url = build_url("/_soland/admin/authz/capabilities", &params)?;
     let resp: AuthzGrantsEnvelope = api_client(&url, "GET", None).await?;
     Ok(AuthzGrantPage {
         data: resp.data,
@@ -65,7 +65,7 @@ pub async fn list_capability_grants(
 /// 404-tolerant on the client side.
 pub async fn revoke_capability_grant(grant_id: &str) -> Result<(), HttpError> {
     let url = format!(
-        "/api/admin/v1/authz/capabilities/{}/revoke",
+        "/_soland/admin/authz/capabilities/{}/revoke",
         urlencoding::encode(grant_id)
     );
     let _: serde_json::Value = api_client(&url, "POST", None).await?;

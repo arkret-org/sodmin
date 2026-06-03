@@ -140,7 +140,7 @@ pub async fn list_directory_admin(
 ) -> Result<DirectoryAdminPage, HttpError> {
     let limit_str = limit.max(1).to_string();
     let params = cursor_params(cursor, limit_str.as_str());
-    let url = build_url("/api/admin/v1/directory", &params)?;
+    let url = build_url("/_soland/admin/directory", &params)?;
     let resp: DirectoryAdminEnvelope = api_client(&url, "GET", None).await?;
     Ok(DirectoryAdminPage {
         data: resp.data,
@@ -153,7 +153,7 @@ pub async fn approve_directory_entry(
     body: &ApprovalActionRequest,
 ) -> Result<(), HttpError> {
     let url = format!(
-        "/api/admin/v1/directory/{}/approve",
+        "/_soland/admin/directory/{}/approve",
         urlencoding::encode(id)
     );
     let payload = serde_json::to_string(body).unwrap_or_default();
@@ -168,7 +168,7 @@ pub async fn reject_directory_entry(
     id: &str,
     body: &ApprovalActionRequest,
 ) -> Result<(), HttpError> {
-    let url = format!("/api/admin/v1/directory/{}/reject", urlencoding::encode(id));
+    let url = format!("/_soland/admin/directory/{}/reject", urlencoding::encode(id));
     let payload = serde_json::to_string(body).unwrap_or_default();
     let _: serde_json::Value = api_client(&url, "POST", Some(payload)).await?;
     Ok(())

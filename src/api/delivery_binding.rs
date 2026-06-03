@@ -7,8 +7,8 @@
 //! on the admin surface.
 //!
 //! Realm-rework: the admin endpoint moved from
-//! `/api/admin/v1/spaces/{id}/delivery-binding-policy` to
-//! `/admin/realms/{id}/delivery-binding-policy` because the
+//! `/_soland/admin/spaces/{id}/delivery-binding-policy` to
+//! `/_soland/admin/realms/{id}/delivery-binding-policy` because the
 //! security boundary is now spelled "Realm".
 
 use crate::api::client::api_client;
@@ -45,12 +45,12 @@ pub async fn list_member_routability(
     realm_id: &str,
 ) -> Result<ListResponse<MemberRoutabilityRow>, HttpError> {
     // TODO(realm-rework): once soland exposes a Realm-scoped
-    // `/api/admin/v1/realms/{id}/member-routability` route, switch to
+    // `/_soland/admin/realms/{id}/member-routability` route, switch to
     // it. Until then this remains the Space-scoped path (the row is
     // the same — security-boundary members keyed by what we now call
     // a Realm).
     let url = format!(
-        "/api/admin/v1/realms/{}/member-routability",
+        "/_soland/admin/realms/{}/member-routability",
         urlencoding::encode(realm_id)
     );
     api_client(&url, "GET", None).await
@@ -60,7 +60,7 @@ pub async fn list_delivery_binding_handovers(
     realm_id: &str,
 ) -> Result<ListResponse<DeliveryBindingHandoverRow>, HttpError> {
     let url = format!(
-        "/api/admin/v1/realms/{}/delivery-binding/handovers",
+        "/_soland/admin/realms/{}/delivery-binding/handovers",
         urlencoding::encode(realm_id)
     );
     api_client(&url, "GET", None).await

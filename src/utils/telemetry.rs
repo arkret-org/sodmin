@@ -70,7 +70,7 @@ struct ErrorEvent<'a> {
 ///    count as PII).
 /// 2. Templates inline id segments to `{id}`. Our REST paths embed
 ///    actor / account / realm / handle ids directly in the path (e.g.
-///    `/api/admin/v1/accounts/01HXY.../dids/did:web:x`), and those ids —
+///    `/_soland/admin/accounts/01HXY.../dids/did:web:x`), and those ids —
 ///    ULIDs, numeric ids, DIDs — are identifying. A segment is treated
 ///    as an id when it contains a `:` (DID / `ck:` ref), starts with a
 ///    digit (ULID / numeric id), or is an overly long opaque token.
@@ -201,18 +201,18 @@ mod tests {
 
     #[test]
     fn redact_path_strips_query_and_fragment() {
-        assert_eq!(redact_path("/api/v1/x?cursor=c1"), "/api/v1/x");
-        assert_eq!(redact_path("/api/v1/x"), "/api/v1/x");
-        assert_eq!(redact_path("/api/v1/x?q=1#frag"), "/api/v1/x");
+        assert_eq!(redact_path("/_cokret/self/x?cursor=c1"), "/_cokret/self/x");
+        assert_eq!(redact_path("/_cokret/self/x"), "/_cokret/self/x");
+        assert_eq!(redact_path("/_cokret/self/x?q=1#frag"), "/_cokret/self/x");
     }
 
     #[test]
     fn redact_path_templates_inline_ids() {
         // ULID account id + DID segment → both templated; static words
-        // (api / admin / v1 / accounts / dids) preserved.
+        // (_soland / admin / accounts / dids) preserved.
         assert_eq!(
-            redact_path("/api/admin/v1/accounts/01HXYABCDEF/dids/did:web:alice.example"),
-            "/api/admin/v1/accounts/{id}/dids/{id}"
+            redact_path("/_soland/admin/accounts/01HXYABCDEF/dids/did:web:alice.example"),
+            "/_soland/admin/accounts/{id}/dids/{id}"
         );
         // Numeric id templated.
         assert_eq!(
@@ -221,8 +221,8 @@ mod tests {
         );
         // No ids → unchanged.
         assert_eq!(
-            redact_path("/api/admin/v1/server/info"),
-            "/api/admin/v1/server/info"
+            redact_path("/_soland/admin/server/info"),
+            "/_soland/admin/server/info"
         );
     }
 }

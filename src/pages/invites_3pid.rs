@@ -1,6 +1,6 @@
 //! Round 4 — 3PID invite state-machine admin view.
 //!
-//! Renders coauth's third-party-invite (`cx.schema.invite.v1`
+//! Renders coauth's third-party-invite (`ck.schema.invite.v1`
 //! third_party_invite) admin listing as a state-machine table where
 //! every row shows its current terminal state. The five round-4
 //! terminal states are:
