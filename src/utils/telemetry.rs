@@ -216,8 +216,8 @@ mod tests {
         );
         // Numeric id templated.
         assert_eq!(
-            redact_path("/admin/reports/12345"),
-            "/admin/reports/{id}"
+            redact_path("/_soland/admin/reports/12345"),
+            "/_soland/admin/reports/{id}"
         );
         // No ids → unchanged.
         assert_eq!(

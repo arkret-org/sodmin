@@ -66,7 +66,7 @@ fn cursor_params<'a>(cursor: Option<&'a str>, limit_str: &'a str) -> Vec<(&'a st
 pub async fn list_applets(cursor: Option<&str>, limit: u64) -> Result<AppletAdminPage, HttpError> {
     let limit_str = limit.max(1).to_string();
     let params = cursor_params(cursor, limit_str.as_str());
-    let url = build_url("/admin/applets", &params)?;
+    let url = build_url("/_soland/admin/applets", &params)?;
     let resp: AppletAdminEnvelope = api_client(&url, "GET", None).await?;
     Ok(AppletAdminPage {
         data: resp.data,
@@ -75,21 +75,21 @@ pub async fn list_applets(cursor: Option<&str>, limit: u64) -> Result<AppletAdmi
 }
 
 pub async fn approve_applet(id: &str, body: &ApprovalActionRequest) -> Result<(), HttpError> {
-    let url = format!("/admin/applets/{}/approve", urlencoding::encode(id));
+    let url = format!("/_soland/admin/applets/{}/approve", urlencoding::encode(id));
     let payload = serde_json::to_string(body).unwrap_or_default();
     let _: serde_json::Value = api_client(&url, "POST", Some(payload)).await?;
     Ok(())
 }
 
 pub async fn suspend_applet(id: &str, body: &ApprovalActionRequest) -> Result<(), HttpError> {
-    let url = format!("/admin/applets/{}/suspend", urlencoding::encode(id));
+    let url = format!("/_soland/admin/applets/{}/suspend", urlencoding::encode(id));
     let payload = serde_json::to_string(body).unwrap_or_default();
     let _: serde_json::Value = api_client(&url, "POST", Some(payload)).await?;
     Ok(())
 }
 
 pub async fn revoke_applet(id: &str, body: &ApprovalActionRequest) -> Result<(), HttpError> {
-    let url = format!("/admin/applets/{}/revoke", urlencoding::encode(id));
+    let url = format!("/_soland/admin/applets/{}/revoke", urlencoding::encode(id));
     let payload = serde_json::to_string(body).unwrap_or_default();
     let _: serde_json::Value = api_client(&url, "POST", Some(payload)).await?;
     Ok(())
@@ -103,7 +103,7 @@ pub async fn list_agents_admin(
 ) -> Result<AgentAdminPage, HttpError> {
     let limit_str = limit.max(1).to_string();
     let params = cursor_params(cursor, limit_str.as_str());
-    let url = build_url("/admin/agents", &params)?;
+    let url = build_url("/_soland/admin/agents", &params)?;
     let resp: AgentAdminEnvelope = api_client(&url, "GET", None).await?;
     Ok(AgentAdminPage {
         data: resp.data,
@@ -112,21 +112,21 @@ pub async fn list_agents_admin(
 }
 
 pub async fn approve_agent(id: &str, body: &ApprovalActionRequest) -> Result<(), HttpError> {
-    let url = format!("/admin/agents/{}/approve", urlencoding::encode(id));
+    let url = format!("/_soland/admin/agents/{}/approve", urlencoding::encode(id));
     let payload = serde_json::to_string(body).unwrap_or_default();
     let _: serde_json::Value = api_client(&url, "POST", Some(payload)).await?;
     Ok(())
 }
 
 pub async fn suspend_agent(id: &str, body: &ApprovalActionRequest) -> Result<(), HttpError> {
-    let url = format!("/admin/agents/{}/suspend", urlencoding::encode(id));
+    let url = format!("/_soland/admin/agents/{}/suspend", urlencoding::encode(id));
     let payload = serde_json::to_string(body).unwrap_or_default();
     let _: serde_json::Value = api_client(&url, "POST", Some(payload)).await?;
     Ok(())
 }
 
 pub async fn revoke_agent(id: &str, body: &ApprovalActionRequest) -> Result<(), HttpError> {
-    let url = format!("/admin/agents/{}/revoke", urlencoding::encode(id));
+    let url = format!("/_soland/admin/agents/{}/revoke", urlencoding::encode(id));
     let payload = serde_json::to_string(body).unwrap_or_default();
     let _: serde_json::Value = api_client(&url, "POST", Some(payload)).await?;
     Ok(())

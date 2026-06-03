@@ -45,7 +45,7 @@ pub async fn list_admin_spaces(
     if let Some(cursor) = cursor.filter(|c| !c.is_empty()) {
         params.push(("cursor", cursor));
     }
-    let url = build_url("/admin/spaces", &params)?;
+    let url = build_url("/_soland/admin/spaces", &params)?;
     let resp: SpaceAdminEnvelope = api_client(&url, "GET", None).await?;
     Ok(SpaceAdminPage {
         data: resp.data,
@@ -56,7 +56,7 @@ pub async fn list_admin_spaces(
 
 pub async fn get_space_hierarchy(space_id: &str) -> Result<SpaceHierarchy, HttpError> {
     let url = format!(
-        "/admin/spaces/{}/hierarchy",
+        "/_soland/admin/spaces/{}/hierarchy",
         urlencoding::encode(space_id)
     );
     api_client(&url, "GET", None).await

@@ -304,15 +304,15 @@ mod tests {
 
     #[test]
     fn build_url_rejects_query_credentials() {
-        assert!(build_url("/admin/actors", &[("access_token", "secret")]).is_err());
-        assert!(build_url("/admin/actors?token=secret", &[]).is_err());
+        assert!(build_url("/_soland/admin/actors", &[("access_token", "secret")]).is_err());
+        assert!(build_url("/_soland/admin/actors?token=secret", &[]).is_err());
     }
 
     #[test]
     fn build_url_appends_query_params() {
         assert_eq!(
-            build_url("/admin/actors", &[("cursor", "c1")]).unwrap(),
-            "/admin/actors?cursor=c1"
+            build_url("/_soland/admin/actors", &[("cursor", "c1")]).unwrap(),
+            "/_soland/admin/actors?cursor=c1"
         );
     }
 

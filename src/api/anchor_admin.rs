@@ -33,7 +33,7 @@ use crate::utils::error::HttpError;
 /// hint fields (`max_anchor_staleness_ms`, `paused`).
 pub async fn get_anchorer_value(realm_id: &str) -> Result<AnchorerValue, HttpError> {
     let url = format!(
-        "/admin/spaces/{}/anchorer",
+        "/_soland/admin/spaces/{}/anchorer",
         urlencoding::encode(realm_id)
     );
     api_client(&url, "GET", None).await
@@ -51,7 +51,7 @@ pub async fn submit_anchorer_reconfig(
     req: &AnchorerReconfigRequest,
 ) -> Result<SubmitMoveResponse, HttpError> {
     let url = format!(
-        "/admin/spaces/{}/anchorer/reconfigure",
+        "/_soland/admin/spaces/{}/anchorer/reconfigure",
         urlencoding::encode(&req.realm_id)
     );
     let body = req.to_reconfigure_body();
@@ -70,7 +70,7 @@ pub async fn submit_anchorer_reconfig(
 /// `GET /admin/bottom`. Each row carries its `realm_id` so the
 /// renderer can link out.
 pub async fn list_bottom_entries_global() -> Result<Vec<BottomEntry>, HttpError> {
-    let url = build_url("/admin/bottom", &[])?;
+    let url = build_url("/_soland/admin/bottom", &[])?;
     api_client(&url, "GET", None).await
 }
 
@@ -86,7 +86,7 @@ pub async fn submit_bottom_repair(
     strategy: BottomRepairStrategy,
 ) -> Result<SubmitMoveResponse, HttpError> {
     let url = format!(
-        "/admin/spaces/{}/bottom/{}/repair",
+        "/_soland/admin/spaces/{}/bottom/{}/repair",
         urlencoding::encode(realm_id),
         urlencoding::encode(cell_id),
     );
@@ -109,7 +109,7 @@ pub async fn submit_bottom_repair(
 /// `GET /admin/spaces/{id}/anchor-dag`.
 pub async fn get_anchor_dag(realm_id: &str) -> Result<AnchorDagSnapshot, HttpError> {
     let url = format!(
-        "/admin/spaces/{}/anchor-dag",
+        "/_soland/admin/spaces/{}/anchor-dag",
         urlencoding::encode(realm_id)
     );
     api_client(&url, "GET", None).await
@@ -123,7 +123,7 @@ pub async fn get_anchor_dag(realm_id: &str) -> Result<AnchorDagSnapshot, HttpErr
 /// the new anchor id + state_root.
 pub async fn trigger_compaction(realm_id: &str) -> Result<SignAnchorResponse, HttpError> {
     let url = format!(
-        "/admin/spaces/{}/anchor-dag/compact",
+        "/_soland/admin/spaces/{}/anchor-dag/compact",
         urlencoding::encode(realm_id)
     );
     let req = CompactionRequest {

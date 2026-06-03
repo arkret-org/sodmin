@@ -1062,7 +1062,7 @@ pub struct HandleAvailabilityResult {
 // ── Handle claim evidence (R3.2 — cx.schema.handle_claim.v1) ──
 
 /// Binding lifecycle state of a [`HandleClaim`]. Mirrors the SDK
-/// `contrix_core::model::handle::HandleBindingState`. Only `Verified`
+/// `cokret_core::model::handle::HandleBindingState`. Only `Verified`
 /// claims are eligible for §3.2.1 primary-handle selection.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -1078,7 +1078,7 @@ pub enum HandleBindingState {
 /// (`member_roster_entry.handle_claims[]`) and the
 /// `cx.directory.list_handles_for_subject` response. Handle lifecycle has
 /// fully moved off `MemberIdentity` onto this claim object (cokret-spec
-/// @ b56cab1). Mirrors the SDK `contrix_core::model::handle::HandleClaim`;
+/// @ b56cab1). Mirrors the SDK `cokret_core::model::handle::HandleClaim`;
 /// only the fields the admin UI renders / runs selection over are kept.
 ///
 /// Note: `claim_kind=service_handle` is REMOVED in v1 — the enum only

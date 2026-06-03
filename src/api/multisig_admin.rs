@@ -22,7 +22,7 @@ use crate::utils::error::HttpError;
 /// List Anchors awaiting partial signatures inside a Space.
 pub async fn list_pending(realm_id: &str) -> Result<Vec<PendingMultisigAnchor>, HttpError> {
     let url = format!(
-        "/admin/spaces/{}/multisig/pending",
+        "/_soland/admin/spaces/{}/multisig/pending",
         urlencoding::encode(realm_id)
     );
     api_client(&url, "GET", None).await
@@ -35,7 +35,7 @@ pub async fn submit_partial(
     note: Option<String>,
 ) -> Result<SubmitPartialSignatureResponse, HttpError> {
     let url = format!(
-        "/admin/spaces/{}/multisig/{}/partial",
+        "/_soland/admin/spaces/{}/multisig/{}/partial",
         urlencoding::encode(realm_id),
         urlencoding::encode(anchor_id),
     );

@@ -102,7 +102,7 @@ struct AppealListEnvelope {
 }
 
 pub async fn list_appeals() -> Result<Vec<AppealRowDto>, HttpError> {
-    let url = "/admin/moderation/appeals".to_owned();
+    let url = "/_soland/admin/moderation/appeals".to_owned();
     let resp: AppealListEnvelope = api_client(&url, "GET", None).await?;
     Ok(resp.items)
 }
@@ -127,7 +127,7 @@ pub async fn decide_appeal(
     body: &DecideAppealRequest,
 ) -> Result<serde_json::Value, HttpError> {
     let url = format!(
-        "/admin/moderation/appeals/{}/decision",
+        "/_soland/admin/moderation/appeals/{}/decision",
         urlencoding::encode(appeal_id)
     );
     let payload = serde_json::to_string(body).unwrap_or_default();
@@ -147,7 +147,7 @@ pub async fn lift_decision(
     body: &LiftDecisionRequest,
 ) -> Result<serde_json::Value, HttpError> {
     let url = format!(
-        "/admin/moderation/decision/{}/lift",
+        "/_soland/admin/moderation/decision/{}/lift",
         urlencoding::encode(decision_id)
     );
     let payload = serde_json::to_string(body).unwrap_or_default();

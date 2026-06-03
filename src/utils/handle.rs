@@ -1,6 +1,6 @@
 //! R3 — Handle homograph / NFC localpart validator.
 //!
-//! Mirrors the SDK helper `contrix_core::model::handle::
+//! Mirrors the SDK helper `cokret_core::model::handle::
 //! normalize_handle_localpart` so the admin UI can flag a suspect
 //! handle inline before submission instead of waiting for a server-side
 //! `handle_homograph_forbidden` round-trip.
@@ -29,7 +29,7 @@
 //! [`normalize_to_canonical`] before submitting to soland so soland's
 //! `cx.handle.*` reducers see the wire shape they verify against.
 //!
-//! See `contrix_core::model::handle::Handle` for the SDK-side parser /
+//! See `cokret_core::model::handle::Handle` for the SDK-side parser /
 //! formatter; this module is the admin-SPA mirror.
 
 /// Returns `Ok(())` when `input` looks like a clean ASCII / pure-script
@@ -72,7 +72,7 @@ pub fn is_safe_handle_localpart(input: &str) -> Result<(), HomographReason> {
     // zero-width / script-mix classification above is kept so the UI can
     // still surface a distinct reason; anything the SDK rejects past
     // those gates folds into [`HomographReason::Confusable`].
-    if contrix_core::model::normalize_handle_localpart(input).is_err() {
+    if cokret_core::model::normalize_handle_localpart(input).is_err() {
         return Err(HomographReason::Confusable);
     }
 
@@ -118,7 +118,7 @@ impl HomographReason {
 /// caller is expected to additionally run [`is_safe_handle_localpart`]
 /// against the resulting localpart to catch homograph attacks.
 pub fn normalize_to_canonical(input: &str) -> Result<String, HandleNormalizeError> {
-    use contrix_core::model::Handle;
+    use cokret_core::model::Handle;
 
     let trimmed = input.trim();
     if trimmed.is_empty() {
@@ -287,7 +287,7 @@ mod tests {
     }
 
     #[test]
-    fn normalizes_retired_contrix_uri() {
+    fn normalizes_retired_cokret_uri() {
         assert_eq!(
             normalize_to_canonical("cokret://example.com/users/alice").unwrap(),
             "alice:example.com"

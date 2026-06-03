@@ -7,7 +7,7 @@ pub async fn list_capabilities(
     per_page: u64,
 ) -> Result<ListResponse<CapabilityGrant>, HttpError> {
     let url = build_url(
-        "/admin/capabilities",
+        "/_soland/admin/capabilities",
         &[
             ("page", &page.to_string()),
             ("per_page", &per_page.to_string()),
@@ -18,7 +18,7 @@ pub async fn list_capabilities(
 
 pub async fn grant_capability(req: &GrantCapabilityRequest) -> Result<CapabilityGrant, HttpError> {
     api_client(
-        "/admin/capabilities",
+        "/_soland/admin/capabilities",
         "POST",
         Some(serde_json::to_string(req).unwrap_or_default()),
     )
@@ -27,7 +27,7 @@ pub async fn grant_capability(req: &GrantCapabilityRequest) -> Result<Capability
 
 pub async fn revoke_capability(id: &str) -> Result<(), HttpError> {
     let url = format!(
-        "/admin/capabilities/{}/revoke",
+        "/_soland/admin/capabilities/{}/revoke",
         urlencoding::encode(id)
     );
     api_client(&url, "POST", None).await
@@ -40,7 +40,7 @@ pub async fn update_capability(
     id: &str,
     req: &UpdateCapabilityRequest,
 ) -> Result<CapabilityGrant, HttpError> {
-    let url = format!("/admin/capabilities/{}", urlencoding::encode(id));
+    let url = format!("/_soland/admin/capabilities/{}", urlencoding::encode(id));
     api_client(
         &url,
         "PATCH",

@@ -128,7 +128,7 @@ impl I18n {
         m.insert("auth_status.base_url".into(), "Base URL".into());
         m.insert("auth_status.server_version".into(), "Server Version".into());
         m.insert("auth_status.login_flows".into(), "Login Flows".into());
-        m.insert("nav.contrix_admin".into(), "Cokret Admin".into());
+        m.insert("nav.cokret_admin".into(), "Cokret Admin".into());
         m.insert("nav.server".into(), "Server".into());
 
         // Header
@@ -456,7 +456,7 @@ impl I18n {
         m.insert("language.zh_cn".into(), "\u{4e2d}\u{6587}".into());
         m.insert("language.select".into(), "Language".into());
 
-        apply_contrix_overrides(&mut m, Language::En);
+        apply_cokret_overrides(&mut m, Language::En);
         m
     }
 
@@ -542,7 +542,7 @@ impl I18n {
         m.insert("auth_status.sso_only_hint".into(), "\u{6b64}\u{670d}\u{52a1}\u{5668}\u{914d}\u{7f6e}\u{4e3a}\u{4ec5} SSO \u{8ba4}\u{8bc1}\u{3002}\u{7ba1}\u{7406}\u{5458}\u{8bbf}\u{95ee}\u{9700}\u{8981}\u{8bbf}\u{95ee}\u{4ee4}\u{724c}\u{6216} SSO \u{4f1a}\u{8bdd}\u{3002}".into());
         m.insert("auth_status.diagnostics_desc".into(), "\u{68c0}\u{67e5} OIDC/MAS \u{53d1}\u{884c}\u{8005}\u{53d1}\u{73b0}\u{3001}\u{7aef}\u{70b9}\u{53ef}\u{7528}\u{6027}\u{3001}DCR \u{652f}\u{6301}\u{548c}\u{4f5c}\u{7528}\u{57df}\u{914d}\u{7f6e}".into());
         m.insert("auth_status.dev_diagnostics_desc".into(), "\u{63a2}\u{6d4b} coauth \u{7aef}\u{70b9}\u{4ee5}\u{8c03}\u{8bd5}\u{6ce8}\u{518c}\u{3001}\u{540c}\u{610f}\u{548c} well-known \u{53d1}\u{73b0}".into());
-        m.insert("nav.contrix_admin".into(), "Cokret Admin".into());
+        m.insert("nav.cokret_admin".into(), "Cokret Admin".into());
         m.insert("nav.server".into(), "\u{670d}\u{52a1}\u{5668}".into());
 
         // Header
@@ -852,12 +852,12 @@ impl I18n {
         m.insert("language.zh_cn".into(), "\u{4e2d}\u{6587}".into());
         m.insert("language.select".into(), "\u{8bed}\u{8a00}".into());
 
-        apply_contrix_overrides(&mut m, Language::ZhCn);
+        apply_cokret_overrides(&mut m, Language::ZhCn);
         m
     }
 }
 
-fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
+fn apply_cokret_overrides(m: &mut HashMap<String, String>, lang: Language) {
     let entries: &[(&str, &str)] = match lang {
         Language::En => &[
             ("nav.actors", "Actors"),
@@ -3314,7 +3314,7 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("media_service.title", "Realm 媒体服务"),
             (
                 "media_service.subtitle",
-                "Foci 列表 —— 选择一个或多个媒体服务（livekit、mediasoup、janus、contrix-native、moq-relay）。",
+                "Foci 列表 —— 选择一个或多个媒体服务（livekit、mediasoup、janus、cokret-native、moq-relay）。",
             ),
             ("media_service.foci_label", "Foci"),
             ("media_service.empty", "当前 Realm 未配置 foci。"),

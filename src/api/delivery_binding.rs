@@ -19,7 +19,7 @@ pub async fn get_delivery_binding_policy(
     realm_id: &str,
 ) -> Result<RealmDeliveryBindingPolicy, HttpError> {
     let url = format!(
-        "/admin/realms/{}/delivery-binding-policy",
+        "/_soland/admin/realms/{}/delivery-binding-policy",
         urlencoding::encode(realm_id)
     );
     api_client(&url, "GET", None).await
@@ -30,7 +30,7 @@ pub async fn update_delivery_binding_policy(
     req: &UpdateDeliveryBindingPolicyRequest,
 ) -> Result<RealmDeliveryBindingPolicy, HttpError> {
     let url = format!(
-        "/admin/realms/{}/delivery-binding-policy",
+        "/_soland/admin/realms/{}/delivery-binding-policy",
         urlencoding::encode(realm_id)
     );
     api_client(

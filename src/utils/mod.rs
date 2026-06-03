@@ -7,7 +7,7 @@ pub mod csp;
 pub mod csv;
 pub mod date;
 /// DID input validation — delegates to the SDK scalar validator
-/// `contrix_identifiers::is_did` (global report #10, candidate 12).
+/// `cokret_identifiers::is_did` (global report #10, candidate 12).
 pub mod did;
 pub mod error;
 /// Concurrent `join_all` primitive used by bulk admin actions.

@@ -90,13 +90,13 @@ pub fn display_error(errcode: &str, status: u16, message: &str) -> String {
     // English literal so brand-new codes still surface usefully.
     // Global report #10 (candidate 8) — the three CXP-0007 reason codes
     // the SDK ships as public constants are matched against
-    // `contrix_core::error::REASON_CIRCLE_*` rather than hand-copied
+    // `cokret_core::error::REASON_CIRCLE_*` rather than hand-copied
     // literals, so a wire rename in the SDK breaks the build here. The
     // remaining three (`circle_already_terminal`,
     // `circle_capability_denied`, `circle_scope_rotation_in_progress`)
     // are sodmin/soland-local admin reasons not yet promoted to a core
     // constant, so they stay as literals.
-    use contrix_core::error::{
+    use cokret_core::error::{
         REASON_CIRCLE_MEMBER_MUST_BE_REALM_MEMBER, REASON_CIRCLE_NOT_ACTIVE,
         REASON_CIRCLE_REALM_MISMATCH,
     };

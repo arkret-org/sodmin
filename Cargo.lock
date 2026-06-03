@@ -284,6 +284,33 @@ dependencies = [
 ]
 
 [[package]]
+name = "cokret-core"
+version = "1.0.0"
+dependencies = [
+ "base64",
+ "chrono",
+ "cokret-identifiers",
+ "getrandom 0.3.4",
+ "regex",
+ "serde",
+ "serde_json",
+ "sha2",
+ "thiserror 2.0.18",
+]
+
+[[package]]
+name = "cokret-identifiers"
+version = "1.0.0"
+dependencies = [
+ "getrandom 0.2.17",
+ "getrandom 0.3.4",
+ "serde",
+ "sha2",
+ "thiserror 2.0.18",
+ "uuid",
+]
+
+[[package]]
 name = "combine"
 version = "4.6.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -368,33 +395,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ebc14a88e1463ddd193906285abe5c360c7e8564e05ccc5d501755f7fbc9ca9c"
 dependencies = [
  "charset",
-]
-
-[[package]]
-name = "cokret-core"
-version = "1.0.0"
-dependencies = [
- "base64",
- "chrono",
- "cokret-identifiers",
- "getrandom 0.3.4",
- "regex",
- "serde",
- "serde_json",
- "sha2",
- "thiserror 2.0.18",
-]
-
-[[package]]
-name = "cokret-identifiers"
-version = "1.0.0"
-dependencies = [
- "getrandom 0.2.17",
- "getrandom 0.3.4",
- "serde",
- "sha2",
- "thiserror 2.0.18",
- "uuid",
 ]
 
 [[package]]

@@ -1,20 +1,20 @@
 //! DID input validation. Global report #10 (candidate 12) — the local
 //! `regex_lite`-backed validator has been replaced by the SDK's
-//! canonical scalar validator `contrix_identifiers::is_did`.
+//! canonical scalar validator `cokret_identifiers::is_did`.
 //!
 //! Spec a77b995 narrowed the DID method segment to `[a-z0-9]+`: no `.`,
 //! `-`, `_`, or `:` inside the method name. The body (after the second
-//! `:`) is any run of non-whitespace characters. `contrix_identifiers::
+//! `:`) is any run of non-whitespace characters. `cokret_identifiers::
 //! is_did` enforces exactly this grammar (and additionally rejects the
 //! `uuid` method and `#`/`?` markers reserved for the DID-URL surface),
 //! so every DID input on the sodmin surface validates against the same
 //! rule the SDK uses on the wire — no hand-copied regex to drift.
 
-pub use contrix_identifiers::is_did;
+pub use cokret_identifiers::is_did;
 
 /// Returns `true` when `s` is a valid DID scalar.
 ///
-/// Thin wrapper over [`contrix_identifiers::is_did`] kept under the
+/// Thin wrapper over [`cokret_identifiers::is_did`] kept under the
 /// historical sodmin name so existing call sites need no change. The
 /// empty string, any whitespace, and uppercase / punctuated method
 /// segments are rejected; the method segment MUST be lowercase ASCII

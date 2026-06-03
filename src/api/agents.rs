@@ -8,7 +8,7 @@ fn json_body<T: serde::Serialize>(value: &T) -> Result<String, HttpError> {
 
 pub async fn list_agents(page: u64, per_page: u64) -> Result<ListResponse<Agent>, HttpError> {
     let url = build_url(
-        "/admin/agents",
+        "/_soland/admin/agents",
         &[
             ("page", &page.to_string()),
             ("per_page", &per_page.to_string()),
@@ -18,7 +18,7 @@ pub async fn list_agents(page: u64, per_page: u64) -> Result<ListResponse<Agent>
 }
 
 pub async fn get_agent(id: &str) -> Result<Agent, HttpError> {
-    let url = format!("/admin/agents/{}", urlencoding::encode(id));
+    let url = format!("/_soland/admin/agents/{}", urlencoding::encode(id));
     api_client(&url, "GET", None).await
 }
 

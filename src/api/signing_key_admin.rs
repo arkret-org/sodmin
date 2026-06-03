@@ -32,7 +32,7 @@ pub async fn get_signing_key(realm_id: &str) -> Result<SigningKeyDescribe, HttpE
 /// so the UI can update without a re-fetch round-trip.
 pub async fn rotate_signing_key(realm_id: &str) -> Result<RotateSigningKeyResponse, HttpError> {
     let url = format!(
-        "/admin/spaces/{}/anchorer/rotate-signing-key",
+        "/_soland/admin/spaces/{}/anchorer/rotate-signing-key",
         urlencoding::encode(realm_id)
     );
     api_client(&url, "POST", Some("{}".to_string())).await

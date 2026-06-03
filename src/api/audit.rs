@@ -59,6 +59,6 @@ pub async fn list_audit_entries(
     for (k, v) in owned.iter() {
         params.push((k, v.as_str()));
     }
-    let url = build_url("/admin/audit", &params)?;
+    let url = build_url("/_soland/admin/audit", &params)?;
     api_client(&url, "GET", None).await
 }
