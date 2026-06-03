@@ -79,20 +79,27 @@ pub struct UpdateActorRequest {
     pub is_suspended: Option<bool>,
 }
 
-// ── Space types ──
+// ── Realm types (security boundary) ──
+//
+// Post realm-rework: the object that carries the encryption / join-rule /
+// history-visibility / realm-class **boundary** fields is a Realm (the
+// spec's `cx:realm:` boundary), NOT a Space (the spec's authorization-
+// transparent `cx:space:` container — that one lives in
+// `spaces_admin::SpaceAdminRow`). Canonical display name is `title`,
+// creator is `created_by`, the boundary type discriminator is `kind`.
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct Space {
+pub struct Realm {
     #[serde(default)]
     pub id: String,
     #[serde(default)]
-    pub name: Option<String>,
+    pub title: Option<String>,
     #[serde(default)]
-    pub space_type: Option<String>,
+    pub realm_kind: Option<String>,
     #[serde(default)]
     pub discoverability: Option<String>,
     #[serde(default)]
-    pub creator_id: Option<String>,
+    pub created_by: Option<String>,
     #[serde(default)]
     pub member_count: u64,
     #[serde(default)]
@@ -100,7 +107,7 @@ pub struct Space {
     #[serde(default)]
     pub is_blocked: bool,
     #[serde(default)]
-    pub parent_space_id: Option<String>,
+    pub parent_realm_id: Option<String>,
     #[serde(default)]
     pub topic: Option<String>,
     #[serde(default)]
@@ -120,11 +127,11 @@ pub struct Space {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct CreateSpaceRequest {
+pub struct CreateRealmRequest {
     #[serde(default)]
-    pub name: String,
+    pub title: String,
     #[serde(default)]
-    pub space_type: Option<String>,
+    pub realm_kind: Option<String>,
     #[serde(default)]
     pub topic: Option<String>,
     #[serde(default)]
@@ -132,7 +139,7 @@ pub struct CreateSpaceRequest {
     #[serde(default)]
     pub join_rule: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub parent_space_id: Option<String>,
+    pub parent_realm_id: Option<String>,
     #[serde(default)]
     pub is_encrypted: bool,
     /// CXP-0007 (P3A.6) — required at create time; the spec pins this

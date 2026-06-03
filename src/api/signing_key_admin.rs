@@ -18,10 +18,10 @@ use crate::types::signing_key::{RotateSigningKeyResponse, SigningKeyDescribe};
 use crate::utils::error::HttpError;
 
 /// Fetch the current AnchorerWorker signing-key describe view.
-pub async fn get_signing_key(space_id: &str) -> Result<SigningKeyDescribe, HttpError> {
+pub async fn get_signing_key(realm_id: &str) -> Result<SigningKeyDescribe, HttpError> {
     let url = format!(
         "/api/admin/v1/spaces/{}/anchorer/signing-key",
-        urlencoding::encode(space_id)
+        urlencoding::encode(realm_id)
     );
     api_client(&url, "GET", None).await
 }
@@ -30,10 +30,10 @@ pub async fn get_signing_key(space_id: &str) -> Result<SigningKeyDescribe, HttpE
 /// soland resolves the admin DID from the bearer token and uses its
 /// existing rotation routine. Returns the new verification method id
 /// so the UI can update without a re-fetch round-trip.
-pub async fn rotate_signing_key(space_id: &str) -> Result<RotateSigningKeyResponse, HttpError> {
+pub async fn rotate_signing_key(realm_id: &str) -> Result<RotateSigningKeyResponse, HttpError> {
     let url = format!(
         "/api/admin/v1/spaces/{}/anchorer/rotate-signing-key",
-        urlencoding::encode(space_id)
+        urlencoding::encode(realm_id)
     );
     api_client(&url, "POST", Some("{}".to_string())).await
 }

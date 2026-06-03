@@ -31,10 +31,10 @@ use crate::utils::error::HttpError;
 /// `GET /api/admin/v1/spaces/{id}/anchorer`. soland projects the joined
 /// `cx:cell:cx.component.anchorer.v1:<space>` value plus the surrounding
 /// hint fields (`max_anchor_staleness_ms`, `paused`).
-pub async fn get_anchorer_value(space_id: &str) -> Result<AnchorerValue, HttpError> {
+pub async fn get_anchorer_value(realm_id: &str) -> Result<AnchorerValue, HttpError> {
     let url = format!(
         "/api/admin/v1/spaces/{}/anchorer",
-        urlencoding::encode(space_id)
+        urlencoding::encode(realm_id)
     );
     api_client(&url, "GET", None).await
 }
@@ -52,7 +52,7 @@ pub async fn submit_anchorer_reconfig(
 ) -> Result<SubmitMoveResponse, HttpError> {
     let url = format!(
         "/api/admin/v1/spaces/{}/anchorer/reconfigure",
-        urlencoding::encode(&req.space_id)
+        urlencoding::encode(&req.realm_id)
     );
     let body = req.to_reconfigure_body();
     api_client(
@@ -67,7 +67,7 @@ pub async fn submit_anchorer_reconfig(
 /// the global "Bottom diagnostics" page in the sidebar (no per-Space
 /// pre-filter).
 ///
-/// `GET /api/admin/v1/bottom`. Each row carries its `space_id` so the
+/// `GET /api/admin/v1/bottom`. Each row carries its `realm_id` so the
 /// renderer can link out.
 pub async fn list_bottom_entries_global() -> Result<Vec<BottomEntry>, HttpError> {
     let url = build_url("/api/admin/v1/bottom", &[])?;
@@ -81,17 +81,17 @@ pub async fn list_bottom_entries_global() -> Result<Vec<BottomEntry>, HttpError>
 /// admin picks one of the concurrent heads) or `manual` (free-form
 /// effects array, used as the escape hatch for non-conflict bottoms).
 pub async fn submit_bottom_repair(
-    space_id: &str,
+    realm_id: &str,
     cell_id: &str,
     strategy: BottomRepairStrategy,
 ) -> Result<SubmitMoveResponse, HttpError> {
     let url = format!(
         "/api/admin/v1/spaces/{}/bottom/{}/repair",
-        urlencoding::encode(space_id),
+        urlencoding::encode(realm_id),
         urlencoding::encode(cell_id),
     );
     let req = BottomRepairRequest {
-        space_id: space_id.to_string(),
+        realm_id: realm_id.to_string(),
         cell_id: cell_id.to_string(),
         strategy,
     };
@@ -107,10 +107,10 @@ pub async fn submit_bottom_repair(
 /// compaction timestamp).
 ///
 /// `GET /api/admin/v1/spaces/{id}/anchor-dag`.
-pub async fn get_anchor_dag(space_id: &str) -> Result<AnchorDagSnapshot, HttpError> {
+pub async fn get_anchor_dag(realm_id: &str) -> Result<AnchorDagSnapshot, HttpError> {
     let url = format!(
         "/api/admin/v1/spaces/{}/anchor-dag",
-        urlencoding::encode(space_id)
+        urlencoding::encode(realm_id)
     );
     api_client(&url, "GET", None).await
 }
@@ -121,13 +121,13 @@ pub async fn get_anchor_dag(space_id: &str) -> Result<AnchorDagSnapshot, HttpErr
 /// is the admin-facing entry point onto `cx.admin.anchors.sign`; it folds
 /// up to `max_moves` moves into a fresh compaction Anchor and returns
 /// the new anchor id + state_root.
-pub async fn trigger_compaction(space_id: &str) -> Result<SignAnchorResponse, HttpError> {
+pub async fn trigger_compaction(realm_id: &str) -> Result<SignAnchorResponse, HttpError> {
     let url = format!(
         "/api/admin/v1/spaces/{}/anchor-dag/compact",
-        urlencoding::encode(space_id)
+        urlencoding::encode(realm_id)
     );
     let req = CompactionRequest {
-        space_id: space_id.to_string(),
+        realm_id: realm_id.to_string(),
         max_moves: None,
     };
     api_client(
@@ -150,7 +150,7 @@ mod tests {
     #[test]
     fn reconfig_request_body_renders_threshold_shape() {
         let req = AnchorerReconfigRequest {
-            space_id: "cx:space:0196419b-0000-7000-8000-000000000000".into(),
+            realm_id: "cx:space:0196419b-0000-7000-8000-000000000000".into(),
             kind: "threshold".into(),
             threshold_k: Some(2),
             threshold_n: Some(3),
@@ -177,7 +177,7 @@ mod tests {
     #[test]
     fn repair_request_body_serializes_with_strategy_tag() {
         let req = BottomRepairRequest {
-            space_id: "cx:space:demo".into(),
+            realm_id: "cx:space:demo".into(),
             cell_id: "cx:cell:cx.component.anchorer.v1:cx:space:demo".into(),
             strategy: BottomRepairStrategy::HeadInWinner {
                 head: WinnerHead {
@@ -198,11 +198,11 @@ mod tests {
     #[test]
     fn compaction_request_body_default_omits_max_moves() {
         let req = CompactionRequest {
-            space_id: "cx:space:demo".into(),
+            realm_id: "cx:space:demo".into(),
             max_moves: None,
         };
         let s = serde_json::to_string(&req).unwrap();
-        assert!(s.contains("\"space_id\":\"cx:space:demo\""));
+        assert!(s.contains("\"realm_id\":\"cx:space:demo\""));
         assert!(!s.contains("max_moves"));
     }
 }

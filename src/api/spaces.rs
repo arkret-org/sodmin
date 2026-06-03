@@ -9,7 +9,7 @@ pub async fn list_spaces(
     cursor: Option<&str>,
     limit: u64,
     search: &str,
-) -> Result<ListResponse<Space>, HttpError> {
+) -> Result<ListResponse<Realm>, HttpError> {
     let limit_str = limit.max(1).to_string();
     let mut params: Vec<(&str, &str)> = vec![("limit", limit_str.as_str())];
     if let Some(c) = cursor.filter(|c| !c.is_empty()) {
@@ -22,12 +22,12 @@ pub async fn list_spaces(
     api_client(&url, "GET", None).await
 }
 
-pub async fn get_space(id: &str) -> Result<Space, HttpError> {
+pub async fn get_space(id: &str) -> Result<Realm, HttpError> {
     let url = format!("/api/admin/v1/spaces/{}", urlencoding::encode(id));
     api_client(&url, "GET", None).await
 }
 
-pub async fn create_space(req: &CreateSpaceRequest) -> Result<Space, HttpError> {
+pub async fn create_space(req: &CreateRealmRequest) -> Result<Realm, HttpError> {
     api_client(
         "/api/admin/v1/spaces",
         "POST",

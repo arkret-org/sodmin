@@ -3,7 +3,7 @@
 //!
 //! Read from `GET /api/admin/v1/spaces/{id}/mls/covered-frontier` —
 //! soland projects the lattice or-set state for the
-//! `cx:cell:cx.component.mls.covered_frontier.v1:<space_id>` cell. The
+//! `cx:cell:cx.component.mls.covered_frontier.v1:<realm_id>` cell. The
 //! cell records which governance Anchors / Moves the MLS group has
 //! acknowledged. We compare the current governance frontier against the
 //! covered set to compute a *lag count* — how many governance Moves the
@@ -19,7 +19,7 @@ pub const DEFAULT_LAG_WARN_THRESHOLD: u64 = 5;
 /// Snapshot returned by the covered-frontier admin describe endpoint.
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct CoveredFrontierSnapshot {
-    pub space_id: String,
+    pub realm_id: String,
     /// Current MLS group epoch — a monotonically-increasing integer that
     /// the group bumps on every Add/Remove/Update.
     #[serde(default)]
@@ -46,7 +46,7 @@ pub struct CoveredFrontierSnapshot {
 /// confirmation toast without waiting for a re-fetch round-trip.
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct CoveredFrontierAdvanceResponse {
-    pub space_id: String,
+    pub realm_id: String,
     /// New lag count after the override landed. Typically 0; non-zero
     /// means new governance Moves landed concurrently and the admin has
     /// to retry.
@@ -92,7 +92,7 @@ mod tests {
     #[test]
     fn lag_zero_when_covered_matches_governance() {
         let snap = CoveredFrontierSnapshot {
-            space_id: "cx:space:demo".into(),
+            realm_id: "cx:space:demo".into(),
             mls_epoch: 4,
             governance_frontier: vec!["m:1".into(), "m:2".into(), "m:3".into()],
             covered_frontier: vec!["m:3".into(), "m:1".into(), "m:2".into()],
@@ -105,7 +105,7 @@ mod tests {
     #[test]
     fn lag_counts_only_unacknowledged_moves() {
         let snap = CoveredFrontierSnapshot {
-            space_id: "cx:space:demo".into(),
+            realm_id: "cx:space:demo".into(),
             mls_epoch: 7,
             governance_frontier: vec![
                 "m:1".into(),

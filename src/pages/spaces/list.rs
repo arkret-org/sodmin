@@ -59,15 +59,15 @@ pub fn SpaceList() -> Element {
                         if let Some(Ok(resp)) = data.read().as_ref() {
                             let rows: Vec<Vec<String>> = resp.data.iter().map(|s| vec![
                                 s.id.clone(),
-                                s.name.clone().unwrap_or_default(),
-                                s.space_type.clone().unwrap_or_default(),
+                                s.title.clone().unwrap_or_default(),
+                                s.realm_kind.clone().unwrap_or_default(),
                                 s.member_count.to_string(),
                                 if s.is_encrypted { "true".into() } else { "false".into() },
                                 if s.is_blocked { "blocked".into() } else { "active".into() },
                                 s.created_at.clone().unwrap_or_default(),
                             ]).collect();
                             let csv = build_csv(
-                                &["id", "name", "space_type", "member_count", "encrypted", "status", "created_at"],
+                                &["id", "title", "realm_kind", "member_count", "encrypted", "status", "created_at"],
                                 &rows,
                             );
                             export_to_csv("spaces.csv", &csv);
@@ -122,7 +122,7 @@ pub fn SpaceList() -> Element {
                                     }
                                 }
                                 TableBody {
-                                    for space in resp.data.iter().filter(|s| matches_name_or_id(&search_for_filter, &s.id, s.name.as_deref())) {
+                                    for space in resp.data.iter().filter(|s| matches_name_or_id(&search_for_filter, &s.id, s.title.as_deref())) {
                                         {
                                             let sid = space.id.clone();
                                             rsx! {
@@ -134,8 +134,8 @@ pub fn SpaceList() -> Element {
                                                             "{space.id}"
                                                         }
                                                     }
-                                                    TableCell { {space.name.as_deref().unwrap_or("-")} }
-                                                    TableCell { {space.space_type.as_deref().unwrap_or("default")} }
+                                                    TableCell { {space.title.as_deref().unwrap_or("-")} }
+                                                    TableCell { {space.realm_kind.as_deref().unwrap_or("default")} }
                                                     TableCell { "{space.member_count}" }
                                                     TableCell {
                                                         if space.is_encrypted {

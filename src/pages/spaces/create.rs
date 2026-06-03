@@ -6,7 +6,7 @@ use crate::components::ui::input::Input;
 use crate::components::ui::loading::Spinner;
 use crate::components::ui::page_header::PageHeader;
 use crate::router::Route;
-use crate::types::CreateSpaceRequest;
+use crate::types::CreateRealmRequest;
 use crate::utils::i18n::t;
 
 #[component]
@@ -27,8 +27,8 @@ pub fn SpaceCreate() -> Element {
     let on_submit = move |_evt: Event<FormData>| {
         saving.set(true);
         error.set(String::new());
-        let req = CreateSpaceRequest {
-            name: name.read().clone(),
+        let req = CreateRealmRequest {
+            title: name.read().clone(),
             topic: if topic.read().is_empty() {
                 None
             } else {

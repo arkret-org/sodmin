@@ -14,7 +14,9 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct PendingMultisigAnchor {
     pub anchor_id: String,
-    pub space_id: String,
+    /// Realm boundary id. soland's anchor admin handler emits `realm_id`
+    /// (the anchorer/anchor DAG/multisig are Realm-scoped).
+    pub realm_id: String,
     /// Threshold `k` (signatures required).
     pub threshold_k: u32,
     /// Threshold `n` (members in the anchorer set).

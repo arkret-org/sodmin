@@ -38,7 +38,7 @@ pub fn SpaceShow(space_id: String) -> Element {
                 Some(Ok(space)) => {
                     let breadcrumbs = vec![
                         BreadcrumbItem { label: t("nav.spaces"), route: Some(Route::SpaceList {}) },
-                        BreadcrumbItem { label: space.name.as_deref().unwrap_or(&space.id).to_string(), route: None },
+                        BreadcrumbItem { label: space.title.as_deref().unwrap_or(&space.id).to_string(), route: None },
                     ];
                     rsx! {
                         Breadcrumbs {
@@ -46,7 +46,7 @@ pub fn SpaceShow(space_id: String) -> Element {
                         }
 
                         PageHeader {
-                            title: space.name.as_deref().unwrap_or(&space.id).to_string(),
+                            title: space.title.as_deref().unwrap_or(&space.id).to_string(),
                             // P3A.6 — Principal Control vs Collaboration
                             // Realm badge. Hidden when the field is absent
                             // on older soland deployments.
@@ -61,9 +61,9 @@ pub fn SpaceShow(space_id: String) -> Element {
                                 CardContent {
                                     div { class: "space-y-3",
                                     {field_row(t("spaces.id"), space.id.clone())}
-                                    {field_row(t("spaces.type"), space.space_type.as_deref().unwrap_or("default").to_string())}
+                                    {field_row(t("spaces.type"), space.realm_kind.as_deref().unwrap_or("default").to_string())}
                                     {field_row(t("spaces.discoverability"), space.discoverability.as_deref().unwrap_or("-").to_string())}
-                                    {field_row(t("spaces.creator"), space.creator_id.as_deref().unwrap_or("-").to_string())}
+                                    {field_row(t("spaces.creator"), space.created_by.as_deref().unwrap_or("-").to_string())}
                                     {field_row(t("spaces.members"), space.member_count.to_string())}
                                     {field_row(t("spaces.encrypted"), if space.is_encrypted { t("common.yes") } else { t("common.no") })}
                                     {field_row(t("spaces.join_rule"), space.join_rule.as_deref().unwrap_or("-").to_string())}

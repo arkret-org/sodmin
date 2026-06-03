@@ -210,7 +210,7 @@ pub fn AnchorerPage(space_id: String) -> Element {
                                 onclick: move |_| {
                                     let kind = new_kind.read().clone();
                                     let req = AnchorerReconfigRequest {
-                                        space_id: space_id_for_submit.clone(),
+                                        realm_id: space_id_for_submit.clone(),
                                         kind: kind.clone(),
                                         single_did: opt_string(&new_single_did.read()),
                                         threshold_k: parse_u32(&new_threshold_k.read()),

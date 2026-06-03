@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 // ── Anchorer cell value ──────────────────────────────────────────────────
 
 /// Discriminator for `AnchorerValue` shapes. Matches soland's CasRegister
-/// content for `cx:cell:cx.component.anchorer.v1:<space_id>`.
+/// content for `cx:cell:cx.component.anchorer.v1:<realm_id>`.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum AnchorerKind {
@@ -136,7 +136,7 @@ pub enum SelfSignViolation {
 /// `soland /api/v1/admin/spaces/{id}/anchorer/reconfigure`.
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AnchorerReconfigRequest {
-    pub space_id: String,
+    pub realm_id: String,
     pub kind: String, // single_did | threshold | open_set | mixed
     #[serde(skip_serializing_if = "Option::is_none")]
     pub single_did: Option<String>,
@@ -340,7 +340,7 @@ impl BottomKind {
 /// One row in the bottom diagnostics view.
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct BottomEntry {
-    pub space_id: String,
+    pub realm_id: String,
     pub cell_id: String,
     pub kind: String, // wire-format BottomKind
     #[serde(default)]
@@ -404,7 +404,7 @@ impl BottomRepairStrategy {
 /// Wire body POSTed to soland's `bottom/{cell_id}/repair` endpoint.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BottomRepairRequest {
-    pub space_id: String,
+    pub realm_id: String,
     pub cell_id: String,
     pub strategy: BottomRepairStrategy,
 }
@@ -428,7 +428,7 @@ pub struct AnchorLeaf {
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AnchorDagSnapshot {
-    pub space_id: String,
+    pub realm_id: String,
     pub leaves: Vec<AnchorLeaf>,
     pub frontier: Vec<String>,
     #[serde(default)]
@@ -451,7 +451,7 @@ pub struct SignAnchorResponse {
 /// fold into the new compaction Anchor.
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct CompactionRequest {
-    pub space_id: String,
+    pub realm_id: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub max_moves: Option<u64>,
 }
