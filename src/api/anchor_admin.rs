@@ -29,7 +29,7 @@ use crate::utils::error::HttpError;
 /// Fetch the current anchorer cell value for a Space.
 ///
 /// `GET /admin/spaces/{id}/anchorer`. soland projects the joined
-/// `cx:cell:cx.component.anchorer.v1:<space>` value plus the surrounding
+/// `ck:cell:cx.component.anchorer.v1:<space>` value plus the surrounding
 /// hint fields (`max_anchor_staleness_ms`, `paused`).
 pub async fn get_anchorer_value(realm_id: &str) -> Result<AnchorerValue, HttpError> {
     let url = format!(
@@ -150,11 +150,11 @@ mod tests {
     #[test]
     fn reconfig_request_body_renders_threshold_shape() {
         let req = AnchorerReconfigRequest {
-            realm_id: "cx:space:0196419b-0000-7000-8000-000000000000".into(),
+            realm_id: "ck:space:0196419b-0000-7000-8000-000000000000".into(),
             kind: "threshold".into(),
             threshold_k: Some(2),
             threshold_n: Some(3),
-            threshold_dids: vec!["did:cx:a".into(), "did:cx:b".into(), "did:cx:c".into()],
+            threshold_dids: vec!["did:ck:a".into(), "did:ck:b".into(), "did:ck:c".into()],
             ..Default::default()
         };
         let body = req.to_reconfigure_body();
@@ -177,12 +177,12 @@ mod tests {
     #[test]
     fn repair_request_body_serializes_with_strategy_tag() {
         let req = BottomRepairRequest {
-            realm_id: "cx:space:demo".into(),
-            cell_id: "cx:cell:cx.component.anchorer.v1:cx:space:demo".into(),
+            realm_id: "ck:space:demo".into(),
+            cell_id: "ck:cell:cx.component.anchorer.v1:ck:space:demo".into(),
             strategy: BottomRepairStrategy::HeadInWinner {
                 head: WinnerHead {
                     move_id: "sha256:aaaa".into(),
-                    issuer: Some("did:cx:alice".into()),
+                    issuer: Some("did:ck:alice".into()),
                     hlc: None,
                     summary: None,
                 },
@@ -198,11 +198,11 @@ mod tests {
     #[test]
     fn compaction_request_body_default_omits_max_moves() {
         let req = CompactionRequest {
-            realm_id: "cx:space:demo".into(),
+            realm_id: "ck:space:demo".into(),
             max_moves: None,
         };
         let s = serde_json::to_string(&req).unwrap();
-        assert!(s.contains("\"realm_id\":\"cx:space:demo\""));
+        assert!(s.contains("\"realm_id\":\"ck:space:demo\""));
         assert!(!s.contains("max_moves"));
     }
 }

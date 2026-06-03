@@ -96,14 +96,14 @@ pub mod bridge {
 
 /// Names of the admin scope buckets the sidebar gates pages against. A
 /// missing entry hides the page entirely (unless the user has the
-/// catch-all `urn:contrix:admin:*`).
+/// catch-all `urn:cokret:admin:*`).
 pub mod scope {
-    pub const WILDCARD: &str = "urn:contrix:admin:*";
-    pub const IDENTITY: &str = "urn:contrix:admin:identity";
-    pub const MODERATION: &str = "urn:contrix:admin:moderation";
-    pub const INFRASTRUCTURE: &str = "urn:contrix:admin:infrastructure";
-    pub const SERVER_OPS: &str = "urn:contrix:admin:server_ops";
-    pub const ANCHOR: &str = "urn:contrix:admin:anchor";
+    pub const WILDCARD: &str = "urn:cokret:admin:*";
+    pub const IDENTITY: &str = "urn:cokret:admin:identity";
+    pub const MODERATION: &str = "urn:cokret:admin:moderation";
+    pub const INFRASTRUCTURE: &str = "urn:cokret:admin:infrastructure";
+    pub const SERVER_OPS: &str = "urn:cokret:admin:server_ops";
+    pub const ANCHOR: &str = "urn:cokret:admin:anchor";
     pub const COAUTH: &str = "urn:coauth:admin";
 }
 

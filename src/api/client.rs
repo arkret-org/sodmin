@@ -6,7 +6,7 @@ use crate::utils::crypto::random_token;
 use crate::utils::error::{AdminErrorEnvelope, HttpError, display_error};
 use crate::utils::perf;
 
-pub const HEADER_REQUEST_ID: &str = "X-Contrix-Request-Id";
+pub const HEADER_REQUEST_ID: &str = "X-Cokret-Request-Id";
 pub const HEADER_IDEMPOTENCY_KEY: &str = "Idempotency-Key";
 
 const SENSITIVE_QUERY_KEYS: &[&str] = &[
@@ -22,7 +22,7 @@ const SENSITIVE_QUERY_KEYS: &[&str] = &[
 ];
 
 /// Per-request correlation id (12 bytes / ~16 chars base64url) used in the
-/// `X-Contrix-Request-Id` header so admin actions can be traced across
+/// `X-Cokret-Request-Id` header so admin actions can be traced across
 /// proxy + coauth + soland logs.
 pub fn generate_request_id() -> String {
     random_token(12)

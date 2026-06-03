@@ -54,7 +54,7 @@ const REQUIRED_COAUTH: &[(&str, &str)] = &[
     ("POST", "/api/admin/v1/accounts/{id}/erase"),
     ("POST", "/api/admin/v1/accounts/{id}/reset-recovery"),
     ("GET", "/api/admin/v1/bridge/describe"),
-    ("GET", "/contrix/api/v1/integration/describe"),
+    ("GET", "/cokret/api/v1/integration/describe"),
 ];
 
 const REQUIRED_SOLAND: &[(&str, &str)] = &[

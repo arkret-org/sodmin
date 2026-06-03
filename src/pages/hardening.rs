@@ -1,6 +1,6 @@
 //! T8.3 — aggregate production hardening dashboard.
 //!
-//! Every Contrix service (`soland`, `coauth`, `floria`, `starid`,
+//! Every Cokret service (`soland`, `coauth`, `floria`, `starid`,
 //! `teabay`) exposes a non-sensitive `hardening` block on its
 //! `/health` endpoint. This page fans out across whichever services
 //! the operator has wired (via `coauth_public_url` /
@@ -136,7 +136,7 @@ pub fn HardeningDashboard() -> Element {
         div { class: "space-y-6",
             PageHeader {
                 title: "Hardening".to_string(),
-                description: "Production deployment checklist aggregated across every Contrix service.".to_string(),
+                description: "Production deployment checklist aggregated across every Cokret service.".to_string(),
                 Button {
                     variant: ButtonVariant::Outline,
                     onclick: move |_| {

@@ -311,7 +311,7 @@ pub fn PersonalAgentShow(props: PersonalAgentShowProps) -> Element {
                                         ValidatedInput {
                                             kind: ValidationKind::MaxLength(256),
                                             value: grant_scope.read().clone(),
-                                            placeholder: "cx:realm:... / cx:circle:...".to_string(),
+                                            placeholder: "ck:realm:... / ck:circle:...".to_string(),
                                             oninput: move |evt: FormEvent| {
                                                 grant_error.set(None);
                                                 grant_scope.set(evt.value());
@@ -543,7 +543,7 @@ fn ProvisionWizard(props: ProvisionWizardProps) -> Element {
                     div { class: "space-y-3",
                         p { class: "text-sm",
                             "Step 3/3 — Controller approval via coauth accountability_grant. "
-                            "This issues a `cx:accountability_grant:<uuid7>` ledger row."
+                            "This issues a `ck:accountability_grant:<uuid7>` ledger row."
                         }
                     }
                 }

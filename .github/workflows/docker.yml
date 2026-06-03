@@ -26,7 +26,7 @@ jobs:
           path: sodmin
 
       # The sodmin Dockerfile uses an umbrella build context (parent of
-      # sodmin/) so cargo path-deps `../contrix-rust-sdk/...` and
+      # sodmin/) so cargo path-deps `../cokret-rust-sdk/...` and
       # `../coauth/crates/admin-types` resolve in the build sandbox.
       # Pin to `main` so single-repo image builds match nightly stack.
       - name: Check out coauth
@@ -37,11 +37,11 @@ jobs:
           ref: main
           token: ${{ secrets.CI_REPO_TOKEN || github.token }}
 
-      - name: Check out contrix-rust-sdk
+      - name: Check out cokret-rust-sdk
         uses: actions/checkout@v4
         with:
-          repository: ${{ github.repository_owner }}/contrix-rust-sdk
-          path: contrix-rust-sdk
+          repository: ${{ github.repository_owner }}/cokret-rust-sdk
+          path: cokret-rust-sdk
           ref: main
           token: ${{ secrets.CI_REPO_TOKEN || github.token }}
 
@@ -57,7 +57,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           # Umbrella context (parent of sodmin/) so the Dockerfile's
-          # `COPY contrix-rust-sdk/`, `COPY coauth/`, `COPY sodmin/`
+          # `COPY cokret-rust-sdk/`, `COPY coauth/`, `COPY sodmin/`
           # all resolve against sibling checkouts.
           context: .
           file: ./sodmin/Dockerfile

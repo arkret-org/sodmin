@@ -83,8 +83,8 @@ pub struct UpdateActorRequest {
 //
 // Post realm-rework: the object that carries the encryption / join-rule /
 // history-visibility / realm-class **boundary** fields is a Realm (the
-// spec's `cx:realm:` boundary), NOT a Space (the spec's authorization-
-// transparent `cx:space:` container — that one lives in
+// spec's `ck:realm:` boundary), NOT a Space (the spec's authorization-
+// transparent `ck:space:` container — that one lives in
 // `spaces_admin::SpaceAdminRow`). Canonical display name is `title`,
 // creator is `created_by`, the boundary type discriminator is `kind`.
 
@@ -238,7 +238,7 @@ pub struct MemberDeliveryBinding {
     pub expires_at: Option<String>,
     #[serde(default)]
     pub service_endpoint: Option<String>,
-    /// `cx:event:*` ref to the service_acceptance event the recipient
+    /// `ck:event:*` ref to the service_acceptance event the recipient
     /// service signed for this binding (`explicit` / `invite` /
     /// `organization_policy` sources).
     #[serde(default)]
@@ -680,7 +680,7 @@ pub struct AuditEntry {
     #[serde(default)]
     pub source_ip: Option<String>,
     /// CXP-0007 — the effective scope at which the action took effect
-    /// (`cx:realm:...` or `cx:circle:...`). Distinct from the audited
+    /// (`ck:realm:...` or `ck:circle:...`). Distinct from the audited
     /// `target_id` because Circle actions surface inside a Realm
     /// envelope but get pinned to the Circle for replay-locality.
     /// `None` for legacy entries written before the field shipped.
@@ -692,7 +692,7 @@ pub struct AuditEntry {
     #[serde(default)]
     pub scope_realm_id: Option<String>,
     /// CXP-0007 — convenience copy of `effective_scope` when it is a
-    /// `cx:circle:...` id; saves the row a string-prefix sniff on
+    /// `ck:circle:...` id; saves the row a string-prefix sniff on
     /// the rendering path.
     #[serde(default)]
     pub scope_circle_id: Option<String>,
@@ -726,10 +726,10 @@ impl AuditEntry {
             return AuditScopeKind::Circle(s.clone());
         }
         if let Some(ref s) = self.effective_scope {
-            if s.starts_with("cx:circle:") {
+            if s.starts_with("ck:circle:") {
                 return AuditScopeKind::Circle(s.clone());
             }
-            if s.starts_with("cx:realm:") {
+            if s.starts_with("ck:realm:") {
                 return AuditScopeKind::Realm(s.clone());
             }
         }
@@ -939,7 +939,7 @@ impl ServerDescribeResBody {
 
 /// T8.3 — production deployment hardening checklist snapshot.
 ///
-/// Surfaced by every Contrix service (`soland`, `coauth`, `floria`,
+/// Surfaced by every Cokret service (`soland`, `coauth`, `floria`,
 /// `starid`, `teabay`) on `/health` and the corresponding describe
 /// endpoint. The sodmin `/hardening` dashboard aggregates these into a
 /// single board with green/red chips per check.
@@ -1077,7 +1077,7 @@ pub enum HandleBindingState {
 /// the wire now carries inline inside roster entries
 /// (`member_roster_entry.handle_claims[]`) and the
 /// `cx.directory.list_handles_for_subject` response. Handle lifecycle has
-/// fully moved off `MemberIdentity` onto this claim object (contrix-spec
+/// fully moved off `MemberIdentity` onto this claim object (cokret-spec
 /// @ b56cab1). Mirrors the SDK `contrix_core::model::handle::HandleClaim`;
 /// only the fields the admin UI renders / runs selection over are kept.
 ///
@@ -1102,7 +1102,7 @@ pub struct HandleClaim {
     pub claim_kind: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub binding_state: Option<HandleBindingState>,
-    /// Audience scope (e.g. `cx:realm:*`). When present, only matches a
+    /// Audience scope (e.g. `ck:realm:*`). When present, only matches a
     /// resolution context equal to this value.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub audience: Option<String>,
@@ -1326,7 +1326,7 @@ pub struct DeliveryBindingHandoverRow {
     /// `delivery_binding_handed_over` 409 body.
     #[serde(default)]
     pub new_recipient_service_did: Option<String>,
-    /// `handover_frontier` — the frontier (vector of `cx:event:*` refs)
+    /// `handover_frontier` — the frontier (vector of `ck:event:*` refs)
     /// at/after which the new recipient takes effect.
     #[serde(default)]
     pub handover_frontier: Vec<String>,
@@ -1651,7 +1651,7 @@ mod tests {
     fn handle_record_round_trip() {
         let record: HandleRecord = serde_json::from_value(json!({
             "id": "h-1",
-            "canonical_uri": "cx:handle:@alice",
+            "canonical_uri": "ck:handle:@alice",
             "aliases": ["@alice", "@alice.example"],
             "issuer_did": "did:web:auth.example.com",
             "subject_id": "did:key:zABC",
@@ -1659,7 +1659,7 @@ mod tests {
         }))
         .expect("handle record should deserialize");
 
-        assert_eq!(record.canonical_uri, "cx:handle:@alice");
+        assert_eq!(record.canonical_uri, "ck:handle:@alice");
         assert_eq!(record.aliases.len(), 2);
         assert_eq!(record.status.as_deref(), Some("active"));
     }

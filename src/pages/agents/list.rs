@@ -16,7 +16,7 @@ use crate::utils::i18n::t;
 
 const PAGE_SIZE: u64 = 25;
 
-/// R3 — Pick a colour for the agent FSM badge. The contrix-spec v3
+/// R3 — Pick a colour for the agent FSM badge. The cokret-spec v3
 /// canonical states are `active | paused | deactivated`; legacy
 /// `enabled / disabled` rows fall back to the existing colour.
 fn status_variant(status: &str) -> BadgeVariant {

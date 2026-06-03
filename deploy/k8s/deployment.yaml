@@ -22,7 +22,7 @@ spec:
           # The sodmin container is a single nginx serving the Dioxus / WASM
           # SPA plus reverse-proxy locations for soland + coauth. Replace
           # with your pipeline's pinned digest.
-          image: ghcr.io/contrix/sodmin:latest
+          image: ghcr.io/cokret/sodmin:latest
           imagePullPolicy: IfNotPresent
           ports:
             - name: http

@@ -9,7 +9,7 @@
 //!
 //! * `errcode` (e.g. `cx.error.capability_denied`)
 //! * `status` HTTP status code
-//! * `request_id` from the `X-Contrix-Request-Id` header
+//! * `request_id` from the `X-Cokret-Request-Id` header
 //! * `path` (the request path, query string stripped)
 //! * `ts` ISO-8601 timestamp
 //!
@@ -72,7 +72,7 @@ struct ErrorEvent<'a> {
 ///    actor / account / realm / handle ids directly in the path (e.g.
 ///    `/api/admin/v1/accounts/01HXY.../dids/did:web:x`), and those ids —
 ///    ULIDs, numeric ids, DIDs — are identifying. A segment is treated
-///    as an id when it contains a `:` (DID / `cx:` ref), starts with a
+///    as an id when it contains a `:` (DID / `ck:` ref), starts with a
 ///    digit (ULID / numeric id), or is an overly long opaque token.
 ///    Static words like `api`, `v1`, `accounts` are preserved.
 fn redact_path(url: &str) -> String {

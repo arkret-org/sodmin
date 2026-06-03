@@ -61,7 +61,7 @@ pub fn CircleList() -> Element {
                         Input {
                             id: "circle-realm-filter".to_string(),
                             value: realm_input.read().clone(),
-                            placeholder: "cx:realm:01H...".to_string(),
+                            placeholder: "ck:realm:01H...".to_string(),
                             oninput: move |evt: FormEvent| realm_input.set(evt.value()),
                         }
                         Button {

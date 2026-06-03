@@ -1,4 +1,4 @@
-//! R3.2 (contrix-spec @ b56cab1, UI-SOD-3) — §3.2.1 primary handle
+//! R3.2 (cokret-spec @ b56cab1, UI-SOD-3) — §3.2.1 primary handle
 //! selection, admin-SPA mirror.
 //!
 //! `MemberIdentity` no longer carries `primary_handle` / `handles[]`;
@@ -7,7 +7,7 @@
 //! show "the" handle for a subject MUST run the deterministic §3.2.1
 //! selection over the visible claim set rather than reading a roster
 //! field. This module mirrors the SDK helper
-//! `contrix::identity::select_primary_handle` so the admin UI agrees
+//! `cokret::identity::select_primary_handle` so the admin UI agrees
 //! with yougen / soland / cotest on which claim wins.
 //!
 //! The selection is a pure function of an explicit six-tuple:
@@ -288,7 +288,7 @@ mod tests {
             "did:web:acme.example",
             "2026-05-28T08:00:00Z",
             "2026-06-28T00:00:00Z",
-            Some("cx:realm:r1"),
+            Some("ck:realm:r1"),
         );
         let newer = verified(
             "alice:other.example",
@@ -300,7 +300,7 @@ mod tests {
         let snapshot = vec![newer, matching];
         let input = PrimaryHandleSelectInput {
             subject_id: "did:web:alice.example",
-            context: Some("cx:realm:r1"),
+            context: Some("ck:realm:r1"),
             claim_set_snapshot: &snapshot,
             accepted_issuers: &acc,
             holder_primary_handle_at_as_of: None,

@@ -193,7 +193,7 @@ pub fn Dashboard() -> Element {
                         {t("server.features")}
                     }
                     CardDescription {
-                        "Contrix discovery from /api/v1/server/describe."
+                        "Cokret discovery from /api/v1/server/describe."
                     }
                 }
                 CardContent {

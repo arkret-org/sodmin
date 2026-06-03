@@ -1,8 +1,8 @@
 //! Admin pages for "Space" rows.
 //!
 //! Realm-rework note: most modules here address the **security boundary**
-//! (which the spec now calls a Realm — `cx:realm:` URI prefix). Pure
-//! container Spaces (`cx:space:` URI prefix) are not surfaced separately
+//! (which the spec now calls a Realm — `ck:realm:` URI prefix). Pure
+//! container Spaces (`ck:space:` URI prefix) are not surfaced separately
 //! yet. Modules that touch the security boundary are flagged below; the
 //! rest will be revisited once the directory exposes container-Space
 //! rows distinctly.

@@ -1,6 +1,6 @@
 //! DTO shapes for the consent admin surface.
 //!
-//! These mirror the join-projection of `cx:cell:cx.component.consent.v1:<holder_did>`
+//! These mirror the join-projection of `ck:cell:cx.component.consent.v1:<holder_did>`
 //! consent or-set values that soland exposes via the admin describe endpoint.
 //!
 //! IMPORTANT: this is *admin-visible aggregated metadata*, not the raw
@@ -148,11 +148,11 @@ mod tests {
     fn filter_by_holder_empty_returns_everything() {
         let grants = vec![
             ConsentGrant {
-                holder_did: "did:cx:alice".into(),
+                holder_did: "did:ck:alice".into(),
                 ..Default::default()
             },
             ConsentGrant {
-                holder_did: "did:cx:bob".into(),
+                holder_did: "did:ck:bob".into(),
                 ..Default::default()
             },
         ];
@@ -188,11 +188,11 @@ mod tests {
     fn filter_by_holder_matches_case_insensitive_substring() {
         let grants = vec![
             ConsentGrant {
-                holder_did: "did:cx:Alice".into(),
+                holder_did: "did:ck:Alice".into(),
                 ..Default::default()
             },
             ConsentGrant {
-                holder_did: "did:cx:bob".into(),
+                holder_did: "did:ck:bob".into(),
                 ..Default::default()
             },
             ConsentGrant {
@@ -209,7 +209,7 @@ mod tests {
 
         let out = filter_by_holder(&grants, "BOB");
         assert_eq!(out.len(), 1);
-        assert_eq!(out[0].holder_did, "did:cx:bob");
+        assert_eq!(out[0].holder_did, "did:ck:bob");
 
         let out = filter_by_holder(&grants, "carol");
         assert!(out.is_empty());

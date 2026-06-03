@@ -450,7 +450,7 @@ pub fn AppSidebar(collapsed: Signal<bool>, mobile_open: Signal<bool>) -> Element
                 if !is_collapsed {
                     div { class: "flex items-center gap-2",
                         Icon { name: "shield".to_string(), class: "h-6 w-6 text-sidebar-primary".to_string() }
-                        span { class: "truncate font-semibold text-sidebar-foreground", "Contrix Admin" }
+                        span { class: "truncate font-semibold text-sidebar-foreground", "Cokret Admin" }
                     }
                 } else {
                     div { class: "flex justify-center w-full",

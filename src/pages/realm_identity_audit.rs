@@ -3,7 +3,7 @@
 //! Read-only operator view that lists, per actor in a Realm, the
 //! current effective `cx.member.identity.update` event ids and the
 //! `member_display_state_digest` projection the SPA computed locally.
-//! Since contrix-spec @ b56cab1 `MemberIdentity` no longer carries a
+//! Since cokret-spec @ b56cab1 `MemberIdentity` no longer carries a
 //! handle, so the handle column is derived by running §3.2.1
 //! primary-handle selection over the row's visible handle-claim set; a
 //! "handle changed since" hint surfaces when the captured

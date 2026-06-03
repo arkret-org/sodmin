@@ -96,7 +96,7 @@ pub fn SearchInput(
                 stroke_width: "2",
                 stroke_linecap: "round",
                 stroke_linejoin: "round",
-                circle { cx: "11", cy: "11", r: "8" }
+                circle { ck: "11", cy: "11", r: "8" }
                 path { d: "m21 21-4.3-4.3" }
             }
             input {

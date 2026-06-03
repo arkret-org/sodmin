@@ -104,7 +104,7 @@ pub fn CircleMembers(circle_id: String) -> Element {
                                             Input {
                                                 id: "circle-new-member".to_string(),
                                                 value: new_actor.read().clone(),
-                                                placeholder: "did:cx:...".to_string(),
+                                                placeholder: "did:ck:...".to_string(),
                                                 disabled: !is_active,
                                                 oninput: move |evt: FormEvent| new_actor.set(evt.value()),
                                             }

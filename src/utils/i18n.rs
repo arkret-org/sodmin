@@ -128,7 +128,7 @@ impl I18n {
         m.insert("auth_status.base_url".into(), "Base URL".into());
         m.insert("auth_status.server_version".into(), "Server Version".into());
         m.insert("auth_status.login_flows".into(), "Login Flows".into());
-        m.insert("nav.contrix_admin".into(), "Contrix Admin".into());
+        m.insert("nav.contrix_admin".into(), "Cokret Admin".into());
         m.insert("nav.server".into(), "Server".into());
 
         // Header
@@ -155,7 +155,7 @@ impl I18n {
         );
         m.insert(
             "auth.footer".into(),
-            "sodmin - Contrix Administration".into(),
+            "sodmin - Cokret Administration".into(),
         );
         m.insert(
             "auth.not_admin".into(),
@@ -164,7 +164,7 @@ impl I18n {
 
         // Users
         m.insert("users.title".into(), "Users".into());
-        m.insert("users.subtitle".into(), "Manage Contrix actors".into());
+        m.insert("users.subtitle".into(), "Manage Cokret actors".into());
         m.insert("users.create".into(), "Create User".into());
         m.insert("users.user_id".into(), "User ID".into());
         m.insert("users.display_name".into(), "Display Name".into());
@@ -392,7 +392,7 @@ impl I18n {
         m.insert("dashboard.title".into(), "Dashboard".into());
         m.insert(
             "dashboard.welcome".into(),
-            "Welcome to Contrix Admin".into(),
+            "Welcome to Cokret Admin".into(),
         );
         m.insert("dashboard.total_users".into(), "Total Users".into());
         m.insert("dashboard.total_rooms".into(), "Total Rooms".into());
@@ -542,7 +542,7 @@ impl I18n {
         m.insert("auth_status.sso_only_hint".into(), "\u{6b64}\u{670d}\u{52a1}\u{5668}\u{914d}\u{7f6e}\u{4e3a}\u{4ec5} SSO \u{8ba4}\u{8bc1}\u{3002}\u{7ba1}\u{7406}\u{5458}\u{8bbf}\u{95ee}\u{9700}\u{8981}\u{8bbf}\u{95ee}\u{4ee4}\u{724c}\u{6216} SSO \u{4f1a}\u{8bdd}\u{3002}".into());
         m.insert("auth_status.diagnostics_desc".into(), "\u{68c0}\u{67e5} OIDC/MAS \u{53d1}\u{884c}\u{8005}\u{53d1}\u{73b0}\u{3001}\u{7aef}\u{70b9}\u{53ef}\u{7528}\u{6027}\u{3001}DCR \u{652f}\u{6301}\u{548c}\u{4f5c}\u{7528}\u{57df}\u{914d}\u{7f6e}".into());
         m.insert("auth_status.dev_diagnostics_desc".into(), "\u{63a2}\u{6d4b} coauth \u{7aef}\u{70b9}\u{4ee5}\u{8c03}\u{8bd5}\u{6ce8}\u{518c}\u{3001}\u{540c}\u{610f}\u{548c} well-known \u{53d1}\u{73b0}".into());
-        m.insert("nav.contrix_admin".into(), "Contrix Admin".into());
+        m.insert("nav.contrix_admin".into(), "Cokret Admin".into());
         m.insert("nav.server".into(), "\u{670d}\u{52a1}\u{5668}".into());
 
         // Header
@@ -584,7 +584,7 @@ impl I18n {
         );
         m.insert(
             "dashboard.spec_description".into(),
-            "\u{652f}\u{6301}\u{7684} Contrix profile \u{548c} conformance \u{8986}\u{76d6}".into(),
+            "\u{652f}\u{6301}\u{7684} Cokret profile \u{548c} conformance \u{8986}\u{76d6}".into(),
         );
 
         // Auth extra
@@ -595,7 +595,7 @@ impl I18n {
         );
         m.insert(
             "auth.footer".into(),
-            "sodmin - Contrix \u{7ba1}\u{7406}\u{540e}\u{53f0}".into(),
+            "sodmin - Cokret \u{7ba1}\u{7406}\u{540e}\u{53f0}".into(),
         );
         m.insert(
             "auth.not_admin".into(),
@@ -799,7 +799,7 @@ impl I18n {
         m.insert("dashboard.title".into(), "\u{4eea}\u{8868}\u{76d8}".into());
         m.insert(
             "dashboard.welcome".into(),
-            "\u{6b22}\u{8fce}\u{4f7f}\u{7528} Contrix Admin".into(),
+            "\u{6b22}\u{8fce}\u{4f7f}\u{7528} Cokret Admin".into(),
         );
         m.insert(
             "dashboard.active_users".into(),
@@ -987,9 +987,9 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "covered_frontier.warn",
                 "Lag is above warn threshold; investigate MLS group health (member offline, KeyPackage stale).",
             ),
-            ("auth.footer", "sodmin - Contrix Administration"),
+            ("auth.footer", "sodmin - Cokret Administration"),
             ("auth.completing_login", "Completing sign-in..."),
-            ("dashboard.welcome", "Welcome to Contrix Admin"),
+            ("dashboard.welcome", "Welcome to Cokret Admin"),
             (
                 "dashboard.total_registered_users",
                 "Total registered actors",
@@ -997,7 +997,7 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("dashboard.active_users", "Active actors"),
             (
                 "dashboard.spec_description",
-                "Contrix protocol profiles, features and conformance coverage",
+                "Cokret protocol profiles, features and conformance coverage",
             ),
             (
                 "users.create_subtitle",
@@ -1106,7 +1106,7 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("server_status.title", "Server Status"),
             (
                 "server_status.subtitle",
-                "Health and capability snapshot for each contrix backend",
+                "Health and capability snapshot for each cokret backend",
             ),
             ("server_status.server_info", "Server"),
             ("server_status.version", "Version"),
@@ -1786,12 +1786,12 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("circle.realm_id", "Realm"),
             (
                 "circle.realm_id_hint",
-                "cx:realm:... identifier of the parent security boundary. Required.",
+                "ck:realm:... identifier of the parent security boundary. Required.",
             ),
             ("circle.filter_realm", "Filter by realm"),
             (
                 "circle.filter_realm_hint",
-                "Circles are scoped to a single Realm. Paste a cx:realm:... id to load its Circles.",
+                "Circles are scoped to a single Realm. Paste a ck:realm:... id to load its Circles.",
             ),
             ("circle.filter_apply", "Apply"),
             ("circle.directory_visibility", "Directory visibility"),
@@ -1837,7 +1837,7 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("circle.empty_no_realm_title", "Pick a Realm to inspect"),
             (
                 "circle.empty_no_realm_description",
-                "Circles are always scoped to a single Realm. Enter a cx:realm:... id above to load its Circles.",
+                "Circles are always scoped to a single Realm. Enter a ck:realm:... id above to load its Circles.",
             ),
             (
                 "circle.subset_hint",
@@ -1938,7 +1938,7 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("capability.allowed_circle_ids", "Allowed circle IDs"),
             (
                 "capability.allowed_circle_ids_hint",
-                "Comma-separated cx:circle:... ids. Required for cx.circle.manage, cx.circle.member.manage, and cx.circle.member.add.others.",
+                "Comma-separated ck:circle:... ids. Required for cx.circle.manage, cx.circle.member.manage, and cx.circle.member.add.others.",
             ),
             // P3A.8 — CXP-0007 error codes (returned by reducer)
             (
@@ -2024,7 +2024,7 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("media_service.title", "Realm media service"),
             (
                 "media_service.subtitle",
-                "Foci list — pick one or more media services (livekit, mediasoup, janus, contrix-native, moq-relay).",
+                "Foci list — pick one or more media services (livekit, mediasoup, janus, cokret-native, moq-relay).",
             ),
             ("media_service.foci_label", "Foci"),
             ("media_service.empty", "No foci configured for this Realm."),
@@ -2363,13 +2363,13 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
                 "covered_frontier.warn",
                 "滞后已超过阈值；请排查 MLS group 健康度（成员掉线 / KeyPackage 过期）。",
             ),
-            ("auth.footer", "sodmin - Contrix 管理后台"),
+            ("auth.footer", "sodmin - Cokret 管理后台"),
             ("auth.completing_login", "正在完成登录..."),
-            ("dashboard.welcome", "欢迎使用 Contrix Admin"),
+            ("dashboard.welcome", "欢迎使用 Cokret Admin"),
             ("dashboard.active_users", "活跃 Actor"),
             (
                 "dashboard.spec_description",
-                "Contrix 协议 profile、功能和 conformance 覆盖",
+                "Cokret 协议 profile、功能和 conformance 覆盖",
             ),
             (
                 "rooms.delete_confirm",
@@ -2458,7 +2458,7 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("coauth.audit_log.filter_apply", "应用"),
             ("coauth.audit_log.filter_reset", "重置"),
             ("server_status.title", "服务状态"),
-            ("server_status.subtitle", "各 contrix 后端的健康与能力快照"),
+            ("server_status.subtitle", "各 cokret 后端的健康与能力快照"),
             ("server_status.server_info", "服务器"),
             ("server_status.version", "版本"),
             ("server_status.protocol_version", "协议"),
@@ -3097,12 +3097,12 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("circle.realm_id", "Realm"),
             (
                 "circle.realm_id_hint",
-                "父 Realm 的 cx:realm:... 标识符。必填。",
+                "父 Realm 的 ck:realm:... 标识符。必填。",
             ),
             ("circle.filter_realm", "按 Realm 过滤"),
             (
                 "circle.filter_realm_hint",
-                "Circle 始终归属单个 Realm。粘贴 cx:realm:... 以加载该 Realm 下的所有 Circle。",
+                "Circle 始终归属单个 Realm。粘贴 ck:realm:... 以加载该 Realm 下的所有 Circle。",
             ),
             ("circle.filter_apply", "应用"),
             ("circle.directory_visibility", "目录可见性"),
@@ -3148,7 +3148,7 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("circle.empty_no_realm_title", "请选择 Realm"),
             (
                 "circle.empty_no_realm_description",
-                "Circle 始终归属单个 Realm。请在上方输入 cx:realm:... 以加载该 Realm 下的 Circle。",
+                "Circle 始终归属单个 Realm。请在上方输入 ck:realm:... 以加载该 Realm 下的 Circle。",
             ),
             (
                 "circle.subset_hint",
@@ -3234,7 +3234,7 @@ fn apply_contrix_overrides(m: &mut HashMap<String, String>, lang: Language) {
             ("capability.allowed_circle_ids", "受限 Circle ID 列表"),
             (
                 "capability.allowed_circle_ids_hint",
-                "逗号分隔的 cx:circle:... 标识符。cx.circle.manage、cx.circle.member.manage、cx.circle.member.add.others 必填。",
+                "逗号分隔的 ck:circle:... 标识符。cx.circle.manage、cx.circle.member.manage、cx.circle.member.add.others 必填。",
             ),
             // P3A.8 — CXP-0007 错误码（来自 reducer）
             (

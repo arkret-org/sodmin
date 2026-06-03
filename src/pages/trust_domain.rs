@@ -1,6 +1,6 @@
 //! Round R2/R3 + Round 4 — Trust domain deployment setting (T08).
 //!
-//! Edits the deployment-wide `cx:trust_domain:<scope>` value that
+//! Edits the deployment-wide `ck:trust_domain:<scope>` value that
 //! enters the canonical transcript of every `cx.cross_signing.publish`
 //! (and `cx.cross_signing.reset`) proof, plus every federation S2S
 //! signing transcript (`Source-Trust-Domain` / `Destination-Trust-Domain`
@@ -12,7 +12,7 @@
 //!
 //! 1. Shows the current value as read-only.
 //! 2. Requires the admin to flip a "re-confirm" toggle before the edit field becomes writable.
-//! 3. Validates the new value against the `cx:trust_domain:<lowercase-scope>` grammar before
+//! 3. Validates the new value against the `ck:trust_domain:<lowercase-scope>` grammar before
 //!    allowing submit.
 //! 4. Surfaces a loud warning callout describing the invalidation.
 
@@ -26,8 +26,8 @@ use crate::components::ui::input::Input;
 use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::toast::{ToastVariant, show_toast};
 
-/// The fixed prefix every `cx:trust_domain:*` value MUST carry.
-const TRUST_DOMAIN_PREFIX: &str = "cx:trust_domain:";
+/// The fixed prefix every `ck:trust_domain:*` value MUST carry.
+const TRUST_DOMAIN_PREFIX: &str = "ck:trust_domain:";
 /// Maximum suffix length the SDK validates against
 /// (`TypedTrustDomainId::new` rejects > 128 chars after the prefix).
 const TRUST_DOMAIN_MAX_SUFFIX_LEN: usize = 128;
@@ -57,7 +57,7 @@ pub fn TrustDomainConfigPage() -> Element {
         div { class: "space-y-6",
             PageHeader {
                 title: "Trust domain".to_string(),
-                description: "Edit the deployment-wide `cx:trust_domain:<scope>` value that anchors every cross-signing publish / reset proof and the round-4 federation `Source-Trust-Domain` / `Destination-Trust-Domain` headers.".to_string(),
+                description: "Edit the deployment-wide `ck:trust_domain:<scope>` value that anchors every cross-signing publish / reset proof and the round-4 federation `Source-Trust-Domain` / `Destination-Trust-Domain` headers.".to_string(),
             }
 
             // Big warning callout — the entire point of this page is
@@ -93,7 +93,7 @@ pub fn TrustDomainConfigPage() -> Element {
                 CardHeader {
                     CardTitle { class: "text-lg".to_string(), "Re-confirm and edit" }
                     CardDescription {
-                        "Tick the box below to unlock the input field. The new value must match `cx:trust_domain:<lowercase-scope>` and be \u{2264} 128 chars after the prefix."
+                        "Tick the box below to unlock the input field. The new value must match `ck:trust_domain:<lowercase-scope>` and be \u{2264} 128 chars after the prefix."
                     }
                 }
                 CardContent { class: "space-y-3".to_string(),
@@ -122,7 +122,7 @@ pub fn TrustDomainConfigPage() -> Element {
                     }
                     Input {
                         r#type: "text".to_string(),
-                        placeholder: "cx:trust_domain:example.net".to_string(),
+                        placeholder: "ck:trust_domain:example.net".to_string(),
                         value: draft_value.clone(),
                         disabled: !writable,
                         oninput: move |evt: FormEvent| {
@@ -190,7 +190,7 @@ pub fn TrustDomainConfigPage() -> Element {
 }
 
 /// Validate the candidate value against the
-/// `cx:trust_domain:<lowercase-scope>` grammar. Mirrors the SDK-side
+/// `ck:trust_domain:<lowercase-scope>` grammar. Mirrors the SDK-side
 /// `TypedTrustDomainId::new` check so we surface a useful error before
 /// the round-trip.
 fn validate_trust_domain(value: &str) -> Result<(), String> {
@@ -199,7 +199,7 @@ fn validate_trust_domain(value: &str) -> Result<(), String> {
     }
     let suffix = &value[TRUST_DOMAIN_PREFIX.len()..];
     if suffix.is_empty() {
-        return Err("scope (after the `cx:trust_domain:` prefix) must not be empty".into());
+        return Err("scope (after the `ck:trust_domain:` prefix) must not be empty".into());
     }
     if suffix.len() > TRUST_DOMAIN_MAX_SUFFIX_LEN {
         return Err(format!(
@@ -227,32 +227,32 @@ mod tests {
 
     #[test]
     fn validate_accepts_well_formed_values() {
-        assert!(validate_trust_domain("cx:trust_domain:example.net").is_ok());
-        assert!(validate_trust_domain("cx:trust_domain:foo_bar-baz.example").is_ok());
+        assert!(validate_trust_domain("ck:trust_domain:example.net").is_ok());
+        assert!(validate_trust_domain("ck:trust_domain:foo_bar-baz.example").is_ok());
     }
 
     #[test]
     fn validate_rejects_missing_prefix() {
         assert!(validate_trust_domain("trust_domain:foo").is_err());
-        assert!(validate_trust_domain("cx:realm:foo").is_err());
+        assert!(validate_trust_domain("ck:realm:foo").is_err());
     }
 
     #[test]
     fn validate_rejects_uppercase_scope() {
         // SDK lower-cases trust_domain scopes; reject early so the
         // admin sees the same error locally.
-        assert!(validate_trust_domain("cx:trust_domain:Example").is_err());
+        assert!(validate_trust_domain("ck:trust_domain:Example").is_err());
     }
 
     #[test]
     fn validate_rejects_empty_scope() {
-        assert!(validate_trust_domain("cx:trust_domain:").is_err());
+        assert!(validate_trust_domain("ck:trust_domain:").is_err());
     }
 
     #[test]
     fn validate_rejects_oversize_scope() {
         let too_long = format!(
-            "cx:trust_domain:{}",
+            "ck:trust_domain:{}",
             "a".repeat(TRUST_DOMAIN_MAX_SUFFIX_LEN + 1)
         );
         assert!(validate_trust_domain(&too_long).is_err());

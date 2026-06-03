@@ -13,7 +13,7 @@
 //! issuer DID + binding_state + created_at so the operator understands
 //! the disclosure provenance.
 //!
-//! `MemberIdentity` no longer carries handle fields (contrix-spec @
+//! `MemberIdentity` no longer carries handle fields (cokret-spec @
 //! b56cab1) — this page is the operator-facing way to inspect a
 //! subject's handle bindings, replacing the old MemberIdentity drilldown.
 //!

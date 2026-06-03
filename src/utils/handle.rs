@@ -22,8 +22,8 @@
 //! ## R3.1 — canonical handle wire form
 //!
 //! The canonical wire form is `<localpart>:<domain>(:<port>)?` — the
-//! pre-R3.1 `contrix://<domain>/users/<localpart>` URI form has been
-//! retired (contrix-spec @ 7157ee8). The admin UI MAY render the
+//! pre-R3.1 `cokret://<domain>/users/<localpart>` URI form has been
+//! retired (cokret-spec @ 7157ee8). The admin UI MAY render the
 //! display sigil `@<localpart>:<domain>` to operators, but MUST
 //! normalize back to the canonical bytes via
 //! [`normalize_to_canonical`] before submitting to soland so soland's
@@ -109,7 +109,7 @@ impl HomographReason {
 /// - canonical `localpart:domain[:port]` (returned as-is, lower-cased)
 /// - display sigil `@localpart:domain[:port]` (strip leading `@`)
 /// - interop `acct:localpart@domain[:port]` (rewrite to canonical)
-/// - retired `contrix://domain/users/localpart` URI form (rewrite to canonical; the admin UI is the
+/// - retired `cokret://domain/users/localpart` URI form (rewrite to canonical; the admin UI is the
 ///   last surface where this can leak in from a copy-paste, so we accept it as input but never emit
 ///   it)
 ///
@@ -132,9 +132,9 @@ pub fn normalize_to_canonical(input: &str) -> Result<String, HandleNormalizeErro
     // lowercasing is delegated to the SDK `Handle` parser so the admin UI
     // accepts exactly what soland's `cx.handle.*` reducers verify.
 
-    // 1. Retired `contrix://` URI form. We accept on input so a stale bookmark / copy-paste
+    // 1. Retired `cokret://` URI form. We accept on input so a stale bookmark / copy-paste
     //    round-trips into canonical; we never emit it on output.
-    if let Some(rest) = trimmed.strip_prefix("contrix://") {
+    if let Some(rest) = trimmed.strip_prefix("cokret://") {
         let mut parts = rest.splitn(3, '/');
         let domain = parts.next().unwrap_or("");
         let users = parts.next().unwrap_or("");
@@ -289,7 +289,7 @@ mod tests {
     #[test]
     fn normalizes_retired_contrix_uri() {
         assert_eq!(
-            normalize_to_canonical("contrix://example.com/users/alice").unwrap(),
+            normalize_to_canonical("cokret://example.com/users/alice").unwrap(),
             "alice:example.com"
         );
     }

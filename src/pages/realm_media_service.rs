@@ -1,7 +1,7 @@
 //! R3 (UI-3) — Realm `media_service` editor.
 //!
 //! Renders the `foci[]` list for a single Realm: each focus carries an
-//! `id`, a `type` ∈ {`livekit`, `mediasoup`, `janus`, `contrix-native`,
+//! `id`, a `type` ∈ {`livekit`, `mediasoup`, `janus`, `cokret-native`,
 //! `moq-relay`}, an SFU `connect_url`, a `service_did`, and the list of
 //! `regions` it serves.
 //!
@@ -27,13 +27,13 @@ use crate::components::ui::toast::{ToastVariant, show_toast};
 use crate::router::Route;
 use crate::utils::i18n::t;
 
-/// The five focus types accepted by the contrix-spec v3 media_service
+/// The five focus types accepted by the cokret-spec v3 media_service
 /// binding profile. Keep in sync with `cx.profile.media_service_binding.v1`.
 pub const FOCUS_TYPES: &[&str] = &[
     "livekit",
     "mediasoup",
     "janus",
-    "contrix-native",
+    "cokret-native",
     "moq-relay",
 ];
 
@@ -255,7 +255,7 @@ fn render_focus_row(idx: usize, focus: &FocusDraft, mut foci: Signal<Vec<FocusDr
                     Label { {t("media_service.focus_service_did")} }
                     Input {
                         value: did_val,
-                        placeholder: "did:cx:media-service".to_string(),
+                        placeholder: "did:ck:media-service".to_string(),
                         oninput: move |evt: FormEvent| {
                             let mut next = foci.read().clone();
                             if let Some(slot) = next.get_mut(idx) {

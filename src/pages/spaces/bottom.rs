@@ -414,8 +414,8 @@ mod tests {
     #[test]
     fn default_strategy_picks_head_in_for_conflict_with_candidates() {
         let entry = BottomEntry {
-            realm_id: "cx:space:demo".into(),
-            cell_id: "cx:cell:cx.component.profile.v1:cx:space:demo".into(),
+            realm_id: "ck:space:demo".into(),
+            cell_id: "ck:cell:cx.component.profile.v1:ck:space:demo".into(),
             kind: "conflict".into(),
             candidate_heads: vec![WinnerHead {
                 move_id: "move:abc".into(),
@@ -462,8 +462,8 @@ mod tests {
         // Conflict bottom with 3 candidate heads → picker index 2 should
         // produce HeadInWinner { head: heads[2] }, not the default first.
         let entry = BottomEntry {
-            realm_id: "cx:space:demo".into(),
-            cell_id: "cx:cell:cx.component.profile.v1:cx:space:demo".into(),
+            realm_id: "ck:space:demo".into(),
+            cell_id: "ck:cell:cx.component.profile.v1:ck:space:demo".into(),
             kind: "conflict".into(),
             candidate_heads: vec![
                 WinnerHead {
@@ -492,8 +492,8 @@ mod tests {
         // Out-of-bounds index → fall back to default_repair_strategy
         // (which picks the first head for a conflict entry).
         let entry = BottomEntry {
-            realm_id: "cx:space:demo".into(),
-            cell_id: "cx:cell:cx.component.profile.v1:cx:space:demo".into(),
+            realm_id: "ck:space:demo".into(),
+            cell_id: "ck:cell:cx.component.profile.v1:ck:space:demo".into(),
             kind: "conflict".into(),
             candidate_heads: vec![WinnerHead {
                 move_id: "m:first".into(),
@@ -522,12 +522,12 @@ mod tests {
         // operator gets a stable, predictable line.
         let head = WinnerHead {
             move_id: "m:1".into(),
-            issuer: Some("did:cx:alice".into()),
+            issuer: Some("did:ck:alice".into()),
             hlc: Some("01J9-0001-abcd".into()),
             summary: Some("set value=42".into()),
         };
         let meta = format_head_metadata(&head).expect("metadata present");
-        assert!(meta.starts_with("issuer=did:cx:alice"));
+        assert!(meta.starts_with("issuer=did:ck:alice"));
         assert!(meta.contains("hlc=01J9-0001-abcd"));
         assert!(meta.ends_with("summary=set value=42"));
         // Empty-string optional fields are treated as absent — soland
@@ -548,8 +548,8 @@ mod tests {
     fn default_strategy_falls_back_to_manual_when_no_candidates() {
         // Non-conflict bottom kind with no candidate heads → manual.
         let entry = BottomEntry {
-            realm_id: "cx:space:demo".into(),
-            cell_id: "cx:cell:cx.component.member.state.v1:did:cx:alice".into(),
+            realm_id: "ck:space:demo".into(),
+            cell_id: "ck:cell:cx.component.member.state.v1:did:ck:alice".into(),
             kind: "schema_error".into(),
             ..Default::default()
         };
@@ -564,8 +564,8 @@ mod tests {
         // Conflict but candidate_heads empty → still manual (operator
         // must hand-craft because nothing to pick).
         let entry = BottomEntry {
-            realm_id: "cx:space:demo".into(),
-            cell_id: "cx:cell:cx.component.profile.v1:cx:space:demo".into(),
+            realm_id: "ck:space:demo".into(),
+            cell_id: "ck:cell:cx.component.profile.v1:ck:space:demo".into(),
             kind: "conflict".into(),
             candidate_heads: vec![],
             ..Default::default()

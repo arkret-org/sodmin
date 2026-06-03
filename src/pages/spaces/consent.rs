@@ -59,7 +59,7 @@ pub fn ConsentPage(space_id: String) -> Element {
                 Label { r#for: "consent-holder-filter".to_string(), "Filter by holder DID" }
                 Input {
                     value: holder_filter.read().clone(),
-                    placeholder: "did:cx:...".to_string(),
+                    placeholder: "did:ck:...".to_string(),
                     oninput: move |evt: FormEvent| holder_filter.set(evt.value()),
                 }
             }

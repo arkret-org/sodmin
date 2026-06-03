@@ -1,8 +1,8 @@
 # sodmin
 
-> **Spec target**: [contrix-spec @ c2848a4](../contrix-spec) (R3.4 sync 2026-05-31)
+> **Spec target**: [cokret-spec @ c2848a4](../cokret-spec) (R3.4 sync 2026-05-31)
 
-Contrix administrator web UI for Principal Server and coauth deployments. The app is built with Dioxus and compiled to WebAssembly.
+Cokret administrator web UI for Principal Server and coauth deployments. The app is built with Dioxus and compiled to WebAssembly.
 
 ## Pre-commit hook setup
 
@@ -15,7 +15,7 @@ git config core.hooksPath .githooks
 The hook runs `cargo fmt --all -- --check` and `cargo clippy --no-deps -- -D
 warnings` on staged Rust changes. If `.githooks/pre-commit` is missing on
 a branch, copy it from
-[`contrix-rust-sdk`](https://github.com/contrix-dev/contrix-rust-sdk) and
+[`cokret-rust-sdk`](https://github.com/cokret-dev/cokret-rust-sdk) and
 adapt to your local toolchain.
 
 ## Scope
@@ -28,7 +28,7 @@ adapt to your local toolchain.
 - **Blob/media**: quota, metadata, retention and anti-enumeration diagnostics.
 - **coauth**: accounts, sessions, upstream providers, OAuth2 clients, registration tokens, notification channels and audit logs.
 
-`sodmin` does not implement Contrix reducers or authorization decisions. It consumes stable admin API contracts from `soland` and `coauth`.
+`sodmin` does not implement Cokret reducers or authorization decisions. It consumes stable admin API contracts from `soland` and `coauth`.
 
 ## Architecture
 
@@ -39,7 +39,7 @@ flowchart LR
   Nginx --> Soland["soland Principal Server admin API"]
   Nginx --> Coauth["coauth auth/account admin API"]
   Coauth --> OAuth["OAuth2 / PKCE session"]
-  Soland --> Reducers["Contrix reducers + admin projections"]
+  Soland --> Reducers["Cokret reducers + admin projections"]
   Soland --> Audit["Audit / attestation evidence"]
 ```
 
@@ -60,7 +60,7 @@ page exposes the typed `cx.realm.link` edges between boundaries.
 
 ## Round R4 (protocol review closures)
 
-Spec round 4 (`contrix-spec` range `2a4d39b..a77b995`, 8 commits) lands
+Spec round 4 (`cokret-spec` range `2a4d39b..a77b995`, 8 commits) lands
 fresh admin surfaces on top of R2/R3. See [`CHANGELOG.md`](CHANGELOG.md)
 `[Unreleased]` and [`../_todos.md`](../_todos.md) for the canonical
 wire-breaking list. New admin views:
@@ -86,7 +86,7 @@ wire-breaking list. New admin views:
 
 Spec rounds 2+3 (2026-05-20) added several operator surfaces — see
 [`CHANGELOG.md`](CHANGELOG.md) `[Unreleased]` and
-[`../contrix-spec/CHANGELOG.md`](../contrix-spec/CHANGELOG.md) for the
+[`../cokret-spec/CHANGELOG.md`](../cokret-spec/CHANGELOG.md) for the
 normative source. The new admin pages:
 
 - **Moderation appeals** (`/moderation/appeals`) — pending-state list +
@@ -94,7 +94,7 @@ normative source. The new admin pages:
   decision,close}` flow. Enforces separation-of-duties (reviewer DID
   must differ from the original decision issuer).
 - **Trust domain** (`/server/trust-domain`) — read/write the
-  deployment-wide `cx:trust_domain:<scope>`. Loud-red warning:
+  deployment-wide `ck:trust_domain:<scope>`. Loud-red warning:
   rotating this value invalidates every outstanding
   `cx.cross_signing.reset` proof.
 - **Deactivation review** (`/deactivations/review`) — 7-domain fanout
@@ -177,7 +177,7 @@ party auth), edit `connect-src` in `docker-entrypoint.sh` accordingly.
 - `soland` Principal Server Admin OpenAPI.
 - `coauth` Auth / Account Admin OpenAPI.
 
-Generated/shared DTOs are consumed through `src/api/generated.rs`; API client code must preserve Contrix error envelopes, reject URL query credentials, propagate `X-Contrix-Request-Id`, send `Idempotency-Key` for mutations, and redact sensitive diagnostics.
+Generated/shared DTOs are consumed through `src/api/generated.rs`; API client code must preserve Cokret error envelopes, reject URL query credentials, propagate `X-Cokret-Request-Id`, send `Idempotency-Key` for mutations, and redact sensitive diagnostics.
 
 Phase 3 keeps API contract generation local-only. `coauth-admin-types`
 is consumed directly via the workspace path dependency, and soland DTOs
@@ -196,7 +196,7 @@ which is build output and should not be committed.
 
 ## Dashboard Discovery
 
-The dashboard reads native Contrix discovery metadata from `/api/v1/server/describe` and `/api/admin/v1/server/info`. Discovery-backed fields currently rendered include service DID, coauth issuer DID, delegated/public DID resolver endpoint, supported profiles, reducer/schema profiles, event-kind registry version, OpenAPI version, health summary, and conformance declarations.
+The dashboard reads native Cokret discovery metadata from `/api/v1/server/describe` and `/api/admin/v1/server/info`. Discovery-backed fields currently rendered include service DID, coauth issuer DID, delegated/public DID resolver endpoint, supported profiles, reducer/schema profiles, event-kind registry version, OpenAPI version, health summary, and conformance declarations.
 
 If discovery is unavailable or an older backend omits a field, the UI renders `-` or `Unknown` and does not treat the profile as implemented.
 
@@ -204,13 +204,13 @@ If discovery is unavailable or an older backend omits a field, the UI renders `-
 
 ```text
 src/
-  api/          Contrix/coauth admin API clients
+  api/          Cokret/coauth admin API clients
   components/   Shared UI components
   pages/        Route pages
   types/        Shared response/request DTOs
   utils/        i18n, storage, config, errors and diagnostics
 e2e/            Playwright smoke and stack tests
-examples/       Local deployment examples, pending Contrix stack refresh
+examples/       Local deployment examples, pending Cokret stack refresh
 ```
 
 ## Current Gaps
@@ -221,5 +221,5 @@ See the cross-project [`../_todos.md`](../_todos.md). Remaining deferred work in
 
 <!-- circle-rollout milestone pointer -->
 > **Active milestone tracking** (local-only, gitignored): see
-> `_sodmin_todos.md` in the parent `contrix-dev/` directory for the
+> `_sodmin_todos.md` in the parent `cokret-dev/` directory for the
 > circle-rollout (CXP-0007) work item list and per-stage checkpoints.

@@ -1,22 +1,22 @@
 # Changelog
 
-All notable changes to `sodmin` (Contrix Server admin UI) are documented in
+All notable changes to `sodmin` (Cokret Server admin UI) are documented in
 this file. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 this project is pre-1.0 so wire-breaking changes can land in any release until
 the SDK pins down its 1.0 contract.
 
-## R3.4 — Spec sync 2026-05-31 (contrix-spec @ c2848a4)
+## R3.4 — Spec sync 2026-05-31 (cokret-spec @ c2848a4)
 
-- Synced protocol-facing names and fixtures to `c2848a4`: event envelope schema naming, `_ids` grant constraints, accountability principal vocabulary, `cx:rtc_participant:` media participants, agent session start fields, and key-backup signature algorithm naming where applicable.
-
-> No version tag, no crates.io / Docker Hub / npm publish — git commit only.
-
-## R3.3 — Spec sync 2026-05-28 (contrix-spec @ cced4b8)
-
-- R3.3 spec sync — pin to contrix-spec @ cced4b8 (CXP-0011). `resolve_target` operator diagnostic page deferred to R3.3.1.
+- Synced protocol-facing names and fixtures to `c2848a4`: event envelope schema naming, `_ids` grant constraints, accountability principal vocabulary, `ck:rtc_participant:` media participants, agent session start fields, and key-backup signature algorithm naming where applicable.
 
 > No version tag, no crates.io / Docker Hub / npm publish — git commit only.
-## R3.2 — Spec sync 2026-05-28 (contrix-spec @ b56cab1)
+
+## R3.3 — Spec sync 2026-05-28 (cokret-spec @ cced4b8)
+
+- R3.3 spec sync — pin to cokret-spec @ cced4b8 (CXP-0011). `resolve_target` operator diagnostic page deferred to R3.3.1.
+
+> No version tag, no crates.io / Docker Hub / npm publish — git commit only.
+## R3.2 — Spec sync 2026-05-28 (cokret-spec @ b56cab1)
 
 - Renamed roster `identity_state_digest` → `member_display_state_digest`; added roster v2 gated fields + `HandleClaim`/`HandleBindingState` mirrors (`claim_type` drops `service_handle`).
 - New `utils/primary_handle.rs` mirrors SDK §3.2.1 selection; actor/identity views derive the handle via selection (MemberIdentity handle fields removed).
@@ -24,10 +24,10 @@ the SDK pins down its 1.0 contract.
 - Claim-set join + accepted_issuers policy + DID-doc holder preference deferred `TODO(R3.2.1)`.
 
 > No version tag, no crates.io / Docker Hub / npm publish — git commit only.
-## R3 — Spec sync 2026-05-27 (contrix-spec @ b47ff6ec)
+## R3 — Spec sync 2026-05-27 (cokret-spec @ b47ff6ec)
 
 - UI-1 / UI-2: Agent list status badges (`active` / `paused` / `deactivated`) with pause / resume / deactivate / rotate-key / grants actions wired to `/agents/{id}/deactivate`; draft / action_request / approve / reject lifecycle stubbed.
-- UI-3: Realm settings page `/realms/:realm_id/media-service` for editing `media_service.foci[]` (livekit / mediasoup / janus / contrix-native / moq-relay) with a migration banner for legacy `sfu_endpoint`.
+- UI-3: Realm settings page `/realms/:realm_id/media-service` for editing `media_service.foci[]` (livekit / mediasoup / janus / cokret-native / moq-relay) with a migration banner for legacy `sfu_endpoint`.
 - UI-4 / UI-5: Recovery policy stub view at `/coauth/recovery` listing receipts with `proof_summary[]`; handle homograph inline NFC + script-mixed warning on `/actors/create`.
 - UI-6: Server profile chip surface at `/server-status` showing declared / absent state for `accountable_principals.strict_reject.v1`, `media_service_binding.v1` (+ livekit / contrix_native), and `key_backup.memory_hard.v1`.
 - UI-7: localized en + zh-CN strings for the new errcodes (`pairing_request_expired`, `proof_invalid`, `agent_paused`, `agent_deactivated`, `accountability_grant_missing`, `handle_homograph_forbidden`, `participant_binding_invalid`, `legacy_single_endpoint_media_service`) rendered via `ErrorBanner`.
@@ -74,7 +74,7 @@ soland P2A + coauth P2B.
   `circle-rollout` branch only. Lighthouse perf budget raised from
   70 → 80 to track industry baseline.
 
-### Round R4 — protocol review closures (2026-05-20, contrix-spec `2a4d39b..a77b995`)
+### Round R4 — protocol review closures (2026-05-20, cokret-spec `2a4d39b..a77b995`)
 
 UI surfaces for the round-4 wire changes implemented in soland / coauth.
 See [`../_todos.md`](../_todos.md) for the workstream context.
@@ -99,7 +99,7 @@ See [`../_todos.md`](../_todos.md) for the workstream context.
   cannot complete without a peer ack); silent "fully-deactivated"
   rendering removed.
 
-### Added — Round R2/R3 (contrix-spec rounds 2+3, 2026-05-20)
+### Added — Round R2/R3 (cokret-spec rounds 2+3, 2026-05-20)
 
 - **Moderation appeals admin (T06)** — new `/moderation/appeals` route with a
   pending-state list (`submitted` / `under_review`), per-row 30-day auto-close
@@ -131,11 +131,11 @@ See [`../_todos.md`](../_todos.md) for the workstream context.
   `revocation_checked` status badges. Per-cert chain visualization remains
   `TODO(round23-T10)`.
 - **Trust domain deployment setting (T08)** — new `/server/trust-domain` page
-  reads/writes the deployment-wide `cx:trust_domain:<scope>` value. Loud red
+  reads/writes the deployment-wide `ck:trust_domain:<scope>` value. Loud red
   warning callout: "Changing trust_domain INVALIDATES every existing
   `cx.cross_signing.reset` proof". The edit field is locked until the admin
   explicitly re-confirms via a checkbox, and validates against the
-  `cx:trust_domain:<lowercase-scope>` grammar (≤128 chars after the prefix)
+  `ck:trust_domain:<lowercase-scope>` grammar (≤128 chars after the prefix)
   before submission.
 - **Relaxed ephemeral window slider (T09)** — new `/server/relaxed-window`
   page caps the slider at 300_000 ms (the

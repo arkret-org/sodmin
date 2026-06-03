@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 // ── Anchorer cell value ──────────────────────────────────────────────────
 
 /// Discriminator for `AnchorerValue` shapes. Matches soland's CasRegister
-/// content for `cx:cell:cx.component.anchorer.v1:<realm_id>`.
+/// content for `ck:cell:cx.component.anchorer.v1:<realm_id>`.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum AnchorerKind {
@@ -228,7 +228,7 @@ impl AnchorerReconfigRequest {
 
     /// Build the JSON body posted to soland's reconfigure endpoint. The
     /// soland handler is responsible for translating this into a real
-    /// Move that targets `cx:cell:cx.component.anchorer.v1:<space>`,
+    /// Move that targets `ck:cell:cx.component.anchorer.v1:<space>`,
     /// canonicalizing it, signing it with the admin's stored signing key
     /// (or routing it through the admin signer flow), and submitting it
     /// to the Move pipeline.
@@ -477,11 +477,11 @@ mod tests {
     fn anchorer_value_summary_single_did_default() {
         let v = AnchorerValue {
             kind_raw: "single_did".into(),
-            single_did: Some("did:cx:abc".into()),
+            single_did: Some("did:ck:abc".into()),
             ..Default::default()
         };
         assert_eq!(v.kind(), Some(AnchorerKind::SingleDid));
-        assert!(v.summary().contains("did:cx:abc"));
+        assert!(v.summary().contains("did:ck:abc"));
         // Unknown kind_raw surfaces as `None` (not a misclassified
         // single_did) so the UI renders an explicit "unknown" badge.
         let unknown = AnchorerValue {
@@ -544,7 +544,7 @@ mod tests {
 
     #[test]
     fn admin_self_signs_themselves_in_detects_each_kind() {
-        let admin = "did:cx:admin-x";
+        let admin = "did:ck:admin-x";
 
         let single_self = AnchorerReconfigRequest {
             kind: "single_did".into(),
@@ -555,14 +555,14 @@ mod tests {
 
         let single_other = AnchorerReconfigRequest {
             kind: "single_did".into(),
-            single_did: Some("did:cx:someone".into()),
+            single_did: Some("did:ck:someone".into()),
             ..Default::default()
         };
         assert!(!single_other.admin_self_signs_themselves_in(admin));
 
         let threshold_self = AnchorerReconfigRequest {
             kind: "threshold".into(),
-            threshold_dids: vec!["did:cx:a".into(), admin.to_string()],
+            threshold_dids: vec!["did:ck:a".into(), admin.to_string()],
             ..Default::default()
         };
         assert!(threshold_self.admin_self_signs_themselves_in(admin));
@@ -576,8 +576,8 @@ mod tests {
 
         let mixed_recovery_self = AnchorerReconfigRequest {
             kind: "mixed".into(),
-            mixed_primary: Some("did:cx:p".into()),
-            mixed_recovery: vec!["did:cx:r1".into(), admin.to_string()],
+            mixed_primary: Some("did:ck:p".into()),
+            mixed_recovery: vec!["did:ck:r1".into(), admin.to_string()],
             ..Default::default()
         };
         assert!(mixed_recovery_self.admin_self_signs_themselves_in(admin));
@@ -590,7 +590,7 @@ mod tests {
 
     #[test]
     fn self_sign_violation_single_did_kind() {
-        let admin = "did:cx:admin-x";
+        let admin = "did:ck:admin-x";
         // Positive: admin is the proposed single_did.
         let bad = AnchorerReconfigRequest {
             kind: "single_did".into(),
@@ -606,7 +606,7 @@ mod tests {
         // Negative: a different DID is fine.
         let ok = AnchorerReconfigRequest {
             kind: "single_did".into(),
-            single_did: Some("did:cx:other".into()),
+            single_did: Some("did:ck:other".into()),
             ..Default::default()
         };
         assert_eq!(ok.self_sign_violation(admin), None);
@@ -615,7 +615,7 @@ mod tests {
 
     #[test]
     fn self_sign_violation_threshold_kind() {
-        let admin = "did:cx:admin-x";
+        let admin = "did:ck:admin-x";
 
         // Positive: admin is anywhere in the threshold member set —
         // this is the broader contains() check that fires first.
@@ -623,7 +623,7 @@ mod tests {
             kind: "threshold".into(),
             threshold_k: Some(2),
             threshold_n: Some(3),
-            threshold_dids: vec!["did:cx:b".into(), "did:cx:c".into(), admin.to_string()],
+            threshold_dids: vec!["did:ck:b".into(), "did:ck:c".into(), admin.to_string()],
             ..Default::default()
         };
         assert_eq!(
@@ -640,8 +640,8 @@ mod tests {
             threshold_n: Some(3),
             threshold_dids: vec![
                 admin.to_string(), // lex-smallest because "admin-x" < "b"
-                "did:cx:b".into(),
-                "did:cx:c".into(),
+                "did:ck:b".into(),
+                "did:ck:c".into(),
             ],
             ..Default::default()
         };
@@ -655,7 +655,7 @@ mod tests {
             kind: "threshold".into(),
             threshold_k: Some(2),
             threshold_n: Some(3),
-            threshold_dids: vec!["did:cx:a".into(), "did:cx:b".into(), "did:cx:c".into()],
+            threshold_dids: vec!["did:ck:a".into(), "did:ck:b".into(), "did:ck:c".into()],
             ..Default::default()
         };
         assert_eq!(ok.self_sign_violation(admin), None);
@@ -663,12 +663,12 @@ mod tests {
 
     #[test]
     fn self_sign_violation_open_set_kind() {
-        let admin = "did:cx:admin-x";
+        let admin = "did:ck:admin-x";
 
         // Positive: admin is in the open-set members.
         let bad = AnchorerReconfigRequest {
             kind: "open_set".into(),
-            open_set_members: vec!["did:cx:a".into(), admin.to_string()],
+            open_set_members: vec!["did:ck:a".into(), admin.to_string()],
             ..Default::default()
         };
         assert_eq!(
@@ -679,7 +679,7 @@ mod tests {
         // Negative: admin not in member set.
         let ok = AnchorerReconfigRequest {
             kind: "open_set".into(),
-            open_set_members: vec!["did:cx:a".into(), "did:cx:b".into()],
+            open_set_members: vec!["did:ck:a".into(), "did:ck:b".into()],
             ..Default::default()
         };
         assert_eq!(ok.self_sign_violation(admin), None);
@@ -687,13 +687,13 @@ mod tests {
 
     #[test]
     fn self_sign_violation_mixed_kind() {
-        let admin = "did:cx:admin-x";
+        let admin = "did:ck:admin-x";
 
         // Positive (primary): admin is the primary DID.
         let primary = AnchorerReconfigRequest {
             kind: "mixed".into(),
             mixed_primary: Some(admin.to_string()),
-            mixed_recovery: vec!["did:cx:r1".into(), "did:cx:r2".into()],
+            mixed_recovery: vec!["did:ck:r1".into(), "did:ck:r2".into()],
             ..Default::default()
         };
         assert_eq!(
@@ -704,8 +704,8 @@ mod tests {
         // Positive (recovery): admin appears in recovery quorum.
         let recovery = AnchorerReconfigRequest {
             kind: "mixed".into(),
-            mixed_primary: Some("did:cx:p".into()),
-            mixed_recovery: vec!["did:cx:r1".into(), admin.to_string(), "did:cx:r2".into()],
+            mixed_primary: Some("did:ck:p".into()),
+            mixed_recovery: vec!["did:ck:r1".into(), admin.to_string(), "did:ck:r2".into()],
             ..Default::default()
         };
         assert_eq!(
@@ -716,8 +716,8 @@ mod tests {
         // Negative: clean primary + recovery quorum.
         let ok = AnchorerReconfigRequest {
             kind: "mixed".into(),
-            mixed_primary: Some("did:cx:p".into()),
-            mixed_recovery: vec!["did:cx:r1".into(), "did:cx:r2".into()],
+            mixed_primary: Some("did:ck:p".into()),
+            mixed_recovery: vec!["did:ck:r1".into(), "did:ck:r2".into()],
             ..Default::default()
         };
         assert_eq!(ok.self_sign_violation(admin), None);
@@ -729,7 +729,7 @@ mod tests {
         // unrelated keys (threshold_dids etc).
         let req = AnchorerReconfigRequest {
             kind: "single_did".into(),
-            single_did: Some("did:cx:abc".into()),
+            single_did: Some("did:ck:abc".into()),
             ..Default::default()
         };
         let body = req.to_reconfigure_body();
@@ -739,7 +739,7 @@ mod tests {
         );
         assert_eq!(
             body.get("single_did").and_then(|v| v.as_str()),
-            Some("did:cx:abc")
+            Some("did:ck:abc")
         );
         assert!(body.get("threshold_dids").is_none());
         assert!(body.get("open_set_members").is_none());
@@ -769,7 +769,7 @@ mod tests {
         let s = BottomRepairStrategy::HeadInWinner {
             head: WinnerHead {
                 move_id: "move:abc".into(),
-                issuer: Some("did:cx:alice".into()),
+                issuer: Some("did:ck:alice".into()),
                 hlc: None,
                 summary: Some("set value=42".into()),
             },
@@ -805,7 +805,7 @@ mod tests {
         let s = BottomRepairStrategy::HeadInWinner {
             head: WinnerHead {
                 move_id: "sha256:deadbeef".into(),
-                issuer: Some("did:cx:alice".into()),
+                issuer: Some("did:ck:alice".into()),
                 hlc: Some("01HXY-0001".into()),
                 summary: Some("set value=99".into()),
             },
@@ -815,7 +815,7 @@ mod tests {
         assert!(wire.contains("\"strategy\":\"head_in_winner\""));
         // Fields inside the variant render as snake_case too.
         assert!(wire.contains("\"move_id\":\"sha256:deadbeef\""));
-        assert!(wire.contains("\"issuer\":\"did:cx:alice\""));
+        assert!(wire.contains("\"issuer\":\"did:ck:alice\""));
         assert!(wire.contains("\"hlc\":\"01HXY-0001\""));
         let back: BottomRepairStrategy =
             serde_json::from_str(&wire).expect("deserialize from string");
@@ -829,12 +829,12 @@ mod tests {
             note: Some("schema error - hand-rewrite the cell".into()),
             effects: vec![
                 serde_json::json!({
-                    "cell": "cx:cell:cx.component.x.v1:demo",
+                    "cell": "ck:cell:cx.component.x.v1:demo",
                     "op": {"type": "cas_register", "value": {"foo": 1}},
                 }),
                 serde_json::json!({
-                    "cell": "cx:cell:cx.component.y.v1:demo",
-                    "op": {"type": "set_membership_add", "value": "did:cx:carol"},
+                    "cell": "ck:cell:cx.component.y.v1:demo",
+                    "op": {"type": "set_membership_add", "value": "did:ck:carol"},
                 }),
             ],
         };

@@ -80,7 +80,7 @@ pub fn AuthzCapabilitiesPage() -> Element {
                         Label { r#for: "authz-holder-filter".to_string(), {t("authz_caps.filter_holder")} }
                         Input {
                             value: holder_filter.read().clone(),
-                            placeholder: "did:cx:...".to_string(),
+                            placeholder: "did:ck:...".to_string(),
                             oninput: move |evt: FormEvent| {
                                 reset_to_first_page();
                                 holder_filter.set(evt.value());
@@ -91,7 +91,7 @@ pub fn AuthzCapabilitiesPage() -> Element {
                         Label { r#for: "authz-peer-filter".to_string(), {t("authz_caps.filter_peer")} }
                         Input {
                             value: peer_filter.read().clone(),
-                            placeholder: "did:cx:...".to_string(),
+                            placeholder: "did:ck:...".to_string(),
                             oninput: move |evt: FormEvent| {
                                 reset_to_first_page();
                                 peer_filter.set(evt.value());

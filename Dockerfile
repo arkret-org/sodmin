@@ -1,14 +1,14 @@
 # sodmin Dockerfile.
 #
-# Build context: the contrix-dev umbrella directory (parent of sodmin).
+# Build context: the cokret-dev umbrella directory (parent of sodmin).
 # The Cargo workspace at sodmin/Cargo.toml has path-deps on sibling
 # repos that must be present in the build sandbox:
 #
-#   - ../contrix-rust-sdk/crates/sdk      (contrix SDK)
+#   - ../cokret-rust-sdk/crates/sdk      (cokret SDK)
 #   - ../coauth/crates/admin-types        (coauth admin types)
 #
 # Standalone single-repo build (the sodmin docker.yml workflow) checks
-# out coauth + contrix-rust-sdk into siblings of `./` and invokes:
+# out coauth + cokret-rust-sdk into siblings of `./` and invokes:
 #   docker build -f sodmin/Dockerfile ..
 #
 # The example-stack compose file does the equivalent via
@@ -39,8 +39,8 @@ WORKDIR /workspace
 
 # Copy the sibling path-deps FIRST so cargo fetch / dx build can resolve
 # the workspace `path = "../<sibling>/..."` entries. Order matches the
-# umbrella layout: contrix-dev/{contrix-rust-sdk,coauth,sodmin}/.
-COPY contrix-rust-sdk/ /workspace/contrix-rust-sdk
+# umbrella layout: cokret-dev/{cokret-rust-sdk,coauth,sodmin}/.
+COPY cokret-rust-sdk/ /workspace/cokret-rust-sdk
 COPY coauth/ /workspace/coauth
 COPY sodmin/ /workspace/sodmin
 

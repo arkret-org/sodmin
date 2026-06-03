@@ -44,7 +44,7 @@ pub fn ActorCreate() -> Element {
         //
         // R3.1 (HDLREN-1) — soland's canonical wire form is now
         // `<localpart>:<domain>`. If the operator pasted the display
-        // sigil, the `acct:` interop form, or the retired `contrix://`
+        // sigil, the `acct:` interop form, or the retired `cokret://`
         // URI, normalise back to canonical before submitting. The
         // homograph guard then runs against the localpart only.
         let raw = handle.read().trim().to_string();

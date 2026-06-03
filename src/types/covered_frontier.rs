@@ -3,7 +3,7 @@
 //!
 //! Read from `GET /api/admin/v1/spaces/{id}/mls/covered-frontier` —
 //! soland projects the lattice or-set state for the
-//! `cx:cell:cx.component.mls.covered_frontier.v1:<realm_id>` cell. The
+//! `ck:cell:cx.component.mls.covered_frontier.v1:<realm_id>` cell. The
 //! cell records which governance Anchors / Moves the MLS group has
 //! acknowledged. We compare the current governance frontier against the
 //! covered set to compute a *lag count* — how many governance Moves the
@@ -92,7 +92,7 @@ mod tests {
     #[test]
     fn lag_zero_when_covered_matches_governance() {
         let snap = CoveredFrontierSnapshot {
-            realm_id: "cx:space:demo".into(),
+            realm_id: "ck:space:demo".into(),
             mls_epoch: 4,
             governance_frontier: vec!["m:1".into(), "m:2".into(), "m:3".into()],
             covered_frontier: vec!["m:3".into(), "m:1".into(), "m:2".into()],
@@ -105,7 +105,7 @@ mod tests {
     #[test]
     fn lag_counts_only_unacknowledged_moves() {
         let snap = CoveredFrontierSnapshot {
-            realm_id: "cx:space:demo".into(),
+            realm_id: "ck:space:demo".into(),
             mls_epoch: 7,
             governance_frontier: vec![
                 "m:1".into(),

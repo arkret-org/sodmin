@@ -55,7 +55,7 @@ pub mod coauth {
     pub const NOTIFICATION_TEMPLATES_PUBLISH: &str = "/api/admin/v1/notification-templates/publish";
     pub const ACCOUNTS: &str = "/api/admin/v1/accounts";
     pub const BRIDGE_DESCRIBE: &str = "/api/admin/v1/bridge/describe";
-    pub const INTEGRATION_DESCRIBE: &str = "/contrix/api/v1/integration/describe";
+    pub const INTEGRATION_DESCRIBE: &str = "/cokret/api/v1/integration/describe";
 }
 
 pub mod soland {

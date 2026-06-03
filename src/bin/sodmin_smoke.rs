@@ -8,7 +8,7 @@
 //! cargo run --bin sodmin-smoke -- \
 //!     --base-url https://soland.example.com \
 //!     --token $SOLAND_ADMIN_TOKEN \
-//!     --space-id cx:space:demo
+//!     --space-id ck:space:demo
 //! ```
 //!
 //! Exit code is non-zero when any check fails so this can be wired into
@@ -172,7 +172,7 @@ fn urlencoding_encode(s: &str) -> String {
             }
             b':' => {
                 // Colon is allowed in URI path segments per RFC 3986
-                // (pchar) and `cx:space:...` ids depend on it. Leaving
+                // (pchar) and `ck:space:...` ids depend on it. Leaving
                 // it un-encoded keeps the smoke output readable.
                 out.push(':');
             }
@@ -403,10 +403,10 @@ mod tests {
 
     #[test]
     fn build_space_url_strips_trailing_base_slash() {
-        let url = build_space_url("https://soland.example.com/", "cx:space:demo", "anchorer");
+        let url = build_space_url("https://soland.example.com/", "ck:space:demo", "anchorer");
         assert_eq!(
             url,
-            "https://soland.example.com/admin/spaces/cx:space:demo/anchorer"
+            "https://soland.example.com/admin/spaces/ck:space:demo/anchorer"
         );
     }
 
@@ -414,20 +414,20 @@ mod tests {
     fn build_space_url_handles_compound_suffix() {
         let url = build_space_url(
             "https://soland.example.com",
-            "cx:space:demo",
+            "ck:space:demo",
             "mls/covered-frontier",
         );
         assert_eq!(
             url,
-            "https://soland.example.com/admin/spaces/cx:space:demo/mls/covered-frontier"
+            "https://soland.example.com/admin/spaces/ck:space:demo/mls/covered-frontier"
         );
     }
 
     #[test]
     fn urlencoding_encode_preserves_colon_and_alnum() {
-        // `cx:space:01J9` is the typical id shape — colons MUST stay
+        // `ck:space:01J9` is the typical id shape — colons MUST stay
         // unescaped or the URL becomes unreadable in logs.
-        assert_eq!(urlencoding_encode("cx:space:01J9"), "cx:space:01J9");
+        assert_eq!(urlencoding_encode("ck:space:01J9"), "ck:space:01J9");
         assert_eq!(urlencoding_encode("abc-123_~."), "abc-123_~.");
     }
 

@@ -1,6 +1,6 @@
 # sodmin Admin Onboarding
 
-This guide walks a new Contrix server administrator from a clean
+This guide walks a new Cokret server administrator from a clean
 deployment to a working sodmin session with the right capabilities to
 do real work. The flow is:
 
@@ -85,7 +85,7 @@ refuses to load the admin surface. Mark the account admin via the
 ## 4. Capability Grant Flow
 
 Being signed in as an admin does NOT, by itself, grant the right to
-drive every admin operation. The Contrix model is capability-based:
+drive every admin operation. The Cokret model is capability-based:
 each admin action is gated by a specific `cx.*` capability scope,
 and the operator must hold that scope (or a covering parent scope)
 before the backend will accept the request.
@@ -237,7 +237,7 @@ Notes:
     │  - paste connect_url (the SFU/relay control endpoint)
     │  - choose issuer_kid (from soland's active kid set)
     │  - sodmin synthesizes focus_id using the canonical rules:
-    │      cx:focus:<backend>:<region>:<disambiguator>
+    │      ck:focus:<backend>:<region>:<disambiguator>
     │  - validate (region matches [a-z0-9-]+, length checks)
     │  - save draft
     ▼

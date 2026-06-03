@@ -14,7 +14,7 @@ pub struct AdminErrorEnvelope {
     pub retry_after_ms: Option<u64>,
     /// D.1 — soland may attach the capability scope required for the
     /// failing action on 401/403 envelopes (e.g.
-    /// `cx:scope:realm:01HXY/admin.write`). When present, surfacing
+    /// `ck:scope:realm:01HXY/admin.write`). When present, surfacing
     /// it lets the admin grep their bound scopes / coauth role
     /// without round-tripping the support team.
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -253,7 +253,7 @@ mod tests {
     fn redact_pii_preserves_diagnostic_ids() {
         // UUIDs and short cursor tokens stay readable so admins can grep
         // logs.
-        let raw = "actor=urn:cx:actor:01HQX cursor=eyAB12";
+        let raw = "actor=urn:ck:actor:01HQX cursor=eyAB12";
         assert_eq!(redact_pii(raw), raw);
     }
 
@@ -280,11 +280,11 @@ mod tests {
     #[test]
     fn admin_error_envelope_round_trips_required_scope() {
         use super::AdminErrorEnvelope;
-        let raw = r#"{"errcode":"cx.error.capability_denied","required_scope":"cx:scope:realm:01HXY/admin.write"}"#;
+        let raw = r#"{"errcode":"cx.error.capability_denied","required_scope":"ck:scope:realm:01HXY/admin.write"}"#;
         let env: AdminErrorEnvelope = serde_json::from_str(raw).expect("parse");
         assert_eq!(
             env.required_scope.as_deref(),
-            Some("cx:scope:realm:01HXY/admin.write")
+            Some("ck:scope:realm:01HXY/admin.write")
         );
 
         let serialized = serde_json::to_string(&env).expect("serialize");

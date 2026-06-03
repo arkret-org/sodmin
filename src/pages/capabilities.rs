@@ -30,7 +30,7 @@ pub fn CapabilityList() -> Element {
 
     // P3A.4 — CXP-0007 Circle capability picker. Surfaces the six
     // cx.circle.* actions as a quick-select and exposes the
-    // `allowed_circle_ids` constraint editor (CSV of cx:circle:...
+    // `allowed_circle_ids` constraint editor (CSV of ck:circle:...
     // ids). For actions whose `required_constraints` include
     // `allowed_circle_ids` (manage / member.manage / member.add.others)
     // the CSV is non-optional — soland's reducer rejects unconstrained
@@ -246,7 +246,7 @@ pub fn CapabilityList() -> Element {
                                 }
                                 Input {
                                     value: circle_allowed_ids.read().clone(),
-                                    placeholder: "cx:circle:...,cx:circle:...".to_string(),
+                                    placeholder: "ck:circle:...,ck:circle:...".to_string(),
                                     oninput: move |evt: FormEvent| circle_allowed_ids.set(evt.value()),
                                 }
                                 p { class: "text-xs text-muted-foreground",

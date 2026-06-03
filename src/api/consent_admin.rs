@@ -4,7 +4,7 @@
 //! Endpoints:
 //!
 //! - `GET /api/admin/v1/spaces/{id}/consent` — read the joined or-set value of
-//!   `cx:cell:cx.component.consent.v1:<holder_did>` for every holder visible inside the Space.
+//!   `ck:cell:cx.component.consent.v1:<holder_did>` for every holder visible inside the Space.
 //!   soland is responsible for redaction: it MUST NOT expose holder-private peer relations beyond
 //!   the public admin-visible projection (DID / peer DID / scope / status / created_at).
 //! - `POST /api/admin/v1/consent/{consent_id}/resolve` — admin override for **pending** consent

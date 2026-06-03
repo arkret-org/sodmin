@@ -78,7 +78,7 @@ pub fn KeyBackupList() -> Element {
                     div { class: "space-y-1",
                         Label { class: "text-xs text-muted-foreground".to_string(), "series_id" }
                         Input {
-                            placeholder: "cx:backup_series:…".to_string(),
+                            placeholder: "ck:backup_series:…".to_string(),
                             value: series_filter.read().clone(),
                             oninput: move |evt: FormEvent| series_filter.set(evt.value()),
                         }

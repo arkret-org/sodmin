@@ -35,7 +35,7 @@ use crate::utils::storage;
 
 const OAUTH_CLIENT_ID: &str = "sodmin";
 const COAUTH_ADMIN_SCOPE: &str = "urn:coauth:admin";
-const CX_ADMIN_SCOPE: &str = "urn:contrix:admin:*";
+const CX_ADMIN_SCOPE: &str = "urn:cokret:admin:*";
 const OAUTH_DEVICE_ID_STORAGE_KEY: &str = "oauth_device_id";
 const PKCE_VERIFIER_KEY: &str = "pkce_code_verifier";
 const OAUTH_STATE_KEY: &str = "oauth_state";
@@ -494,8 +494,8 @@ mod tests {
     fn oauth_scope_contains_admin_scopes() {
         let scope = build_oauth_scope();
         assert!(scope.contains("urn:coauth:admin"));
-        assert!(scope.contains("urn:contrix:admin:*"));
-        assert!(!scope.contains("urn:cx:admin"));
+        assert!(scope.contains("urn:cokret:admin:*"));
+        assert!(!scope.contains("urn:ck:admin"));
     }
 
     #[test]

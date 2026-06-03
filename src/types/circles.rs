@@ -14,7 +14,7 @@
 //! `CircleResponse` / `ListCirclesResponse` / `CreateCircleRequest`
 //! definitions there). Lifecycle state strings track the spec's
 //! `cx.circle.state` registry — see
-//! `contrix-spec/spec/v1/artifacts/registry/circle-state-registry.json`.
+//! `cokret-spec/spec/v1/artifacts/registry/circle-state-registry.json`.
 //!
 //! P3A.7 naming rule: typed entity references inside this crate use
 //! the `_id` suffix (`realm_id`, `circle_id`, `scope_circle_id`,
@@ -28,10 +28,10 @@ use serde::{Deserialize, Serialize};
 /// One Circle row, mirror of soland's `CircleResponse`.
 #[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
 pub struct Circle {
-    /// `cx:circle:<ulid>` identifier.
+    /// `ck:circle:<ulid>` identifier.
     #[serde(default)]
     pub circle_id: String,
-    /// Parent Realm (`cx:realm:<ulid>`). Immutable for the life of the
+    /// Parent Realm (`ck:realm:<ulid>`). Immutable for the life of the
     /// Circle.
     #[serde(default)]
     pub realm_id: String,
@@ -167,18 +167,18 @@ mod tests {
     #[test]
     fn list_response_round_trip() {
         let raw = serde_json::json!({
-            "realm_id": "cx:realm:r1",
+            "realm_id": "ck:realm:r1",
             "circles": [{
-                "circle_id": "cx:circle:c1",
-                "realm_id": "cx:realm:r1",
+                "circle_id": "ck:circle:c1",
+                "realm_id": "ck:realm:r1",
                 "title": "Trust & Safety",
                 "directory_visibility": "members",
                 "join_rule": "invite",
                 "history_visibility": "joined",
                 "encryption_profile": "mls_rfc9420",
                 "state": "active",
-                "members": ["did:cx:alice"],
-                "created_by": "did:cx:admin",
+                "members": ["did:ck:alice"],
+                "created_by": "did:ck:admin",
                 "created_at": "2026-05-01T00:00:00Z"
             }]
         });
@@ -190,7 +190,7 @@ mod tests {
     #[test]
     fn create_request_omits_none() {
         let req = CreateCircleRequest {
-            realm_id: "cx:realm:r1".into(),
+            realm_id: "ck:realm:r1".into(),
             title: "T&S".into(),
             ..Default::default()
         };

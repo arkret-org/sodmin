@@ -94,7 +94,7 @@ pub fn CircleCreate() -> Element {
                     Input {
                         id: "circle-realm-id".to_string(),
                         value: realm_id(),
-                        placeholder: "cx:realm:01H...".to_string(),
+                        placeholder: "ck:realm:01H...".to_string(),
                         required: true,
                         oninput: move |evt: FormEvent| realm_id.set(evt.value()),
                     }

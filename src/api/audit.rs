@@ -18,7 +18,7 @@ pub struct AuditFilter {
     /// strings (e.g. `cx.circle.create`).
     pub event_kind: Option<String>,
     /// CXP-0007 (P3A.5) — server-side filter on effective scope (a
-    /// `cx:realm:...` or `cx:circle:...` id).
+    /// `ck:realm:...` or `ck:circle:...` id).
     pub effective_scope: Option<String>,
 }
 

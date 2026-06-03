@@ -17,7 +17,7 @@ fetch() {
   jq empty "$out" >/dev/null
 }
 
-fetch "soland" "${soland_url%/}/.well-known/contrix/openapi.json" "${out_dir}/soland.openapi.json"
+fetch "soland" "${soland_url%/}/.well-known/cokret/openapi.json" "${out_dir}/soland.openapi.json"
 
 coauth_admin_tmp="${out_dir}/coauth.admin.openapi.json.tmp"
 coauth_account_tmp="${out_dir}/coauth.account.openapi.json.tmp"
@@ -35,7 +35,7 @@ cat > "${out_dir}/README.md" <<EOF
 
 Generated from local services only.
 
-- soland: \`${soland_url%/}/.well-known/contrix/openapi.json\`
+- soland: \`${soland_url%/}/.well-known/cokret/openapi.json\`
 - coauth-admin: \`${coauth_url%/}/api-doc/admin/openapi.json\`
 - coauth-account: \`${coauth_url%/}/api-doc/openapi.json\`
 

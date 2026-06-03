@@ -66,7 +66,7 @@ pub fn Spinner(#[props(default)] class: String) -> Element {
             view_box: "0 0 24 24",
             circle {
                 class: "opacity-25",
-                cx: "12",
+                ck: "12",
                 cy: "12",
                 r: "10",
                 stroke: "currentColor",

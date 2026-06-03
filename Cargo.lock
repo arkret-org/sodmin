@@ -371,12 +371,12 @@ dependencies = [
 ]
 
 [[package]]
-name = "contrix-core"
+name = "cokret-core"
 version = "1.0.0"
 dependencies = [
  "base64",
  "chrono",
- "contrix-identifiers",
+ "cokret-identifiers",
  "getrandom 0.3.4",
  "regex",
  "serde",
@@ -386,7 +386,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "contrix-identifiers"
+name = "cokret-identifiers"
 version = "1.0.0"
 dependencies = [
  "getrandom 0.2.17",
@@ -2768,8 +2768,8 @@ dependencies = [
  "base64",
  "chrono",
  "coauth-admin-types",
- "contrix-core",
- "contrix-identifiers",
+ "cokret-core",
+ "cokret-identifiers",
  "dioxus",
  "dioxus-logger",
  "gloo-net 0.7.0",

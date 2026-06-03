@@ -161,7 +161,7 @@ if can_resolve_url_host "$SOLAND_URL"; then
     write_proxy_location "/api/v1/sync/" "$SOLAND_URL"
     write_proxy_location "/api/v1/directory/" "$SOLAND_URL"
     # soland admin surface lives at the bare deployment-local `/admin/*`
-    # namespace (canonical + operator + collection), per contrix-spec
+    # namespace (canonical + operator + collection), per cokret-spec
     # service-http-binding.md §2.1. Distinct from coauth's `/api/admin/*`
     # auth-admin surface above — the two prefixes do not overlap.
     write_proxy_location "/admin/" "$SOLAND_URL"

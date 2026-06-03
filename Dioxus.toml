@@ -3,7 +3,7 @@ name = "sodmin"
 default_platform = "web"
 
 [web.app]
-title = "Contrix Admin"
+title = "Cokret Admin"
 
 # S5 token hardening: production deployments must set the matching
 # Content-Security-Policy header at the web server or CDN tier. The app
