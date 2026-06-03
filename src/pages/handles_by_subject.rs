@@ -218,7 +218,7 @@ fn claim_row(claim: &HandleClaim, primary: Option<&str>) -> Element {
         .unwrap_or_default();
     let issuer = claim.issuer.clone().unwrap_or_else(|| "-".to_string());
     let expires = claim.expires_at.clone().unwrap_or_else(|| "-".to_string());
-    let created = claim.issued_at.clone().unwrap_or_else(|| "-".to_string());
+    let created = claim.created_at.clone().unwrap_or_else(|| "-".to_string());
     let (binding_label, binding_variant) = binding_badge(claim.binding_state);
     let is_primary = matches!(
         (claim.handle.as_deref(), primary),

@@ -268,11 +268,31 @@ pub async fn handle_oauth_callback(code: &str, state: Option<&str>) -> Result<()
     let token_resp: TokenResponse =
         serde_json::from_str(&response.text).map_err(|e| make_err(e.to_string()))?;
 
-    if let (Some(id_token), Some(expected)) = (&token_resp.id_token, &expected_nonce)
-        && let Some(nonce_in_token) = extract_id_token_nonce(id_token)
-        && nonce_in_token != *expected
-    {
-        return Err(make_err("OIDC nonce mismatch — possible replay".into()));
+    // OIDC nonce replay guard. We always send a `nonce` on /authorize,
+    // so whenever an `id_token` comes back it MUST carry a matching
+    // nonce — a present id_token with a missing/mismatched nonce fails
+    // closed. coauth MAY omit the id_token entirely (the bearer rides
+    // the cookie); in that case there is nothing to replay and PKCE +
+    // `state` already cover CSRF, so we proceed but log the skip.
+    if let Some(expected) = &expected_nonce {
+        match &token_resp.id_token {
+            Some(id_token) => match extract_id_token_nonce(id_token) {
+                Some(nonce_in_token) if &nonce_in_token == expected => {}
+                Some(_) => {
+                    return Err(make_err("OIDC nonce mismatch — possible replay".into()));
+                }
+                None => {
+                    return Err(make_err(
+                        "OIDC id_token is missing the nonce claim — refusing to continue".into(),
+                    ));
+                }
+            },
+            None => {
+                log::warn!(
+                    "OAuth token response carried no id_token; OIDC nonce replay check skipped (PKCE + state still enforced)"
+                );
+            }
+        }
     }
 
     // Mark the session as active for the JS-visible UI checks. The
@@ -436,7 +456,6 @@ pub async fn logout() -> Result<(), HttpError> {
         .await;
 
     clear_session_marker();
-    crate::utils::config::clear_config();
     Ok(())
 }
 

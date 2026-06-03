@@ -94,8 +94,23 @@ pub fn InviteTokenList() -> Element {
                                                                 onclick: {
                                                                     let tok = tok_for_copy.clone();
                                                                     move |_| {
-                                                                        let _ = js_sys::eval(&format!("navigator.clipboard.writeText('{}')", tok.replace('\'', "\\'")));
-                                                                        show_toast("Token copied", ToastVariant::Success);
+                                                                        // Use the typed Clipboard API instead of
+                                                                        // string-interpolated `eval` — no injection
+                                                                        // surface, and the toast only fires once the
+                                                                        // write actually resolves.
+                                                                        let tok = tok.clone();
+                                                                        spawn(async move {
+                                                                            let clipboard = web_sys::window().map(|w| w.navigator().clipboard());
+                                                                            match clipboard {
+                                                                                Some(clipboard) => {
+                                                                                    match wasm_bindgen_futures::JsFuture::from(clipboard.write_text(&tok)).await {
+                                                                                        Ok(_) => show_toast("Token copied", ToastVariant::Success),
+                                                                                        Err(_) => show_toast("Copy failed", ToastVariant::Error),
+                                                                                    }
+                                                                                }
+                                                                                None => show_toast("Copy failed", ToastVariant::Error),
+                                                                            }
+                                                                        });
                                                                     }
                                                                 },
                                                                 "Copy"

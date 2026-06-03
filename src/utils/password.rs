@@ -1,14 +1,17 @@
-use js_sys::Math;
+//! Device-id generation. Backed by the same cryptographically-secure
+//! entropy source (`crate::utils::crypto::random_bytes`) as PKCE / state
+//! / nonce so there is a single random source in the codebase rather
+//! than a second, non-cryptographic `Math.random()` path.
+
+use crate::utils::crypto::random_bytes;
 
 const ALPHANUM: &str = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
 fn random_string(charset: &str, length: usize) -> String {
     let chars: Vec<char> = charset.chars().collect();
-    (0..length)
-        .map(|_| {
-            let idx = (Math::random() * chars.len() as f64).floor() as usize;
-            chars[idx]
-        })
+    random_bytes(length)
+        .into_iter()
+        .map(|b| chars[(b as usize) % chars.len()])
         .collect()
 }
 

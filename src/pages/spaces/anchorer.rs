@@ -87,7 +87,7 @@ pub fn AnchorerPage(space_id: String) -> Element {
                         CardContent {
                             div { class: "space-y-2 text-sm",
                                 div { class: "flex items-center gap-2",
-                                    Badge { variant: BadgeVariant::Secondary, "{value.kind().label()}" }
+                                    Badge { variant: BadgeVariant::Secondary, "{value.kind_label()}" }
                                     span { class: "text-muted-foreground", "{value.summary()}" }
                                     if value.paused {
                                         Badge { variant: BadgeVariant::Destructive, "paused" }
@@ -354,13 +354,19 @@ pub fn AnchorerPage(space_id: String) -> Element {
 
 fn render_value_detail(v: &AnchorerValue) -> Element {
     match v.kind() {
-        AnchorerKind::SingleDid => {
+        None => {
+            let raw = v.kind_raw.clone();
+            rsx! {
+                div { class: "font-mono text-xs text-muted-foreground", "unknown anchorer kind: {raw}" }
+            }
+        }
+        Some(AnchorerKind::SingleDid) => {
             let did = v.single_did.clone().unwrap_or_else(|| "-".to_string());
             rsx! {
                 div { class: "font-mono text-xs", "did: {did}" }
             }
         }
-        AnchorerKind::Threshold => {
+        Some(AnchorerKind::Threshold) => {
             let k = v.threshold_k.unwrap_or(0);
             let n = v.threshold_n.unwrap_or(0);
             let dids = v.threshold_dids.clone();
@@ -371,7 +377,7 @@ fn render_value_detail(v: &AnchorerValue) -> Element {
                 }
             }
         }
-        AnchorerKind::OpenSet => {
+        Some(AnchorerKind::OpenSet) => {
             let members = v.open_set_members.clone();
             rsx! {
                 ul { class: "list-disc list-inside text-xs font-mono",
@@ -379,7 +385,7 @@ fn render_value_detail(v: &AnchorerValue) -> Element {
                 }
             }
         }
-        AnchorerKind::Mixed => {
+        Some(AnchorerKind::Mixed) => {
             let primary = v.mixed_primary.clone().unwrap_or_else(|| "-".to_string());
             let recovery = v.mixed_recovery.clone();
             rsx! {

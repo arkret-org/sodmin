@@ -1,29 +1,37 @@
 //! Browser-side crypto helpers: cryptographically secure random bytes
-//! via `window.crypto.getRandomValues`, plus a tiny base64url encoder
-//! for emitting tokens (PKCE verifier, idempotency keys, OAuth state).
+//! via `window.crypto.getRandomValues`, plus base64url encode/decode for
+//! emitting and parsing tokens (PKCE verifier, idempotency keys, OAuth
+//! state, id_token payloads).
+//!
+//! base64url is handled by the pure-Rust `base64` crate (`URL_SAFE_NO_PAD`
+//! engine) rather than the host `btoa`/`atob`: that avoids the Latin-1
+//! round-trip corruption `atob` causes for bytes > 0x7F (which silently
+//! mangled JWT payloads) and removes a JS boundary call from the hot path.
 
+use base64::Engine;
+use base64::engine::general_purpose::URL_SAFE_NO_PAD;
+
+/// Generate `len` cryptographically-secure random octets.
+///
+/// `window.crypto.getRandomValues` is a hard requirement for a security
+/// primitive — there is no safe fallback. In any real browser context
+/// these are always available; a failure means the environment cannot
+/// produce secure randomness, so we fail closed (panic) rather than
+/// silently emit predictable bytes.
 pub fn random_bytes(len: usize) -> Vec<u8> {
     let crypto = web_sys::window()
         .expect("no window")
         .crypto()
-        .expect("no crypto");
+        .expect("no window.crypto — insecure environment");
     let mut buf = vec![0u8; len];
     crypto
         .get_random_values_with_u8_array(&mut buf)
-        .expect("get_random_values failed");
+        .expect("crypto.getRandomValues failed");
     buf
 }
 
 pub fn base64url_encode(data: &[u8]) -> String {
-    let binary: String = data.iter().map(|&b| b as char).collect();
-    let b64 = web_sys::window()
-        .expect("no window")
-        .btoa(&binary)
-        .expect("btoa failed");
-    b64.replace('+', "-")
-        .replace('/', "_")
-        .trim_end_matches('=')
-        .to_string()
+    URL_SAFE_NO_PAD.encode(data)
 }
 
 /// Cryptographically random base64url token of `bytes` random octets.
@@ -31,11 +39,30 @@ pub fn random_token(bytes: usize) -> String {
     base64url_encode(&random_bytes(bytes))
 }
 
-/// Decode a base64url-encoded string (no padding).
+/// Decode a base64url-encoded string (no padding). Tolerates a stray
+/// trailing `=` pad by stripping it first.
 pub fn base64url_decode(encoded: &str) -> Option<Vec<u8>> {
-    let padded = encoded.replace('-', "+").replace('_', "/");
-    let padding = (4 - padded.len() % 4) % 4;
-    let padded = format!("{}{}", padded, "=".repeat(padding));
-    let binary = web_sys::window()?.atob(&padded).ok()?;
-    Some(binary.bytes().collect())
+    let trimmed = encoded.trim_end_matches('=');
+    URL_SAFE_NO_PAD.decode(trimmed.as_bytes()).ok()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn base64url_round_trip_all_byte_values() {
+        // The old btoa/atob path corrupted bytes > 0x7F; this covers the
+        // full 0x00–0xFF range to lock in the fix.
+        let data: Vec<u8> = (0u16..=255).map(|b| b as u8).collect();
+        let encoded = base64url_encode(&data);
+        assert!(!encoded.contains('+') && !encoded.contains('/') && !encoded.contains('='));
+        assert_eq!(base64url_decode(&encoded), Some(data));
+    }
+
+    #[test]
+    fn base64url_decode_tolerates_padding() {
+        // "Zm9v" == "foo"; with explicit padding stripped.
+        assert_eq!(base64url_decode("Zm9v"), Some(b"foo".to_vec()));
+    }
 }

@@ -8,7 +8,8 @@ use serde::{Deserialize, Serialize};
 /// Health badge for a single Space row. `Active` is the happy path
 /// (Move/Anchor accepting writes); `Frozen` means the space is
 /// quarantined (admin-induced or replication lag); `Destroyed` means a
-/// `cx.cell.space.tombstone` Move has landed and the space is in the
+/// `cx.space.tombstone` event (the spec container-tombstone event kind,
+/// per spec_digest §4.1) has landed and the space is in the
 /// tombstone-period for audit reads.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]

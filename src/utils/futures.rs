@@ -7,6 +7,10 @@
 //! no need for `Send` bounds; the futures share the JS event-loop
 //! reactor and `gloo-net` requests run in parallel because the browser
 //! `fetch()` is dispatched on first poll.
+//!
+//! The inner futures are heap-pinned (`Pin<Box<F>>`), so `JoinAll`
+//! itself never structurally pins `F` and is unconditionally `Unpin` —
+//! no `unsafe` pin projection is required.
 
 use std::future::Future;
 use std::pin::Pin;
@@ -27,14 +31,18 @@ where
     slots: Vec<Slot<F, T>>,
 }
 
+// The only thing that must stay pinned is each inner `F`, and that
+// already lives behind a `Box` (heap). Moving `JoinAll` only moves the
+// `Vec` of box pointers, never `F`, so `JoinAll` is safely `Unpin`.
+impl<F, T> Unpin for JoinAll<F, T> where F: Future<Output = T> {}
+
 impl<F, T> Future for JoinAll<F, T>
 where
     F: Future<Output = T>,
 {
     type Output = Vec<T>;
     fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
-        // Safety: we never move out of `slots`; only mutate it in place.
-        let this = unsafe { self.get_unchecked_mut() };
+        let this = self.get_mut();
         let mut all_done = true;
         for slot in this.slots.iter_mut() {
             if let Slot::Pending(fut) = slot {

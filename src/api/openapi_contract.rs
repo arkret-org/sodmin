@@ -6,8 +6,6 @@
 //! fallback manifest so regular `cargo check` does not require a running
 //! stack; set `SODMIN_OPENAPI_STRICT=1` to make snapshots mandatory.
 
-#![allow(dead_code)]
-
 include!(concat!(env!("OUT_DIR"), "/sodmin_openapi_contracts.rs"));
 
 pub fn coauth_has_operation(method: &str, path: &str) -> bool {

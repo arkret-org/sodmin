@@ -136,11 +136,11 @@ pub struct CreateSpaceRequest {
     #[serde(default)]
     pub is_encrypted: bool,
     /// CXP-0007 (P3A.6) — required at create time; the spec pins this
-    /// to `principal_control` / `collaboration`. soland defaults
-    /// unset values to `collaboration` server-side, but the admin UI
-    /// always surfaces the picker so the choice is explicit.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub realm_class: Option<String>,
+    /// to `principal_control` / `collaboration`. Non-optional so the
+    /// choice is always explicit on the wire (the admin UI's picker
+    /// defaults it to `collaboration`); there is no silent reliance on
+    /// the soland server-side default.
+    pub realm_class: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -634,10 +634,12 @@ pub struct InviteToken {
     pub expires_at: Option<String>,
     #[serde(default)]
     pub space_id: Option<String>,
-    #[serde(default)]
-    pub created_at: Option<String>,
+    // Audit pair: `created_by` precedes `created_at`, matching the
+    // project-wide (and canonical) ordering convention.
     #[serde(default)]
     pub created_by: Option<String>,
+    #[serde(default)]
+    pub created_at: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -1097,9 +1099,11 @@ pub struct HandleClaim {
     /// resolution context equal to this value.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub audience: Option<String>,
-    /// ISO-8601 issuance timestamp (`created_at`).
+    /// ISO-8601 issuance timestamp. Canonical wire name is `created_at`
+    /// (`cx.schema.handle_claim.v1`); the §3.2.1 primary-handle
+    /// selection tie-break orders on this.
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub issued_at: Option<String>,
+    pub created_at: Option<String>,
     /// ISO-8601 expiry timestamp.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub expires_at: Option<String>,

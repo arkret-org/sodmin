@@ -86,7 +86,6 @@ impl I18n {
         // Navigation
         m.insert("nav.dashboard".into(), "Dashboard".into());
         m.insert("nav.users".into(), "Users".into());
-        m.insert("nav.rooms".into(), "Rooms".into());
         m.insert("nav.media".into(), "Media".into());
         m.insert("nav.reports".into(), "Reports".into());
         m.insert("nav.federation".into(), "Federation".into());
@@ -212,7 +211,6 @@ impl I18n {
         m.insert("users.account_details".into(), "Account Details".into());
         m.insert("users.third_party_ids".into(), "Third-party IDs".into());
         m.insert("users.overview".into(), "Overview".into());
-        m.insert("users.rooms".into(), "Rooms".into());
         m.insert("users.devices".into(), "Devices".into());
         m.insert("users.sessions".into(), "Sessions".into());
         m.insert("users.account_data".into(), "Account Data".into());
@@ -232,71 +230,6 @@ impl I18n {
         m.insert("common.rows".into(), "Rows:".into());
 
         // Rooms
-        m.insert("rooms.title".into(), "Rooms".into());
-        m.insert("rooms.name".into(), "Name".into());
-        m.insert("rooms.alias".into(), "Alias".into());
-        m.insert("rooms.members".into(), "Members".into());
-        m.insert("rooms.visibility".into(), "Visibility".into());
-        m.insert("rooms.public".into(), "Public".into());
-        m.insert("rooms.private".into(), "Private".into());
-        m.insert("rooms.join_rules".into(), "Join Rules".into());
-        m.insert("rooms.encrypted".into(), "Encrypted".into());
-        m.insert("rooms.topic".into(), "Topic".into());
-        m.insert("rooms.delete".into(), "Delete Room".into());
-        m.insert("rooms.block".into(), "Block Room".into());
-        m.insert("rooms.unblock".into(), "Unblock Room".into());
-        m.insert("rooms.purge_history".into(), "Purge History".into());
-        m.insert("rooms.create".into(), "Create Room".into());
-        m.insert("rooms.search".into(), "Search rooms...".into());
-        m.insert("rooms.no_rooms".into(), "No rooms found".into());
-        m.insert("rooms.messages".into(), "Messages".into());
-        m.insert("rooms.state_events".into(), "State Events".into());
-        m.insert("rooms.hierarchy".into(), "Hierarchy".into());
-        m.insert("rooms.aliases".into(), "Aliases".into());
-        m.insert("rooms.subtitle".into(), "Manage Contrix spaces".into());
-        m.insert("rooms.sort".into(), "Sort:".into());
-        m.insert("rooms.all".into(), "All".into());
-        m.insert("rooms.delete_selected".into(), "Delete Selected".into());
-        m.insert("rooms.block_selected".into(), "Block Selected".into());
-        m.insert("rooms.overview".into(), "Overview".into());
-        m.insert("rooms.room_information".into(), "Space Information".into());
-        m.insert("rooms.room_settings".into(), "Space Settings".into());
-        m.insert("rooms.room_id".into(), "Space ID".into());
-        m.insert("rooms.canonical_alias".into(), "Canonical Alias".into());
-        m.insert("rooms.room_type".into(), "Space Type".into());
-        m.insert("rooms.space".into(), "Space".into());
-        m.insert("rooms.blocked".into(), "Blocked".into());
-        m.insert("rooms.other_aliases".into(), "Other Aliases".into());
-        m.insert("rooms.no_members".into(), "No members found.".into());
-        m.insert("rooms.no_messages".into(), "No messages found.".into());
-        m.insert("rooms.no_state_events".into(), "No state events.".into());
-        m.insert("rooms.space_hierarchy".into(), "Space Hierarchy".into());
-        m.insert("rooms.no_children".into(), "No child spaces found.".into());
-        m.insert("rooms.room_name".into(), "Space Name *".into());
-        m.insert("rooms.create_button".into(), "Create".into());
-        m.insert("rooms.purge_title".into(), "Purge Room History".into());
-        m.insert("rooms.purge_before".into(), "Delete messages before".into());
-        m.insert("rooms.created".into(), "Created".into());
-        m.insert("rooms.kick".into(), "Kick".into());
-        m.insert("rooms.unban".into(), "Unban".into());
-        m.insert("rooms.invite".into(), "Invite".into());
-        m.insert("rooms.promote".into(), "Make Admin".into());
-        m.insert("rooms.invite_user_id".into(), "User ID to invite".into());
-        m.insert("rooms.edit_room".into(), "Edit Room".into());
-        m.insert("rooms.save_changes".into(), "Save Changes".into());
-        m.insert("rooms.add_alias".into(), "Add Alias".into());
-        m.insert("rooms.delete_alias".into(), "Delete".into());
-        m.insert("rooms.new_alias".into(), "New alias".into());
-        m.insert("rooms.forward_extremities_desc".into(), "Forward extremities are the leaf events in the room DAG. Multiple extremities may indicate fragmentation.".into());
-        m.insert("rooms.forward_extremities_warning".into(), "Warning: Multiple forward extremities detected. This may indicate DAG fragmentation and could impact performance.".into());
-        m.insert("rooms.count".into(), "Count".into());
-        m.insert("rooms.directory_listing".into(), "Directory Listing".into());
-        m.insert("rooms.published".into(), "Published".into());
-        m.insert("rooms.unpublished".into(), "Unpublished".into());
-        m.insert("rooms.publish".into(), "Publish".into());
-        m.insert("rooms.unpublish".into(), "Unpublish".into());
-        m.insert("rooms.event_lookup".into(), "Event Lookup".into());
-        m.insert("rooms.lookup".into(), "Lookup".into());
 
         // Reports
         m.insert("reports.title".into(), "Reports".into());
@@ -317,7 +250,6 @@ impl I18n {
             "Event reports submitted by users".into(),
         );
         m.insert("reports.id".into(), "ID".into());
-        m.insert("reports.room".into(), "Space".into());
         m.insert("reports.report_details".into(), "Report Details".into());
         m.insert(
             "reports.reporter_user_id".into(),
@@ -543,7 +475,6 @@ impl I18n {
         // Navigation
         m.insert("nav.dashboard".into(), "\u{4eea}\u{8868}\u{76d8}".into());
         m.insert("nav.users".into(), "\u{7528}\u{6237}".into());
-        m.insert("nav.rooms".into(), "\u{623f}\u{95f4}".into());
         m.insert("nav.media".into(), "\u{5a92}\u{4f53}".into());
         m.insert("nav.reports".into(), "\u{4e3e}\u{62a5}".into());
         m.insert("nav.federation".into(), "\u{8054}\u{90a6}".into());
@@ -692,7 +623,6 @@ impl I18n {
         m.insert("users.username".into(), "\u{7528}\u{6237}\u{540d}".into());
         m.insert("users.password".into(), "\u{5bc6}\u{7801}".into());
         m.insert("users.overview".into(), "\u{6982}\u{89c8}".into());
-        m.insert("users.rooms".into(), "\u{623f}\u{95f4}".into());
         m.insert("users.devices".into(), "\u{8bbe}\u{5907}".into());
         m.insert("users.sessions".into(), "\u{4f1a}\u{8bdd}".into());
         m.insert("users.features".into(), "\u{529f}\u{80fd}".into());
@@ -705,40 +635,6 @@ impl I18n {
         m.insert("common.rows".into(), "\u{884c}\u{6570}\u{ff1a}".into());
 
         // Rooms
-        m.insert("rooms.name".into(), "\u{540d}\u{79f0}".into());
-        m.insert("rooms.alias".into(), "\u{522b}\u{540d}".into());
-        m.insert("rooms.members".into(), "\u{6210}\u{5458}".into());
-        m.insert("rooms.visibility".into(), "\u{53ef}\u{89c1}\u{6027}".into());
-        m.insert("rooms.public".into(), "\u{516c}\u{5f00}".into());
-        m.insert("rooms.private".into(), "\u{79c1}\u{5bc6}".into());
-        m.insert("rooms.encrypted".into(), "\u{5df2}\u{52a0}\u{5bc6}".into());
-        m.insert("rooms.topic".into(), "\u{8bdd}\u{9898}".into());
-        m.insert("rooms.messages".into(), "\u{6d88}\u{606f}".into());
-        m.insert("rooms.sort".into(), "\u{6392}\u{5e8f}\u{ff1a}".into());
-        m.insert("rooms.all".into(), "\u{5168}\u{90e8}".into());
-        m.insert("rooms.no_rooms_description".into(), "\u{6ca1}\u{6709}\u{7b26}\u{5408}\u{641c}\u{7d22}\u{6761}\u{4ef6}\u{7684}\u{623f}\u{95f4}".into());
-        m.insert("rooms.overview".into(), "\u{6982}\u{89c8}".into());
-        m.insert("rooms.room_id".into(), "Space ID".into());
-        m.insert("rooms.space".into(), "\u{7a7a}\u{95f4}".into());
-        m.insert("rooms.blocked".into(), "\u{5df2}\u{5c01}\u{9501}".into());
-        m.insert("rooms.space_hierarchy_desc".into(), "\u{6b64}\u{7a7a}\u{95f4}\u{4e2d}\u{7684}\u{5b50}\u{623f}\u{95f4}\u{548c}\u{5b50}\u{7a7a}\u{95f4}".into());
-        m.insert("rooms.create_button".into(), "\u{521b}\u{5efa}".into());
-        m.insert("rooms.purge_description".into(), "\u{5220}\u{9664}\u{6307}\u{5b9a}\u{65e5}\u{671f}\u{4e4b}\u{524d}\u{7684}\u{6240}\u{6709}\u{6d88}\u{606f}\u{3002}\u{6b64}\u{64cd}\u{4f5c}\u{4e0d}\u{53ef}\u{64a4}\u{9500}\u{3002}".into());
-        m.insert("rooms.purge_warning".into(), "\u{8b66}\u{544a}\u{ff1a}\u{8fd9}\u{5c06}\u{6c38}\u{4e45}\u{5220}\u{9664}\u{6240}\u{9009}\u{65e5}\u{671f}\u{4e4b}\u{524d}\u{7684}\u{6240}\u{6709}\u{6d88}\u{606f}\u{3002}".into());
-        m.insert("rooms.delete_confirm".into(), "\u{786e}\u{5b9a}\u{8981}\u{5220}\u{9664}\u{6b64}\u{623f}\u{95f4}\u{5417}\u{ff1f}\u{6240}\u{6709}\u{6d88}\u{606f}\u{548c}\u{5a92}\u{4f53}\u{5c06}\u{88ab}\u{6c38}\u{4e45}\u{5220}\u{9664}\u{3002}\u{6b64}\u{64cd}\u{4f5c}\u{4e0d}\u{53ef}\u{64a4}\u{9500}\u{3002}".into());
-        m.insert("rooms.kick".into(), "\u{8e22}\u{51fa}".into());
-        m.insert("rooms.invite".into(), "\u{9080}\u{8bf7}".into());
-        m.insert("rooms.delete_alias".into(), "\u{5220}\u{9664}".into());
-        m.insert("rooms.new_alias".into(), "\u{65b0}\u{522b}\u{540d}".into());
-        m.insert("rooms.forward_extremities".into(), "前向极端事件".into());
-        m.insert("rooms.count".into(), "数量".into());
-        m.insert("rooms.directory_listing".into(), "目录列表".into());
-        m.insert("rooms.published".into(), "已发布".into());
-        m.insert("rooms.unpublished".into(), "未发布".into());
-        m.insert("rooms.publish".into(), "发布".into());
-        m.insert("rooms.unpublish".into(), "取消发布".into());
-        m.insert("rooms.event_lookup".into(), "事件查找".into());
-        m.insert("rooms.lookup".into(), "查找".into());
 
         // Reports
         m.insert(
@@ -763,7 +659,6 @@ impl I18n {
             "\u{7528}\u{6237}\u{63d0}\u{4ea4}\u{7684}\u{4e8b}\u{4ef6}\u{4e3e}\u{62a5}".into(),
         );
         m.insert("reports.id".into(), "ID".into());
-        m.insert("reports.room".into(), "Space".into());
         m.insert("reports.no_reports_description".into(), "\u{76ee}\u{524d}\u{6ca1}\u{6709}\u{9700}\u{8981}\u{5ba1}\u{67e5}\u{7684}\u{4e8b}\u{4ef6}\u{4e3e}\u{62a5}".into());
         m.insert(
             "reports.report_details".into(),

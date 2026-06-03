@@ -63,10 +63,30 @@ struct ErrorEvent<'a> {
     ts: String,
 }
 
-/// Strip query string + fragment from a path for telemetry. The query
-/// string may contain cursor tokens / filter values that count as PII.
+/// Reduce a concrete request URL to a low-cardinality, PII-free path
+/// template for telemetry.
+///
+/// 1. Strips the query string + fragment (cursor tokens / filter values
+///    count as PII).
+/// 2. Templates inline id segments to `{id}`. Our REST paths embed
+///    actor / account / realm / handle ids directly in the path (e.g.
+///    `/api/admin/v1/accounts/01HXY.../dids/did:web:x`), and those ids —
+///    ULIDs, numeric ids, DIDs — are identifying. A segment is treated
+///    as an id when it contains a `:` (DID / `cx:` ref), starts with a
+///    digit (ULID / numeric id), or is an overly long opaque token.
+///    Static words like `api`, `v1`, `accounts` are preserved.
 fn redact_path(url: &str) -> String {
-    url.split('?').next().unwrap_or(url).to_string()
+    let path = url.split('?').next().unwrap_or(url);
+    let path = path.split('#').next().unwrap_or(path);
+    path.split('/')
+        .map(|seg| {
+            let is_id = seg.contains(':')
+                || seg.chars().next().is_some_and(|c| c.is_ascii_digit())
+                || seg.len() > 24;
+            if is_id { "{id}" } else { seg }
+        })
+        .collect::<Vec<_>>()
+        .join("/")
 }
 
 /// Fire-and-forget POST of an error event. No-op when telemetry is
@@ -103,12 +123,14 @@ pub fn report_http_error(path: &str, error: &HttpError) {
 
     // Fire-and-forget. We do not await — telemetry MUST never block.
     wasm_bindgen_futures::spawn_local(async move {
-        let _ = gloo_net::http::Request::post(&endpoint)
+        // Telemetry MUST never break the UI: if the request builder
+        // fails, drop the event silently rather than panicking.
+        if let Ok(req) = gloo_net::http::Request::post(&endpoint)
             .header("Content-Type", "application/json")
             .body(body)
-            .expect("telemetry body builder")
-            .send()
-            .await;
+        {
+            let _ = req.send().await;
+        }
     });
 }
 
@@ -155,12 +177,13 @@ pub fn report_error(code: &str, context: &str) {
 
     // Fire-and-forget. We do not await — telemetry MUST never block.
     wasm_bindgen_futures::spawn_local(async move {
-        let _ = gloo_net::http::Request::post(&target)
+        // Telemetry MUST never break the UI: drop on builder failure.
+        if let Ok(req) = gloo_net::http::Request::post(&target)
             .header("Content-Type", "application/json")
             .body(body)
-            .expect("telemetry body builder")
-            .send()
-            .await;
+        {
+            let _ = req.send().await;
+        }
     });
 }
 
@@ -180,8 +203,26 @@ mod tests {
     fn redact_path_strips_query_and_fragment() {
         assert_eq!(redact_path("/api/v1/x?cursor=c1"), "/api/v1/x");
         assert_eq!(redact_path("/api/v1/x"), "/api/v1/x");
-        // Fragment falls through with the query because `split('?')`
-        // returns the prefix.
         assert_eq!(redact_path("/api/v1/x?q=1#frag"), "/api/v1/x");
+    }
+
+    #[test]
+    fn redact_path_templates_inline_ids() {
+        // ULID account id + DID segment → both templated; static words
+        // (api / admin / v1 / accounts / dids) preserved.
+        assert_eq!(
+            redact_path("/api/admin/v1/accounts/01HXYABCDEF/dids/did:web:alice.example"),
+            "/api/admin/v1/accounts/{id}/dids/{id}"
+        );
+        // Numeric id templated.
+        assert_eq!(
+            redact_path("/api/admin/v1/reports/12345"),
+            "/api/admin/v1/reports/{id}"
+        );
+        // No ids → unchanged.
+        assert_eq!(
+            redact_path("/api/admin/v1/server/info"),
+            "/api/admin/v1/server/info"
+        );
     }
 }

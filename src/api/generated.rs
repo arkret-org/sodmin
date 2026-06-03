@@ -12,7 +12,6 @@ pub mod coauth_admin {
     pub use coauth_admin_types::*;
 }
 
-#[allow(dead_code)]
 pub mod soland_admin {
     use serde::{Deserialize, Serialize};
 

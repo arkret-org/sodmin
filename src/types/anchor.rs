@@ -61,34 +61,50 @@ pub struct AnchorerValue {
 }
 
 impl AnchorerValue {
-    pub fn kind(&self) -> AnchorerKind {
+    /// Strongly-typed anchorer kind, or `None` when the wire carried a
+    /// value this build does not recognise. We deliberately do NOT fall
+    /// through to `SingleDid`: a new soland anchorer kind (e.g.
+    /// `hsm_backed`) must surface as "unknown" so the operator never
+    /// acts on a misclassified `single_did`.
+    pub fn kind(&self) -> Option<AnchorerKind> {
         match self.kind_raw.as_str() {
-            "threshold" => AnchorerKind::Threshold,
-            "open_set" => AnchorerKind::OpenSet,
-            "mixed" => AnchorerKind::Mixed,
-            _ => AnchorerKind::SingleDid,
+            "single_did" => Some(AnchorerKind::SingleDid),
+            "threshold" => Some(AnchorerKind::Threshold),
+            "open_set" => Some(AnchorerKind::OpenSet),
+            "mixed" => Some(AnchorerKind::Mixed),
+            _ => None,
+        }
+    }
+
+    /// Human label for the anchorer kind, falling back to the raw wire
+    /// value (prefixed) when unrecognised.
+    pub fn kind_label(&self) -> String {
+        match self.kind() {
+            Some(k) => k.label().to_string(),
+            None => format!("unknown:{}", self.kind_raw),
         }
     }
 
     /// One-line human summary used in lists / breadcrumbs.
     pub fn summary(&self) -> String {
         match self.kind() {
-            AnchorerKind::SingleDid => {
+            Some(AnchorerKind::SingleDid) => {
                 format!("single_did({})", self.single_did.as_deref().unwrap_or("?"))
             }
-            AnchorerKind::Threshold => {
+            Some(AnchorerKind::Threshold) => {
                 let k = self.threshold_k.unwrap_or(0);
                 let n = self.threshold_n.unwrap_or(0);
                 format!("threshold({}/{})", k, n)
             }
-            AnchorerKind::OpenSet => {
+            Some(AnchorerKind::OpenSet) => {
                 format!("open_set(n={})", self.open_set_members.len())
             }
-            AnchorerKind::Mixed => format!(
+            Some(AnchorerKind::Mixed) => format!(
                 "mixed(primary={}, recovery_n={})",
                 self.mixed_primary.as_deref().unwrap_or("?"),
                 self.mixed_recovery.len()
             ),
+            None => format!("unknown({})", self.kind_raw),
         }
     }
 }
@@ -453,7 +469,7 @@ mod tests {
             threshold_dids: vec!["did:a".into(), "did:b".into(), "did:c".into()],
             ..Default::default()
         };
-        assert_eq!(v.kind(), AnchorerKind::Threshold);
+        assert_eq!(v.kind(), Some(AnchorerKind::Threshold));
         assert_eq!(v.summary(), "threshold(2/3)");
     }
 
@@ -464,14 +480,17 @@ mod tests {
             single_did: Some("did:cx:abc".into()),
             ..Default::default()
         };
-        assert_eq!(v.kind(), AnchorerKind::SingleDid);
+        assert_eq!(v.kind(), Some(AnchorerKind::SingleDid));
         assert!(v.summary().contains("did:cx:abc"));
-        // Unknown kind_raw collapses to single_did so the UI never panics.
+        // Unknown kind_raw surfaces as `None` (not a misclassified
+        // single_did) so the UI renders an explicit "unknown" badge.
         let unknown = AnchorerValue {
             kind_raw: "garbage".into(),
             ..Default::default()
         };
-        assert_eq!(unknown.kind(), AnchorerKind::SingleDid);
+        assert_eq!(unknown.kind(), None);
+        assert_eq!(unknown.kind_label(), "unknown:garbage");
+        assert_eq!(unknown.summary(), "unknown(garbage)");
     }
 
     #[test]
@@ -481,7 +500,7 @@ mod tests {
             open_set_members: vec!["did:1".into(), "did:2".into()],
             ..Default::default()
         };
-        assert_eq!(open.kind(), AnchorerKind::OpenSet);
+        assert_eq!(open.kind(), Some(AnchorerKind::OpenSet));
         assert_eq!(open.summary(), "open_set(n=2)");
 
         let mixed = AnchorerValue {
@@ -490,7 +509,7 @@ mod tests {
             mixed_recovery: vec!["did:r1".into(), "did:r2".into(), "did:r3".into()],
             ..Default::default()
         };
-        assert_eq!(mixed.kind(), AnchorerKind::Mixed);
+        assert_eq!(mixed.kind(), Some(AnchorerKind::Mixed));
         let s = mixed.summary();
         assert!(s.contains("did:p"));
         assert!(s.contains("recovery_n=3"));

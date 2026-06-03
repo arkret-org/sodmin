@@ -41,7 +41,7 @@ pub fn SpaceCreate() -> Element {
                 Some(discoverability.read().clone())
             },
             // P3A.6 — pin the immutable classification at create time.
-            realm_class: Some(realm_class.read().clone()),
+            realm_class: realm_class.read().clone(),
             ..Default::default()
         };
         spawn(async move {

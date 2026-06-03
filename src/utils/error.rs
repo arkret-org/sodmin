@@ -120,28 +120,22 @@ pub fn display_error(errcode: &str, status: u16, message: &str) -> String {
         return format!("{errcode} ({status}): {localised}: {safe_message}");
     }
 
+    // soland's error envelope carries bare snake_case errcodes straight
+    // from the spec error-code-registry (there is no `cx.error.*`
+    // prefix in the registry, and `schema` is registered as
+    // `schema_violation`). Match those literal registry codes only.
     let fallback = match errcode {
-        "cx.error.not_found" | "not_found" => "Resource not found",
-        "cx.error.unauthenticated" | "unauthenticated" => "Authentication required",
-        "cx.error.capability_denied" | "capability_denied" => "Administrator capability denied",
-        "cx.error.rate_limited" | "rate_limited" => "Rate limited",
-        "cx.error.temporarily_unavailable" | "temporarily_unavailable" => {
-            "Service temporarily unavailable"
-        }
-        "cx.error.validation" | "cx.error.schema" | "validation" | "schema" => {
-            "Request validation failed"
-        }
-        "cx.error.recovery_required" | "recovery_required" => {
-            "Recovery flow must complete before this action is allowed"
-        }
-        "cx.error.policy_required" | "policy_required" => "Required policy approval is missing",
-        "cx.error.session_expired" | "session_expired" => "Session expired — sign in again",
-        "cx.error.idempotency_conflict" | "idempotency_conflict" => {
-            "Idempotency key conflicted with a previous request"
-        }
-        "cx.error.precondition_failed" | "precondition_failed" => {
-            "Precondition failed — refresh and retry"
-        }
+        "not_found" => "Resource not found",
+        "unauthenticated" => "Authentication required",
+        "capability_denied" => "Administrator capability denied",
+        "rate_limited" => "Rate limited",
+        "temporarily_unavailable" => "Service temporarily unavailable",
+        "validation" | "schema_violation" => "Request validation failed",
+        "recovery_required" => "Recovery flow must complete before this action is allowed",
+        "policy_required" => "Required policy approval is missing",
+        "session_expired" => "Session expired — sign in again",
+        "idempotency_conflict" => "Idempotency key conflicted with a previous request",
+        "precondition_failed" => "Precondition failed — refresh and retry",
         _ => message,
     };
     let safe_message = redact_pii(message);
@@ -265,17 +259,20 @@ mod tests {
 
     #[test]
     fn display_error_handles_protocol_codes() {
-        let s = display_error("cx.error.recovery_required", 412, "");
+        let s = display_error("recovery_required", 412, "");
         assert!(s.contains("Recovery flow"));
-        let s = display_error("cx.error.policy_required", 412, "");
+        let s = display_error("policy_required", 412, "");
         assert!(s.contains("policy approval"));
-        let s = display_error("cx.error.session_expired", 401, "");
+        let s = display_error("session_expired", 401, "");
         assert!(s.contains("Session expired"));
+        // `schema_violation` is the registry code (not `schema`).
+        let s = display_error("schema_violation", 422, "");
+        assert!(s.contains("validation failed"));
     }
 
     #[test]
     fn display_error_redacts_raw_message() {
-        let s = display_error("cx.error.validation", 400, "user bob@example.org rejected");
+        let s = display_error("validation", 400, "user bob@example.org rejected");
         assert!(!s.contains("bob@example.org"));
         assert!(s.contains("[email]"));
     }

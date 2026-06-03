@@ -1,14 +1,3 @@
-/// Reset the in-memory `Config` snapshot. Storage cleanup is the
-/// caller's responsibility — `api::auth::logout` removes specific
-/// auth/session keys so user preferences (`language`, `theme`,
-/// `coauth_public_url`) survive logout.
-///
-/// Today this is a no-op: there is no live in-process `Config`
-/// singleton to reset. The function is retained so the logout path
-/// keeps a single, documented hook for any future runtime-config
-/// state that needs to be cleared on sign-out.
-pub fn clear_config() {}
-
 /// Shape of `/config.json` served by the deployment. Only the coauth
 /// public URL is currently consumed; `pages::login` writes it into
 /// storage on app boot so `utils::session::coauth_public_url` can read
