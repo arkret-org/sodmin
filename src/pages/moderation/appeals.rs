@@ -20,7 +20,7 @@
 //! the same Anchor batch; this UI just surfaces the auto-pairing in a
 //! callout so the admin knows what they are about to submit.
 //!
-//! Wire to `/api/admin/v1/moderation/appeals`; sodmin fails closed on
+//! Wire to `/admin/moderation/appeals`; sodmin fails closed on
 //! separation-of-duties when soland omits the original issuer DID.
 
 use dioxus::prelude::*;

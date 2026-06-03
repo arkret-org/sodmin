@@ -3,7 +3,7 @@
 //! Renders the current `cx:cell:cx.component.anchorer.v1:<space>` cell
 //! value (single_did / threshold / open_set / mixed) and exposes a form
 //! that constructs an anchorer-reconfig Move. The submit path posts to
-//! soland's `/api/admin/v1/spaces/{id}/anchorer/reconfigure` endpoint;
+//! soland's `/admin/spaces/{id}/anchorer/reconfigure` endpoint;
 //! soland builds the typed Move + signs with the admin's signer flow.
 //!
 //! Spec rule: a new anchorer cannot self-sign itself in. We mirror that

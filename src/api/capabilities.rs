@@ -7,7 +7,7 @@ pub async fn list_capabilities(
     per_page: u64,
 ) -> Result<ListResponse<CapabilityGrant>, HttpError> {
     let url = build_url(
-        "/api/admin/v1/capabilities",
+        "/admin/capabilities",
         &[
             ("page", &page.to_string()),
             ("per_page", &per_page.to_string()),
@@ -18,7 +18,7 @@ pub async fn list_capabilities(
 
 pub async fn grant_capability(req: &GrantCapabilityRequest) -> Result<CapabilityGrant, HttpError> {
     api_client(
-        "/api/admin/v1/capabilities",
+        "/admin/capabilities",
         "POST",
         Some(serde_json::to_string(req).unwrap_or_default()),
     )
@@ -27,20 +27,20 @@ pub async fn grant_capability(req: &GrantCapabilityRequest) -> Result<Capability
 
 pub async fn revoke_capability(id: &str) -> Result<(), HttpError> {
     let url = format!(
-        "/api/admin/v1/capabilities/{}/revoke",
+        "/admin/capabilities/{}/revoke",
         urlencoding::encode(id)
     );
     api_client(&url, "POST", None).await
 }
 
-/// PATCH `/api/admin/v1/capabilities/{id}` — fine-grained constraint
+/// PATCH `/admin/capabilities/{id}` — fine-grained constraint
 /// edits (T6.2 §5). Sends only the changed fields; the server merges
 /// them into the existing grant and publishes a Move.
 pub async fn update_capability(
     id: &str,
     req: &UpdateCapabilityRequest,
 ) -> Result<CapabilityGrant, HttpError> {
-    let url = format!("/api/admin/v1/capabilities/{}", urlencoding::encode(id));
+    let url = format!("/admin/capabilities/{}", urlencoding::encode(id));
     api_client(
         &url,
         "PATCH",

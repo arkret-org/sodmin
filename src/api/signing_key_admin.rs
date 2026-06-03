@@ -5,7 +5,7 @@
 //!
 //! - `GET  /api/admin/v1/spaces/{id}/anchorer/signing-key` — describe the current AnchorerWorker
 //!   signing key (origin, DID#kid, last rotation).
-//! - `POST /api/admin/v1/spaces/{id}/anchorer/rotate-signing-key` — trigger a key rotation. The
+//! - `POST /admin/spaces/{id}/anchorer/rotate-signing-key` — trigger a key rotation. The
 //!   principal-server generates a fresh key, swaps the worker's signer atomically, and reports the
 //!   new verification method id.
 //!
@@ -32,7 +32,7 @@ pub async fn get_signing_key(realm_id: &str) -> Result<SigningKeyDescribe, HttpE
 /// so the UI can update without a re-fetch round-trip.
 pub async fn rotate_signing_key(realm_id: &str) -> Result<RotateSigningKeyResponse, HttpError> {
     let url = format!(
-        "/api/admin/v1/spaces/{}/anchorer/rotate-signing-key",
+        "/admin/spaces/{}/anchorer/rotate-signing-key",
         urlencoding::encode(realm_id)
     );
     api_client(&url, "POST", Some("{}".to_string())).await

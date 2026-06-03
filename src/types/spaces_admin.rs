@@ -1,7 +1,7 @@
 //! DTO shapes for the soland Spaces admin surface.
 //!
-//! Mirrors `GET /api/admin/v1/spaces` (list) and
-//! `GET /api/admin/v1/spaces/{id}/hierarchy` (per-space hierarchy).
+//! Mirrors `GET /admin/spaces` (list) and
+//! `GET /admin/spaces/{id}/hierarchy` (per-space hierarchy).
 
 use serde::{Deserialize, Serialize};
 
@@ -63,7 +63,7 @@ impl SpaceAdminRow {
 }
 
 /// One node in the hierarchy tree returned by
-/// `GET /api/admin/v1/spaces/{id}/hierarchy`. `parent` is at most one
+/// `GET /admin/spaces/{id}/hierarchy`. `parent` is at most one
 /// step up; `children` is the full set of immediate children. Deeper
 /// transitive ancestry must be paginated by following each parent in a
 /// follow-up request.

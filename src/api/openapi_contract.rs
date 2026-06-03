@@ -61,11 +61,11 @@ pub mod coauth {
 pub mod soland {
     pub const SERVER_INFO: &str = "/api/admin/v1/server/info";
     pub const SERVER_DESCRIBE: &str = "/api/v1/server/describe";
-    pub const SERVER_STATUS: &str = "/api/admin/v1/server/status";
+    pub const SERVER_STATUS: &str = "/admin/server/status";
     pub const SERVER_STATS: &str = "/api/admin/v1/server/stats";
-    pub const SPACES: &str = "/api/admin/v1/spaces";
+    pub const SPACES: &str = "/admin/spaces";
     pub const MODERATION_REPORTS: &str = "/api/admin/v1/moderation/reports";
-    pub const MODERATION_APPEALS: &str = "/api/admin/v1/moderation/appeals";
+    pub const MODERATION_APPEALS: &str = "/admin/moderation/appeals";
     pub const FEDERATION_STATUS: &str = "/api/admin/v1/federation/status";
     pub const AUTHZ_CAPABILITIES: &str = "/api/admin/v1/authz/capabilities";
 }

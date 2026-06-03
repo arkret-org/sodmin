@@ -8,7 +8,7 @@
 //!
 //! Realm-rework: the admin endpoint moved from
 //! `/api/admin/v1/spaces/{id}/delivery-binding-policy` to
-//! `/api/admin/v1/realms/{id}/delivery-binding-policy` because the
+//! `/admin/realms/{id}/delivery-binding-policy` because the
 //! security boundary is now spelled "Realm".
 
 use crate::api::client::api_client;
@@ -19,7 +19,7 @@ pub async fn get_delivery_binding_policy(
     realm_id: &str,
 ) -> Result<RealmDeliveryBindingPolicy, HttpError> {
     let url = format!(
-        "/api/admin/v1/realms/{}/delivery-binding-policy",
+        "/admin/realms/{}/delivery-binding-policy",
         urlencoding::encode(realm_id)
     );
     api_client(&url, "GET", None).await
@@ -30,7 +30,7 @@ pub async fn update_delivery_binding_policy(
     req: &UpdateDeliveryBindingPolicyRequest,
 ) -> Result<RealmDeliveryBindingPolicy, HttpError> {
     let url = format!(
-        "/api/admin/v1/realms/{}/delivery-binding-policy",
+        "/admin/realms/{}/delivery-binding-policy",
         urlencoding::encode(realm_id)
     );
     api_client(

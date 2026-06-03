@@ -61,7 +61,7 @@ pub async fn resolve_report(report_id: &str, body: &ResolveReportRequest) -> Res
 
 // ── Moderation appeals ──────────────────────────────────────────────
 
-/// Wire shape returned by `GET /api/admin/v1/moderation/appeals`.
+/// Wire shape returned by `GET /admin/moderation/appeals`.
 /// Each entry is one row per `appeal_id`, with the latest event of
 /// that appeal (the soland helper collapses the event history to the
 /// most recent state). Fields are deserialised loosely so we can
@@ -102,7 +102,7 @@ struct AppealListEnvelope {
 }
 
 pub async fn list_appeals() -> Result<Vec<AppealRowDto>, HttpError> {
-    let url = "/api/admin/v1/moderation/appeals".to_owned();
+    let url = "/admin/moderation/appeals".to_owned();
     let resp: AppealListEnvelope = api_client(&url, "GET", None).await?;
     Ok(resp.items)
 }
@@ -127,7 +127,7 @@ pub async fn decide_appeal(
     body: &DecideAppealRequest,
 ) -> Result<serde_json::Value, HttpError> {
     let url = format!(
-        "/api/admin/v1/moderation/appeals/{}/decision",
+        "/admin/moderation/appeals/{}/decision",
         urlencoding::encode(appeal_id)
     );
     let payload = serde_json::to_string(body).unwrap_or_default();
@@ -147,7 +147,7 @@ pub async fn lift_decision(
     body: &LiftDecisionRequest,
 ) -> Result<serde_json::Value, HttpError> {
     let url = format!(
-        "/api/admin/v1/moderation/decision/{}/lift",
+        "/admin/moderation/decision/{}/lift",
         urlencoding::encode(decision_id)
     );
     let payload = serde_json::to_string(body).unwrap_or_default();

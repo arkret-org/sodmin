@@ -65,7 +65,7 @@ impl PendingMultisigAnchor {
     }
 }
 
-/// Body POSTed to `/api/admin/v1/spaces/{id}/multisig/{anchor_id}/partial`.
+/// Body POSTed to `/admin/spaces/{id}/multisig/{anchor_id}/partial`.
 /// soland resolves the admin's DID from the bearer token, signs the
 /// anchor's `state_root` with the admin's bound signing key, and folds
 /// the resulting partial into the pending Anchor's signature set.

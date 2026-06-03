@@ -309,7 +309,7 @@ pub struct GrantCapabilityRequest {
     pub expires_at: Option<String>,
 }
 
-/// PATCH body for `/api/admin/v1/capabilities/{id}` — fine-grained
+/// PATCH body for `/admin/capabilities/{id}` — fine-grained
 /// edits to an existing grant's constraints. All fields optional; the
 /// admin only sends the keys that actually changed.
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]

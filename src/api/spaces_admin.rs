@@ -2,9 +2,9 @@
 //!
 //! Endpoints:
 //!
-//! - `GET /api/admin/v1/spaces` — list of Spaces visible to the current admin scope.
+//! - `GET /admin/spaces` — list of Spaces visible to the current admin scope.
 //!   Cursor-paginated.
-//! - `GET /api/admin/v1/spaces/{id}/hierarchy` — parent + immediate children for a single Space.
+//! - `GET /admin/spaces/{id}/hierarchy` — parent + immediate children for a single Space.
 //!
 //! Both routes are 404-tolerant on the client side — the
 //! `format_optional_endpoint_error` helper turns 404 into a clear
@@ -45,7 +45,7 @@ pub async fn list_admin_spaces(
     if let Some(cursor) = cursor.filter(|c| !c.is_empty()) {
         params.push(("cursor", cursor));
     }
-    let url = build_url("/api/admin/v1/spaces", &params)?;
+    let url = build_url("/admin/spaces", &params)?;
     let resp: SpaceAdminEnvelope = api_client(&url, "GET", None).await?;
     Ok(SpaceAdminPage {
         data: resp.data,
@@ -56,7 +56,7 @@ pub async fn list_admin_spaces(
 
 pub async fn get_space_hierarchy(space_id: &str) -> Result<SpaceHierarchy, HttpError> {
     let url = format!(
-        "/api/admin/v1/spaces/{}/hierarchy",
+        "/admin/spaces/{}/hierarchy",
         urlencoding::encode(space_id)
     );
     api_client(&url, "GET", None).await

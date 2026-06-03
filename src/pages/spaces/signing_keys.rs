@@ -4,7 +4,7 @@
 //! origin (Configured / Ephemeral), verification method id (`<did>#<kid>`),
 //! and last-rotation timestamp. When the key is `Configured` the page
 //! exposes a `Rotate signing key` button that POSTs to
-//! `/api/admin/v1/spaces/{id}/anchorer/rotate-signing-key`. When the key
+//! `/admin/spaces/{id}/anchorer/rotate-signing-key`. When the key
 //! is `Ephemeral` the rotation button is hidden and a destructive banner
 //! warns the operator that production deployments must redeploy with a
 //! configured key (rotating an ephemeral key just spawns another

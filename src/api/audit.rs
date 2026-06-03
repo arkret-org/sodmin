@@ -2,7 +2,7 @@ use crate::api::client::{api_client, build_url};
 use crate::types::*;
 use crate::utils::error::HttpError;
 
-/// Multi-dimensional filter for `/admin/v1/audit` queries. Empty fields
+/// Multi-dimensional filter for `/admin/audit` queries. Empty fields
 /// are dropped before encoding so the wire form only carries what the
 /// operator actually filtered on.
 #[derive(Debug, Clone, Default)]
@@ -59,6 +59,6 @@ pub async fn list_audit_entries(
     for (k, v) in owned.iter() {
         params.push((k, v.as_str()));
     }
-    let url = build_url("/api/admin/v1/audit", &params)?;
+    let url = build_url("/admin/audit", &params)?;
     api_client(&url, "GET", None).await
 }

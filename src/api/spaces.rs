@@ -18,18 +18,18 @@ pub async fn list_spaces(
     if !search.is_empty() {
         params.push(("filter[name_or_id]", search));
     }
-    let url = build_url("/api/admin/v1/spaces", &params)?;
+    let url = build_url("/admin/spaces", &params)?;
     api_client(&url, "GET", None).await
 }
 
 pub async fn get_space(id: &str) -> Result<Realm, HttpError> {
-    let url = format!("/api/admin/v1/spaces/{}", urlencoding::encode(id));
+    let url = format!("/admin/spaces/{}", urlencoding::encode(id));
     api_client(&url, "GET", None).await
 }
 
 pub async fn create_space(req: &CreateRealmRequest) -> Result<Realm, HttpError> {
     api_client(
-        "/api/admin/v1/spaces",
+        "/admin/spaces",
         "POST",
         Some(serde_json::to_string(req).unwrap_or_default()),
     )
@@ -37,21 +37,21 @@ pub async fn create_space(req: &CreateRealmRequest) -> Result<Realm, HttpError> 
 }
 
 pub async fn delete_space(id: &str) -> Result<(), HttpError> {
-    let url = format!("/api/admin/v1/spaces/{}", urlencoding::encode(id));
+    let url = format!("/admin/spaces/{}", urlencoding::encode(id));
     api_client(&url, "DELETE", None).await
 }
 
 pub async fn block_space(id: &str) -> Result<(), HttpError> {
-    let url = format!("/api/admin/v1/spaces/{}/block", urlencoding::encode(id));
+    let url = format!("/admin/spaces/{}/block", urlencoding::encode(id));
     api_client(&url, "POST", None).await
 }
 
 pub async fn unblock_space(id: &str) -> Result<(), HttpError> {
-    let url = format!("/api/admin/v1/spaces/{}/unblock", urlencoding::encode(id));
+    let url = format!("/admin/spaces/{}/unblock", urlencoding::encode(id));
     api_client(&url, "POST", None).await
 }
 
 pub async fn list_space_members(id: &str) -> Result<Vec<SpaceMember>, HttpError> {
-    let url = format!("/api/admin/v1/spaces/{}/members", urlencoding::encode(id));
+    let url = format!("/admin/spaces/{}/members", urlencoding::encode(id));
     api_client(&url, "GET", None).await
 }

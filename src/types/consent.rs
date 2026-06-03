@@ -49,6 +49,9 @@ impl ConsentStatus {
 pub struct ConsentGrant {
     pub holder_did: String,
     pub peer_did: String,
+    /// Spec consent-model.md §3 names this `consent_scope` (domain-prefixed,
+    /// per the "no bare scope" rule). Rust field kept as `scope`.
+    #[serde(rename = "consent_scope")]
     pub scope: String,
     /// Wire-format `ConsentStatus` (snake_case).
     pub status: String,

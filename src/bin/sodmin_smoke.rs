@@ -148,10 +148,10 @@ pub(crate) fn classify_status(status: u16, tolerate_404: bool) -> CheckOutcome {
 }
 
 /// Pure helper: build a per-Space admin URL like
-/// `<base>/api/admin/v1/spaces/<id>/<suffix>`. URL-encodes the space id.
+/// `<base>/admin/spaces/<id>/<suffix>`. URL-encodes the space id.
 pub(crate) fn build_space_url(base_url: &str, space_id: &str, suffix: &str) -> String {
     format!(
-        "{}/api/admin/v1/spaces/{}/{}",
+        "{}/admin/spaces/{}/{}",
         base_url.trim_end_matches('/'),
         urlencoding_encode(space_id),
         suffix.trim_start_matches('/'),
@@ -406,7 +406,7 @@ mod tests {
         let url = build_space_url("https://soland.example.com/", "cx:space:demo", "anchorer");
         assert_eq!(
             url,
-            "https://soland.example.com/api/admin/v1/spaces/cx:space:demo/anchorer"
+            "https://soland.example.com/admin/spaces/cx:space:demo/anchorer"
         );
     }
 
@@ -419,7 +419,7 @@ mod tests {
         );
         assert_eq!(
             url,
-            "https://soland.example.com/api/admin/v1/spaces/cx:space:demo/mls/covered-frontier"
+            "https://soland.example.com/admin/spaces/cx:space:demo/mls/covered-frontier"
         );
     }
 

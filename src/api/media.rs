@@ -3,7 +3,7 @@ use crate::types::*;
 use crate::utils::error::HttpError;
 
 pub async fn get_media_statistics() -> Result<MediaStatistics, HttpError> {
-    api_client("/api/admin/v1/media/statistics", "GET", None).await
+    api_client("/admin/media/statistics", "GET", None).await
 }
 
 pub async fn list_actor_media(
@@ -11,7 +11,7 @@ pub async fn list_actor_media(
     per_page: u64,
 ) -> Result<ListResponse<ActorMediaStatistics>, HttpError> {
     let url = build_url(
-        "/api/admin/v1/media/by-actor",
+        "/admin/media/by-actor",
         &[
             ("page", &page.to_string()),
             ("per_page", &per_page.to_string()),

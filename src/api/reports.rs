@@ -8,7 +8,7 @@ pub async fn list_reports(
     status: &str,
 ) -> Result<ListResponse<Report>, HttpError> {
     let url = build_url(
-        "/api/admin/v1/reports",
+        "/admin/reports",
         &[
             ("page", &page.to_string()),
             ("per_page", &per_page.to_string()),
@@ -19,12 +19,12 @@ pub async fn list_reports(
 }
 
 pub async fn get_report(id: &str) -> Result<Report, HttpError> {
-    let url = format!("/api/admin/v1/reports/{}", urlencoding::encode(id));
+    let url = format!("/admin/reports/{}", urlencoding::encode(id));
     api_client(&url, "GET", None).await
 }
 
 pub async fn update_report(id: &str, req: &UpdateReportRequest) -> Result<Report, HttpError> {
-    let url = format!("/api/admin/v1/reports/{}", urlencoding::encode(id));
+    let url = format!("/admin/reports/{}", urlencoding::encode(id));
     api_client(
         &url,
         "PATCH",
@@ -34,6 +34,6 @@ pub async fn update_report(id: &str, req: &UpdateReportRequest) -> Result<Report
 }
 
 pub async fn delete_report(id: &str) -> Result<(), HttpError> {
-    let url = format!("/api/admin/v1/reports/{}", urlencoding::encode(id));
+    let url = format!("/admin/reports/{}", urlencoding::encode(id));
     api_client(&url, "DELETE", None).await
 }
