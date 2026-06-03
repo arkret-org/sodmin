@@ -7,6 +7,12 @@ edition = "2024"
 
 [dependencies]
 coauth-admin-types = { path = "../coauth/crates/admin-types" }
+# Global report #10 — sodmin previously hand-copied every protocol type.
+# Depend on the SDK core + identifiers crates (default features off so the
+# wasm bundle stays lean — the `client` / `keystore-*` / `salvo` / `mls`
+# features pull native-only deps and are deliberately NOT enabled here).
+contrix-core = { path = "../contrix-rust-sdk/crates/core", default-features = false }
+contrix-identifiers = { path = "../contrix-rust-sdk/crates/identifiers", default-features = false }
 dioxus = { version = "0.7.9", features = ["web", "router"] }
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.149"

@@ -1,36 +1,26 @@
-//! Round 4 — DID input validation against the tightened method-name
-//! grammar (`^did:[a-z0-9]+:[^\s]+$`).
+//! DID input validation. Global report #10 (candidate 12) — the local
+//! `regex_lite`-backed validator has been replaced by the SDK's
+//! canonical scalar validator `contrix_identifiers::is_did`.
 //!
-//! Spec a77b995 narrowed the DID method segment from
-//! `[a-z0-9:.\-_]+` to `[a-z0-9]+`: no `.`, `-`, `_`, or `:` inside
-//! the method name. The body (after the second `:`) is still any run
-//! of non-whitespace characters. Every DID input on the sodmin surface
-//! MUST validate against this regex before submission so the admin
-//! gets the same error the SDK would emit on the wire.
-//!
-//! `regex_lite` is used (already a sodmin dependency) so we do not pull
-//! the full `regex` crate into the wasm bundle.
+//! Spec a77b995 narrowed the DID method segment to `[a-z0-9]+`: no `.`,
+//! `-`, `_`, or `:` inside the method name. The body (after the second
+//! `:`) is any run of non-whitespace characters. `contrix_identifiers::
+//! is_did` enforces exactly this grammar (and additionally rejects the
+//! `uuid` method and `#`/`?` markers reserved for the DID-URL surface),
+//! so every DID input on the sodmin surface validates against the same
+//! rule the SDK uses on the wire — no hand-copied regex to drift.
 
-use std::sync::OnceLock;
+pub use contrix_identifiers::is_did;
 
-use regex_lite::Regex;
-
-/// Round 4 — tightened DID grammar. `method` segment is now `[a-z0-9]+`
-/// only; the body after the second `:` is any non-whitespace.
-pub const DID_REGEX_PATTERN: &str = r"^did:[a-z0-9]+:[^\s]+$";
-
-fn did_regex() -> &'static Regex {
-    static REGEX: OnceLock<Regex> = OnceLock::new();
-    REGEX.get_or_init(|| Regex::new(DID_REGEX_PATTERN).expect("DID_REGEX_PATTERN is valid"))
-}
-
-/// Returns `true` when `s` is a DID under the round-4 tightened grammar.
+/// Returns `true` when `s` is a valid DID scalar.
 ///
-/// The empty string is rejected. Any whitespace (including a trailing
-/// newline) is rejected. The method segment MUST be lowercase ASCII
-/// alphanumeric — no `.`, `-`, `_`, or `:`.
+/// Thin wrapper over [`contrix_identifiers::is_did`] kept under the
+/// historical sodmin name so existing call sites need no change. The
+/// empty string, any whitespace, and uppercase / punctuated method
+/// segments are rejected; the method segment MUST be lowercase ASCII
+/// alphanumeric.
 pub fn is_valid_did(s: &str) -> bool {
-    !s.is_empty() && did_regex().is_match(s)
+    is_did(s)
 }
 
 #[cfg(test)]

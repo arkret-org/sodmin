@@ -6,7 +6,8 @@ pub mod csp;
 /// B.7 — client-side CSV export for admin list pages.
 pub mod csv;
 pub mod date;
-/// Round 4 — DID input validation (tightened `^did:[a-z0-9]+:[^\s]+$`).
+/// DID input validation — delegates to the SDK scalar validator
+/// `contrix_identifiers::is_did` (global report #10, candidate 12).
 pub mod did;
 pub mod error;
 /// Concurrent `join_all` primitive used by bulk admin actions.

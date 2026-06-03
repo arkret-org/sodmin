@@ -65,31 +65,18 @@ pub fn is_safe_handle_localpart(input: &str) -> Result<(), HomographReason> {
         return Err(HomographReason::ScriptMixed);
     }
 
-    for ch in input.chars() {
-        if !ch.is_ascii() && minimal_confusable_for(ch).is_some() {
-            return Err(HomographReason::Confusable);
-        }
+    // Global report #10 (candidate 8) — confusable / canonical-alphabet
+    // detection is delegated to the SDK's `normalize_handle_localpart`,
+    // which carries the full UTS#39-inspired confusable table (the
+    // pre-#10 sodmin mirror only knew 9 codepoints). The length /
+    // zero-width / script-mix classification above is kept so the UI can
+    // still surface a distinct reason; anything the SDK rejects past
+    // those gates folds into [`HomographReason::Confusable`].
+    if contrix_core::model::normalize_handle_localpart(input).is_err() {
+        return Err(HomographReason::Confusable);
     }
 
     Ok(())
-}
-
-/// Minimal confusable folds — same subset as the SDK R3 helper.
-fn minimal_confusable_for(ch: char) -> Option<char> {
-    match ch {
-        // Cyrillic small letters that fold to ASCII look-alikes.
-        '\u{0430}' => Some('a'),
-        '\u{0435}' => Some('e'),
-        '\u{043E}' => Some('o'),
-        '\u{0440}' => Some('p'),
-        '\u{0441}' => Some('c'),
-        '\u{0443}' => Some('y'),
-        '\u{0445}' => Some('x'),
-        // Greek small letters with ASCII look-alikes.
-        '\u{03B1}' => Some('a'),
-        '\u{03BF}' => Some('o'),
-        _ => None,
-    }
 }
 
 /// Tag returned for each rejection reason — surfaced to the UI as a
@@ -131,59 +118,51 @@ impl HomographReason {
 /// caller is expected to additionally run [`is_safe_handle_localpart`]
 /// against the resulting localpart to catch homograph attacks.
 pub fn normalize_to_canonical(input: &str) -> Result<String, HandleNormalizeError> {
+    use contrix_core::model::Handle;
+
     let trimmed = input.trim();
     if trimmed.is_empty() {
         return Err(HandleNormalizeError::Empty);
     }
 
+    // Global report #10 (candidate 8) — the spelling-recovery (prefix
+    // stripping / `acct:` rewrite) stays here because it is an
+    // admin-UI-only convenience the SDK parser does not perform, but the
+    // authoritative localpart / domain / port validation + canonical
+    // lowercasing is delegated to the SDK `Handle` parser so the admin UI
+    // accepts exactly what soland's `cx.handle.*` reducers verify.
+
     // 1. Retired `contrix://` URI form. We accept on input so a stale bookmark / copy-paste
     //    round-trips into canonical; we never emit it on output.
     if let Some(rest) = trimmed.strip_prefix("contrix://") {
         let mut parts = rest.splitn(3, '/');
-        let domain = parts.next().unwrap_or("").to_ascii_lowercase();
+        let domain = parts.next().unwrap_or("");
         let users = parts.next().unwrap_or("");
-        let localpart = parts.next().unwrap_or("").to_ascii_lowercase();
+        let localpart = parts.next().unwrap_or("");
         if users != "users" || localpart.is_empty() || domain.is_empty() {
             return Err(HandleNormalizeError::Malformed);
         }
-        return Ok(format!("{localpart}:{domain}"));
+        return Handle::parse(&format!("{localpart}:{domain}"))
+            .map(|h| h.canonical().to_owned())
+            .map_err(|_| HandleNormalizeError::Malformed);
     }
 
-    // 2. `acct:` interop form -- rewrite the `@` separator to `:`.
-    if let Some(rest) = trimmed.strip_prefix("acct:") {
-        let (local, domain) = rest
-            .rsplit_once('@')
-            .ok_or(HandleNormalizeError::Malformed)?;
-        if local.is_empty() || domain.is_empty() {
-            return Err(HandleNormalizeError::Malformed);
-        }
-        return Ok(format!(
-            "{}:{}",
-            local.to_ascii_lowercase(),
-            domain.to_ascii_lowercase()
-        ));
+    // 2. `acct:` interop form — delegated wholesale to the SDK
+    //    `Handle::from_acct`, which rewrites `@` to `:` and validates.
+    if trimmed.starts_with("acct:") {
+        return Handle::from_acct(trimmed)
+            .map(|h| h.canonical().to_owned())
+            .map_err(|_| HandleNormalizeError::Malformed);
     }
 
-    // 3. Display sigil `@localpart:domain[:port]`.
+    // 3. Display sigil `@localpart:domain[:port]` — strip the UI sigil.
     let body = trimmed.strip_prefix('@').unwrap_or(trimmed);
 
-    // 4. Canonical form already.
-    let mut parts = body.split(':');
-    let local = parts.next().ok_or(HandleNormalizeError::Malformed)?;
-    let domain = parts.next().ok_or(HandleNormalizeError::Malformed)?;
-    let port = parts.next();
-    if parts.next().is_some() {
-        return Err(HandleNormalizeError::Malformed);
-    }
-    if local.is_empty() || domain.is_empty() {
-        return Err(HandleNormalizeError::Malformed);
-    }
-    let local = local.to_ascii_lowercase();
-    let domain = domain.to_ascii_lowercase();
-    match port {
-        Some(p) => Ok(format!("{local}:{domain}:{p}")),
-        None => Ok(format!("{local}:{domain}")),
-    }
+    // 4. Canonical form: hand the bytes to the SDK parser for the
+    //    authoritative `<localpart>:<domain>(:<port>)?` validation.
+    Handle::parse(body)
+        .map(|h| h.canonical().to_owned())
+        .map_err(|_| HandleNormalizeError::Malformed)
 }
 
 /// R3.1 — format the operator-facing display sigil for a canonical

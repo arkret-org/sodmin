@@ -88,10 +88,24 @@ pub fn display_error(errcode: &str, status: u16, message: &str) -> String {
     // matching i18n key (`error.<reason>`). When an i18n string is
     // present we render it; otherwise we fall back to the in-line
     // English literal so brand-new codes still surface usefully.
+    // Global report #10 (candidate 8) — the three CXP-0007 reason codes
+    // the SDK ships as public constants are matched against
+    // `contrix_core::error::REASON_CIRCLE_*` rather than hand-copied
+    // literals, so a wire rename in the SDK breaks the build here. The
+    // remaining three (`circle_already_terminal`,
+    // `circle_capability_denied`, `circle_scope_rotation_in_progress`)
+    // are sodmin/soland-local admin reasons not yet promoted to a core
+    // constant, so they stay as literals.
+    use contrix_core::error::{
+        REASON_CIRCLE_MEMBER_MUST_BE_REALM_MEMBER, REASON_CIRCLE_NOT_ACTIVE,
+        REASON_CIRCLE_REALM_MISMATCH,
+    };
     let circle_reason: Option<&'static str> = match errcode {
-        "circle_realm_mismatch" => Some("error.circle_realm_mismatch"),
-        "circle_member_must_be_realm_member" => Some("error.circle_member_must_be_realm_member"),
-        "circle_not_active" => Some("error.circle_not_active"),
+        _ if errcode == REASON_CIRCLE_REALM_MISMATCH => Some("error.circle_realm_mismatch"),
+        _ if errcode == REASON_CIRCLE_MEMBER_MUST_BE_REALM_MEMBER => {
+            Some("error.circle_member_must_be_realm_member")
+        }
+        _ if errcode == REASON_CIRCLE_NOT_ACTIVE => Some("error.circle_not_active"),
         "circle_already_terminal" => Some("error.circle_already_terminal"),
         "circle_capability_denied" => Some("error.circle_capability_denied"),
         "circle_scope_rotation_in_progress" => Some("error.circle_scope_rotation_in_progress"),
