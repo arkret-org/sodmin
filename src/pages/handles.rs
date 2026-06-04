@@ -29,6 +29,7 @@ use crate::components::ui::dialog::ConfirmDialog;
 use crate::components::ui::error_banner::ErrorBanner;
 use crate::components::ui::input::{Label, SearchInput};
 use crate::components::ui::loading::PageSkeleton;
+use crate::components::ui::modal::{DialogActions, Modal};
 use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::pagination::Pagination;
 use crate::components::ui::table::*;
@@ -215,66 +216,57 @@ pub fn HandleList() -> Element {
             on_cancel: move |_| show_revoke.set(None),
         }
 
-        if show_reassign.read().is_some() {
-            div { class: "fixed inset-0 z-50 flex items-center justify-center",
-                div { class: "fixed inset-0 bg-black/80", onclick: move |_| show_reassign.set(None) }
-                div { class: "relative z-50 w-full max-w-md rounded-lg border glass-panel p-6 shadow-lg space-y-4",
-                    h2 { class: "text-lg font-semibold", {t("handles.reassign_title")} }
-                    p { class: "text-sm text-muted-foreground", {t("handles.reassign_body")} }
-                    div { class: "space-y-1",
-                        Label { r#for: "handle-new-subject".to_string(), {t("handles.new_subject_id")} }
-                        // Round 4 — DID input with inline regex
-                        // validation (`^did:[a-z0-9]+:[^\s]+$`).
-                        DidInput {
-                            value: new_subject_id.read().clone(),
-                            oninput: move |evt: FormEvent| new_subject_id.set(evt.value()),
-                        }
-                    }
-                    {
-                        let subject = new_subject_id.read().trim().to_string();
-                        let subject_valid = did::is_valid_did(&subject);
-                        rsx! {
-                            div { class: "flex justify-end gap-2",
-                                Button {
-                                    variant: ButtonVariant::Outline,
-                                    onclick: move |_| show_reassign.set(None),
-                                    {t("common.cancel")}
+        Modal {
+            open: show_reassign.read().is_some(),
+            title: t("handles.reassign_title"),
+            on_close: move |_| show_reassign.set(None),
+            p { class: "text-sm text-muted-foreground", {t("handles.reassign_body")} }
+            div { class: "space-y-1",
+                Label { r#for: "handle-new-subject".to_string(), {t("handles.new_subject_id")} }
+                // Round 4 — DID input with inline regex
+                // validation (`^did:[a-z0-9]+:[^\s]+$`).
+                DidInput {
+                    value: new_subject_id.read().clone(),
+                    oninput: move |evt: FormEvent| new_subject_id.set(evt.value()),
+                }
+            }
+            {
+                let subject = new_subject_id.read().trim().to_string();
+                let subject_valid = did::is_valid_did(&subject);
+                rsx! {
+                    DialogActions {
+                        confirm_text: t("handles.reassign"),
+                        cancel_text: t("common.cancel"),
+                        confirm_loading: *reassign_loading.read() || !subject_valid,
+                        on_cancel: move |_| show_reassign.set(None),
+                        on_confirm: move |_| {
+                            if let Some(id) = show_reassign.read().clone() {
+                                let subject = new_subject_id.read().trim().to_string();
+                                // Round 4 — never submit a
+                                // DID that fails local
+                                // validation; the SDK would
+                                // reject it on the wire.
+                                if !did::is_valid_did(&subject) {
+                                    return;
                                 }
-                                Button {
-                                    variant: ButtonVariant::Default,
-                                    disabled: *reassign_loading.read() || !subject_valid,
-                                    onclick: move |_| {
-                                        if let Some(id) = show_reassign.read().clone() {
-                                            let subject = new_subject_id.read().trim().to_string();
-                                            // Round 4 — never submit a
-                                            // DID that fails local
-                                            // validation; the SDK would
-                                            // reject it on the wire.
-                                            if !did::is_valid_did(&subject) {
-                                                return;
-                                            }
-                                            reassign_loading.set(true);
-                                            spawn(async move {
-                                                let req = HandleReassignRequest {
-                                                    new_subject_id: subject,
-                                                    reason: None,
-                                                };
-                                                match handles::reassign_handle(&id, &req).await {
-                                                    Ok(_) => {
-                                                        show_toast(&t("handles.reassign_ok"), ToastVariant::Success);
-                                                        show_reassign.set(None);
-                                                        data.restart();
-                                                    }
-                                                    Err(e) => show_toast(&format!("{}: {}", t("handles.reassign_fail"), e.message), ToastVariant::Error),
-                                                }
-                                                reassign_loading.set(false);
-                                            });
+                                reassign_loading.set(true);
+                                spawn(async move {
+                                    let req = HandleReassignRequest {
+                                        new_subject_id: subject,
+                                        reason: None,
+                                    };
+                                    match handles::reassign_handle(&id, &req).await {
+                                        Ok(_) => {
+                                            show_toast(&t("handles.reassign_ok"), ToastVariant::Success);
+                                            show_reassign.set(None);
+                                            data.restart();
                                         }
-                                    },
-                                    {t("handles.reassign")}
-                                }
+                                        Err(e) => show_toast(&format!("{}: {}", t("handles.reassign_fail"), e.message), ToastVariant::Error),
+                                    }
+                                    reassign_loading.set(false);
+                                });
                             }
-                        }
+                        },
                     }
                 }
             }
@@ -454,63 +446,54 @@ pub fn HandleShow(handle_id: String) -> Element {
             on_cancel: move |_| show_revoke.set(false),
         }
 
-        if *show_reassign.read() {
-            div { class: "fixed inset-0 z-50 flex items-center justify-center",
-                div { class: "fixed inset-0 bg-black/80", onclick: move |_| show_reassign.set(false) }
-                div { class: "relative z-50 w-full max-w-md rounded-lg border glass-panel p-6 shadow-lg space-y-4",
-                    h2 { class: "text-lg font-semibold", {t("handles.reassign_title")} }
-                    p { class: "text-sm text-muted-foreground", {t("handles.reassign_body")} }
-                    div { class: "space-y-1",
-                        Label { r#for: "handle-detail-new-subject".to_string(), {t("handles.new_subject_id")} }
-                        // Round 4 — DID input with inline regex
-                        // validation.
-                        DidInput {
-                            value: new_subject_id.read().clone(),
-                            oninput: move |evt: FormEvent| new_subject_id.set(evt.value()),
-                        }
-                    }
-                    {
-                        let subject_valid = did::is_valid_did(new_subject_id.read().trim());
-                        rsx! {
-                            div { class: "flex justify-end gap-2",
-                                Button {
-                                    variant: ButtonVariant::Outline,
-                                    onclick: move |_| show_reassign.set(false),
-                                    {t("common.cancel")}
-                                }
-                                Button {
-                                    variant: ButtonVariant::Default,
-                                    disabled: *reassign_loading.read() || !subject_valid,
-                                    onclick: move |_| {
-                                        let subject = new_subject_id.read().trim().to_string();
-                                        // Round 4 — DID must match
-                                        // `^did:[a-z0-9]+:[^\s]+$`.
-                                        if !did::is_valid_did(&subject) {
-                                            return;
-                                        }
-                                        let id = id_reassign.clone();
-                                        reassign_loading.set(true);
-                                        spawn(async move {
-                                            let req = HandleReassignRequest {
-                                                new_subject_id: subject,
-                                                reason: None,
-                                            };
-                                            match handles::reassign_handle(&id, &req).await {
-                                                Ok(_) => {
-                                                    show_toast(&t("handles.reassign_ok"), ToastVariant::Success);
-                                                    show_reassign.set(false);
-                                                    handle_data.restart();
-                                                    audit_data.restart();
-                                                }
-                                                Err(e) => show_toast(&format!("{}: {}", t("handles.reassign_fail"), e.message), ToastVariant::Error),
-                                            }
-                                            reassign_loading.set(false);
-                                        });
-                                    },
-                                    {t("handles.reassign")}
-                                }
+        Modal {
+            open: *show_reassign.read(),
+            title: t("handles.reassign_title"),
+            on_close: move |_| show_reassign.set(false),
+            p { class: "text-sm text-muted-foreground", {t("handles.reassign_body")} }
+            div { class: "space-y-1",
+                Label { r#for: "handle-detail-new-subject".to_string(), {t("handles.new_subject_id")} }
+                // Round 4 — DID input with inline regex
+                // validation.
+                DidInput {
+                    value: new_subject_id.read().clone(),
+                    oninput: move |evt: FormEvent| new_subject_id.set(evt.value()),
+                }
+            }
+            {
+                let subject_valid = did::is_valid_did(new_subject_id.read().trim());
+                rsx! {
+                    DialogActions {
+                        confirm_text: t("handles.reassign"),
+                        cancel_text: t("common.cancel"),
+                        confirm_loading: *reassign_loading.read() || !subject_valid,
+                        on_cancel: move |_| show_reassign.set(false),
+                        on_confirm: move |_| {
+                            let subject = new_subject_id.read().trim().to_string();
+                            // Round 4 — DID must match
+                            // `^did:[a-z0-9]+:[^\s]+$`.
+                            if !did::is_valid_did(&subject) {
+                                return;
                             }
-                        }
+                            let id = id_reassign.clone();
+                            reassign_loading.set(true);
+                            spawn(async move {
+                                let req = HandleReassignRequest {
+                                    new_subject_id: subject,
+                                    reason: None,
+                                };
+                                match handles::reassign_handle(&id, &req).await {
+                                    Ok(_) => {
+                                        show_toast(&t("handles.reassign_ok"), ToastVariant::Success);
+                                        show_reassign.set(false);
+                                        handle_data.restart();
+                                        audit_data.restart();
+                                    }
+                                    Err(e) => show_toast(&format!("{}: {}", t("handles.reassign_fail"), e.message), ToastVariant::Error),
+                                }
+                                reassign_loading.set(false);
+                            });
+                        },
                     }
                 }
             }

@@ -6,6 +6,7 @@ use crate::components::ui::dialog::ConfirmDialog;
 use crate::components::ui::error_banner::ErrorBanner;
 use crate::components::ui::input::{Input, Label};
 use crate::components::ui::loading::PageSkeleton;
+use crate::components::ui::modal::{DialogActions, Modal};
 use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::pagination::Pagination;
 use crate::components::ui::table::*;
@@ -160,70 +161,61 @@ pub fn InviteTokenList() -> Element {
             }
         }
 
-        if *show_create_dialog.read() {
-            div { class: "fixed inset-0 z-50 flex items-center justify-center",
-                    div { class: "fixed inset-0 bg-black/80", onclick: move |_| show_create_dialog.set(false) }
-                    div { class: "relative z-50 w-full max-w-md rounded-lg border glass-panel p-6 shadow-lg space-y-4",
-                        h2 { class: "text-lg font-semibold", {t("invite_tokens.create")} }
-                        div { class: "space-y-3",
-                            div { class: "space-y-1",
-                                Label { r#for: "it-uses".to_string(), {t("invite_tokens.uses_allowed")} }
-                                Input {
-                                    r#type: "number".to_string(),
-                                    value: uses_allowed.read().clone(),
-                                    oninput: move |evt: FormEvent| uses_allowed.set(evt.value()),
-                                }
-                            }
-                            div { class: "space-y-1",
-                                Label { r#for: "it-expires".to_string(), {t("invite_tokens.expires_at")} }
-                                Input {
-                                    r#type: "datetime-local".to_string(),
-                                    value: expires_at.read().clone(),
-                                    oninput: move |evt: FormEvent| expires_at.set(evt.value()),
-                                }
-                            }
-                            div { class: "space-y-1",
-                                Label { r#for: "it-space".to_string(), {t("invite_tokens.space_id")} }
-                                Input {
-                                    value: space_id.read().clone(),
-                                    oninput: move |evt: FormEvent| space_id.set(evt.value()),
-                                }
-                            }
-                        }
-                        div { class: "flex justify-end gap-2",
-                            Button {
-                                variant: ButtonVariant::Outline,
-                                onclick: move |_| show_create_dialog.set(false),
-                                {t("common.cancel")}
-                            }
-                            Button {
-                                variant: ButtonVariant::Default,
-                                disabled: *create_loading.read(),
-                                onclick: move |_| {
-                                    create_loading.set(true);
-                                    let req = CreateInviteTokenRequest {
-                                        uses_allowed: uses_allowed.read().parse().ok(),
-                                        expires_at: if expires_at.read().is_empty() { None } else { Some(expires_at.read().clone()) },
-                                        space_id: if space_id.read().is_empty() { None } else { Some(space_id.read().clone()) },
-                                    };
-                                    spawn(async move {
-                                        match invite_tokens::create_invite_token(&req).await {
-                                            Ok(_) => {
-                                                show_toast("Token created", ToastVariant::Success);
-                                                show_create_dialog.set(false);
-                                                data.restart();
-                                            }
-                                            Err(e) => show_toast(&format!("Failed: {}", e.message), ToastVariant::Error),
-                                        }
-                                        create_loading.set(false);
-                                    });
-                                },
-                                {t("common.create")}
-                            }
-                        }
+        Modal {
+            open: *show_create_dialog.read(),
+            title: t("invite_tokens.create"),
+            on_close: move |_| show_create_dialog.set(false),
+            div { class: "space-y-3",
+                div { class: "space-y-1",
+                    Label { r#for: "it-uses".to_string(), {t("invite_tokens.uses_allowed")} }
+                    Input {
+                        r#type: "number".to_string(),
+                        value: uses_allowed.read().clone(),
+                        oninput: move |evt: FormEvent| uses_allowed.set(evt.value()),
+                    }
+                }
+                div { class: "space-y-1",
+                    Label { r#for: "it-expires".to_string(), {t("invite_tokens.expires_at")} }
+                    Input {
+                        r#type: "datetime-local".to_string(),
+                        value: expires_at.read().clone(),
+                        oninput: move |evt: FormEvent| expires_at.set(evt.value()),
+                    }
+                }
+                div { class: "space-y-1",
+                    Label { r#for: "it-space".to_string(), {t("invite_tokens.space_id")} }
+                    Input {
+                        value: space_id.read().clone(),
+                        oninput: move |evt: FormEvent| space_id.set(evt.value()),
                     }
                 }
             }
+            DialogActions {
+                confirm_text: t("common.create"),
+                cancel_text: t("common.cancel"),
+                confirm_loading: *create_loading.read(),
+                on_cancel: move |_| show_create_dialog.set(false),
+                on_confirm: move |_| {
+                    create_loading.set(true);
+                    let req = CreateInviteTokenRequest {
+                        uses_allowed: uses_allowed.read().parse().ok(),
+                        expires_at: if expires_at.read().is_empty() { None } else { Some(expires_at.read().clone()) },
+                        space_id: if space_id.read().is_empty() { None } else { Some(space_id.read().clone()) },
+                    };
+                    spawn(async move {
+                        match invite_tokens::create_invite_token(&req).await {
+                            Ok(_) => {
+                                show_toast("Token created", ToastVariant::Success);
+                                show_create_dialog.set(false);
+                                data.restart();
+                            }
+                            Err(e) => show_toast(&format!("Failed: {}", e.message), ToastVariant::Error),
+                        }
+                        create_loading.set(false);
+                    });
+                },
+            }
+        }
 
         ConfirmDialog {
             open: show_delete_dialog.read().is_some(),

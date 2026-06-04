@@ -7,6 +7,7 @@ use crate::components::ui::dialog::ConfirmDialog;
 use crate::components::ui::error_banner::ErrorBanner;
 use crate::components::ui::input::{Input, Label};
 use crate::components::ui::loading::PageSkeleton;
+use crate::components::ui::modal::{DialogActions, Modal};
 use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::pagination::Pagination;
 use crate::components::ui::table::*;
@@ -133,49 +134,40 @@ pub fn RegistrationTokensPage() -> Element {
             }
         }
 
-        if *show_create.read() {
-            div { class: "fixed inset-0 z-50 flex items-center justify-center",
-                    div { class: "fixed inset-0 bg-black/80", onclick: move |_| show_create.set(false) }
-                    div { class: "relative z-50 w-full max-w-md rounded-lg border glass-panel p-6 shadow-lg space-y-4",
-                        h2 { class: "text-lg font-semibold", {t("coauth.registration_tokens.create")} }
-                        div { class: "space-y-1",
-                            Label { r#for: "rt-uses".to_string(), {t("coauth.registration_tokens.uses_allowed")} }
-                            Input {
-                                r#type: "number".to_string(),
-                                value: uses_allowed.read().clone(),
-                                oninput: move |evt: FormEvent| uses_allowed.set(evt.value()),
-                            }
-                        }
-                        div { class: "flex justify-end gap-2",
-                            Button {
-                                variant: ButtonVariant::Outline,
-                                onclick: move |_| show_create.set(false),
-                                {t("common.cancel")}
-                            }
-                            Button {
-                                variant: ButtonVariant::Default,
-                                disabled: *create_loading.read(),
-                                onclick: move |_| {
-                                    create_loading.set(true);
-                                    let ua: Option<u64> = uses_allowed.read().parse().ok();
-                                    spawn(async move {
-                                        match coauth::create_registration_token(ua).await {
-                                            Ok(_) => {
-                                                show_toast("Token created", ToastVariant::Success);
-                                                show_create.set(false);
-                                                data.restart();
-                                            }
-                                            Err(e) => show_toast(&format!("Failed: {}", e.message), ToastVariant::Error),
-                                        }
-                                        create_loading.set(false);
-                                    });
-                                },
-                                {t("common.create")}
-                            }
-                        }
-                    }
+        Modal {
+            open: *show_create.read(),
+            title: t("coauth.registration_tokens.create"),
+            on_close: move |_| show_create.set(false),
+            div { class: "space-y-1",
+                Label { r#for: "rt-uses".to_string(), {t("coauth.registration_tokens.uses_allowed")} }
+                Input {
+                    r#type: "number".to_string(),
+                    value: uses_allowed.read().clone(),
+                    oninput: move |evt: FormEvent| uses_allowed.set(evt.value()),
                 }
             }
+            DialogActions {
+                confirm_text: t("common.create"),
+                cancel_text: t("common.cancel"),
+                confirm_loading: *create_loading.read(),
+                on_cancel: move |_| show_create.set(false),
+                on_confirm: move |_| {
+                    create_loading.set(true);
+                    let ua: Option<u64> = uses_allowed.read().parse().ok();
+                    spawn(async move {
+                        match coauth::create_registration_token(ua).await {
+                            Ok(_) => {
+                                show_toast("Token created", ToastVariant::Success);
+                                show_create.set(false);
+                                data.restart();
+                            }
+                            Err(e) => show_toast(&format!("Failed: {}", e.message), ToastVariant::Error),
+                        }
+                        create_loading.set(false);
+                    });
+                },
+            }
+        }
 
         ConfirmDialog {
             open: show_revoke.read().is_some(),

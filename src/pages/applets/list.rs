@@ -7,6 +7,7 @@ use crate::components::ui::dialog::ConfirmDialog;
 use crate::components::ui::error_banner::ErrorBanner;
 use crate::components::ui::input::{Input, Label};
 use crate::components::ui::loading::PageSkeleton;
+use crate::components::ui::modal::{DialogActions, Modal};
 use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::pagination::Pagination;
 use crate::components::ui::table::*;
@@ -181,69 +182,60 @@ pub fn AppletList() -> Element {
             }
         }
 
-        if *show_register_dialog.read() {
-            div { class: "fixed inset-0 z-50 flex items-center justify-center",
-                    div { class: "fixed inset-0 bg-black/80", onclick: move |_| show_register_dialog.set(false) }
-                    div { class: "relative z-50 w-full max-w-md rounded-lg border glass-panel p-6 shadow-lg space-y-4",
-                        h2 { class: "text-lg font-semibold", {t("applets.register")} }
-                        div { class: "space-y-3",
-                            div { class: "space-y-1",
-                                Label { r#for: "applet-name".to_string(), {t("applets.name")} }
-                                Input {
-                                    value: name.read().clone(),
-                                    oninput: move |evt: FormEvent| name.set(evt.value()),
-                                }
-                            }
-                            div { class: "space-y-1",
-                                Label { r#for: "applet-endpoint".to_string(), {t("applets.endpoint_url")} }
-                                Input {
-                                    value: endpoint_url.read().clone(),
-                                    oninput: move |evt: FormEvent| endpoint_url.set(evt.value()),
-                                }
-                            }
-                            div { class: "space-y-1",
-                                Label { r#for: "applet-namespace".to_string(), {t("applets.namespace")} }
-                                Input {
-                                    value: namespace.read().clone(),
-                                    oninput: move |evt: FormEvent| namespace.set(evt.value()),
-                                }
-                            }
-                        }
-                        div { class: "flex justify-end gap-2",
-                            Button {
-                                variant: ButtonVariant::Outline,
-                                onclick: move |_| show_register_dialog.set(false),
-                                {t("common.cancel")}
-                            }
-                            Button {
-                                variant: ButtonVariant::Default,
-                                disabled: *register_loading.read(),
-                                onclick: move |_| {
-                                    register_loading.set(true);
-                                    let req = RegisterAppletRequest {
-                                        name: name.read().clone(),
-                                        endpoint_url: endpoint_url.read().clone(),
-                                        namespace: if namespace.read().is_empty() { None } else { Some(namespace.read().clone()) },
-                                        ..Default::default()
-                                    };
-                                    spawn(async move {
-                                        match applets::register_applet(&req).await {
-                                            Ok(_) => {
-                                                show_toast("Applet registered", ToastVariant::Success);
-                                                show_register_dialog.set(false);
-                                                data.restart();
-                                            }
-                                            Err(e) => show_toast(&format!("Failed: {}", e.message), ToastVariant::Error),
-                                        }
-                                        register_loading.set(false);
-                                    });
-                                },
-                                {t("common.create")}
-                            }
-                        }
+        Modal {
+            open: *show_register_dialog.read(),
+            title: t("applets.register"),
+            on_close: move |_| show_register_dialog.set(false),
+            div { class: "space-y-3",
+                div { class: "space-y-1",
+                    Label { r#for: "applet-name".to_string(), {t("applets.name")} }
+                    Input {
+                        value: name.read().clone(),
+                        oninput: move |evt: FormEvent| name.set(evt.value()),
+                    }
+                }
+                div { class: "space-y-1",
+                    Label { r#for: "applet-endpoint".to_string(), {t("applets.endpoint_url")} }
+                    Input {
+                        value: endpoint_url.read().clone(),
+                        oninput: move |evt: FormEvent| endpoint_url.set(evt.value()),
+                    }
+                }
+                div { class: "space-y-1",
+                    Label { r#for: "applet-namespace".to_string(), {t("applets.namespace")} }
+                    Input {
+                        value: namespace.read().clone(),
+                        oninput: move |evt: FormEvent| namespace.set(evt.value()),
                     }
                 }
             }
+            DialogActions {
+                confirm_text: t("common.create"),
+                cancel_text: t("common.cancel"),
+                confirm_loading: *register_loading.read(),
+                on_cancel: move |_| show_register_dialog.set(false),
+                on_confirm: move |_| {
+                    register_loading.set(true);
+                    let req = RegisterAppletRequest {
+                        name: name.read().clone(),
+                        endpoint_url: endpoint_url.read().clone(),
+                        namespace: if namespace.read().is_empty() { None } else { Some(namespace.read().clone()) },
+                        ..Default::default()
+                    };
+                    spawn(async move {
+                        match applets::register_applet(&req).await {
+                            Ok(_) => {
+                                show_toast("Applet registered", ToastVariant::Success);
+                                show_register_dialog.set(false);
+                                data.restart();
+                            }
+                            Err(e) => show_toast(&format!("Failed: {}", e.message), ToastVariant::Error),
+                        }
+                        register_loading.set(false);
+                    });
+                },
+            }
+        }
 
         ConfirmDialog {
             open: show_delete_dialog.read().is_some(),

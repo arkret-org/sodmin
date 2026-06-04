@@ -10,6 +10,7 @@ use crate::components::ui::dialog::ConfirmDialog;
 use crate::components::ui::error_banner::ErrorBanner;
 use crate::components::ui::input::{Input, Label, SearchInput};
 use crate::components::ui::loading::PageSkeleton;
+use crate::components::ui::modal::{DialogActions, Modal};
 use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::pagination::CursorPagination;
 use crate::components::ui::table::*;
@@ -297,107 +298,98 @@ pub fn FederationList() -> Element {
             }
         }
 
-        if *show_add_rule.read() {
-            div { class: "fixed inset-0 z-50 flex items-center justify-center",
-                    div { class: "fixed inset-0 bg-black/80", onclick: move |_| show_add_rule.set(false) }
-                    div { class: "relative z-50 w-full max-w-md rounded-lg border glass-panel p-6 shadow-lg space-y-4",
-                        h2 { class: "text-lg font-semibold", {t("federation.add_rule")} }
-                        div { class: "space-y-1",
-                            Label { r#for: "rule-domain".to_string(), {t("federation.domain")} }
-                            Input {
-                                id: "rule-domain".to_string(),
-                                value: new_rule_domain.read().clone(),
-                                oninput: move |evt: FormEvent| new_rule_domain.set(evt.value()),
-                            }
-                        }
-                        div { class: "grid gap-4 sm:grid-cols-2",
-                            div { class: "space-y-1",
-                                Label { r#for: "rule-polarity".to_string(), "Polarity" }
-                                select {
-                                    id: "rule-polarity",
-                                    class: "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm",
-                                    value: new_rule_polarity.read().clone(),
-                                    onchange: move |evt| {
-                                        let value = evt.value();
-                                        new_rule_polarity.set(value.clone());
-                                        new_rule_action.set(match value.as_str() {
-                                            "deny" => "deny_federation".to_string(),
-                                            "block" => "block_federation".to_string(),
-                                            _ => "allow_federation".to_string(),
-                                        });
-                                    },
-                                    option { value: "allow", "allow" }
-                                    option { value: "deny", "deny" }
-                                    option { value: "block", "block" }
-                                }
-                            }
-                            div { class: "space-y-1",
-                                Label { r#for: "rule-action".to_string(), "Action" }
-                                select {
-                                    id: "rule-action",
-                                    class: "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm",
-                                    value: new_rule_action.read().clone(),
-                                    onchange: move |evt| new_rule_action.set(evt.value()),
-                                    option { value: "allow_federation", "allow_federation" }
-                                    option { value: "deny_federation", "deny_federation" }
-                                    option { value: "block_federation", "block_federation" }
-                                    option { value: "defederate", "defederate" }
-                                }
-                            }
-                        }
-                        label { class: "flex items-center gap-2 text-sm",
-                            Checkbox {
-                                id: "rule-allowlist-enforced".to_string(),
-                                checked: *new_rule_allowlist_enforced.read(),
-                                aria_label: "Enforce allowlist".to_string(),
-                                onchange: move |checked| new_rule_allowlist_enforced.set(checked),
-                            }
-                            span { "Enforce allowlist mode" }
-                        }
-                        div { class: "flex justify-end gap-2",
-                            Button {
-                                variant: ButtonVariant::Outline,
-                                onclick: move |_| show_add_rule.set(false),
-                                {t("common.cancel")}
-                            }
-                            Button {
-                                variant: ButtonVariant::Default,
-                                disabled: *add_loading.read(),
-                                onclick: move |_| {
-                                    add_loading.set(true);
-                                    let domain = new_rule_domain.read().clone();
-                                    let polarity = new_rule_polarity.read().clone();
-                                    let action = new_rule_action.read().clone();
-                                    let allowlist_enforced = *new_rule_allowlist_enforced.read();
-                                    spawn(async move {
-                                        let request = crate::types::AddFederationRuleRequest {
-                                            domain,
-                                            rule_type: Some(polarity.clone()),
-                                            polarity: Some(polarity),
-                                            action: Some(action),
-                                            allowlist_enforced: Some(allowlist_enforced),
-                                        };
-                                        match federation::add_federation_rule(&request).await {
-                                            Ok(_) => {
-                                                show_toast("Rule added", ToastVariant::Success);
-                                                show_add_rule.set(false);
-                                                new_rule_domain.set(String::new());
-                                                new_rule_polarity.set("allow".to_string());
-                                                new_rule_action.set("allow_federation".to_string());
-                                                new_rule_allowlist_enforced.set(false);
-                                                rules.restart();
-                                            }
-                                            Err(e) => show_toast(&format!("Failed: {}", e.message), ToastVariant::Error),
-                                        }
-                                        add_loading.set(false);
-                                    });
-                                },
-                                {t("common.create")}
-                            }
-                        }
+        Modal {
+            open: *show_add_rule.read(),
+            title: t("federation.add_rule"),
+            on_close: move |_| show_add_rule.set(false),
+            div { class: "space-y-1",
+                Label { r#for: "rule-domain".to_string(), {t("federation.domain")} }
+                Input {
+                    id: "rule-domain".to_string(),
+                    value: new_rule_domain.read().clone(),
+                    oninput: move |evt: FormEvent| new_rule_domain.set(evt.value()),
+                }
+            }
+            div { class: "grid gap-4 sm:grid-cols-2",
+                div { class: "space-y-1",
+                    Label { r#for: "rule-polarity".to_string(), "Polarity" }
+                    select {
+                        id: "rule-polarity",
+                        class: "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm",
+                        value: new_rule_polarity.read().clone(),
+                        onchange: move |evt| {
+                            let value = evt.value();
+                            new_rule_polarity.set(value.clone());
+                            new_rule_action.set(match value.as_str() {
+                                "deny" => "deny_federation".to_string(),
+                                "block" => "block_federation".to_string(),
+                                _ => "allow_federation".to_string(),
+                            });
+                        },
+                        option { value: "allow", "allow" }
+                        option { value: "deny", "deny" }
+                        option { value: "block", "block" }
+                    }
+                }
+                div { class: "space-y-1",
+                    Label { r#for: "rule-action".to_string(), "Action" }
+                    select {
+                        id: "rule-action",
+                        class: "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm",
+                        value: new_rule_action.read().clone(),
+                        onchange: move |evt| new_rule_action.set(evt.value()),
+                        option { value: "allow_federation", "allow_federation" }
+                        option { value: "deny_federation", "deny_federation" }
+                        option { value: "block_federation", "block_federation" }
+                        option { value: "defederate", "defederate" }
                     }
                 }
             }
+            label { class: "flex items-center gap-2 text-sm",
+                Checkbox {
+                    id: "rule-allowlist-enforced".to_string(),
+                    checked: *new_rule_allowlist_enforced.read(),
+                    aria_label: "Enforce allowlist".to_string(),
+                    onchange: move |checked| new_rule_allowlist_enforced.set(checked),
+                }
+                span { "Enforce allowlist mode" }
+            }
+            DialogActions {
+                confirm_text: t("common.create"),
+                cancel_text: t("common.cancel"),
+                confirm_loading: *add_loading.read(),
+                on_cancel: move |_| show_add_rule.set(false),
+                on_confirm: move |_| {
+                    add_loading.set(true);
+                    let domain = new_rule_domain.read().clone();
+                    let polarity = new_rule_polarity.read().clone();
+                    let action = new_rule_action.read().clone();
+                    let allowlist_enforced = *new_rule_allowlist_enforced.read();
+                    spawn(async move {
+                        let request = crate::types::AddFederationRuleRequest {
+                            domain,
+                            rule_type: Some(polarity.clone()),
+                            polarity: Some(polarity),
+                            action: Some(action),
+                            allowlist_enforced: Some(allowlist_enforced),
+                        };
+                        match federation::add_federation_rule(&request).await {
+                            Ok(_) => {
+                                show_toast("Rule added", ToastVariant::Success);
+                                show_add_rule.set(false);
+                                new_rule_domain.set(String::new());
+                                new_rule_polarity.set("allow".to_string());
+                                new_rule_action.set("allow_federation".to_string());
+                                new_rule_allowlist_enforced.set(false);
+                                rules.restart();
+                            }
+                            Err(e) => show_toast(&format!("Failed: {}", e.message), ToastVariant::Error),
+                        }
+                        add_loading.set(false);
+                    });
+                },
+            }
+        }
 
         ConfirmDialog {
             open: show_delete_rule.read().is_some(),

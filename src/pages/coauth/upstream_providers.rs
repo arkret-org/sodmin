@@ -7,6 +7,7 @@ use crate::components::ui::dialog::ConfirmDialog;
 use crate::components::ui::error_banner::ErrorBanner;
 use crate::components::ui::input::{Input, Label};
 use crate::components::ui::loading::PageSkeleton;
+use crate::components::ui::modal::{DialogActions, Modal};
 use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::pagination::Pagination;
 use crate::components::ui::table::*;
@@ -149,60 +150,51 @@ pub fn UpstreamProvidersPage() -> Element {
             }
         }
 
-        if *show_create.read() {
-            div { class: "fixed inset-0 z-50 flex items-center justify-center",
-                    div { class: "fixed inset-0 bg-black/80", onclick: move |_| show_create.set(false) }
-                    div { class: "relative z-50 w-full max-w-md rounded-lg border glass-panel p-6 shadow-lg space-y-4",
-                        h2 { class: "text-lg font-semibold", {t("coauth.upstream_providers.create")} }
-                        div { class: "space-y-3",
-                            div { class: "space-y-1",
-                                Label { r#for: "up-issuer".to_string(), {t("coauth.upstream_providers.issuer")} }
-                                Input {
-                                    value: issuer.read().clone(),
-                                    oninput: move |evt: FormEvent| issuer.set(evt.value()),
-                                }
-                            }
-                            div { class: "space-y-1",
-                                Label { r#for: "up-client".to_string(), {t("coauth.upstream_providers.client_id")} }
-                                Input {
-                                    value: client_id.read().clone(),
-                                    oninput: move |evt: FormEvent| client_id.set(evt.value()),
-                                }
-                            }
-                        }
-                        div { class: "flex justify-end gap-2",
-                            Button {
-                                variant: ButtonVariant::Outline,
-                                onclick: move |_| show_create.set(false),
-                                {t("common.cancel")}
-                            }
-                            Button {
-                                variant: ButtonVariant::Default,
-                                disabled: *create_loading.read(),
-                                onclick: move |_| {
-                                    create_loading.set(true);
-                                    let body = serde_json::json!({
-                                        "issuer": issuer.read().clone(),
-                                        "client_id": client_id.read().clone(),
-                                    });
-                                    spawn(async move {
-                                        match coauth::create_upstream_provider(&body).await {
-                                            Ok(_) => {
-                                                show_toast("Provider created", ToastVariant::Success);
-                                                show_create.set(false);
-                                                data.restart();
-                                            }
-                                            Err(e) => show_toast(&format!("Failed: {}", e.message), ToastVariant::Error),
-                                        }
-                                        create_loading.set(false);
-                                    });
-                                },
-                                {t("common.create")}
-                            }
-                        }
+        Modal {
+            open: *show_create.read(),
+            title: t("coauth.upstream_providers.create"),
+            on_close: move |_| show_create.set(false),
+            div { class: "space-y-3",
+                div { class: "space-y-1",
+                    Label { r#for: "up-issuer".to_string(), {t("coauth.upstream_providers.issuer")} }
+                    Input {
+                        value: issuer.read().clone(),
+                        oninput: move |evt: FormEvent| issuer.set(evt.value()),
+                    }
+                }
+                div { class: "space-y-1",
+                    Label { r#for: "up-client".to_string(), {t("coauth.upstream_providers.client_id")} }
+                    Input {
+                        value: client_id.read().clone(),
+                        oninput: move |evt: FormEvent| client_id.set(evt.value()),
                     }
                 }
             }
+            DialogActions {
+                confirm_text: t("common.create"),
+                cancel_text: t("common.cancel"),
+                confirm_loading: *create_loading.read(),
+                on_cancel: move |_| show_create.set(false),
+                on_confirm: move |_| {
+                    create_loading.set(true);
+                    let body = serde_json::json!({
+                        "issuer": issuer.read().clone(),
+                        "client_id": client_id.read().clone(),
+                    });
+                    spawn(async move {
+                        match coauth::create_upstream_provider(&body).await {
+                            Ok(_) => {
+                                show_toast("Provider created", ToastVariant::Success);
+                                show_create.set(false);
+                                data.restart();
+                            }
+                            Err(e) => show_toast(&format!("Failed: {}", e.message), ToastVariant::Error),
+                        }
+                        create_loading.set(false);
+                    });
+                },
+            }
+        }
 
         ConfirmDialog {
             open: show_delete.read().is_some(),

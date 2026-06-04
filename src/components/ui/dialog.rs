@@ -1,6 +1,7 @@
 use dioxus::prelude::*;
 
 use super::button::{Button, ButtonVariant};
+use super::modal::ModalOverlay;
 
 #[component]
 pub fn ConfirmDialog(
@@ -18,13 +19,7 @@ pub fn ConfirmDialog(
     }
 
     rsx! {
-        div { class: "fixed inset-0 z-50 flex items-center justify-center",
-            // Backdrop
-            div {
-                class: "fixed inset-0 bg-black/80",
-                onclick: move |_| on_cancel.call(()),
-            }
-            // Dialog
+        ModalOverlay { on_close: move |_| on_cancel.call(()),
             div { class: "relative z-50 w-full max-w-lg rounded-lg border glass-panel p-6 shadow-lg",
                 div { class: "flex flex-col space-y-2 text-center sm:text-left",
                     h2 { class: "text-lg font-semibold", "{title}" }

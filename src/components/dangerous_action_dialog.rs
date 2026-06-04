@@ -17,6 +17,7 @@ use dioxus::prelude::*;
 
 use crate::components::ui::button::{Button, ButtonVariant};
 use crate::components::ui::input::Input;
+use crate::components::ui::modal::ModalOverlay;
 
 #[derive(Props, Clone, PartialEq)]
 pub struct DangerousActionDialogProps {
@@ -59,11 +60,7 @@ pub fn DangerousActionDialog(props: DangerousActionDialogProps) -> Element {
     let phrase_ok = phrase_matches(&typed.read(), &phrase);
 
     rsx! {
-        div { class: "fixed inset-0 z-50 flex items-center justify-center",
-            div {
-                class: "fixed inset-0 bg-black/80",
-                onclick: move |_| props.on_cancel.call(()),
-            }
+        ModalOverlay { on_close: move |_| props.on_cancel.call(()),
             div { class: "relative z-50 w-full max-w-lg rounded-lg border glass-panel p-6 shadow-lg space-y-4",
                 div { class: "space-y-1",
                     h2 { class: "text-lg font-semibold text-destructive", "{props.title}" }

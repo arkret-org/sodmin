@@ -8,6 +8,7 @@ use crate::components::ui::dialog::ConfirmDialog;
 use crate::components::ui::error_banner::ErrorBanner;
 use crate::components::ui::input::{Input, Label};
 use crate::components::ui::loading::PageSkeleton;
+use crate::components::ui::modal::{DialogActions, Modal};
 use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::pagination::Pagination;
 use crate::components::ui::table::*;
@@ -165,105 +166,90 @@ pub fn PolicyList() -> Element {
             }
         }
 
-        if *show_dialog.read() {
-            div { class: "fixed inset-0 z-50 flex items-center justify-center",
-                    div { class: "fixed inset-0 bg-black/80", onclick: move |_| show_dialog.set(false) }
-                    div { class: "relative z-50 w-full max-w-md rounded-lg border glass-panel p-6 shadow-lg space-y-4",
-                        h2 { class: "text-lg font-semibold",
-                            if editing_id.read().is_some() {
-                                {t("policy.edit")}
-                            } else {
-                                {t("policy.create")}
-                            }
-                        }
-                        div { class: "space-y-3",
-                            div { class: "space-y-1",
-                                Label { r#for: "pol-name".to_string(), {t("policy.name")} }
-                                Input {
-                                    value: name.read().clone(),
-                                    oninput: move |evt: FormEvent| name.set(evt.value()),
-                                }
-                            }
-                            div { class: "space-y-1",
-                                Label { r#for: "pol-type".to_string(), {t("policy.policy_type")} }
-                                Input {
-                                    value: policy_type.read().clone(),
-                                    oninput: move |evt: FormEvent| policy_type.set(evt.value()),
-                                }
-                            }
-                            div { class: "space-y-1",
-                                Label { r#for: "pol-scope".to_string(), {t("policy.scope")} }
-                                Input {
-                                    value: scope.read().clone(),
-                                    oninput: move |evt: FormEvent| scope.set(evt.value()),
-                                }
-                            }
-                            div { class: "space-y-1",
-                                Label { r#for: "pol-priority".to_string(), {t("policy.priority")} }
-                                Input {
-                                    r#type: "number".to_string(),
-                                    value: priority.read().to_string(),
-                                    oninput: move |evt: FormEvent| {
-                                        if let Ok(v) = evt.value().parse() {
-                                            priority.set(v);
-                                        }
-                                    },
-                                }
-                            }
-                            div { class: "flex items-center gap-2",
-                                input {
-                                    r#type: "checkbox",
-                                    checked: *is_enabled.read(),
-                                    onchange: move |evt: Event<FormData>| is_enabled.set(evt.checked()),
-                                }
-                                Label { {t("policy.enabled")} }
-                            }
-                        }
-                        div { class: "flex justify-end gap-2",
-                            Button {
-                                variant: ButtonVariant::Outline,
-                                onclick: move |_| show_dialog.set(false),
-                                {t("common.cancel")}
-                            }
-                            Button {
-                                variant: ButtonVariant::Default,
-                                disabled: *dialog_loading.read(),
-                                onclick: move |_| {
-                                    dialog_loading.set(true);
-                                    let req = CreatePolicyRequest {
-                                        name: name.read().clone(),
-                                        policy_type: if policy_type.read().is_empty() { None } else { Some(policy_type.read().clone()) },
-                                        scope: if scope.read().is_empty() { None } else { Some(scope.read().clone()) },
-                                        is_enabled: *is_enabled.read(),
-                                        priority: *priority.read(),
-                                        ..Default::default()
-                                    };
-                                    let edit = editing_id.read().clone();
-                                    spawn(async move {
-                                        let result = match edit {
-                                            Some(ref id) => policy::update_policy(id, &req).await.map(|_| ()),
-                                            None => policy::create_policy(&req).await.map(|_| ()),
-                                        };
-                                        match result {
-                                            Ok(_) => {
-                                                show_toast(
-                                                    if edit.is_some() { "Policy updated" } else { "Policy created" },
-                                                    ToastVariant::Success,
-                                                );
-                                                show_dialog.set(false);
-                                                data.restart();
-                                            }
-                                            Err(e) => show_toast(&format!("Failed: {}", e.message), ToastVariant::Error),
-                                        }
-                                        dialog_loading.set(false);
-                                    });
-                                },
-                                {t("common.save")}
-                            }
-                        }
+        Modal {
+            open: *show_dialog.read(),
+            title: if editing_id.read().is_some() { t("policy.edit") } else { t("policy.create") },
+            on_close: move |_| show_dialog.set(false),
+            div { class: "space-y-3",
+                div { class: "space-y-1",
+                    Label { r#for: "pol-name".to_string(), {t("policy.name")} }
+                    Input {
+                        value: name.read().clone(),
+                        oninput: move |evt: FormEvent| name.set(evt.value()),
                     }
                 }
+                div { class: "space-y-1",
+                    Label { r#for: "pol-type".to_string(), {t("policy.policy_type")} }
+                    Input {
+                        value: policy_type.read().clone(),
+                        oninput: move |evt: FormEvent| policy_type.set(evt.value()),
+                    }
+                }
+                div { class: "space-y-1",
+                    Label { r#for: "pol-scope".to_string(), {t("policy.scope")} }
+                    Input {
+                        value: scope.read().clone(),
+                        oninput: move |evt: FormEvent| scope.set(evt.value()),
+                    }
+                }
+                div { class: "space-y-1",
+                    Label { r#for: "pol-priority".to_string(), {t("policy.priority")} }
+                    Input {
+                        r#type: "number".to_string(),
+                        value: priority.read().to_string(),
+                        oninput: move |evt: FormEvent| {
+                            if let Ok(v) = evt.value().parse() {
+                                priority.set(v);
+                            }
+                        },
+                    }
+                }
+                div { class: "flex items-center gap-2",
+                    input {
+                        r#type: "checkbox",
+                        checked: *is_enabled.read(),
+                        onchange: move |evt: Event<FormData>| is_enabled.set(evt.checked()),
+                    }
+                    Label { {t("policy.enabled")} }
+                }
             }
+            DialogActions {
+                confirm_text: t("common.save"),
+                cancel_text: t("common.cancel"),
+                confirm_loading: *dialog_loading.read(),
+                on_cancel: move |_| show_dialog.set(false),
+                on_confirm: move |_| {
+                    dialog_loading.set(true);
+                    let req = CreatePolicyRequest {
+                        name: name.read().clone(),
+                        policy_type: if policy_type.read().is_empty() { None } else { Some(policy_type.read().clone()) },
+                        scope: if scope.read().is_empty() { None } else { Some(scope.read().clone()) },
+                        is_enabled: *is_enabled.read(),
+                        priority: *priority.read(),
+                        ..Default::default()
+                    };
+                    let edit = editing_id.read().clone();
+                    spawn(async move {
+                        let result = match edit {
+                            Some(ref id) => policy::update_policy(id, &req).await.map(|_| ()),
+                            None => policy::create_policy(&req).await.map(|_| ()),
+                        };
+                        match result {
+                            Ok(_) => {
+                                show_toast(
+                                    if edit.is_some() { "Policy updated" } else { "Policy created" },
+                                    ToastVariant::Success,
+                                );
+                                show_dialog.set(false);
+                                data.restart();
+                            }
+                            Err(e) => show_toast(&format!("Failed: {}", e.message), ToastVariant::Error),
+                        }
+                        dialog_loading.set(false);
+                    });
+                },
+            }
+        }
 
         ConfirmDialog {
             open: show_delete_dialog.read().is_some(),

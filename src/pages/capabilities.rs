@@ -7,6 +7,7 @@ use crate::components::ui::dialog::ConfirmDialog;
 use crate::components::ui::error_banner::ErrorBanner;
 use crate::components::ui::input::{Input, Label};
 use crate::components::ui::loading::PageSkeleton;
+use crate::components::ui::modal::{DialogActions, Modal};
 use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::pagination::Pagination;
 use crate::components::ui::table::*;
@@ -192,94 +193,89 @@ pub fn CapabilityList() -> Element {
             }
         }
 
-        if *show_grant_dialog.read() {
-            div { class: "fixed inset-0 z-50 flex items-center justify-center",
-                    div { class: "fixed inset-0 bg-black/80", onclick: move |_| show_grant_dialog.set(false) }
-                    div { class: "relative z-50 w-full max-w-md rounded-lg border glass-panel p-6 shadow-lg space-y-4",
-                        h2 { class: "text-lg font-semibold", {t("capabilities.grant")} }
-                        div { class: "space-y-3",
-                            div { class: "space-y-1",
-                                Label { r#for: "cap-grantee".to_string(), {t("capabilities.grantee_id")} }
-                                Input {
-                                    value: grantee_id.read().clone(),
-                                    oninput: move |evt: FormEvent| grantee_id.set(evt.value()),
-                                }
+        Modal {
+            open: *show_grant_dialog.read(),
+            title: t("capabilities.grant"),
+            on_close: move |_| show_grant_dialog.set(false),
+            div { class: "space-y-3",
+                div { class: "space-y-1",
+                    Label { r#for: "cap-grantee".to_string(), {t("capabilities.grantee_id")} }
+                    Input {
+                        value: grantee_id.read().clone(),
+                        oninput: move |evt: FormEvent| grantee_id.set(evt.value()),
+                    }
+                }
+                div { class: "space-y-1",
+                    Label { r#for: "cap-name".to_string(), {t("capabilities.capability")} }
+                    Input {
+                        value: capability_name.read().clone(),
+                        oninput: move |evt: FormEvent| capability_name.set(evt.value()),
+                    }
+                }
+                // P3A.4 — Quick-select for the 6 CXP-0007
+                // ck.circle.* actions. Selecting one
+                // populates the capability_name field.
+                div { class: "space-y-1",
+                    Label { r#for: "cap-circle-quick".to_string(),
+                        {t("capability.cx_circle_section")}
+                    }
+                    select {
+                        id: "cap-circle-quick",
+                        name: "cx_circle_action",
+                        class: "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm",
+                        onchange: move |e| {
+                            if !e.value().is_empty() {
+                                capability_name.set(e.value());
                             }
-                            div { class: "space-y-1",
-                                Label { r#for: "cap-name".to_string(), {t("capabilities.capability")} }
-                                Input {
-                                    value: capability_name.read().clone(),
-                                    oninput: move |evt: FormEvent| capability_name.set(evt.value()),
-                                }
-                            }
-                            // P3A.4 — Quick-select for the 6 CXP-0007
-                            // ck.circle.* actions. Selecting one
-                            // populates the capability_name field.
-                            div { class: "space-y-1",
-                                Label { r#for: "cap-circle-quick".to_string(),
-                                    {t("capability.cx_circle_section")}
-                                }
-                                select {
-                                    id: "cap-circle-quick",
-                                    name: "cx_circle_action",
-                                    class: "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm",
-                                    onchange: move |e| {
-                                        if !e.value().is_empty() {
-                                            capability_name.set(e.value());
-                                        }
-                                    },
-                                    option { value: "", "— {t(\"capability.cx_circle_section\")} —" }
-                                    option { value: "ck.circle.create", "ck.circle.create" }
-                                    option { value: "ck.circle.manage", "ck.circle.manage" }
-                                    option { value: "ck.circle.member.add", "ck.circle.member.add" }
-                                    option { value: "ck.circle.member.manage", "ck.circle.member.manage" }
-                                    option {
-                                        value: "ck.circle.member.add.others",
-                                        "ck.circle.member.add.others"
-                                    }
-                                    option { value: "ck.circle.audit", "ck.circle.audit" }
-                                }
-                            }
-                            div { class: "space-y-1",
-                                Label { r#for: "cap-allowed-circle-ids".to_string(),
-                                    {t("capability.allowed_circle_ids")}
-                                }
-                                Input {
-                                    value: circle_allowed_ids.read().clone(),
-                                    placeholder: "ck:circle:...,ck:circle:...".to_string(),
-                                    oninput: move |evt: FormEvent| circle_allowed_ids.set(evt.value()),
-                                }
-                                p { class: "text-xs text-muted-foreground",
-                                    {t("capability.allowed_circle_ids_hint")}
-                                }
-                            }
-                            div { class: "space-y-1",
-                                Label { r#for: "cap-scope".to_string(), {t("capabilities.scope")} }
-                                Input {
-                                    value: scope.read().clone(),
-                                    oninput: move |evt: FormEvent| scope.set(evt.value()),
-                                }
-                            }
-                            div { class: "space-y-1",
-                                Label { r#for: "cap-expires".to_string(), {t("capabilities.expires_at")} }
-                                Input {
-                                    r#type: "datetime-local".to_string(),
-                                    value: expires_at.read().clone(),
-                                    oninput: move |evt: FormEvent| expires_at.set(evt.value()),
-                                }
-                            }
+                        },
+                        option { value: "", "— {t(\"capability.cx_circle_section\")} —" }
+                        option { value: "ck.circle.create", "ck.circle.create" }
+                        option { value: "ck.circle.manage", "ck.circle.manage" }
+                        option { value: "ck.circle.member.add", "ck.circle.member.add" }
+                        option { value: "ck.circle.member.manage", "ck.circle.member.manage" }
+                        option {
+                            value: "ck.circle.member.add.others",
+                            "ck.circle.member.add.others"
                         }
-                        div { class: "flex justify-end gap-2",
-                            Button {
-                                variant: ButtonVariant::Outline,
-                                onclick: move |_| show_grant_dialog.set(false),
-                                {t("common.cancel")}
-                            }
-                            Button {
-                                variant: ButtonVariant::Default,
-                                disabled: *grant_loading.read(),
-                                onclick: move |_| {
-                                    grant_loading.set(true);
+                        option { value: "ck.circle.audit", "ck.circle.audit" }
+                    }
+                }
+                div { class: "space-y-1",
+                    Label { r#for: "cap-allowed-circle-ids".to_string(),
+                        {t("capability.allowed_circle_ids")}
+                    }
+                    Input {
+                        value: circle_allowed_ids.read().clone(),
+                        placeholder: "ck:circle:...,ck:circle:...".to_string(),
+                        oninput: move |evt: FormEvent| circle_allowed_ids.set(evt.value()),
+                    }
+                    p { class: "text-xs text-muted-foreground",
+                        {t("capability.allowed_circle_ids_hint")}
+                    }
+                }
+                div { class: "space-y-1",
+                    Label { r#for: "cap-scope".to_string(), {t("capabilities.scope")} }
+                    Input {
+                        value: scope.read().clone(),
+                        oninput: move |evt: FormEvent| scope.set(evt.value()),
+                    }
+                }
+                div { class: "space-y-1",
+                    Label { r#for: "cap-expires".to_string(), {t("capabilities.expires_at")} }
+                    Input {
+                        r#type: "datetime-local".to_string(),
+                        value: expires_at.read().clone(),
+                        oninput: move |evt: FormEvent| expires_at.set(evt.value()),
+                    }
+                }
+            }
+            DialogActions {
+                confirm_text: t("capabilities.grant"),
+                cancel_text: t("common.cancel"),
+                confirm_loading: *grant_loading.read(),
+                on_cancel: move |_| show_grant_dialog.set(false),
+                on_confirm: move |_| {
+                    grant_loading.set(true);
                                     // P3A.4 — pack allowed_circle_ids
                                     // into GrantConstraint when the
                                     // operator filled the CSV. soland's
@@ -315,22 +311,17 @@ pub fn CapabilityList() -> Element {
                                             }
                                             Err(e) => show_toast(&format!("Failed: {}", e.message), ToastVariant::Error),
                                         }
-                                        grant_loading.set(false);
-                                    });
-                                },
-                                {t("capabilities.grant")}
-                            }
-                        }
-                    }
-                }
+                        grant_loading.set(false);
+                    });
+                },
             }
+        }
 
-        if show_edit_dialog.read().is_some() {
-            div { class: "fixed inset-0 z-50 flex items-center justify-center",
-                div { class: "fixed inset-0 bg-black/80", onclick: move |_| show_edit_dialog.set(None) }
-                div { class: "relative z-50 w-full max-w-md rounded-lg border glass-panel p-6 shadow-lg space-y-4",
-                    h2 { class: "text-lg font-semibold", {t("capabilities.edit_title")} }
-                    div { class: "space-y-3",
+        Modal {
+            open: show_edit_dialog.read().is_some(),
+            title: t("capabilities.edit_title"),
+            on_close: move |_| show_edit_dialog.set(None),
+            div { class: "space-y-3",
                         div { class: "space-y-1",
                             Label { r#for: "cap-edit-expires".to_string(), {t("capabilities.expires_at")} }
                             Input {
@@ -367,57 +358,49 @@ pub fn CapabilityList() -> Element {
                             span { {t("capabilities.approval_required")} }
                         }
                     }
-                    div { class: "flex justify-end gap-2",
-                        Button {
-                            variant: ButtonVariant::Outline,
-                            onclick: move |_| show_edit_dialog.set(None),
-                            {t("common.cancel")}
-                        }
-                        Button {
-                            variant: ButtonVariant::Default,
-                            disabled: *edit_loading.read(),
-                            onclick: move |_| {
-                                if let Some(id) = show_edit_dialog.read().clone() {
-                                    let exp_raw = edit_expires_at.read().trim().to_string();
-                                    let fields: Vec<String> = edit_fields_write_allow
-                                        .read()
-                                        .split(',')
-                                        .map(|s| s.trim().to_string())
-                                        .filter(|s| !s.is_empty())
-                                        .collect();
-                                    let facets: Vec<String> = edit_facets_allow
-                                        .read()
-                                        .split(',')
-                                        .map(|s| s.trim().to_string())
-                                        .filter(|s| !s.is_empty())
-                                        .collect();
-                                    let approval = *edit_approval_required.read();
-                                    let req = UpdateCapabilityRequest {
-                                        expires_at: if exp_raw.is_empty() { None } else { Some(exp_raw) },
-                                        fields_write_allow: Some(fields),
-                                        facets_allow: Some(facets),
-                                        approval_required: Some(approval),
-                                    };
-                                    edit_loading.set(true);
-                                    spawn(async move {
-                                        match capabilities::update_capability(&id, &req).await {
-                                            Ok(_) => {
-                                                show_toast(&t("capabilities.edit_ok"), ToastVariant::Success);
-                                                show_edit_dialog.set(None);
-                                                data.restart();
-                                            }
-                                            Err(e) => show_toast(&format!("{}: {}", t("capabilities.edit_fail"), e.message), ToastVariant::Error),
+                    DialogActions {
+                        confirm_text: t("common.save"),
+                        cancel_text: t("common.cancel"),
+                        confirm_loading: *edit_loading.read(),
+                        on_cancel: move |_| show_edit_dialog.set(None),
+                        on_confirm: move |_| {
+                            if let Some(id) = show_edit_dialog.read().clone() {
+                                let exp_raw = edit_expires_at.read().trim().to_string();
+                                let fields: Vec<String> = edit_fields_write_allow
+                                    .read()
+                                    .split(',')
+                                    .map(|s| s.trim().to_string())
+                                    .filter(|s| !s.is_empty())
+                                    .collect();
+                                let facets: Vec<String> = edit_facets_allow
+                                    .read()
+                                    .split(',')
+                                    .map(|s| s.trim().to_string())
+                                    .filter(|s| !s.is_empty())
+                                    .collect();
+                                let approval = *edit_approval_required.read();
+                                let req = UpdateCapabilityRequest {
+                                    expires_at: if exp_raw.is_empty() { None } else { Some(exp_raw) },
+                                    fields_write_allow: Some(fields),
+                                    facets_allow: Some(facets),
+                                    approval_required: Some(approval),
+                                };
+                                edit_loading.set(true);
+                                spawn(async move {
+                                    match capabilities::update_capability(&id, &req).await {
+                                        Ok(_) => {
+                                            show_toast(&t("capabilities.edit_ok"), ToastVariant::Success);
+                                            show_edit_dialog.set(None);
+                                            data.restart();
                                         }
-                                        edit_loading.set(false);
-                                    });
-                                }
-                            },
-                            {t("common.save")}
-                        }
+                                        Err(e) => show_toast(&format!("{}: {}", t("capabilities.edit_fail"), e.message), ToastVariant::Error),
+                                    }
+                                    edit_loading.set(false);
+                                });
+                            }
+                        },
                     }
                 }
-            }
-        }
 
         ConfirmDialog {
             open: show_revoke_dialog.read().is_some(),
