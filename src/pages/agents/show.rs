@@ -3,6 +3,7 @@ use dioxus::prelude::*;
 use crate::api::agents;
 use crate::components::ui::card::*;
 use crate::components::ui::error_banner::ErrorBanner;
+use crate::components::ui::info_row::InfoRow;
 use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::{BreadcrumbItem, Breadcrumbs, PageHeader};
 use crate::router::Route;
@@ -68,16 +69,6 @@ pub fn AgentShow(agent_id: String) -> Element {
                 },
                 None => rsx! { PageSkeleton {} },
             }
-        }
-    }
-}
-
-#[component]
-fn InfoRow(label: String, value: String) -> Element {
-    rsx! {
-        div { class: "flex items-center justify-between py-2",
-            span { class: "text-sm font-medium text-muted-foreground", "{label}" }
-            span { class: "text-sm max-w-[60%] text-right break-all", "{value}" }
         }
     }
 }

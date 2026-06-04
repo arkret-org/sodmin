@@ -19,8 +19,6 @@ pub fn ActorShow(actor_id: String) -> Element {
         async move { actors::get_actor(&id).await }
     });
 
-    let _nav = use_navigator();
-
     let actor_id_for_suspend = actor_id.clone();
     let actor_id_for_unsuspend = actor_id.clone();
     let actor_id_for_deactivate = actor_id.clone();

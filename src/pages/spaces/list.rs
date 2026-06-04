@@ -14,7 +14,6 @@ use crate::components::ui::toast::{ToastVariant, show_toast};
 use crate::router::Route;
 use crate::utils::fmt::csv::{build_csv, export_to_csv};
 use crate::utils::i18n::t;
-use crate::utils::fmt::search::matches_name_or_id;
 
 const PAGE_SIZE: u64 = 20;
 const AUTOREFRESH_STORAGE_KEY: &str = "sodmin.spaces.autorefresh";
@@ -106,7 +105,6 @@ pub fn SpaceList() -> Element {
                 Some(Ok(resp)) => {
                     let next_cursor = resp.next_cursor.clone();
                     let stack_depth = cursor_stack.read().len();
-                    let search_for_filter = search.read().clone();
                     rsx! {
                         div { class: "rounded-lg border glass-panel overflow-hidden",
                             Table {
@@ -122,11 +120,12 @@ pub fn SpaceList() -> Element {
                                     }
                                 }
                                 TableBody {
-                                    for space in resp.data.iter().filter(|s| matches_name_or_id(&search_for_filter, &s.id, s.title.as_deref())) {
+                                    for space in resp.data.iter() {
                                         {
                                             let sid = space.id.clone();
                                             rsx! {
                                                 TableRow {
+                                                    key: "{space.id}",
                                                     TableCell { class: "font-mono text-xs",
                                                         Link {
                                                             to: Route::SpaceShow { space_id: sid.clone() },
