@@ -118,7 +118,7 @@ pub struct Realm {
     pub join_rule: Option<String>,
     #[serde(default)]
     pub history_visibility: Option<String>,
-    /// CXP-0007 (P3A.6) — `principal_control` vs `collaboration`. The
+    /// CKP-0007 (P3A.6) — `principal_control` vs `collaboration`. The
     /// admin SPA renders a Realm-classification badge whenever this
     /// is populated. Older soland releases omit the field; the
     /// `Option<String>` defaults to `None` for those rows.
@@ -142,7 +142,7 @@ pub struct CreateRealmRequest {
     pub parent_realm_id: Option<String>,
     #[serde(default)]
     pub is_encrypted: bool,
-    /// CXP-0007 (P3A.6) — required at create time; the spec pins this
+    /// CKP-0007 (P3A.6) — required at create time; the spec pins this
     /// to `principal_control` / `collaboration`. Non-optional so the
     /// choice is always explicit on the wire (the admin UI's picker
     /// defaults it to `collaboration`); there is no silent reliance on
@@ -441,37 +441,37 @@ pub struct Agent {
     pub created_at: Option<String>,
     #[serde(default)]
     pub last_active_at: Option<String>,
-    /// CXP-0008 — reducer-stamped actor kind. Native personal agents
+    /// CKP-0008 — reducer-stamped actor kind. Native personal agents
     /// use `agent`; Applet-managed ghost actors use `integration` or
     /// `agent` plus provenance/accountability metadata.
     /// Populated by soland's `ck.agent.list` / `ck.agent.get`.
     #[serde(default)]
     pub actor_kind: Option<String>,
-    /// CXP-0008 — controller DID. Native personal agents are 1:1 bound
+    /// CKP-0008 — controller DID. Native personal agents are 1:1 bound
     /// to a controller DID; Applet-managed actors point at their owning
     /// applet or integration provenance instead.
     #[serde(default)]
     pub controller_did: Option<String>,
-    /// CXP-0008 — current `accountability_grant` id (coauth-issued).
+    /// CKP-0008 — current `accountability_grant` id (coauth-issued).
     /// `None` when no grant has been issued / the existing one was
     /// revoked.
     #[serde(default)]
     pub accountability_grant_id: Option<String>,
-    /// CXP-0008 — ISO-8601 timestamp of when the
+    /// CKP-0008 — ISO-8601 timestamp of when the
     /// `accountability_grant` was last refreshed. Drives the
     /// "accountability grant freshness" indicator on the detail page.
     #[serde(default)]
     pub accountability_grant_refreshed_at: Option<String>,
-    /// CXP-0008 — current pairing status (e.g. `paired`, `pending`,
+    /// CKP-0008 — current pairing status (e.g. `paired`, `pending`,
     /// `expired`). Surfaced verbatim on the detail page.
     #[serde(default)]
     pub pairing_status: Option<String>,
-    /// CXP-0008 — list of authorized agent key DIDs.
+    /// CKP-0008 — list of authorized agent key DIDs.
     #[serde(default)]
     pub agent_keys: Vec<String>,
 }
 
-/// CXP-0008 — capability grant detail for the personal-agent detail
+/// CKP-0008 — capability grant detail for the personal-agent detail
 /// view's grant editor. Mirrors the soland `agent.grant.attach` /
 /// `agent.grant.detach` payload.
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -488,7 +488,7 @@ pub struct AgentGrantEntry {
     pub expires_at: Option<String>,
 }
 
-/// CXP-0008 — agent provision wizard request body.
+/// CKP-0008 — agent provision wizard request body.
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AgentProvisionRequest {
     #[serde(default)]
@@ -500,7 +500,7 @@ pub struct AgentProvisionRequest {
     pub agent_key_proof: Option<serde_json::Value>,
 }
 
-/// CXP-0008 — agent provision wizard response (returns the freshly
+/// CKP-0008 — agent provision wizard response (returns the freshly
 /// issued agent principal DID).
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AgentProvisionResponse {
@@ -512,7 +512,7 @@ pub struct AgentProvisionResponse {
     pub initial_grant_ids: Vec<String>,
 }
 
-/// CXP-0008 — coauth `accountability_grant` request body for the
+/// CKP-0008 — coauth `accountability_grant` request body for the
 /// wizard's controller-approval step.
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AccountabilityGrantRequest {
@@ -679,35 +679,35 @@ pub struct AuditEntry {
     pub timestamp: Option<String>,
     #[serde(default)]
     pub source_ip: Option<String>,
-    /// CXP-0007 — the effective scope at which the action took effect
+    /// CKP-0007 — the effective scope at which the action took effect
     /// (`ck:realm:...` or `ck:circle:...`). Distinct from the audited
     /// `target_id` because Circle actions surface inside a Realm
     /// envelope but get pinned to the Circle for replay-locality.
     /// `None` for legacy entries written before the field shipped.
     #[serde(default)]
     pub effective_scope: Option<String>,
-    /// CXP-0007 — when `effective_scope` points at a Circle, this is
+    /// CKP-0007 — when `effective_scope` points at a Circle, this is
     /// the parent realm id so the audit row can render a "jump to
     /// Realm" link without an extra round trip.
     #[serde(default)]
     pub scope_realm_id: Option<String>,
-    /// CXP-0007 — convenience copy of `effective_scope` when it is a
+    /// CKP-0007 — convenience copy of `effective_scope` when it is a
     /// `ck:circle:...` id; saves the row a string-prefix sniff on
     /// the rendering path.
     #[serde(default)]
     pub scope_circle_id: Option<String>,
-    /// CXP-0008 — when the envelope was signed/executed on behalf of
+    /// CKP-0008 — when the envelope was signed/executed on behalf of
     /// the principal, this records the executing DID (e.g. a personal
     /// agent acting on behalf of the controller). Conditional: present
     /// only on agent-attributed envelopes.
     #[serde(default)]
     pub executed_by: Option<String>,
-    /// CXP-0008 — typed id of the `accountability_grant` or capability
+    /// CKP-0008 — typed id of the `accountability_grant` or capability
     /// grant whose validity authorized the action. Lets the audit row
     /// link back to the grant ledger row.
     #[serde(default)]
     pub authorization_ref: Option<String>,
-    /// CXP-0008 — reducer-stamped projection of the actor classification
+    /// CKP-0008 — reducer-stamped projection of the actor classification
     /// at the moment of admission. One of `user` / `org` / `team` /
     /// `agent` / `service` / `device` / `integration`. Immutable per
     /// envelope and supplied by the reducer; clients MUST NOT attempt

@@ -1,4 +1,4 @@
-//! CXP-0008 / CXP-0009 personal-agent admin pages.
+//! CKP-0008 / CKP-0009 personal-agent admin pages.
 //!
 //! Mounted at `/agents/personal` (list) and
 //! `/agents/personal/:agent_id` (detail). Drives the 11 new soland
@@ -106,7 +106,7 @@ pub fn PersonalAgentList() -> Element {
         div { class: "space-y-6",
             PageHeader {
                 title: "Personal agents".to_string(),
-                description: "Controller-self native personal agents (CXP-0008)".to_string(),
+                description: "Controller-self native personal agents (CKP-0008)".to_string(),
                 Button {
                     size: ButtonSize::Sm,
                     onclick: move |_| wizard_open.set(true),
@@ -233,7 +233,7 @@ pub fn PersonalAgentShow(props: PersonalAgentShowProps) -> Element {
         div { class: "space-y-6",
             PageHeader {
                 title: format!("Agent {}", props.agent_id),
-                description: "Personal agent detail (CXP-0008)".to_string(),
+                description: "Personal agent detail (CKP-0008)".to_string(),
             }
 
             match &*data.read() {

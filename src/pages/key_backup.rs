@@ -69,7 +69,7 @@ pub fn KeyBackupList() -> Element {
         div { class: "space-y-6",
             PageHeader {
                 title: "Key backup".to_string(),
-                description: "Backup series, recovery policies, recovery receipts (CXP B-C)".to_string(),
+                description: "Backup series, recovery policies, recovery receipts (CKP B-C)".to_string(),
             }
 
             // ── Series filter ──

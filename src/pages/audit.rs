@@ -22,7 +22,7 @@ struct DraftFilter {
     target_id: String,
     since: String,
     until: String,
-    /// P3A.5 — CXP-0007 event kind filter. Empty = no filter.
+    /// P3A.5 — CKP-0007 event kind filter. Empty = no filter.
     event_kind: String,
 }
 
@@ -144,7 +144,7 @@ pub fn AuditLog() -> Element {
                             },
                         }
                     }
-                    // P3A.5 — CXP-0007 event-kind filter dropdown.
+                    // P3A.5 — CKP-0007 event-kind filter dropdown.
                     // The seven ck.circle.* event kinds match the
                     // SDK's event-kind registry exactly.
                     div { class: "space-y-1",
@@ -199,7 +199,7 @@ pub fn AuditLog() -> Element {
                                     TableHead { {t("audit.target_type")} }
                                     TableHead { {t("audit.target_id")} }
                                     TableHead { {t("audit.effective_scope")} }
-                                    // CXP-0008 — new envelope columns:
+                                    // CKP-0008 — new envelope columns:
                                     // executed_by / authorization_ref /
                                     // actor_kind (reducer-stamped).
                                     TableHead { "executed_by" }

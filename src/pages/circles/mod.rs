@@ -1,4 +1,4 @@
-//! Admin pages for CXP-0007 Circles — the encrypted sub-boundary
+//! Admin pages for CKP-0007 Circles — the encrypted sub-boundary
 //! primitive that sits *inside* a Realm. Each Circle carries its own
 //! MLS group and a member list that MUST be a strict subset of its
 //! parent Realm's membership; the soland reducer enforces the subset

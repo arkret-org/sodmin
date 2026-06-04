@@ -29,7 +29,7 @@ pub fn CapabilityList() -> Element {
     let mut expires_at = use_signal(String::new);
     let mut grant_loading = use_signal(|| false);
 
-    // P3A.4 — CXP-0007 Circle capability picker. Surfaces the six
+    // P3A.4 — CKP-0007 Circle capability picker. Surfaces the six
     // ck.circle.* actions as a quick-select and exposes the
     // `allowed_circle_ids` constraint editor (CSV of ck:circle:...
     // ids). For actions whose `required_constraints` include
@@ -212,7 +212,7 @@ pub fn CapabilityList() -> Element {
                         oninput: move |evt: FormEvent| capability_name.set(evt.value()),
                     }
                 }
-                // P3A.4 — Quick-select for the 6 CXP-0007
+                // P3A.4 — Quick-select for the 6 CKP-0007
                 // ck.circle.* actions. Selecting one
                 // populates the capability_name field.
                 div { class: "space-y-1",

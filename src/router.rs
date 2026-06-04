@@ -89,7 +89,7 @@ pub enum Route {
         #[route("/capabilities")]
         CapabilityList {},
 
-        // CXP-0007 Circle admin (P3A.3). Circles are encrypted
+        // CKP-0007 Circle admin (P3A.3). Circles are encrypted
         // sub-boundaries inside a Realm; full CRUD + member +
         // scope-rotation surface lives under `/circles/*`.
         #[route("/circles")]
@@ -154,7 +154,7 @@ pub enum Route {
         AgentList {},
         #[route("/agents/admin")]
         AgentAdmin {},
-        // CXP-0008 personal-agent admin (P3-A). List + detail + 3-step
+        // CKP-0008 personal-agent admin (P3-A). List + detail + 3-step
         // provision wizard. Must precede the `/agents/:agent_id` catch
         // so `/agents/personal` does NOT bind agent_id="personal".
         #[route("/agents/personal")]

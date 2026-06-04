@@ -22,7 +22,7 @@ pub async fn get_agent(id: &str) -> Result<Agent, HttpError> {
     api_client(&url, "GET", None).await
 }
 
-// ── CXP-0008 personal-agent surface (soland P2 aa76b91) ──
+// ── CKP-0008 personal-agent surface (soland P2 aa76b91) ──
 //
 // The 11 new soland endpoints. The admin UI supplies explicit
 // controller DID / key proof / grant action form data before exercising

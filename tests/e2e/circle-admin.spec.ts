@@ -1,4 +1,4 @@
-// P3A.9 — CXP-0007 Circle admin happy-path Playwright e2e.
+// P3A.9 — CKP-0007 Circle admin happy-path Playwright e2e.
 //
 // Drives the sodmin SPA against a sodmin dev instance + a soland dev
 // stack that has the `/_cokret/self/circles/*` routes wired (soland P2A.2)

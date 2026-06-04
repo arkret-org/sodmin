@@ -94,7 +94,7 @@ const REQUIRED_SOLAND: &[(&str, &str)] = &[
     ),
     ("POST", "/_soland/admin/realms/{id}/destroy"),
     ("POST", "/_soland/admin/realms/{id}/destroy/retry"),
-    // CXP-0007 Circle admin (P3A.3) — sodmin consumes the full
+    // CKP-0007 Circle admin (P3A.3) — sodmin consumes the full
     // `/_cokret/self/circles/*` surface. Missing any route here is treated
     // as a contract break and fails the wasm build at build.rs time.
     ("GET", "/_cokret/self/circles"),

@@ -15,7 +15,7 @@ pub fn SpaceCreate() -> Element {
     let mut topic = use_signal(String::new);
     let mut is_encrypted = use_signal(|| false);
     let discoverability = use_signal(|| "listed".to_string());
-    // P3A.6 — required at create time per CXP-0007. Defaults to
+    // P3A.6 — required at create time per CKP-0007. Defaults to
     // `collaboration` because principal-control Realms are rare and
     // operators should opt into the heavier classification
     // deliberately.
@@ -95,7 +95,7 @@ pub fn SpaceCreate() -> Element {
                 }
 
                 // P3A.6 — Realm classification picker. Required at
-                // create time; immutable afterwards per CXP-0007.
+                // create time; immutable afterwards per CKP-0007.
                 div { class: "space-y-2",
                     label { class: "text-sm font-medium", {t("realm.classification")} }
                     select {

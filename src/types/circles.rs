@@ -1,4 +1,4 @@
-//! CXP-0007 Circle types — wire shapes for the soland
+//! CKP-0007 Circle types — wire shapes for the soland
 //! `/_cokret/self/circles/*` admin surface.
 //!
 //! A Circle is an encrypted sub-boundary inside a Realm (the security

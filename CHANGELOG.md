@@ -13,7 +13,7 @@ the SDK pins down its 1.0 contract.
 
 ## R3.3 — Spec sync 2026-05-28 (cokret-spec @ cced4b8)
 
-- R3.3 spec sync — pin to cokret-spec @ cced4b8 (CXP-0011). `resolve_target` operator diagnostic page deferred to R3.3.1.
+- R3.3 spec sync — pin to cokret-spec @ cced4b8 (CKP-0011). `resolve_target` operator diagnostic page deferred to R3.3.1.
 
 > No version tag, no crates.io / Docker Hub / npm publish — git commit only.
 ## R3.2 — Spec sync 2026-05-28 (cokret-spec @ b56cab1)
@@ -36,7 +36,7 @@ the SDK pins down its 1.0 contract.
 
 ## [Unreleased]
 
-### CXP-0007 Circle rollout (P3A)
+### CKP-0007 Circle rollout (P3A)
 
 UI surfaces for the encrypted-sub-boundary primitive shipped by
 soland P2A + coauth P2B.
@@ -58,7 +58,7 @@ soland P2A + coauth P2B.
   Control / Collaboration / unknown distinction. The Realm/Space
   create form now requires the immutable classification at create
   time (defaults to `collaboration`).
-- **Added** CXP-0007 reason-code i18n (P3A.8): six reducer
+- **Added** CKP-0007 reason-code i18n (P3A.8): six reducer
   rejection reasons (`circle_realm_mismatch`,
   `circle_member_must_be_realm_member`, `circle_not_active`,
   `circle_already_terminal`, `circle_capability_denied`,

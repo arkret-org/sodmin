@@ -86,7 +86,7 @@ operator's current grant list before submission to reduce the
 visible regardless: only the backend can authoritatively reject the
 action.
 
-## CXP-0007 Circle administration
+## CKP-0007 Circle administration
 
 Sodmin's `/circles/*` surfaces (P3A.3) call into soland's `/_cokret/self/circles/*`
 admin layer. Before an operator can use those pages, coauth must have

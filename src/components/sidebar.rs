@@ -133,7 +133,7 @@ fn build_nav_sections() -> Vec<NavSection> {
         .scope(scope::IDENTITY),
     );
 
-    // CXP-0007 Circles — encrypted sub-boundary admin (P3A.3).
+    // CKP-0007 Circles — encrypted sub-boundary admin (P3A.3).
     // Pinned right under Identity so operators see Circles next to
     // the Realm membership surfaces they extend.
     sections.push(
@@ -194,7 +194,7 @@ fn build_nav_sections() -> Vec<NavSection> {
                 NavItem::new(t("nav.applets_admin"), Route::AppletAdmin {}, "plug"),
                 NavItem::new(t("nav.agents"), Route::AgentList {}, "bot"),
                 NavItem::new(t("nav.agents_admin"), Route::AgentAdmin {}, "bot"),
-                // CXP-0008 personal-agent admin (P3-A).
+                // CKP-0008 personal-agent admin (P3-A).
                 NavItem::new(
                     "Personal agents".to_string(),
                     Route::PersonalAgentList {},

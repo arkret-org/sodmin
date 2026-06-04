@@ -79,7 +79,7 @@ impl fmt::Display for HttpError {
 impl std::error::Error for HttpError {}
 
 pub fn display_error(errcode: &str, status: u16, message: &str) -> String {
-    // P3A.8 — the soland reducer surfaces canonical CXP-0007 reason
+    // P3A.8 — the soland reducer surfaces canonical CKP-0007 reason
     // strings (e.g. `circle_realm_mismatch`,
     // `circle_member_must_be_realm_member`) as the `errcode` field on
     // 422 responses. These six are the spec's
@@ -88,7 +88,7 @@ pub fn display_error(errcode: &str, status: u16, message: &str) -> String {
     // matching i18n key (`error.<reason>`). When an i18n string is
     // present we render it; otherwise we fall back to the in-line
     // English literal so brand-new codes still surface usefully.
-    // Global report #10 (candidate 8) — the three CXP-0007 reason codes
+    // Global report #10 (candidate 8) — the three CKP-0007 reason codes
     // the SDK ships as public constants are matched against
     // `cokret_core::error::REASON_CIRCLE_*` rather than hand-copied
     // literals, so a wire rename in the SDK breaks the build here. The

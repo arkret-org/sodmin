@@ -1,6 +1,6 @@
 //! `/circles/:circle_id/scope` — MLS scope rotation surface.
 //!
-//! CXP-0007 makes scope rotation a first-class admin operation so the
+//! CKP-0007 makes scope rotation a first-class admin operation so the
 //! receipt fans out into the audit log even when no membership changes
 //! accompany it. The full MLS-key cascade lives in soland's
 //! `reducer/mls.rs` and is still

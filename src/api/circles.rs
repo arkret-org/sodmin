@@ -1,4 +1,4 @@
-//! HTTP client for the soland CXP-0007 Circle admin surface
+//! HTTP client for the soland CKP-0007 Circle admin surface
 //! (`/_cokret/self/circles/*`).
 //!
 //! Routes consumed:
@@ -12,7 +12,7 @@
 //! - `POST   /_cokret/self/circles/{circle_id}/archive`       archive
 //! - `POST   /_cokret/self/circles/{circle_id}/tombstone`     tombstone
 //!
-//! The reducer surfaces canonical CXP-0007 reason codes (e.g.
+//! The reducer surfaces canonical CKP-0007 reason codes (e.g.
 //! `circle_realm_mismatch`, `circle_member_must_be_realm_member`,
 //! `circle_not_active`) via the standard `AppError.code` field, which the
 //! admin UI maps to localised strings in `utils::net::error`.
@@ -71,7 +71,7 @@ pub async fn remove_circle_member(
     api_client(&url, "DELETE", None).await
 }
 
-/// Rotate the Circle's bound MLS group. CXP-0007 mandates this be a
+/// Rotate the Circle's bound MLS group. CKP-0007 mandates this be a
 /// separate explicit admin action so the receipt fans out into the
 /// audit log even when no membership changes accompany the rotation.
 pub async fn rotate_circle_scope(circle_id: &str) -> Result<CircleScopeRotateResponse, HttpError> {
