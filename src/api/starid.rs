@@ -22,7 +22,10 @@ pub async fn get_describe() -> Result<Result<StaridDescribe, HttpError>, StaridN
     let Some(base) = session::starid_public_url() else {
         return Err(StaridNotConfigured);
     };
-    let url = format!("{}/_cokret/root/identity/describe", base.trim_end_matches('/'));
+    let url = format!(
+        "{}/_cokret/root/identity/describe",
+        base.trim_end_matches('/')
+    );
     Ok(api_client(&url, "GET", None).await)
 }
 

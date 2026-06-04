@@ -14,8 +14,8 @@
 use dioxus::prelude::*;
 
 use crate::components::ui::input::Input;
-use crate::utils::security::did;
 use crate::utils::i18n::t;
+use crate::utils::security::did;
 
 #[component]
 pub fn DidInput(

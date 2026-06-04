@@ -36,9 +36,9 @@ use crate::components::ui::table::*;
 use crate::components::ui::toast::{ToastVariant, show_toast};
 use crate::router::Route;
 use crate::types::HandleReassignRequest;
+use crate::utils::i18n::t;
 use crate::utils::security::did;
 use crate::utils::security::handle::display_sigil;
-use crate::utils::i18n::t;
 
 const PAGE_SIZE: u64 = 25;
 

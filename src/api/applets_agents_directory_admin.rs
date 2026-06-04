@@ -168,7 +168,10 @@ pub async fn reject_directory_entry(
     id: &str,
     body: &ApprovalActionRequest,
 ) -> Result<(), HttpError> {
-    let url = format!("/_soland/admin/directory/{}/reject", urlencoding::encode(id));
+    let url = format!(
+        "/_soland/admin/directory/{}/reject",
+        urlencoding::encode(id)
+    );
     let payload = serde_json::to_string(body).unwrap_or_default();
     let _: serde_json::Value = api_client(&url, "POST", Some(payload)).await?;
     Ok(())

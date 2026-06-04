@@ -16,8 +16,8 @@ use crate::components::ui::pagination::CursorPagination;
 use crate::components::ui::table::*;
 use crate::components::ui::toast::{ToastVariant, show_toast};
 use crate::router::Route;
-use crate::utils::i18n::t;
 use crate::utils::fmt::search::matches_name_or_id;
+use crate::utils::i18n::t;
 
 const PAGE_SIZE: u64 = 25;
 const AUTOREFRESH_STORAGE_KEY: &str = "sodmin.federation.autorefresh";

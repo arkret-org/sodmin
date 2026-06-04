@@ -74,13 +74,19 @@ pub async fn resume_personal_agent(id: &str) -> Result<(), HttpError> {
 /// Destructive: callers MUST gate this through `ConfirmDialog` with
 /// typed-keyword confirmation (`DEACTIVATE`).
 pub async fn deactivate_personal_agent(id: &str) -> Result<(), HttpError> {
-    let url = format!("/_cokret/self/agents/{}/deactivate", urlencoding::encode(id));
+    let url = format!(
+        "/_cokret/self/agents/{}/deactivate",
+        urlencoding::encode(id)
+    );
     api_client(&url, "POST", None).await
 }
 
 /// `POST /_cokret/self/agents/{id}/rotate-key` — `ck.agent.rotate_key`.
 pub async fn rotate_personal_agent_key(id: &str) -> Result<AgentProvisionResponse, HttpError> {
-    let url = format!("/_cokret/self/agents/{}/rotate-key", urlencoding::encode(id));
+    let url = format!(
+        "/_cokret/self/agents/{}/rotate-key",
+        urlencoding::encode(id)
+    );
     api_client(&url, "POST", None).await
 }
 

@@ -30,10 +30,10 @@ use crate::components::ui::pagination::CursorPagination;
 use crate::components::ui::table::*;
 use crate::components::ui::toast::{ToastVariant, show_toast};
 use crate::pages::applets::admin::{RowAction, approval_variant};
+use crate::utils::fmt::search::matches_name_or_id;
+use crate::utils::i18n::t;
 use crate::utils::net::audit::{AdminAuditOutcome, emit_admin_audit_server};
 use crate::utils::net::error::format_optional_endpoint_error;
-use crate::utils::i18n::t;
-use crate::utils::fmt::search::matches_name_or_id;
 
 const PAGE_SIZE: u64 = 25;
 const BULK_CONCURRENCY: usize = 5;

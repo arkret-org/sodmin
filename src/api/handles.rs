@@ -48,7 +48,10 @@ pub async fn reassign_handle(
     id: &str,
     req: &HandleReassignRequest,
 ) -> Result<HandleRecord, HttpError> {
-    let url = format!("/_soland/admin/handles/{}/reassign", urlencoding::encode(id));
+    let url = format!(
+        "/_soland/admin/handles/{}/reassign",
+        urlencoding::encode(id)
+    );
     api_client(
         &url,
         "POST",

@@ -52,7 +52,8 @@ pub mod coauth {
     pub const CONNECTOR_HEALTH: &str = "/_soland/admin/connector-health";
     pub const NOTIFICATION_CHANNELS: &str = "/_soland/admin/notification-channels";
     pub const NOTIFICATION_TEMPLATES: &str = "/_soland/admin/notification-templates";
-    pub const NOTIFICATION_TEMPLATES_PUBLISH: &str = "/_soland/admin/notification-templates/publish";
+    pub const NOTIFICATION_TEMPLATES_PUBLISH: &str =
+        "/_soland/admin/notification-templates/publish";
     pub const ACCOUNTS: &str = "/_soland/admin/accounts";
     pub const BRIDGE_DESCRIBE: &str = "/_soland/admin/bridge/describe";
     pub const INTEGRATION_DESCRIBE: &str = "/_cokret/self/integration/describe";

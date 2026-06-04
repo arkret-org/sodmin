@@ -284,7 +284,11 @@ fn run() -> ExitCode {
     // intentionally NOT exercised here — running them post-deploy would
     // mutate state. Smoke checks reachability + auth only.
     let checks = vec![
-        ("admin/health", "GET", format!("{base}/_soland/admin/health")),
+        (
+            "admin/health",
+            "GET",
+            format!("{base}/_soland/admin/health"),
+        ),
         (
             "spaces/anchorer (H'1/H'2)",
             "GET",

@@ -6,10 +6,16 @@
 //! Dismiss actions which POST `{decision, note?}` to soland's resolve
 //! route.
 //!
-//! Distinct from `pages/reports/list.rs` (which reads coauth's
-//! report-of-event surface). This page integrates the soland moderation
-//! admin describe surface and is the operational workflow for
-//! moderation triage.
+//! Distinct from `pages/reports/list.rs`: both pages read **soland**
+//! report surfaces (this page hits `GET /_soland/admin/moderation/reports`
+//! with cursor pagination + a Resolve/Dismiss appeal-aware close loop;
+//! `pages/reports/list.rs` hits the legacy `GET /_soland/admin/reports`
+//! with page/per_page pagination). The difference is two soland routes,
+//! NOT two services — neither reads coauth. This page is the
+//! spec-aligned (`reporter_did`/`target_did`, cursor) operational
+//! workflow for moderation triage; the legacy `/reports` surface is a
+//! duplicate kept pending soland confirmation of whether the legacy
+//! endpoint is still served (see `_code_review/sodmin/09-duplication.md`).
 
 use dioxus::prelude::*;
 
@@ -24,8 +30,8 @@ use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::table::*;
 use crate::components::ui::toast::{ToastVariant, show_toast};
 use crate::types::moderation::{ReportDecision, ReportStatus, ResolveReportRequest};
-use crate::utils::net::error::format_optional_endpoint_error;
 use crate::utils::i18n::t;
+use crate::utils::net::error::format_optional_endpoint_error;
 
 const PAGE_SIZE: u64 = 25;
 

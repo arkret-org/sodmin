@@ -147,8 +147,8 @@ pub fn normalize_to_canonical(input: &str) -> Result<String, HandleNormalizeErro
             .map_err(|_| HandleNormalizeError::Malformed);
     }
 
-    // 2. `acct:` interop form — delegated wholesale to the SDK
-    //    `Handle::from_acct`, which rewrites `@` to `:` and validates.
+    // 2. `acct:` interop form — delegated wholesale to the SDK `Handle::from_acct`, which rewrites
+    //    `@` to `:` and validates.
     if trimmed.starts_with("acct:") {
         return Handle::from_acct(trimmed)
             .map(|h| h.canonical().to_owned())
@@ -158,8 +158,8 @@ pub fn normalize_to_canonical(input: &str) -> Result<String, HandleNormalizeErro
     // 3. Display sigil `@localpart:domain[:port]` — strip the UI sigil.
     let body = trimmed.strip_prefix('@').unwrap_or(trimmed);
 
-    // 4. Canonical form: hand the bytes to the SDK parser for the
-    //    authoritative `<localpart>:<domain>(:<port>)?` validation.
+    // 4. Canonical form: hand the bytes to the SDK parser for the authoritative
+    //    `<localpart>:<domain>(:<port>)?` validation.
     Handle::parse(body)
         .map(|h| h.canonical().to_owned())
         .map_err(|_| HandleNormalizeError::Malformed)

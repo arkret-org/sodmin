@@ -25,37 +25,38 @@ mod viewer;
 // from the JSON:API envelope `coauth_admin_types::PaginatedResponse`
 // (`{data, meta, links}`) and from `crate::types::api::ListResponse`
 // (`{data, total, next_cursor}`) — the wire shapes differ field-for-field.
-pub use crate::types::{CursorPage, PaginatedResponse};
-
 pub use accounts::{
+    AccountListFilter, CoauthAccountClaim, CoauthAccountDetail, CoauthAccountRiskActionApproval,
+    CoauthAccountRiskActionApprovalDraft, CoauthAccountRiskActionCurrentState,
+    CoauthAccountRiskActionDraft, CoauthAccountRiskActionExecute,
+    CoauthAccountRiskActionExecuteDraft, CoauthAccountRiskActionHistoryEntry,
+    CoauthAccountRiskActionHistoryEnvelopeShared, CoauthAccountRiskActionProposal,
+    CoauthAccountSummary, CoauthAdminBridgeDescribe, CoauthIntegrationManifest,
+    CoauthManagedDidBinding, CoauthRiskActionHook, CoauthSessionGrantSummary,
     add_account_did_binding, approve_account_risk_action, execute_account_risk_action,
     get_account_detail, list_accounts_cursor, remove_account_did_binding, revoke_account_claim,
-    submit_account_risk_action, AccountListFilter, CoauthAccountClaim, CoauthAccountDetail,
-    CoauthAccountRiskActionApproval, CoauthAccountRiskActionApprovalDraft,
-    CoauthAccountRiskActionCurrentState, CoauthAccountRiskActionDraft,
-    CoauthAccountRiskActionExecute, CoauthAccountRiskActionExecuteDraft,
-    CoauthAccountRiskActionHistoryEntry, CoauthAccountRiskActionHistoryEnvelopeShared,
-    CoauthAccountRiskActionProposal, CoauthAccountSummary, CoauthAdminBridgeDescribe,
-    CoauthIntegrationManifest, CoauthManagedDidBinding, CoauthRiskActionHook,
-    CoauthSessionGrantSummary,
+    submit_account_risk_action,
 };
-pub use audit_feed::{list_audit_feed, AuditFeedFilter, CoauthAuditEntry};
-pub use connector_health::{get_connector_health, CoauthConnectorHealth};
+pub use audit_feed::{AuditFeedFilter, CoauthAuditEntry, list_audit_feed};
+pub use connector_health::{CoauthConnectorHealth, get_connector_health};
 pub use notifications::{
-    list_notification_channels, list_notification_templates, CoauthNotificationChannel,
-    CoauthNotificationTemplate,
+    CoauthNotificationChannel, CoauthNotificationTemplate, list_notification_channels,
+    list_notification_templates,
 };
 pub use registration::{
-    create_registration_token, list_registration_tokens, revoke_registration_token,
-    CoauthRegistrationToken,
+    CoauthRegistrationToken, create_registration_token, list_registration_tokens,
+    revoke_registration_token,
 };
 pub use sessions::{
-    create_personal_session, finish_oauth2_session, list_oauth2_sessions, list_personal_sessions,
-    regenerate_personal_session, revoke_personal_session, CoauthOAuth2Session,
-    CoauthPersonalSession,
+    CoauthOAuth2Session, CoauthPersonalSession, create_personal_session, finish_oauth2_session,
+    list_oauth2_sessions, list_personal_sessions, regenerate_personal_session,
+    revoke_personal_session,
 };
 pub use upstream::{
-    create_upstream_provider, delete_upstream_link, delete_upstream_provider, list_upstream_links,
-    list_upstream_providers, toggle_upstream_provider, CoauthUpstreamLink, CoauthUpstreamProvider,
+    CoauthUpstreamLink, CoauthUpstreamProvider, create_upstream_provider, delete_upstream_link,
+    delete_upstream_provider, list_upstream_links, list_upstream_providers,
+    toggle_upstream_provider,
 };
-pub use viewer::{get_viewer, CoauthViewer};
+pub use viewer::{CoauthViewer, get_viewer};
+
+pub use crate::types::{CursorPage, PaginatedResponse};

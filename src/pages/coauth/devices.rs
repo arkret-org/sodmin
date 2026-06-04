@@ -22,8 +22,8 @@ use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::table::*;
 use crate::components::ui::toast::{ToastVariant, show_toast};
 use crate::types::coauth_devices::{CoauthDeviceStatus, render_last_seen};
-use crate::utils::net::error::format_optional_endpoint_error;
 use crate::utils::i18n::t;
+use crate::utils::net::error::format_optional_endpoint_error;
 
 const PAGE_SIZE: u64 = 25;
 

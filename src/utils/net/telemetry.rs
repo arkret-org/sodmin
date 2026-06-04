@@ -66,15 +66,12 @@ struct ErrorEvent<'a> {
 /// Reduce a concrete request URL to a low-cardinality, PII-free path
 /// template for telemetry.
 ///
-/// 1. Strips the query string + fragment (cursor tokens / filter values
-///    count as PII).
-/// 2. Templates inline id segments to `{id}`. Our REST paths embed
-///    actor / account / realm / handle ids directly in the path (e.g.
-///    `/_soland/admin/accounts/01HXY.../dids/did:web:x`), and those ids —
-///    ULIDs, numeric ids, DIDs — are identifying. A segment is treated
-///    as an id when it contains a `:` (DID / `ck:` ref), starts with a
-///    digit (ULID / numeric id), or is an overly long opaque token.
-///    Static words like `api`, `v1`, `accounts` are preserved.
+/// 1. Strips the query string + fragment (cursor tokens / filter values count as PII).
+/// 2. Templates inline id segments to `{id}`. Our REST paths embed actor / account / realm / handle
+///    ids directly in the path (e.g. `/_soland/admin/accounts/01HXY.../dids/did:web:x`), and those
+///    ids — ULIDs, numeric ids, DIDs — are identifying. A segment is treated as an id when it
+///    contains a `:` (DID / `ck:` ref), starts with a digit (ULID / numeric id), or is an overly
+///    long opaque token. Static words like `api`, `v1`, `accounts` are preserved.
 fn redact_path(url: &str) -> String {
     let path = url.split('?').next().unwrap_or(url);
     let path = path.split('#').next().unwrap_or(path);

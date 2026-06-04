@@ -11,9 +11,11 @@ use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::{BreadcrumbItem, Breadcrumbs, PageHeader};
 use crate::components::ui::table::*;
 use crate::router::Route;
-use crate::utils::security::handle::display_sigil;
 use crate::utils::i18n::t;
-use crate::utils::security::primary_handle::{PrimaryHandleSelectInput, select_primary_handle_string};
+use crate::utils::security::handle::display_sigil;
+use crate::utils::security::primary_handle::{
+    PrimaryHandleSelectInput, select_primary_handle_string,
+};
 
 #[component]
 pub fn SpaceShow(space_id: String) -> Element {

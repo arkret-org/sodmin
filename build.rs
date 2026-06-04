@@ -16,7 +16,10 @@ const REQUIRED_COAUTH: &[(&str, &str)] = &[
     ("GET", "/_soland/admin/upstream-oauth-providers"),
     ("POST", "/_soland/admin/upstream-oauth-providers"),
     ("DELETE", "/_soland/admin/upstream-oauth-providers/{id}"),
-    ("POST", "/_soland/admin/upstream-oauth-providers/{id}/enable"),
+    (
+        "POST",
+        "/_soland/admin/upstream-oauth-providers/{id}/enable",
+    ),
     (
         "POST",
         "/_soland/admin/upstream-oauth-providers/{id}/disable",
@@ -25,7 +28,10 @@ const REQUIRED_COAUTH: &[(&str, &str)] = &[
     ("DELETE", "/_soland/admin/upstream-oauth-links/{id}"),
     ("GET", "/_soland/admin/user-registration-tokens"),
     ("POST", "/_soland/admin/user-registration-tokens"),
-    ("POST", "/_soland/admin/user-registration-tokens/{id}/revoke"),
+    (
+        "POST",
+        "/_soland/admin/user-registration-tokens/{id}/revoke",
+    ),
     ("GET", "/_soland/admin/connector-health"),
     ("GET", "/_soland/admin/notification-channels"),
     ("GET", "/_soland/admin/notification-templates"),
@@ -85,7 +91,10 @@ const REQUIRED_SOLAND: &[(&str, &str)] = &[
     ("POST", "/_soland/admin/moderation/appeals/{id}/close"),
     ("GET", "/_soland/admin/federation/status"),
     ("GET", "/_soland/admin/authz/capabilities"),
-    ("POST", "/_soland/admin/authz/capabilities/{grant_id}/revoke"),
+    (
+        "POST",
+        "/_soland/admin/authz/capabilities/{grant_id}/revoke",
+    ),
     ("GET", "/_soland/admin/realms/{id}/delivery-binding-policy"),
     ("PUT", "/_soland/admin/realms/{id}/delivery-binding-policy"),
     (
@@ -101,7 +110,10 @@ const REQUIRED_SOLAND: &[(&str, &str)] = &[
     ("POST", "/_cokret/self/circles"),
     ("GET", "/_cokret/self/circles/{circle_id}"),
     ("POST", "/_cokret/self/circles/{circle_id}/members"),
-    ("DELETE", "/_cokret/self/circles/{circle_id}/members/{actor_id}"),
+    (
+        "DELETE",
+        "/_cokret/self/circles/{circle_id}/members/{actor_id}",
+    ),
     ("POST", "/_cokret/self/circles/{circle_id}/scope-rotate"),
     ("POST", "/_cokret/self/circles/{circle_id}/archive"),
     ("POST", "/_cokret/self/circles/{circle_id}/tombstone"),

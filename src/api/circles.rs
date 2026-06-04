@@ -53,7 +53,10 @@ pub async fn add_circle_member(
     circle_id: &str,
     req: &CircleMemberRequest,
 ) -> Result<CircleMembershipResponse, HttpError> {
-    let url = format!("/_cokret/self/circles/{}/members", urlencoding::encode(circle_id),);
+    let url = format!(
+        "/_cokret/self/circles/{}/members",
+        urlencoding::encode(circle_id),
+    );
     let body = serde_json::to_string(req).unwrap_or_default();
     api_client(&url, "POST", Some(body)).await
 }
@@ -85,7 +88,10 @@ pub async fn rotate_circle_scope(circle_id: &str) -> Result<CircleScopeRotateRes
 /// Archive the Circle (`ck.circle.archive`). Reversible by the same
 /// caller while the Circle is still inside the soft-delete window.
 pub async fn archive_circle(circle_id: &str) -> Result<Circle, HttpError> {
-    let url = format!("/_cokret/self/circles/{}/archive", urlencoding::encode(circle_id),);
+    let url = format!(
+        "/_cokret/self/circles/{}/archive",
+        urlencoding::encode(circle_id),
+    );
     api_client(&url, "POST", Some("{}".to_string())).await
 }
 

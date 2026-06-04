@@ -2,9 +2,9 @@ use gloo_net::http::{Headers, Request, RequestBuilder};
 use serde::de::DeserializeOwned;
 use web_sys::RequestCredentials;
 
-use crate::utils::security::crypto::random_token;
 use crate::utils::net::error::{AdminErrorEnvelope, HttpError, display_error};
 use crate::utils::net::perf;
+use crate::utils::security::crypto::random_token;
 
 pub const HEADER_REQUEST_ID: &str = "X-Cokret-Request-Id";
 pub const HEADER_IDEMPOTENCY_KEY: &str = "Idempotency-Key";

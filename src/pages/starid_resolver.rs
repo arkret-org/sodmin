@@ -20,8 +20,8 @@ use crate::components::ui::card::*;
 use crate::components::ui::error_banner::ErrorBanner;
 use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
-use crate::utils::net::error::HttpError;
 use crate::utils::i18n::t;
+use crate::utils::net::error::HttpError;
 
 #[component]
 pub fn StaridResolverPage() -> Element {

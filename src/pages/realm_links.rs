@@ -113,7 +113,9 @@ pub fn RealmLinks(realm_id: String) -> Element {
 }
 
 fn render_link_list<F>(
-    data: &Option<Result<crate::types::ListResponse<RealmLinkRow>, crate::utils::net::error::HttpError>>,
+    data: &Option<
+        Result<crate::types::ListResponse<RealmLinkRow>, crate::utils::net::error::HttpError>,
+    >,
     retry: F,
     outbound: bool,
 ) -> Element

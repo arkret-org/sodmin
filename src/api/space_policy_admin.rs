@@ -4,9 +4,8 @@
 //! - `POST /_soland/admin/spaces/{id}/policy` — write a new policy. soland wraps the body into a
 //!   cas-register Move.
 
-use crate::types::space_policy::{SpacePolicy, UpdateSpacePolicyRequest};
-
 use crate::api::client::api_client;
+use crate::types::space_policy::{SpacePolicy, UpdateSpacePolicyRequest};
 use crate::utils::net::error::HttpError;
 
 pub async fn get_policy(space_id: &str) -> Result<SpacePolicy, HttpError> {

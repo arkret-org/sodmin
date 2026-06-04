@@ -1,13 +1,13 @@
 //! coauth admin notification channels and templates.
 
-use crate::api::client::api_client;
-use crate::api::openapi_contract::coauth as coauth_paths;
-use crate::utils::net::error::HttpError;
-
 pub use coauth_admin_types::{
     NotificationChannelStatus as CoauthNotificationChannel,
     NotificationTemplateEntry as CoauthNotificationTemplate,
 };
+
+use crate::api::client::api_client;
+use crate::api::openapi_contract::coauth as coauth_paths;
+use crate::utils::net::error::HttpError;
 
 pub async fn list_notification_channels() -> Result<Vec<CoauthNotificationChannel>, HttpError> {
     let resp: coauth_admin_types::NotificationChannelsResponse =

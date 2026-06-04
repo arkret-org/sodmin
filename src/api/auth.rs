@@ -29,8 +29,8 @@ use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::JsFuture;
 use web_sys::{RequestCredentials, RequestMode};
 
-use crate::utils::security::crypto::{base64url_encode, random_token};
 use crate::utils::net::error::HttpError;
+use crate::utils::security::crypto::{base64url_encode, random_token};
 use crate::utils::storage;
 
 const OAUTH_CLIENT_ID: &str = "sodmin";
