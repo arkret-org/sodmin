@@ -565,10 +565,22 @@ fn chip_section(label: String, items: &[String]) -> Element {
 /// out and labelled "unavailable in dev mode" because the relaxed
 /// proof verifier breaks the verification chain.
 fn conformance_section(describe: &ServerDescribeResBody, dev_mode_active: bool) -> Element {
-    let verified = describe.verified_profiles.clone();
-    let claimed = describe.claimed_profiles.clone();
+    let verified = describe
+        .verified_profiles
+        .iter()
+        .map(|profile| profile.profile_id().to_owned())
+        .collect::<Vec<_>>();
+    let claimed = describe
+        .claimed_profiles
+        .iter()
+        .map(|profile| profile.profile_id().to_owned())
+        .collect::<Vec<_>>();
     let experimental = describe.experimental_features.clone();
-    let compat = describe.compat_surfaces.clone();
+    let compat = describe
+        .compat_surfaces
+        .iter()
+        .map(|surface| surface.name().to_owned())
+        .collect::<Vec<_>>();
 
     if verified.is_empty() && claimed.is_empty() && experimental.is_empty() && compat.is_empty() {
         return rsx! {};

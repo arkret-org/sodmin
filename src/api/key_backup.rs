@@ -1,10 +1,13 @@
 //! B-C key-backup admin surface — talks to the soland endpoints
 //! shipped in P2 (aa76b91): `GET /_cokret/self/keys/backups?series_id=...`
-//! plus the recovery-policy and recovery-receipt typed-id endpoints.
+//! plus the soland identity recovery extension endpoints.
 
 use crate::api::client::{api_client, build_url};
 use crate::types::{KeyBackupSeries, ListResponse, RecoveryPolicy, RecoveryReceipt};
 use crate::utils::net::error::HttpError;
+
+const RECOVERY_POLICIES_PATH: &str = "/_cokret/root/identity/recovery-policies";
+const RECOVERY_RECEIPTS_PATH: &str = "/_cokret/root/identity/recovery-receipts";
 
 /// `GET /_cokret/self/keys/backups?series_id=&backup_class=` — list backup
 /// envelopes grouped by series. Empty `series_id` returns the per-series
@@ -24,18 +27,19 @@ pub async fn list_backups(
     api_client(&url, "GET", None).await
 }
 
-/// `GET /_cokret/self/keys/recovery-policies` — current recovery policies.
+/// `GET /_cokret/root/identity/recovery-policies` — current recovery policies.
 pub async fn list_recovery_policies() -> Result<ListResponse<RecoveryPolicy>, HttpError> {
-    api_client("/_cokret/self/keys/recovery-policies", "GET", None).await
+    api_client(RECOVERY_POLICIES_PATH, "GET", None).await
 }
 
-/// `PUT /_cokret/self/keys/recovery-policies/{id}` — edit a policy's
+/// `PUT /_cokret/root/identity/recovery-policies/{id}` — edit a policy's
 /// lifecycle / KDF profile. The deep validators (epoch hash
 /// monotonicity, KDF profile compat, lifecycle transition rules) are
 /// `TODO(P3-impl)` and live server-side.
 pub async fn upsert_recovery_policy(policy: &RecoveryPolicy) -> Result<RecoveryPolicy, HttpError> {
     let url = format!(
-        "/_cokret/self/keys/recovery-policies/{}",
+        "{}/{}",
+        RECOVERY_POLICIES_PATH,
         urlencoding::encode(&policy.policy_id)
     );
     let body =
@@ -43,7 +47,7 @@ pub async fn upsert_recovery_policy(policy: &RecoveryPolicy) -> Result<RecoveryP
     api_client(&url, "PUT", Some(body)).await
 }
 
-/// `GET /_cokret/self/keys/recovery-receipts` — admin browse of issued
+/// `GET /_cokret/root/identity/recovery-receipts` — admin browse of issued
 /// recovery receipts.
 pub async fn list_recovery_receipts(
     session_id: Option<&str>,
@@ -52,6 +56,6 @@ pub async fn list_recovery_receipts(
     if let Some(s) = session_id {
         params.push(("session_id", s));
     }
-    let url = build_url("/_cokret/self/keys/recovery-receipts", &params)?;
+    let url = build_url(RECOVERY_RECEIPTS_PATH, &params)?;
     api_client(&url, "GET", None).await
 }

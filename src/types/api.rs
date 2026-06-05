@@ -1,4 +1,5 @@
 pub use cokret_contracts::ops::HardeningStatus;
+pub use cokret_core::model::HandleBindingState;
 use serde::{Deserialize, Serialize};
 
 // ── Pagination ──
@@ -815,6 +816,105 @@ pub struct ServerInfo {
     pub uptime: Option<u64>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(untagged)]
+pub enum ClaimedProfile {
+    Claim(ClaimedProfileClaim),
+    ProfileId(String),
+}
+
+impl ClaimedProfile {
+    pub fn profile_id(&self) -> &str {
+        match self {
+            Self::Claim(claim) => claim.profile_id.as_str(),
+            Self::ProfileId(profile_id) => profile_id.as_str(),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
+pub struct ClaimedProfileClaim {
+    #[serde(default)]
+    pub profile_id: String,
+    #[serde(default)]
+    pub claim_kind: Option<String>,
+    #[serde(default)]
+    pub claimed_at: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(untagged)]
+pub enum VerifiedProfile {
+    Claim(VerifiedProfileClaim),
+    ProfileId(String),
+}
+
+impl VerifiedProfile {
+    pub fn profile_id(&self) -> &str {
+        match self {
+            Self::Claim(claim) => claim.profile_id.as_str(),
+            Self::ProfileId(profile_id) => profile_id.as_str(),
+        }
+    }
+
+    pub fn artifact_ref(&self) -> Option<&str> {
+        match self {
+            Self::Claim(claim) => claim.artifact_ref.as_deref(),
+            Self::ProfileId(_) => None,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
+pub struct VerifiedProfileClaim {
+    #[serde(default)]
+    pub profile_id: String,
+    #[serde(default)]
+    pub claim_kind: Option<String>,
+    #[serde(default)]
+    pub cotest_run_id: Option<String>,
+    #[serde(default)]
+    pub artifact_digest: Option<String>,
+    #[serde(default)]
+    pub artifact_ref: Option<String>,
+    #[serde(default)]
+    pub cotest_issuer_did: Option<String>,
+    #[serde(default)]
+    pub signature: Option<String>,
+    #[serde(default)]
+    pub timestamp: Option<String>,
+    #[serde(default)]
+    pub expires_at: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(untagged)]
+pub enum CompatSurface {
+    Surface(CompatSurfaceClaim),
+    Name(String),
+}
+
+impl CompatSurface {
+    pub fn name(&self) -> &str {
+        match self {
+            Self::Surface(surface) => surface.name.as_str(),
+            Self::Name(name) => name.as_str(),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
+pub struct CompatSurfaceClaim {
+    #[serde(default)]
+    pub name: String,
+    #[serde(default)]
+    pub kind: Option<String>,
+    #[serde(default)]
+    pub reason: Option<String>,
+    #[serde(default)]
+    pub expires_at: Option<String>,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ServerDescribeResBody {
     #[serde(default)]
@@ -884,12 +984,12 @@ pub struct ServerDescribeResBody {
     /// implement against the spec test suite. Rendered as green
     /// "verified" chips.
     #[serde(default)]
-    pub verified_profiles: Vec<String>,
+    pub verified_profiles: Vec<VerifiedProfile>,
     /// T6.1 — profiles the operator self-claims support for. Rendered
     /// as yellow "self-claimed" chips because they lack third-party
     /// verification.
     #[serde(default)]
-    pub claimed_profiles: Vec<String>,
+    pub claimed_profiles: Vec<ClaimedProfile>,
     /// T6.1 — experimental features the server exposes. Rendered as
     /// blue chips with an "unstable" warning.
     #[serde(default)]
@@ -897,7 +997,7 @@ pub struct ServerDescribeResBody {
     /// T6.1 — compatibility surfaces (legacy / shim endpoints). Grey
     /// chips.
     #[serde(default)]
-    pub compat_surfaces: Vec<String>,
+    pub compat_surfaces: Vec<CompatSurface>,
     /// Round 4 — `plaintext_visibility` snapshot (services whose plaintext
     /// bodies remain readable on this deployment). Renamed from the
     /// pre-round-4 `plaintext_visible_services`; the legacy field name is
@@ -1010,18 +1110,6 @@ pub struct HandleAvailabilityResult {
 }
 
 // ── Handle claim evidence (R3.2 — ck.schema.handle_claim.v1) ──
-
-/// Binding lifecycle state of a [`HandleClaim`]. Mirrors the SDK
-/// `cokret_core::model::handle::HandleBindingState`. Only `Verified`
-/// claims are eligible for §3.2.1 primary-handle selection.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum HandleBindingState {
-    Pending,
-    Verified,
-    Revoked,
-    Expired,
-}
 
 /// R3.2 — local mirror of the signed `ck.schema.handle_claim.v1` object
 /// the wire now carries inline inside roster entries
@@ -1566,31 +1654,64 @@ mod tests {
     fn server_describe_reads_conformance_buckets() {
         let describe: ServerDescribeResBody = serde_json::from_value(json!({
             "service_did": "did:web:soland.local",
-            "verified_profiles": ["ck.profile.principal_server.v1"],
-            "claimed_profiles": ["ck.profile.identity_registry.v1"],
+            "verified_profiles": [{
+                "profile_id": "ck.profile.principal_server.v1",
+                "claim_kind": "cotest_verified",
+                "artifact_ref": "ck:artifact:principal-server-run"
+            }],
+            "claimed_profiles": [{
+                "profile_id": "ck.profile.identity_registry.v1",
+                "claim_kind": "self_claimed",
+                "claimed_at": "2026-06-05T00:00:00Z"
+            }],
             "experimental_features": ["events.replay.v2"],
-            "compat_surfaces": ["legacy.federation.v0"],
+            "compat_surfaces": [{
+                "name": "legacy.federation.v0",
+                "kind": "legacy"
+            }],
             "plaintext_visible_services": ["floria"],
         }))
         .expect("conformance buckets should deserialize");
 
         assert_eq!(
-            describe.verified_profiles,
-            vec!["ck.profile.principal_server.v1".to_string()]
+            describe.verified_profiles[0].profile_id(),
+            "ck.profile.principal_server.v1"
         );
         assert_eq!(
-            describe.claimed_profiles,
-            vec!["ck.profile.identity_registry.v1".to_string()]
+            describe.verified_profiles[0].artifact_ref(),
+            Some("ck:artifact:principal-server-run")
+        );
+        assert_eq!(
+            describe.claimed_profiles[0].profile_id(),
+            "ck.profile.identity_registry.v1"
         );
         assert_eq!(
             describe.experimental_features,
             vec!["events.replay.v2".to_string()]
         );
-        assert_eq!(
-            describe.compat_surfaces,
-            vec!["legacy.federation.v0".to_string()]
-        );
+        assert_eq!(describe.compat_surfaces[0].name(), "legacy.federation.v0");
         assert_eq!(describe.plaintext_visibility, vec!["floria".to_string()]);
+    }
+
+    #[test]
+    fn server_describe_keeps_legacy_string_conformance_buckets_compatible() {
+        let describe: ServerDescribeResBody = serde_json::from_value(json!({
+            "service_did": "did:web:soland.local",
+            "verified_profiles": ["ck.profile.principal_server.v1"],
+            "claimed_profiles": ["ck.profile.identity_registry.v1"],
+            "compat_surfaces": ["legacy.federation.v0"],
+        }))
+        .expect("legacy conformance buckets should deserialize");
+
+        assert_eq!(
+            describe.verified_profiles[0].profile_id(),
+            "ck.profile.principal_server.v1"
+        );
+        assert_eq!(
+            describe.claimed_profiles[0].profile_id(),
+            "ck.profile.identity_registry.v1"
+        );
+        assert_eq!(describe.compat_surfaces[0].name(), "legacy.federation.v0");
     }
 
     #[test]
