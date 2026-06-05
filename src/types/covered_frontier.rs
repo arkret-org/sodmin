@@ -92,7 +92,7 @@ mod tests {
     #[test]
     fn lag_zero_when_covered_matches_governance() {
         let snap = CoveredFrontierSnapshot {
-            realm_id: "ck:space:demo".into(),
+            realm_id: "ck:realm:demo".into(),
             mls_epoch: 4,
             governance_frontier: vec!["m:1".into(), "m:2".into(), "m:3".into()],
             covered_frontier: vec!["m:3".into(), "m:1".into(), "m:2".into()],
@@ -105,7 +105,7 @@ mod tests {
     #[test]
     fn lag_counts_only_unacknowledged_moves() {
         let snap = CoveredFrontierSnapshot {
-            realm_id: "ck:space:demo".into(),
+            realm_id: "ck:realm:demo".into(),
             mls_epoch: 7,
             governance_frontier: vec![
                 "m:1".into(),

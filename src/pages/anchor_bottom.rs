@@ -414,7 +414,7 @@ mod tests {
     #[test]
     fn default_strategy_picks_head_in_for_conflict_with_candidates() {
         let entry = BottomEntry {
-            realm_id: "ck:space:demo".into(),
+            realm_id: "ck:realm:demo".into(),
             cell_id: "ck:cell:ck.component.profile.v1:ck:space:demo".into(),
             kind: "conflict".into(),
             candidate_heads: vec![WinnerHead {
@@ -462,7 +462,7 @@ mod tests {
         // Conflict bottom with 3 candidate heads → picker index 2 should
         // produce HeadInWinner { head: heads[2] }, not the default first.
         let entry = BottomEntry {
-            realm_id: "ck:space:demo".into(),
+            realm_id: "ck:realm:demo".into(),
             cell_id: "ck:cell:ck.component.profile.v1:ck:space:demo".into(),
             kind: "conflict".into(),
             candidate_heads: vec![
@@ -492,7 +492,7 @@ mod tests {
         // Out-of-bounds index → fall back to default_repair_strategy
         // (which picks the first head for a conflict entry).
         let entry = BottomEntry {
-            realm_id: "ck:space:demo".into(),
+            realm_id: "ck:realm:demo".into(),
             cell_id: "ck:cell:ck.component.profile.v1:ck:space:demo".into(),
             kind: "conflict".into(),
             candidate_heads: vec![WinnerHead {
@@ -548,7 +548,7 @@ mod tests {
     fn default_strategy_falls_back_to_manual_when_no_candidates() {
         // Non-conflict bottom kind with no candidate heads → manual.
         let entry = BottomEntry {
-            realm_id: "ck:space:demo".into(),
+            realm_id: "ck:realm:demo".into(),
             cell_id: "ck:cell:ck.component.member.state.v1:did:ck:alice".into(),
             kind: "schema_error".into(),
             ..Default::default()
@@ -564,7 +564,7 @@ mod tests {
         // Conflict but candidate_heads empty → still manual (operator
         // must hand-craft because nothing to pick).
         let entry = BottomEntry {
-            realm_id: "ck:space:demo".into(),
+            realm_id: "ck:realm:demo".into(),
             cell_id: "ck:cell:ck.component.profile.v1:ck:space:demo".into(),
             kind: "conflict".into(),
             candidate_heads: vec![],

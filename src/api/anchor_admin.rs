@@ -150,7 +150,7 @@ mod tests {
     #[test]
     fn reconfig_request_body_renders_threshold_shape() {
         let req = AnchorerReconfigRequest {
-            realm_id: "ck:space:0196419b-0000-7000-8000-000000000000".into(),
+            realm_id: "ck:realm:0196419b-0000-7000-8000-000000000000".into(),
             kind: "threshold".into(),
             threshold_k: Some(2),
             threshold_n: Some(3),
@@ -177,7 +177,7 @@ mod tests {
     #[test]
     fn repair_request_body_serializes_with_strategy_tag() {
         let req = BottomRepairRequest {
-            realm_id: "ck:space:demo".into(),
+            realm_id: "ck:realm:demo".into(),
             cell_id: "ck:cell:ck.component.anchorer.v1:ck:space:demo".into(),
             strategy: BottomRepairStrategy::HeadInWinner {
                 head: WinnerHead {
@@ -198,11 +198,11 @@ mod tests {
     #[test]
     fn compaction_request_body_default_omits_max_moves() {
         let req = CompactionRequest {
-            realm_id: "ck:space:demo".into(),
+            realm_id: "ck:realm:demo".into(),
             max_moves: None,
         };
         let s = serde_json::to_string(&req).unwrap();
-        assert!(s.contains("\"realm_id\":\"ck:space:demo\""));
+        assert!(s.contains("\"realm_id\":\"ck:realm:demo\""));
         assert!(!s.contains("max_moves"));
     }
 }
