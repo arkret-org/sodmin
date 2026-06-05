@@ -432,7 +432,7 @@ pub struct Agent {
     /// CKP-0008 — reducer-stamped actor kind. Native personal agents
     /// use `agent`; Applet-managed ghost actors use `integration` or
     /// `agent` plus provenance/accountability metadata.
-    /// Populated by soland's `ck.agent.list` / `ck.agent.get`.
+    /// Populated by soland's `ck.self.agent.list` / `ck.self.agent.get`.
     #[serde(default)]
     pub actor_kind: Option<String>,
     /// CKP-0008 — controller DID. Native personal agents are 1:1 bound
@@ -1030,7 +1030,7 @@ pub enum HandleBindingState {
 /// R3.2 — local mirror of the signed `ck.schema.handle_claim.v1` object
 /// the wire now carries inline inside roster entries
 /// (`member_roster_entry.handle_claims[]`) and the
-/// `ck.directory.list_handles_for_subject` response. Handle lifecycle has
+/// `ck.find.directory.list_handles_for_subject` response. Handle lifecycle has
 /// fully moved off `MemberIdentity` onto this claim object (cokret-spec
 /// @ b56cab1). Mirrors the SDK `cokret_core::model::handle::HandleClaim`;
 /// only the fields the admin UI renders / runs selection over are kept.
@@ -1073,7 +1073,7 @@ pub struct HandleClaim {
     pub claim_digest: Option<String>,
 }
 
-/// R3.2 (UI-SOD-4) — request body for `ck.directory.list_handles_for_subject`
+/// R3.2 (UI-SOD-4) — request body for `ck.find.directory.list_handles_for_subject`
 /// (`POST /_cokret/find/directory/list-handles-for-subject`). Known
 /// holder/principal DID → currently visible signed handle claims, the
 /// inverse of `resolve_handle`. Mirrors the SDK
@@ -1098,7 +1098,7 @@ pub struct ListHandlesForSubjectRequest {
 }
 
 /// R3.2 (UI-SOD-4) — response body for
-/// `ck.directory.list_handles_for_subject`. Schema
+/// `ck.find.directory.list_handles_for_subject`. Schema
 /// `ck.schema.list_handles_for_subject_response.v1`. Every
 /// `claims[].subject` MUST equal [`Self::subject`] (byte-equal);
 /// mismatching claims MUST be dropped or the response failed closed —
@@ -1488,7 +1488,7 @@ mod tests {
             "protocol_version": "1.0",
             "supported_profiles": ["ck.profile.principal_server.v1"],
             "supported_features": ["events.describe", "events.submit"],
-            "supported_operations": ["ck.events.submit"],
+            "supported_operations": ["ck.self.events.submit"],
             "supported_reducer_profiles": ["ck.reducer.v1"],
             "supported_schema_profiles": ["ck.schema.core.v1"],
             "limits": {

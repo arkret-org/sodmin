@@ -31,15 +31,15 @@ const AGENT_CAPABILITY_ACTIONS: &[&str] = &[
     "ck.agent.key.authorize",
     "ck.agent.key.revoke",
     "ck.agent.key.rotate",
-    "ck.agent.provision",
-    "ck.agent.pause",
-    "ck.agent.resume",
-    "ck.agent.deactivate",
+    "ck.self.agent.provision",
+    "ck.self.agent.pause",
+    "ck.self.agent.resume",
+    "ck.self.agent.deactivate",
     "ck.agent.draft.propose",
     "ck.agent.action_request",
     "ck.agent.action_approve",
     "ck.agent.action_reject",
-    "ck.agent.sidecar_thread.ensure",
+    "ck.self.agent.sidecar_thread.ensure",
     "ck.agent.sidecar_thread.write",
     "ck.agent.sidecar_thread.publish",
 ];
@@ -497,10 +497,10 @@ fn ProvisionWizard(props: ProvisionWizardProps) -> Element {
                     div { class: "space-y-3",
                         // P5 — pre-flight capability check so the operator
                         // sees whether their account already holds
-                        // `ck.agent.provision` before submit. UI hint only;
+                        // `ck.self.agent.provision` before submit. UI hint only;
                         // backend RBAC is canonical.
                         GrantedCapabilitiesView {
-                            required_capability: Some("ck.agent.provision".to_string()),
+                            required_capability: Some("ck.self.agent.provision".to_string()),
                             title: Some("Required capability".to_string()),
                         }
                         Label { class: "text-sm".to_string(), "Controller DID" }

@@ -49,7 +49,7 @@ pub async fn get_personal_agent(id: &str) -> Result<Agent, HttpError> {
     api_client(&url, "GET", None).await
 }
 
-/// `POST /_cokret/self/agents` — `ck.agent.provision`. Step-3 of the wizard
+/// `POST /_cokret/self/agents` — `ck.self.agent.provision`. Step-3 of the wizard
 /// completes via the coauth `accountability_grant` call below.
 pub async fn provision_personal_agent(
     req: &AgentProvisionRequest,
@@ -58,19 +58,19 @@ pub async fn provision_personal_agent(
     api_client("/_cokret/self/agents", "POST", Some(body)).await
 }
 
-/// `POST /_cokret/self/agents/{id}/pause` — `ck.agent.pause`.
+/// `POST /_cokret/self/agents/{id}/pause` — `ck.self.agent.pause`.
 pub async fn pause_personal_agent(id: &str) -> Result<(), HttpError> {
     let url = format!("/_cokret/self/agents/{}/pause", urlencoding::encode(id));
     api_client(&url, "POST", None).await
 }
 
-/// `POST /_cokret/self/agents/{id}/resume` — `ck.agent.resume`.
+/// `POST /_cokret/self/agents/{id}/resume` — `ck.self.agent.resume`.
 pub async fn resume_personal_agent(id: &str) -> Result<(), HttpError> {
     let url = format!("/_cokret/self/agents/{}/resume", urlencoding::encode(id));
     api_client(&url, "POST", None).await
 }
 
-/// `POST /_cokret/self/agents/{id}/deactivate` — `ck.agent.deactivate`.
+/// `POST /_cokret/self/agents/{id}/deactivate` — `ck.self.agent.deactivate`.
 /// Destructive: callers MUST gate this through `ConfirmDialog` with
 /// typed-keyword confirmation (`DEACTIVATE`).
 pub async fn deactivate_personal_agent(id: &str) -> Result<(), HttpError> {
@@ -81,7 +81,7 @@ pub async fn deactivate_personal_agent(id: &str) -> Result<(), HttpError> {
     api_client(&url, "POST", None).await
 }
 
-/// `POST /_cokret/self/agents/{id}/rotate-key` — `ck.agent.rotate_key`.
+/// `POST /_cokret/self/agents/{id}/rotate-key` — `ck.self.agent.rotate_key`.
 pub async fn rotate_personal_agent_key(id: &str) -> Result<AgentProvisionResponse, HttpError> {
     let url = format!(
         "/_cokret/self/agents/{}/rotate-key",
@@ -90,7 +90,7 @@ pub async fn rotate_personal_agent_key(id: &str) -> Result<AgentProvisionRespons
     api_client(&url, "POST", None).await
 }
 
-/// `POST /_cokret/self/agents/{id}/grants` — `ck.agent.grant.attach`.
+/// `POST /_cokret/self/agents/{id}/grants` — `ck.self.agent.grant.attach`.
 /// `action` is one of the 14 personal-agent capability actions; the
 /// soland reducer projects this to a `ck.capability.grant` event.
 pub async fn attach_personal_agent_grant(
@@ -107,7 +107,7 @@ pub async fn attach_personal_agent_grant(
 }
 
 /// `POST /_cokret/self/agents/{id}/sidecar-thread/ensure` —
-/// `ck.agent.sidecar_thread.ensure`.
+/// `ck.self.agent.sidecar_thread.ensure`.
 pub async fn ensure_sidecar_thread(id: &str) -> Result<serde_json::Value, HttpError> {
     let url = format!(
         "/_cokret/self/agents/{}/sidecar-thread/ensure",

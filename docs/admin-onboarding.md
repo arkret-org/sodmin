@@ -142,7 +142,7 @@ read on-call without rendering.
     │  - generate key pair (browser-side; private key never leaves the wizard)
     │  - paste accountable_principal_ids chain (defaults to the operator's own grant)
     │  - submit
-    │     → POST ck.account.agent_key_pair to coauth
+    │     → POST ck.gate.account.agent_key_pair to coauth
     │     → soland materializes the agent_state cell (Active)
     ▼
 [Active]   (agent serves traffic; appears in /agents/personal listing)

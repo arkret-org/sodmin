@@ -517,7 +517,7 @@
   "handles_by_subject.primary_handle": "Primary handle (§3.2.1)",
   "handles_by_subject.results_title": "Visible handle claims",
   "handles_by_subject.subject_id": "Subject ID",
-  "handles_by_subject.subtitle": "Reverse-lookup the signed handle claims currently visible for a holder/principal DID (ck.directory.list_handles_for_subject).",
+  "handles_by_subject.subtitle": "Reverse-lookup the signed handle claims currently visible for a holder/principal DID (ck.find.directory.list_handles_for_subject).",
   "handles_by_subject.title": "Subject → Handles",
   "handles_by_subject.why": "Why am I seeing this?",
   "handles_by_subject.why_binding": "binding_state",

@@ -6,7 +6,7 @@
 //! only discovers their role lacks the scope after submission.
 //!
 //! The view filters the list by a `required_capability` prop so the
-//! parent can pass in e.g. `ck.agent.deactivate` and the view will
+//! parent can pass in e.g. `ck.self.agent.deactivate` and the view will
 //! highlight whether that scope is currently granted to the operator.
 //!
 //! Backend RBAC is canonical — the UI "hiding" of a button is cosmetic
@@ -31,7 +31,7 @@ const VIEW_PAGE_SIZE: u64 = 100;
 #[derive(Props, Clone, PartialEq)]
 pub struct GrantedCapabilitiesViewProps {
     /// The capability scope the parent is about to exercise — e.g.
-    /// `ck.agent.deactivate`. The view will surface a prominent banner
+    /// `ck.self.agent.deactivate`. The view will surface a prominent banner
     /// when this scope is NOT found in the operator's grant list so
     /// the destructive action button can be visually demoted.
     #[props(default)]
