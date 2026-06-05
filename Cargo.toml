@@ -12,6 +12,7 @@ coauth-admin-types = { path = "../coauth/crates/admin-types" }
 # wasm bundle stays lean — the `client` / `keystore-*` / `salvo` / `mls`
 # features pull native-only deps and are deliberately NOT enabled here).
 cokret-core = { path = "../cokret-rust-sdk/crates/core", default-features = false }
+cokret-contracts = { path = "../cokret-rust-sdk/crates/contracts", default-features = false }
 cokret-identifiers = { path = "../cokret-rust-sdk/crates/identifiers", default-features = false }
 dioxus = { version = "0.7.9", features = ["web", "router"] }
 serde = { version = "1.0.228", features = ["derive"] }

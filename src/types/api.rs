@@ -1,3 +1,4 @@
+pub use cokret_contracts::ops::HardeningStatus;
 use serde::{Deserialize, Serialize};
 
 // ── Pagination ──
@@ -86,7 +87,8 @@ pub struct UpdateActorRequest {
 // spec's `ck:realm:` boundary), NOT a Space (the spec's authorization-
 // transparent `ck:space:` container — that one lives in
 // `spaces_admin::SpaceAdminRow`). Canonical display name is `title`,
-// creator is `created_by`, the boundary type discriminator is `kind`.
+// creator is `created_by`, and Realm purpose/class is exposed through
+// `realm_class` (aliasing `purpose` for spec-shaped projections).
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct Realm {
@@ -94,8 +96,8 @@ pub struct Realm {
     pub id: String,
     #[serde(default)]
     pub title: Option<String>,
-    #[serde(default)]
-    pub realm_kind: Option<String>,
+    #[serde(default, rename = "realm_kind")]
+    pub legacy_realm_kind: Option<String>,
     #[serde(default)]
     pub discoverability: Option<String>,
     #[serde(default)]
@@ -114,7 +116,7 @@ pub struct Realm {
     pub avatar_url: Option<String>,
     #[serde(default)]
     pub created_at: Option<String>,
-    #[serde(default)]
+    #[serde(default, rename = "default_join_rule", alias = "join_rule")]
     pub join_rule: Option<String>,
     #[serde(default)]
     pub history_visibility: Option<String>,
@@ -122,7 +124,7 @@ pub struct Realm {
     /// admin SPA renders a Realm-classification badge whenever this
     /// is populated. Older soland releases omit the field; the
     /// `Option<String>` defaults to `None` for those rows.
-    #[serde(default)]
+    #[serde(default, alias = "purpose")]
     pub realm_class: Option<String>,
 }
 
@@ -131,12 +133,11 @@ pub struct CreateRealmRequest {
     #[serde(default)]
     pub title: String,
     #[serde(default)]
-    pub realm_kind: Option<String>,
-    #[serde(default)]
     pub topic: Option<String>,
     #[serde(default)]
     pub discoverability: Option<String>,
-    #[serde(default)]
+    #[serde(default, rename = "default_join_rule", alias = "join_rule")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub join_rule: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub parent_realm_id: Option<String>,
@@ -935,40 +936,6 @@ impl ServerDescribeResBody {
     pub fn dev_mode_with_verified_profiles(&self) -> bool {
         self.development_mode.unwrap_or(false) && !self.verified_profiles.is_empty()
     }
-}
-
-/// T8.3 — production deployment hardening checklist snapshot.
-///
-/// Surfaced by every Cokret service (`soland`, `coauth`, `floria`,
-/// `starid`, `teabay`) on `/health` and the corresponding describe
-/// endpoint. The sodmin `/hardening` dashboard aggregates these into a
-/// single board with green/red chips per check.
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct HardeningStatus {
-    #[serde(default)]
-    pub development_mode: bool,
-    #[serde(default)]
-    pub tls_enabled: bool,
-    #[serde(default)]
-    pub csp_header_configured: bool,
-    #[serde(default)]
-    pub cors_strict: bool,
-    #[serde(default)]
-    pub secret_manager_in_use: bool,
-    #[serde(default)]
-    pub log_redaction_enabled: bool,
-    #[serde(default)]
-    pub admin_auth_mode: Option<String>,
-    #[serde(default)]
-    pub rate_limit_enabled: bool,
-    #[serde(default)]
-    pub provider_credential_rotation: Option<String>,
-    #[serde(default)]
-    pub checklist_score: u32,
-    #[serde(default)]
-    pub checklist_max: u32,
-    #[serde(default)]
-    pub warnings: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]

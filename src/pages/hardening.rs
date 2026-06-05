@@ -278,11 +278,8 @@ fn service_card(service: &ServiceHardening) -> Element {
 }
 
 fn render_checklist(h: &HardeningStatus) -> Element {
-    let admin_auth = h.admin_auth_mode.clone().unwrap_or_else(|| "-".to_string());
-    let rotation = h
-        .provider_credential_rotation
-        .clone()
-        .unwrap_or_else(|| "-".to_string());
+    let admin_auth = empty_as_dash(&h.admin_auth_mode);
+    let rotation = empty_as_dash(&h.provider_credential_rotation);
 
     // Per-check rows. Each row is a chip + label; chip turns red when
     // the corresponding flag is `false` (or `development_mode` is
@@ -363,5 +360,13 @@ fn render_checklist(h: &HardeningStatus) -> Element {
                 }
             }
         }
+    }
+}
+
+fn empty_as_dash(value: &str) -> String {
+    if value.trim().is_empty() {
+        "-".to_owned()
+    } else {
+        value.to_owned()
     }
 }

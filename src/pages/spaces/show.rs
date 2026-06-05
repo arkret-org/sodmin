@@ -63,7 +63,7 @@ pub fn SpaceShow(space_id: String) -> Element {
                                 CardContent {
                                     div { class: "space-y-3",
                                     {field_row(t("spaces.id"), space.id.clone())}
-                                    {field_row(t("spaces.type"), space.realm_kind.as_deref().unwrap_or("default").to_string())}
+                                    {field_row(t("spaces.type"), realm_type_label(&space))}
                                     {field_row(t("spaces.discoverability"), space.discoverability.as_deref().unwrap_or("-").to_string())}
                                     {field_row(t("spaces.creator"), space.created_by.as_deref().unwrap_or("-").to_string())}
                                     {field_row(t("spaces.members"), space.member_count.to_string())}
@@ -306,6 +306,15 @@ pub fn SpaceShow(space_id: String) -> Element {
             }
         }
     }
+}
+
+fn realm_type_label(space: &crate::types::Realm) -> String {
+    space
+        .realm_class
+        .as_deref()
+        .or(space.legacy_realm_kind.as_deref())
+        .unwrap_or("collaboration")
+        .to_owned()
 }
 
 fn field_row(label: String, value: String) -> Element {

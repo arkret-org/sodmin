@@ -59,14 +59,14 @@ pub fn SpaceList() -> Element {
                             let rows: Vec<Vec<String>> = resp.data.iter().map(|s| vec![
                                 s.id.clone(),
                                 s.title.clone().unwrap_or_default(),
-                                s.realm_kind.clone().unwrap_or_default(),
+                                realm_type_label(&s),
                                 s.member_count.to_string(),
                                 if s.is_encrypted { "true".into() } else { "false".into() },
                                 if s.is_blocked { "blocked".into() } else { "active".into() },
                                 s.created_at.clone().unwrap_or_default(),
                             ]).collect();
                             let csv = build_csv(
-                                &["id", "title", "realm_kind", "member_count", "encrypted", "status", "created_at"],
+                                &["id", "title", "realm_class", "member_count", "encrypted", "status", "created_at"],
                                 &rows,
                             );
                             export_to_csv("spaces.csv", &csv);
@@ -134,7 +134,7 @@ pub fn SpaceList() -> Element {
                                                         }
                                                     }
                                                     TableCell { {space.title.as_deref().unwrap_or("-")} }
-                                                    TableCell { {space.realm_kind.as_deref().unwrap_or("default")} }
+                                                    TableCell { {realm_type_label(&space)} }
                                                     TableCell { "{space.member_count}" }
                                                     TableCell {
                                                         if space.is_encrypted {
@@ -189,4 +189,13 @@ pub fn SpaceList() -> Element {
             }
         }
     }
+}
+
+fn realm_type_label(space: &crate::types::Realm) -> String {
+    space
+        .realm_class
+        .as_deref()
+        .or(space.legacy_realm_kind.as_deref())
+        .unwrap_or("collaboration")
+        .to_owned()
 }
