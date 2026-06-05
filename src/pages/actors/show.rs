@@ -89,7 +89,7 @@ pub fn ActorShow(actor_id: String) -> Element {
                                     {field_row(t("actors.created_at"), actor.created_at.as_deref().unwrap_or("-").to_string())}
                                     {field_row(t("actors.last_active"), actor.last_active_at.as_deref().unwrap_or("-").to_string())}
                                     {field_row(t("actors.device_count"), actor.device_count.to_string())}
-                                    {field_row(t("actors.space_count"), actor.space_count.to_string())}
+                                    {field_row(t("actors.realm_count"), actor.realm_count.to_string())}
                                     }
                                 }
                             }

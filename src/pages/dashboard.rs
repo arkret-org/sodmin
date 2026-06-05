@@ -137,7 +137,7 @@ pub fn Dashboard() -> Element {
             {
                 let s = stats_data.as_ref();
                 let actor_count = s.map(|s| s.actor_count.to_string()).unwrap_or_else(|| "-".to_string());
-                let space_count = s.map(|s| s.space_count.to_string()).unwrap_or_else(|| "-".to_string());
+                let realm_count = s.map(|s| s.realm_count.to_string()).unwrap_or_else(|| "-".to_string());
                 let report_count = s.map(|s| s.report_count.to_string()).unwrap_or_else(|| "-".to_string());
                 let active_count = s.map(|s| s.active_actor_count.to_string()).unwrap_or_else(|| "-".to_string());
                 let peer_count = s.map(|s| s.federation_peer_count.to_string()).unwrap_or_else(|| "-".to_string());
@@ -148,7 +148,7 @@ pub fn Dashboard() -> Element {
                     div { class: "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 rounded-lg border glass-panel overflow-hidden",
                         {stat_cell("server", &version_str, t("server.version"), t("dashboard.server_online"), true)}
                         {stat_cell("users", &actor_count, t("nav.actors"), t("dashboard.total_actors"), false)}
-                        {stat_cell("message-square", &space_count, t("nav.spaces"), t("dashboard.total_spaces"), false)}
+                        {stat_cell("shield", &realm_count, t("nav.realms"), t("dashboard.total_realms"), false)}
                         {stat_cell("flag", &report_count, t("nav.reports"), t("dashboard.pending_reports"), false)}
                         {stat_cell("user-check", &active_count, t("dashboard.active_users"), t("dashboard.active_actors"), false)}
                         {stat_cell("globe", &peer_count, t("nav.federation"), t("dashboard.federation_peers"), false)}

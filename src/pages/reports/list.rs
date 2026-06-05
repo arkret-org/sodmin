@@ -59,7 +59,7 @@ pub fn ReportList() -> Element {
                                 TableRow {
                                     TableHead { {t("reports.id")} }
                                     TableHead { {t("reports.status")} }
-                                    TableHead { {t("reports.space_id")} }
+                                    TableHead { {t("reports.realm_id")} }
                                     TableHead { {t("reports.reporter_id")} }
                                     TableHead { {t("reports.reason")} }
                                     TableHead { {t("reports.created_at")} }
@@ -77,7 +77,7 @@ pub fn ReportList() -> Element {
                                         {
                                             let id = report.id.clone();
                                             let status = report.status.clone().unwrap_or_else(|| "-".to_string());
-                                            let space_id = report.space_id.clone().unwrap_or_else(|| "-".to_string());
+                                            let realm_id = report.realm_id.clone().unwrap_or_else(|| "-".to_string());
                                             let reporter_id = report.reporter_id.clone().unwrap_or_else(|| "-".to_string());
                                             let reason = report.reason.clone().unwrap_or_else(|| "-".to_string());
                                             let created_at = crate::utils::fmt::date::format_optional_iso_datetime(report.created_at.as_deref());
@@ -100,7 +100,7 @@ pub fn ReportList() -> Element {
                                                     TableCell {
                                                         Badge { variant: variant, "{status}" }
                                                     }
-                                                    TableCell { class: "max-w-[200px] truncate".to_string(), "{space_id}" }
+                                                    TableCell { class: "max-w-[200px] truncate".to_string(), "{realm_id}" }
                                                     TableCell { class: "max-w-[200px] truncate".to_string(), "{reporter_id}" }
                                                     TableCell { class: "max-w-[300px] truncate".to_string(), "{reason}" }
                                                     TableCell { class: "text-muted-foreground".to_string(), "{created_at}" }

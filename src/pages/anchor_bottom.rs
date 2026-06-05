@@ -91,14 +91,14 @@ pub fn BottomDiagnosticsPage() -> Element {
                                                 .details
                                                 .clone()
                                                 .unwrap_or_else(|| "-".to_string());
-                                            let space_id = entry.realm_id.clone();
+                                            let realm_id = entry.realm_id.clone();
                                             let cell_id = entry.cell_id.clone();
                                             rsx! {
                                                 TableRow {
                                                     TableCell {
                                                         Badge { variant: kind_variant, "{kind_label}" }
                                                     }
-                                                    TableCell { class: "font-mono text-xs".to_string(), "{space_id}" }
+                                                    TableCell { class: "font-mono text-xs".to_string(), "{realm_id}" }
                                                     TableCell {
                                                         class: "font-mono text-xs max-w-[260px] truncate".to_string(),
                                                         "{cell_id}"

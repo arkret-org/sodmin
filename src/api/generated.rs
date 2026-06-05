@@ -144,7 +144,7 @@ pub mod soland_admin {
         #[serde(default)]
         pub target_did: Option<String>,
         #[serde(default)]
-        pub space_id: Option<String>,
+        pub realm_id: Option<String>,
         #[serde(default)]
         pub reason: String,
         #[serde(default)]

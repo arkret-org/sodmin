@@ -23,7 +23,7 @@ pub fn InviteTokenList() -> Element {
     let mut show_delete_dialog = use_signal(|| None::<String>);
     let mut uses_allowed = use_signal(String::new);
     let mut expires_at = use_signal(String::new);
-    let mut space_id = use_signal(String::new);
+    let mut realm_id = use_signal(String::new);
     let mut create_loading = use_signal(|| false);
 
     let page_val = *page.read();
@@ -56,7 +56,7 @@ pub fn InviteTokenList() -> Element {
                                     TableHead { {t("invite_tokens.uses_completed")} }
                                     TableHead { {t("invite_tokens.uses_pending")} }
                                     TableHead { {t("invite_tokens.expires_at")} }
-                                    TableHead { {t("invite_tokens.space_id")} }
+                                    TableHead { {t("invite_tokens.realm_id")} }
                                     TableHead { {t("invite_tokens.created_at")} }
                                     TableHead { class: "text-right".to_string(), {t("common.actions")} }
                                 }
@@ -77,7 +77,7 @@ pub fn InviteTokenList() -> Element {
                                             let uc = token.uses_completed.to_string();
                                             let up = token.uses_pending.to_string();
                                             let exp = token.expires_at.clone().unwrap_or_else(|| "-".to_string());
-                                            let sid = token.space_id.clone().unwrap_or_else(|| "-".to_string());
+                                            let rid = token.realm_id.clone().unwrap_or_else(|| "-".to_string());
                                             let created = token.created_at.clone().unwrap_or_else(|| "-".to_string());
 
                                             let id_for_delete = id.clone();
@@ -122,7 +122,7 @@ pub fn InviteTokenList() -> Element {
                                                     TableCell { "{uc}" }
                                                     TableCell { "{up}" }
                                                     TableCell { class: "text-muted-foreground".to_string(), "{exp}" }
-                                                    TableCell { class: "max-w-[150px] truncate".to_string(), "{sid}" }
+                                                    TableCell { class: "max-w-[150px] truncate".to_string(), "{rid}" }
                                                     TableCell { class: "text-muted-foreground".to_string(), "{created}" }
                                                     TableCell { class: "text-right".to_string(),
                                                         Button {
@@ -183,10 +183,10 @@ pub fn InviteTokenList() -> Element {
                     }
                 }
                 div { class: "space-y-1",
-                    Label { r#for: "it-space".to_string(), {t("invite_tokens.space_id")} }
+                    Label { r#for: "it-realm".to_string(), {t("invite_tokens.realm_id")} }
                     Input {
-                        value: space_id.read().clone(),
-                        oninput: move |evt: FormEvent| space_id.set(evt.value()),
+                        value: realm_id.read().clone(),
+                        oninput: move |evt: FormEvent| realm_id.set(evt.value()),
                     }
                 }
             }
@@ -200,7 +200,7 @@ pub fn InviteTokenList() -> Element {
                     let req = CreateInviteTokenRequest {
                         uses_allowed: uses_allowed.read().parse().ok(),
                         expires_at: if expires_at.read().is_empty() { None } else { Some(expires_at.read().clone()) },
-                        space_id: if space_id.read().is_empty() { None } else { Some(space_id.read().clone()) },
+                        realm_id: if realm_id.read().is_empty() { None } else { Some(realm_id.read().clone()) },
                     };
                     spawn(async move {
                         match invite_tokens::create_invite_token(&req).await {

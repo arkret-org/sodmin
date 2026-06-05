@@ -43,7 +43,7 @@ pub fn ReportShow(report_id: String) -> Element {
                     let id_for_dismiss = id.clone();
                     let id_for_delete = id.clone();
                     let status = report.status.clone().unwrap_or_else(|| "-".to_string());
-                    let space_id = report.space_id.clone().unwrap_or_else(|| "-".to_string());
+                    let realm_id = report.realm_id.clone().unwrap_or_else(|| "-".to_string());
                     let reporter_id = report.reporter_id.clone().unwrap_or_else(|| "-".to_string());
                     let reason = report.reason.clone().unwrap_or_else(|| "-".to_string());
                     let created_at = crate::utils::fmt::date::format_optional_iso_datetime(report.created_at.as_deref());
@@ -108,7 +108,7 @@ pub fn ReportShow(report_id: String) -> Element {
                                 div { class: "space-y-4",
                                     InfoRow { label: t("reports.id"), value: id }
                                     InfoRow { label: t("reports.status"), value: status }
-                                    InfoRow { label: t("reports.space_id"), value: space_id }
+                                    InfoRow { label: t("reports.realm_id"), value: realm_id }
                                     InfoRow { label: t("reports.reporter_id"), value: reporter_id }
                                     InfoRow { label: t("reports.reason"), value: reason }
                                     InfoRow { label: t("reports.created_at"), value: created_at }

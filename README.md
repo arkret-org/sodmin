@@ -45,18 +45,13 @@ flowchart LR
 
 ## Realm vs Space
 
-After the Phase 1–4 terminology inversion (Round R1.x):
-
 - **Realm:** security boundary — membership, capability, E2EE, and federation
-  policies are administered here. URL prefix `/realms/:id/...`. Old wire
-  name: `Space`.
+  policies are administered here. URL prefix `/realms/:id/...`.
 - **Space:** navigation container — board, list, section, calendar bucket.
-  Lives inside a Realm. Old wire name: `Place`.
+  Lives inside a Realm.
 
-The admin pages under "Spaces" in the sidebar still drive the security
-boundary; the URL routes have been renamed to `/realms/:id/...` with
-`/spaces/:id/...` kept as a back-compat alias. The new **Realm links**
-page exposes the typed `ck.realm.link` edges between boundaries.
+The admin pages drive Realm boundary state through `/realms/:id/...`. The
+**Realm links** page exposes typed `ck.realm.link` edges between boundaries.
 
 ## Round R4 (protocol review closures)
 

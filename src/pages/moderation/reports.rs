@@ -133,7 +133,7 @@ pub fn ModerationReportsPage() -> Element {
                                             TableHead { {t("moderation_reports.id")} }
                                             TableHead { {t("moderation_reports.reporter")} }
                                             TableHead { {t("moderation_reports.target")} }
-                                            TableHead { {t("moderation_reports.space")} }
+                                            TableHead { {t("moderation_reports.realm")} }
                                             TableHead { {t("moderation_reports.reason")} }
                                             TableHead { {t("moderation_reports.status")} }
                                             TableHead { {t("moderation_reports.created_at")} }
@@ -146,7 +146,7 @@ pub fn ModerationReportsPage() -> Element {
                                                 let report_id = r.report_id.clone();
                                                 let reporter = r.reporter_did.clone();
                                                 let target = r.target_did.clone().unwrap_or_else(|| "-".to_string());
-                                                let space = r.space_id.clone().unwrap_or_else(|| "-".to_string());
+                                                let realm = r.realm_id.clone().unwrap_or_else(|| "-".to_string());
                                                 let reason = r.reason.clone();
                                                 let typed = r.status_typed();
                                                 let label = typed.label().to_string();
@@ -163,7 +163,7 @@ pub fn ModerationReportsPage() -> Element {
                                                         TableCell { class: "font-mono text-xs max-w-[200px] truncate".to_string(), "{report_id}" }
                                                         TableCell { class: "font-mono text-xs max-w-[260px] truncate".to_string(), "{reporter}" }
                                                         TableCell { class: "font-mono text-xs max-w-[260px] truncate".to_string(), "{target}" }
-                                                        TableCell { class: "font-mono text-xs max-w-[200px] truncate".to_string(), "{space}" }
+                                                        TableCell { class: "font-mono text-xs max-w-[200px] truncate".to_string(), "{realm}" }
                                                         TableCell { class: "max-w-[300px] truncate".to_string(), "{reason}" }
                                                         TableCell {
                                                             Badge { variant, "{label}" }

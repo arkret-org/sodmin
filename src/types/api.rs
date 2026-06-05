@@ -49,7 +49,7 @@ pub struct Actor {
     #[serde(default)]
     pub device_count: u64,
     #[serde(default)]
-    pub space_count: u64,
+    pub realm_count: u64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -101,8 +101,6 @@ pub struct Realm {
     #[serde(default)]
     pub is_blocked: bool,
     #[serde(default)]
-    pub parent_realm_id: Option<String>,
-    #[serde(default)]
     pub topic: Option<String>,
     #[serde(default)]
     pub avatar_url: Option<String>,
@@ -128,8 +126,6 @@ pub struct CreateRealmRequest {
     #[serde(default, rename = "default_join_rule")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub join_rule: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub parent_realm_id: Option<String>,
     #[serde(default)]
     pub is_encrypted: bool,
     /// CKP-0007 (P3A.6) — required at create time; the spec pins this
@@ -584,7 +580,7 @@ pub struct Report {
     #[serde(default)]
     pub status: Option<String>,
     #[serde(default)]
-    pub space_id: Option<String>,
+    pub realm_id: Option<String>,
     #[serde(default)]
     pub event_id: Option<String>,
     #[serde(default)]
@@ -628,7 +624,7 @@ pub struct InviteToken {
     #[serde(default)]
     pub expires_at: Option<String>,
     #[serde(default)]
-    pub space_id: Option<String>,
+    pub realm_id: Option<String>,
     // Audit pair: `created_by` precedes `created_at`, matching the
     // project-wide (and canonical) ordering convention.
     #[serde(default)]
@@ -644,7 +640,7 @@ pub struct CreateInviteTokenRequest {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub expires_at: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub space_id: Option<String>,
+    pub realm_id: Option<String>,
 }
 
 // ── Audit types ──
@@ -968,7 +964,7 @@ pub struct ServerStats {
     #[serde(default)]
     pub active_actor_count: u64,
     #[serde(default)]
-    pub space_count: u64,
+    pub realm_count: u64,
     #[serde(default)]
     pub report_count: u64,
     #[serde(default)]
