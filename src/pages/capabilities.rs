@@ -40,7 +40,7 @@ pub fn CapabilityList() -> Element {
 
     // T6.2 §5 — constraint editor signals.
     let mut edit_expires_at = use_signal(String::new);
-    let mut edit_fields_write_allow = use_signal(String::new);
+    let mut edit_allowed_write_fields = use_signal(String::new);
     let mut edit_facets_allow = use_signal(String::new);
     let mut edit_approval_required = use_signal(|| false);
     let mut edit_loading = use_signal(|| false);
@@ -138,7 +138,7 @@ pub fn CapabilityList() -> Element {
                                                                     let mut facets = Vec::<String>::new();
                                                                     let mut approval = false;
                                                                     if let Some(serde_json::Value::Object(map)) = constraints.as_ref() {
-                                                                        if let Some(serde_json::Value::Array(arr)) = map.get("fields_write_allow") {
+                                                                        if let Some(serde_json::Value::Array(arr)) = map.get("allowed_write_fields") {
                                                                             fields = arr.iter().filter_map(|v| v.as_str().map(|s| s.to_string())).collect();
                                                                         }
                                                                         if let Some(serde_json::Value::Array(arr)) = map.get("facets_allow") {
@@ -148,7 +148,7 @@ pub fn CapabilityList() -> Element {
                                                                             approval = *b;
                                                                         }
                                                                     }
-                                                                    edit_fields_write_allow.set(fields.join(", "));
+                                                                    edit_allowed_write_fields.set(fields.join(", "));
                                                                     edit_facets_allow.set(facets.join(", "));
                                                                     edit_approval_required.set(approval);
                                                                     show_edit_dialog.set(Some(id.clone()));
@@ -331,10 +331,10 @@ pub fn CapabilityList() -> Element {
                             }
                         }
                         div { class: "space-y-1",
-                            Label { r#for: "cap-edit-fields".to_string(), {t("capabilities.fields_write_allow")} }
+                            Label { r#for: "cap-edit-fields".to_string(), {t("capabilities.allowed_write_fields")} }
                             Input {
-                                value: edit_fields_write_allow.read().clone(),
-                                oninput: move |evt: FormEvent| edit_fields_write_allow.set(evt.value()),
+                                value: edit_allowed_write_fields.read().clone(),
+                                oninput: move |evt: FormEvent| edit_allowed_write_fields.set(evt.value()),
                             }
                             p { class: "text-xs text-muted-foreground", {t("capabilities.csv_hint")} }
                         }
@@ -366,7 +366,7 @@ pub fn CapabilityList() -> Element {
                         on_confirm: move |_| {
                             if let Some(id) = show_edit_dialog.read().clone() {
                                 let exp_raw = edit_expires_at.read().trim().to_string();
-                                let fields: Vec<String> = edit_fields_write_allow
+                                let fields: Vec<String> = edit_allowed_write_fields
                                     .read()
                                     .split(',')
                                     .map(|s| s.trim().to_string())
@@ -381,7 +381,7 @@ pub fn CapabilityList() -> Element {
                                 let approval = *edit_approval_required.read();
                                 let req = UpdateCapabilityRequest {
                                     expires_at: if exp_raw.is_empty() { None } else { Some(exp_raw) },
-                                    fields_write_allow: Some(fields),
+                                    allowed_write_fields: Some(fields),
                                     facets_allow: Some(facets),
                                     approval_required: Some(approval),
                                 };

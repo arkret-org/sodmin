@@ -144,7 +144,7 @@
   "capabilities.edit_ok": "已更新能力",
   "capabilities.edit_title": "编辑能力",
   "capabilities.facets_allow": "Facet 允许清单",
-  "capabilities.fields_write_allow": "可写字段允许清单",
+  "capabilities.allowed_write_fields": "可写字段允许清单",
   "capability.allowed_circle_ids": "受限 Circle ID 列表",
   "capability.allowed_circle_ids_hint": "逗号分隔的 ck:circle:... 标识符。ck.circle.manage、ck.circle.member.manage、ck.circle.member.add.others 必填。",
   "capability.cx_circle_audit": "ck.circle.audit",

@@ -305,7 +305,7 @@ pub struct UpdateCapabilityRequest {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub expires_at: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub fields_write_allow: Option<Vec<String>>,
+    pub allowed_write_fields: Option<Vec<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub facets_allow: Option<Vec<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -1629,13 +1629,13 @@ mod tests {
     fn update_capability_request_serializes_only_set_fields() {
         let req = UpdateCapabilityRequest {
             expires_at: Some("2027-01-01T00:00:00Z".to_string()),
-            fields_write_allow: Some(vec!["body.text".to_string()]),
+            allowed_write_fields: Some(vec!["body.text".to_string()]),
             facets_allow: None,
             approval_required: Some(true),
         };
         let serialized = serde_json::to_string(&req).expect("serializes");
         assert!(serialized.contains("expires_at"));
-        assert!(serialized.contains("fields_write_allow"));
+        assert!(serialized.contains("allowed_write_fields"));
         assert!(serialized.contains("approval_required"));
         assert!(!serialized.contains("facets_allow"));
     }

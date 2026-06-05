@@ -153,7 +153,7 @@
   "capabilities.edit_ok": "Capability updated",
   "capabilities.edit_title": "Edit capability",
   "capabilities.facets_allow": "Facet allow list",
-  "capabilities.fields_write_allow": "Field write allow list",
+  "capabilities.allowed_write_fields": "Field write allow list",
   "capability.allowed_circle_ids": "Allowed circle IDs",
   "capability.allowed_circle_ids_hint": "Comma-separated ck:circle:... ids. Required for ck.circle.manage, ck.circle.member.manage, and ck.circle.member.add.others.",
   "capability.cx_circle_audit": "ck.circle.audit",
