@@ -19,7 +19,7 @@ use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::table::*;
 use crate::router::Route;
-use crate::types::circles::Circle;
+use crate::types::circles::{Circle, circle_state_label_key};
 use crate::utils::i18n::t;
 
 #[component]
@@ -101,7 +101,6 @@ pub fn CircleList() -> Element {
                                             TableHead { {t("circle.id")} }
                                             TableHead { {t("circle.title")} }
                                             TableHead { {t("circle.realm_id")} }
-                                            TableHead { {t("circle.member_count")} }
                                             TableHead { {t("circle.state")} }
                                             TableHead { {t("circle.created_at")} }
                                         }
@@ -129,9 +128,10 @@ pub fn CircleList() -> Element {
 }
 
 fn circle_row(c: &Circle) -> Element {
-    let cid = c.circle_id.clone();
-    let rid = c.realm_id.clone();
+    let cid = c.id.to_string();
+    let rid = c.realm_id.to_string();
     let (variant, label_key) = state_badge(&c.state);
+    let created_at = c.created_at.to_rfc3339();
     rsx! {
         TableRow {
             TableCell { class: "font-mono text-xs".to_string(),
@@ -143,22 +143,26 @@ fn circle_row(c: &Circle) -> Element {
             }
             TableCell { "{c.title}" }
             TableCell { class: "font-mono text-xs".to_string(), "{rid}" }
-            TableCell { "{c.members.len()}" }
             TableCell {
                 Badge { variant, {t(label_key)} }
             }
-            TableCell { class: "text-muted-foreground".to_string(), "{c.created_at}" }
+            TableCell { class: "text-muted-foreground".to_string(), "{created_at}" }
         }
     }
 }
 
-/// Map a `ck.circle.state` string to a badge variant + i18n key.
-pub(crate) fn state_badge(state: &str) -> (BadgeVariant, &'static str) {
+/// Map a `ck.circle.state` value to a badge variant + i18n key.
+pub(crate) fn state_badge(state: &cokret_core::model::CircleState) -> (BadgeVariant, &'static str) {
     match state {
-        "active" => (BadgeVariant::Success, "circle.state_active"),
-        "archived" => (BadgeVariant::Secondary, "circle.state_archived"),
-        "tombstoned" => (BadgeVariant::Destructive, "circle.state_tombstoned"),
-        _ => (BadgeVariant::Outline, "circle.state_unknown"),
+        cokret_core::model::CircleState::Active => {
+            (BadgeVariant::Success, circle_state_label_key(state))
+        }
+        cokret_core::model::CircleState::Archived => {
+            (BadgeVariant::Secondary, circle_state_label_key(state))
+        }
+        cokret_core::model::CircleState::Tombstoned => {
+            (BadgeVariant::Destructive, circle_state_label_key(state))
+        }
     }
 }
 
@@ -168,12 +172,19 @@ mod tests {
 
     #[test]
     fn state_badge_picks_correct_variant() {
-        assert!(matches!(state_badge("active").0, BadgeVariant::Success));
-        assert!(matches!(state_badge("archived").0, BadgeVariant::Secondary));
+        use cokret_core::model::CircleState;
+
         assert!(matches!(
-            state_badge("tombstoned").0,
+            state_badge(&CircleState::Active).0,
+            BadgeVariant::Success
+        ));
+        assert!(matches!(
+            state_badge(&CircleState::Archived).0,
+            BadgeVariant::Secondary
+        ));
+        assert!(matches!(
+            state_badge(&CircleState::Tombstoned).0,
             BadgeVariant::Destructive
         ));
-        assert!(matches!(state_badge("weird").0, BadgeVariant::Outline));
     }
 }

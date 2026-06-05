@@ -20,9 +20,8 @@
 //! Step 1 — priority layers: audience-matched > holder-flagged >
 //! most-recent.
 //! Step 2 — deterministic tie-breaker: `accepted_issuers` position
-//! (earlier wins) → `created_at` (later wins) → `claim_digest`
-//! (lexicographically smaller wins; falls back to claim handle string
-//! when the server did not pre-compute a digest hint).
+//! (earlier wins) → `created_at` (later wins) → canonical handle
+//! string (lexicographically smaller wins).
 
 use chrono::{DateTime, Utc};
 
@@ -104,7 +103,7 @@ pub fn select_primary_handle(input: &PrimaryHandleSelectInput<'_>) -> Option<Han
 /// canonical handle string of the winning claim (if any). Admin views
 /// that just need "the handle to show" use this.
 pub fn select_primary_handle_string(input: &PrimaryHandleSelectInput<'_>) -> Option<String> {
-    select_primary_handle(input).and_then(|c| c.handle)
+    select_primary_handle(input).and_then(|c| c.handle.map(|h| h.canonical().to_owned()))
 }
 
 /// Visual-degradation tier the UI MUST surface when rendering a subject.
@@ -151,13 +150,13 @@ fn candidate_passes_step0(c: &HandleClaim, input: &PrimaryHandleSelectInput<'_>)
         return false;
     }
     // created_at MUST be <= resolution_as_of.
-    match parse_ts(c.created_at.as_deref()) {
-        Some(created) if created <= input.resolution_as_of => {}
+    match c.created_at.as_ref() {
+        Some(created) if *created <= input.resolution_as_of => {}
         _ => return false,
     }
     // expires_at MUST be > resolution_as_of.
-    match parse_ts(c.expires_at.as_deref()) {
-        Some(expiry) if expiry > input.resolution_as_of => {}
+    match c.expires_at.as_ref() {
+        Some(expiry) if *expiry > input.resolution_as_of => {}
         _ => return false,
     }
     // issuer trust filter (mandatory pre-filter).
@@ -180,7 +179,10 @@ fn matches_audience(c: &HandleClaim, context: Option<&str>) -> bool {
 }
 
 fn holder_flagged(c: &HandleClaim, holder_primary: Option<&str>) -> bool {
-    match (c.handle.as_deref(), holder_primary) {
+    match (
+        c.handle.as_ref().map(|handle| handle.canonical()),
+        holder_primary,
+    ) {
         (Some(handle), Some(pref)) => handle == pref,
         _ => false,
     }
@@ -198,19 +200,13 @@ fn tie_break_prefers(
     if cand_pos != best_pos {
         return cand_pos < best_pos;
     }
-    let cand_created = parse_ts(candidate.created_at.as_deref());
-    let best_created = parse_ts(best.created_at.as_deref());
+    let cand_created = candidate.created_at.as_ref();
+    let best_created = best.created_at.as_ref();
     if cand_created != best_created {
         return cand_created > best_created;
     }
-    // claim_digest tie-break — fall back to the handle string when the
-    // server did not pre-compute a digest hint (the SPA does not run the
-    // full sha256(JCS(semantic_projection)) — TODO(R3.2.1)).
-    let cand_key = candidate
-        .claim_digest
-        .as_deref()
-        .or(candidate.handle.as_deref());
-    let best_key = best.claim_digest.as_deref().or(best.handle.as_deref());
+    let cand_key = candidate.handle.as_ref().map(|handle| handle.canonical());
+    let best_key = best.handle.as_ref().map(|handle| handle.canonical());
     match (cand_key, best_key) {
         (Some(cd), Some(bd)) => cd < bd,
         _ => false,
@@ -227,17 +223,18 @@ fn issuer_position(c: &HandleClaim, accepted_issuers: &[String]) -> usize {
     }
 }
 
-fn parse_ts(s: Option<&str>) -> Option<DateTime<Utc>> {
-    s.and_then(|raw| {
-        DateTime::parse_from_rfc3339(raw)
-            .ok()
-            .map(|dt| dt.with_timezone(&Utc))
-    })
-}
-
 #[cfg(test)]
 mod tests {
+    use cokret_core::Did;
+    use cokret_core::model::Handle;
+
     use super::*;
+
+    fn ts(raw: &str) -> DateTime<Utc> {
+        DateTime::parse_from_rfc3339(raw)
+            .unwrap()
+            .with_timezone(&Utc)
+    }
 
     fn verified(
         handle: &str,
@@ -247,13 +244,13 @@ mod tests {
         audience: Option<&str>,
     ) -> HandleClaim {
         HandleClaim {
-            handle: Some(handle.to_string()),
-            subject: Some("did:web:alice.example".to_string()),
+            handle: Some(Handle::parse(handle).unwrap()),
+            subject: Some(Did::new("did:web:alice.example").unwrap()),
             issuer: Some(issuer.to_string()),
             binding_state: Some(HandleBindingState::Verified),
             audience: audience.map(str::to_string),
-            created_at: Some(created.to_string()),
-            expires_at: Some(expires.to_string()),
+            created_at: Some(ts(created)),
+            expires_at: Some(ts(expires)),
             ..Default::default()
         }
     }
@@ -307,7 +304,10 @@ mod tests {
             resolution_as_of: now(),
         };
         let chosen = select_primary_handle(&input).unwrap();
-        assert_eq!(chosen.handle.as_deref(), Some("alice:acme.example"));
+        assert_eq!(
+            chosen.handle.as_ref().map(|h| h.canonical()),
+            Some("alice:acme.example")
+        );
     }
 
     #[test]

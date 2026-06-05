@@ -16,7 +16,7 @@
 
 use dioxus::prelude::*;
 
-use crate::api::signing_key_admin;
+use crate::api::signing_key;
 use crate::components::selection_required::{is_placeholder_resource_id, selection_required_state};
 use crate::components::ui::badge::{Badge, BadgeVariant};
 use crate::components::ui::button::{Button, ButtonVariant};
@@ -38,7 +38,7 @@ pub fn SigningKeysPage(realm_id: String) -> Element {
     let realm_id_for_fetch = realm_id.clone();
     let mut data = use_resource(move || {
         let id = realm_id_for_fetch.clone();
-        async move { signing_key_admin::get_signing_key(&id).await }
+        async move { signing_key::get_signing_key(&id).await }
     });
 
     let mut confirming = use_signal(|| false);
@@ -170,7 +170,7 @@ pub fn SigningKeysPage(realm_id: String) -> Element {
                                         submitting.set(true);
                                         let id = realm_id.clone();
                                         spawn(async move {
-                                            let res = signing_key_admin::rotate_signing_key(&id).await;
+                                            let res = signing_key::rotate_signing_key(&id).await;
                                             match res {
                                                 Ok(r) => show_toast(
                                                     &format!(

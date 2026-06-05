@@ -9,17 +9,18 @@ use crate::types::*;
 use crate::utils::net::error::HttpError;
 
 pub async fn list_push_routes(
-    page: u64,
-    per_page: u64,
+    cursor: Option<&str>,
+    limit: u64,
     principal_id: &str,
 ) -> Result<ListResponse<PushRouteRow>, HttpError> {
-    let url = build_url(
-        "/_soland/admin/push-routes",
-        &[
-            ("page", &page.to_string()),
-            ("per_page", &per_page.to_string()),
-            ("principal_id", principal_id),
-        ],
-    )?;
+    let limit_str = limit.max(1).to_string();
+    let mut params: Vec<(&str, &str)> = vec![
+        ("limit", limit_str.as_str()),
+        ("principal_id", principal_id.trim()),
+    ];
+    if let Some(cursor) = cursor.filter(|c| !c.is_empty()) {
+        params.push(("cursor", cursor));
+    }
+    let url = build_url("/_soland/admin/push-routes", &params)?;
     api_client(&url, "GET", None).await
 }

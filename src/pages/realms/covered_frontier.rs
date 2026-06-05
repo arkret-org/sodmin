@@ -13,7 +13,7 @@
 
 use dioxus::prelude::*;
 
-use crate::api::covered_frontier_admin;
+use crate::api::covered_frontier;
 use crate::components::selection_required::{is_placeholder_resource_id, selection_required_state};
 use crate::components::ui::badge::{Badge, BadgeVariant};
 use crate::components::ui::button::{Button, ButtonVariant};
@@ -35,7 +35,7 @@ pub fn CoveredFrontierPage(realm_id: String) -> Element {
     let realm_id_for_fetch = realm_id.clone();
     let mut data = use_resource(move || {
         let id = realm_id_for_fetch.clone();
-        async move { covered_frontier_admin::get_covered_frontier(&id).await }
+        async move { covered_frontier::get_covered_frontier(&id).await }
     });
     let mut advancing = use_signal(|| false);
     let header_realm_id = realm_id.clone();
@@ -95,7 +95,7 @@ pub fn CoveredFrontierPage(realm_id: String) -> Element {
                                             let id = realm_id_for_button.clone();
                                             advancing.set(true);
                                             spawn(async move {
-                                                let res = covered_frontier_admin::advance(&id).await;
+                                                let res = covered_frontier::advance(&id).await;
                                                 match res {
                                                     Ok(r) => show_toast(
                                                         &format!("Advanced covered_frontier; new lag = {}", r.lag_count),

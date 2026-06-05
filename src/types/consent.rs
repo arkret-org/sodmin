@@ -63,7 +63,7 @@ pub struct ConsentGrant {
     pub note: Option<String>,
     /// Stable id for admin-side mutations (resolve route). soland is
     /// expected to populate this on rows that are eligible for the
-    /// `consent_admin::resolve` override (today: only `Pending` rows).
+    /// `consent::resolve` override (today: only `Pending` rows).
     #[serde(default)]
     pub consent_id: Option<String>,
 }

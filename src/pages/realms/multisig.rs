@@ -11,7 +11,7 @@
 
 use dioxus::prelude::*;
 
-use crate::api::multisig_admin;
+use crate::api::multisig;
 use crate::components::selection_required::{is_placeholder_resource_id, selection_required_state};
 use crate::components::ui::badge::{Badge, BadgeVariant};
 use crate::components::ui::button::{Button, ButtonSize, ButtonVariant};
@@ -33,7 +33,7 @@ pub fn MultiSigPage(realm_id: String) -> Element {
     let realm_id_for_fetch = realm_id.clone();
     let mut data = use_resource(move || {
         let id = realm_id_for_fetch.clone();
-        async move { multisig_admin::list_pending(&id).await }
+        async move { multisig::list_pending(&id).await }
     });
     // Per-row in-flight flag keyed by anchor_id.
     let mut in_flight = use_signal::<Option<String>>(|| None);
@@ -129,7 +129,7 @@ pub fn MultiSigPage(realm_id: String) -> Element {
                                                                     let sid = realm_id_for_btn.clone();
                                                                     in_flight.set(Some(aid.clone()));
                                                                     spawn(async move {
-                                                                        let res = multisig_admin::submit_partial(
+                                                                        let res = multisig::submit_partial(
                                                                             &sid, &aid, None,
                                                                         )
                                                                         .await;

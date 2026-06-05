@@ -7,7 +7,7 @@
 use coauth_admin_types::federation_admin::FederationPeerHealth;
 use dioxus::prelude::*;
 
-use crate::api::federation_status_admin;
+use crate::api::federation_status;
 use crate::components::ui::badge::{Badge, BadgeVariant};
 use crate::components::ui::button::{Button, ButtonVariant};
 use crate::components::ui::empty_state::EmptyState;
@@ -28,7 +28,7 @@ pub fn FederationStatusPage(realm_id: String) -> Element {
 
     let mut data = use_resource(move || {
         let id = id_filter.clone();
-        async move { federation_status_admin::get_status(id.as_deref()).await }
+        async move { federation_status::get_status(id.as_deref()).await }
     });
 
     rsx! {

@@ -64,9 +64,8 @@ pub async fn resolve_report(report_id: &str, body: &ResolveReportRequest) -> Res
 /// Wire shape returned by `GET /_soland/admin/moderation/appeals`.
 /// Each entry is one row per `appeal_id`, with the latest event of
 /// that appeal (the soland helper collapses the event history to the
-/// most recent state). Fields are deserialised loosely so we can
-/// tolerate optional `notes_ref` / `auto_closed` / `modify_decision_ref`
-/// without breaking on missing keys.
+/// most recent state). Optional fields may be absent when the current
+/// appeal state does not populate them.
 #[derive(Debug, Clone, Default, serde::Deserialize)]
 pub struct AppealRowDto {
     #[serde(default)]
@@ -86,12 +85,7 @@ pub struct AppealRowDto {
     /// `submitted` | `under_review` | `decided` | `closed`.
     #[serde(default)]
     pub appeal_state: Option<String>,
-    #[serde(
-        default,
-        alias = "original_decision_issuer_did",
-        alias = "issuer_did",
-        alias = "decision_issuer_did"
-    )]
+    #[serde(default)]
     pub original_issuer_did: Option<String>,
 }
 

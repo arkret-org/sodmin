@@ -155,7 +155,6 @@ fn build_nav_sections() -> Vec<NavSection> {
             vec![
                 NavItem::new(t("nav.realms"), Route::RealmList {}, "shield"),
                 NavItem::new(t("nav.spaces"), Route::SpaceList {}, "message-square"),
-                NavItem::new(t("nav.reports"), Route::ReportList {}, "flag"),
                 NavItem::new(
                     t("nav.moderation_reports"),
                     Route::ModerationReports {},
@@ -516,7 +515,6 @@ fn is_route_active(current: &Route, target: &Route) -> bool {
             Route::RealmList {} | Route::RealmShow { .. } | Route::RealmCreate { .. }
         ),
         Route::SpaceList {} => matches!(current, Route::SpaceList {} | Route::SpaceShow { .. }),
-        Route::ReportList {} => matches!(current, Route::ReportList {} | Route::ReportShow { .. }),
         Route::ModerationReports {} => matches!(current, Route::ModerationReports {}),
         Route::FederationList {} => matches!(
             current,

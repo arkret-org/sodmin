@@ -149,7 +149,7 @@ pub fn Dashboard() -> Element {
                         {stat_cell("server", &version_str, t("server.version"), t("dashboard.server_online"), true)}
                         {stat_cell("users", &actor_count, t("nav.actors"), t("dashboard.total_actors"), false)}
                         {stat_cell("shield", &realm_count, t("nav.realms"), t("dashboard.total_realms"), false)}
-                        {stat_cell("flag", &report_count, t("nav.reports"), t("dashboard.pending_reports"), false)}
+                        {stat_cell("flag", &report_count, t("nav.moderation_reports"), t("dashboard.pending_reports"), false)}
                         {stat_cell("user-check", &active_count, t("dashboard.active_users"), t("dashboard.active_actors"), false)}
                         {stat_cell("globe", &peer_count, t("nav.federation"), t("dashboard.federation_peers"), false)}
                         {stat_cell("activity", &latency_val, t("dashboard.api_latency"), t("dashboard.avg_api_response"), false)}

@@ -2,14 +2,16 @@ use crate::api::client::{api_client, build_url};
 use crate::api::generated::soland_admin::{CreatePolicyRequest, Policy, PolicyListResponse};
 use crate::utils::net::error::HttpError;
 
-pub async fn list_policies(page: u64, per_page: u64) -> Result<PolicyListResponse, HttpError> {
-    let url = build_url(
-        "/_soland/admin/policies",
-        &[
-            ("page", &page.to_string()),
-            ("per_page", &per_page.to_string()),
-        ],
-    )?;
+pub async fn list_policies(
+    cursor: Option<&str>,
+    limit: u64,
+) -> Result<PolicyListResponse, HttpError> {
+    let limit_str = limit.max(1).to_string();
+    let mut params: Vec<(&str, &str)> = vec![("limit", limit_str.as_str())];
+    if let Some(cursor) = cursor.filter(|c| !c.is_empty()) {
+        params.push(("cursor", cursor));
+    }
+    let url = build_url("/_soland/admin/policies", &params)?;
     api_client(&url, "GET", None).await
 }
 

@@ -142,7 +142,7 @@ pub mod soland_admin {
         #[serde(default)]
         pub reporter_did: String,
         #[serde(default)]
-        pub target_did: Option<String>,
+        pub target_ref: Option<String>,
         #[serde(default)]
         pub realm_id: Option<String>,
         #[serde(default)]
@@ -189,8 +189,8 @@ pub mod soland_admin {
         pub note: Option<String>,
     }
 
-    pub type Policy = crate::types::api::Policy;
-    pub type CreatePolicyRequest = crate::types::api::CreatePolicyRequest;
+    pub type Policy = crate::types::policy::Policy;
+    pub type CreatePolicyRequest = crate::types::policy::CreatePolicyRequest;
     pub type PolicyListResponse = crate::types::api::ListResponse<Policy>;
 }
 

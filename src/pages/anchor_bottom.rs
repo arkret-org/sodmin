@@ -11,7 +11,7 @@ use std::collections::HashMap;
 
 use dioxus::prelude::*;
 
-use crate::api::anchor_admin;
+use crate::api::anchor;
 use crate::components::ui::badge::{Badge, BadgeVariant};
 use crate::components::ui::button::{Button, ButtonSize, ButtonVariant};
 use crate::components::ui::dialog::ConfirmDialog;
@@ -25,7 +25,7 @@ use crate::types::anchor::{BottomEntry, BottomKind, BottomRepairStrategy, Winner
 
 #[component]
 pub fn BottomDiagnosticsPage() -> Element {
-    let mut data = use_resource(|| async { anchor_admin::list_bottom_entries_global().await });
+    let mut data = use_resource(|| async { anchor::list_bottom_entries_global().await });
 
     // Pending repair confirmation. `None` = modal closed; `Some` = open
     // with the entry + chosen strategy snapshot the user is about to
@@ -232,7 +232,7 @@ pub fn BottomDiagnosticsPage() -> Element {
                             if let Some((entry, strategy)) = snapshot {
                                 submitting.set(true);
                                 spawn(async move {
-                                    let res = anchor_admin::submit_bottom_repair(
+                                    let res = anchor::submit_bottom_repair(
                                         &entry.realm_id,
                                         &entry.cell_id,
                                         strategy,

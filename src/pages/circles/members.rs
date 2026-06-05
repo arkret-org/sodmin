@@ -1,25 +1,23 @@
 //! `/circles/:circle_id/members` — Circle membership editor.
 //!
-//! Lists current members and lets the operator add / remove. The
-//! strict-subset rule (member must already be in the parent Realm) is
-//! enforced server-side by the reducer; the page surfaces the rule in
-//! a hint so operators get the rationale up front. Add operations
-//! default to `state = active`; the dropdown also allows `invited` for
-//! the knock / invite flow.
+//! The Circle object comes from `cokret_core::model::Circle` and does not
+//! inline a member list. This page therefore exposes explicit add/remove
+//! operations keyed by actor DID instead of depending on a local members
+//! projection.
 
+use cokret_core::Did;
 use dioxus::prelude::*;
 
 use crate::api::circles;
-use crate::components::ui::button::{Button, ButtonSize, ButtonVariant};
+use crate::components::ui::button::Button;
 use crate::components::ui::card::*;
 use crate::components::ui::error_banner::ErrorBanner;
 use crate::components::ui::input::{Input, Label};
 use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::{BreadcrumbItem, Breadcrumbs, PageHeader};
-use crate::components::ui::table::*;
 use crate::components::ui::toast::{ToastVariant, show_toast};
 use crate::router::Route;
-use crate::types::circles::CircleMemberRequest;
+use crate::types::circles::{CircleMemberRequest, circle_is_active, parse_member_state};
 use crate::utils::i18n::t;
 
 #[component]
@@ -32,8 +30,9 @@ pub fn CircleMembers(circle_id: String) -> Element {
 
     let mut new_actor = use_signal(String::new);
     let mut new_state = use_signal(|| "active".to_string());
+    let mut remove_actor = use_signal(String::new);
     let mut adding = use_signal(|| false);
-    let mut removing = use_signal::<Option<String>>(|| None);
+    let mut removing = use_signal(|| false);
 
     let cid_for_add = circle_id.clone();
     let cid_for_remove = circle_id.clone();
@@ -43,10 +42,9 @@ pub fn CircleMembers(circle_id: String) -> Element {
             match &*data.read() {
                 Some(Ok(circle)) => {
                     let title = circle.title.clone();
-                    let cid = circle.circle_id.clone();
-                    let realm_id = circle.realm_id.clone();
-                    let members = circle.members.clone();
-                    let is_active = circle.is_active();
+                    let cid = circle.id.to_string();
+                    let realm_id = circle.realm_id.to_string();
+                    let is_active = circle_is_active(circle);
 
                     let breadcrumbs = vec![
                         BreadcrumbItem { label: t("circle.list_title"), route: Some(Route::CircleList {}) },
@@ -71,13 +69,23 @@ pub fn CircleMembers(circle_id: String) -> Element {
                                     class: "space-y-3",
                                     onsubmit: move |evt: Event<FormData>| {
                                         evt.prevent_default();
-                                        if new_actor.read().trim().is_empty() {
-                                            show_toast(&t("circle.error_actor_required"), ToastVariant::Error);
-                                            return;
-                                        }
+                                        let actor = match Did::new(new_actor.read().trim().to_string()) {
+                                            Ok(value) => value,
+                                            Err(_) => {
+                                                show_toast(&t("circle.error_actor_required"), ToastVariant::Error);
+                                                return;
+                                            }
+                                        };
+                                        let state = match parse_member_state(new_state.read().trim()) {
+                                            Some(value) => value,
+                                            None => {
+                                                show_toast(&t("circle.error_required"), ToastVariant::Error);
+                                                return;
+                                            }
+                                        };
                                         let req = CircleMemberRequest {
-                                            actor_id: new_actor.read().trim().to_string(),
-                                            state: Some(new_state.read().clone()),
+                                            actor_id: actor,
+                                            state: Some(state),
                                         };
                                         let cid = cid_add.clone();
                                         adding.set(true);
@@ -104,7 +112,7 @@ pub fn CircleMembers(circle_id: String) -> Element {
                                             Input {
                                                 id: "circle-new-member".to_string(),
                                                 value: new_actor.read().clone(),
-                                                placeholder: "did:ck:...".to_string(),
+                                                placeholder: "did:web:alice.example".to_string(),
                                                 disabled: !is_active,
                                                 oninput: move |evt: FormEvent| new_actor.set(evt.value()),
                                             }
@@ -138,62 +146,52 @@ pub fn CircleMembers(circle_id: String) -> Element {
                         }
 
                         Card {
-                            CardHeader { CardTitle { {t("circle.members_total")} } }
+                            CardHeader { CardTitle { {t("circle.remove_member")} } }
                             CardContent {
-                                if members.is_empty() {
-                                    p { class: "text-sm text-muted-foreground py-4",
-                                        {t("circle.empty_members")}
-                                    }
-                                } else {
-                                    Table {
-                                        TableHeader {
-                                            TableRow {
-                                                TableHead { {t("circle.actor_id")} }
-                                                TableHead { class: "text-right".to_string(), {t("common.actions")} }
+                                form {
+                                    class: "space-y-3",
+                                    onsubmit: move |evt: Event<FormData>| {
+                                        evt.prevent_default();
+                                        let actor = match Did::new(remove_actor.read().trim().to_string()) {
+                                            Ok(value) => value,
+                                            Err(_) => {
+                                                show_toast(&t("circle.error_actor_required"), ToastVariant::Error);
+                                                return;
+                                            }
+                                        };
+                                        let cid = cid_remove.clone();
+                                        removing.set(true);
+                                        spawn(async move {
+                                            match circles::remove_circle_member(&cid, actor.as_str()).await {
+                                                Ok(_) => {
+                                                    show_toast(
+                                                        &t("circle.member_removed_toast"),
+                                                        ToastVariant::Success,
+                                                    );
+                                                    remove_actor.set(String::new());
+                                                    data.restart();
+                                                }
+                                                Err(e) => show_toast(&e.message, ToastVariant::Error),
+                                            }
+                                            removing.set(false);
+                                        });
+                                    },
+                                    div { class: "grid gap-3 md:grid-cols-[1fr_auto]",
+                                        div { class: "space-y-1",
+                                            Label { r#for: "circle-remove-member".to_string(), {t("circle.actor_id")} }
+                                            Input {
+                                                id: "circle-remove-member".to_string(),
+                                                value: remove_actor.read().clone(),
+                                                placeholder: "did:web:alice.example".to_string(),
+                                                disabled: !is_active,
+                                                oninput: move |evt: FormEvent| remove_actor.set(evt.value()),
                                             }
                                         }
-                                        TableBody {
-                                            for actor in members.iter() {
-                                                {
-                                                    let a = actor.clone();
-                                                    let cid = cid_remove.clone();
-                                                    let removing_now = removing
-                                                        .read()
-                                                        .as_deref()
-                                                        .map(|v| v == a.as_str())
-                                                        .unwrap_or(false);
-                                                    rsx! {
-                                                        TableRow {
-                                                            TableCell { class: "font-mono text-xs".to_string(), "{a}" }
-                                                            TableCell { class: "text-right".to_string(),
-                                                                Button {
-                                                                    variant: ButtonVariant::Destructive,
-                                                                    size: ButtonSize::Sm,
-                                                                    disabled: removing_now || !is_active,
-                                                                    onclick: move |_| {
-                                                                        let a = a.clone();
-                                                                        let cid = cid.clone();
-                                                                        removing.set(Some(a.clone()));
-                                                                        spawn(async move {
-                                                                            match circles::remove_circle_member(&cid, &a).await {
-                                                                                Ok(_) => {
-                                                                                    show_toast(
-                                                                                        &t("circle.member_removed_toast"),
-                                                                                        ToastVariant::Success,
-                                                                                    );
-                                                                                    data.restart();
-                                                                                }
-                                                                                Err(e) => show_toast(&e.message, ToastVariant::Error),
-                                                                            }
-                                                                            removing.set(None);
-                                                                        });
-                                                                    },
-                                                                    {t("circle.remove_member")}
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-                                                }
+                                        div { class: "flex items-end",
+                                            Button {
+                                                r#type: "submit".to_string(),
+                                                disabled: removing() || !is_active,
+                                                {t("circle.remove_member")}
                                             }
                                         }
                                     }

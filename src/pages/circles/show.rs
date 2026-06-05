@@ -19,6 +19,10 @@ use crate::components::ui::page_header::{BreadcrumbItem, Breadcrumbs, PageHeader
 use crate::components::ui::toast::{ToastVariant, show_toast};
 use crate::pages::circles::list::state_badge;
 use crate::router::Route;
+use crate::types::circles::{
+    circle_is_active, circle_is_tombstoned, directory_visibility_wire, encryption_profile_wire,
+    history_visibility_wire, join_rule_wire,
+};
 use crate::utils::i18n::t;
 
 #[component]
@@ -36,22 +40,23 @@ pub fn CircleShow(circle_id: String) -> Element {
         div { class: "space-y-6",
             match &*data.read() {
                 Some(Ok(circle)) => {
-                    let cid = circle.circle_id.clone();
-                    let realm_id = circle.realm_id.clone();
+                    let cid = circle.id.to_string();
+                    let realm_id = circle.realm_id.to_string();
                     let title = circle.title.clone();
                     let (variant, label_key) = state_badge(&circle.state);
-                    let is_active = circle.is_active();
-                    let is_terminal = circle.is_tombstoned();
+                    let is_active = circle_is_active(circle);
+                    let is_terminal = circle_is_tombstoned(circle);
                     let summary = circle.summary.clone();
-                    let encryption_profile = circle.encryption_profile.clone();
+                    let encryption_profile = encryption_profile_wire(&circle.encryption_profile).to_string();
                     let mls_group_ref = circle.mls_group_ref.clone();
-                    let created_by = circle.created_by.clone();
-                    let created_at = circle.created_at.clone();
-                    let updated_at = circle.updated_at.clone();
-                    let member_count = circle.members.len();
-                    let directory_visibility = circle.directory_visibility.clone();
-                    let join_rule = circle.join_rule.clone();
-                    let history_visibility = circle.history_visibility.clone();
+                    let created_by = circle.created_by.to_string();
+                    let created_at = circle.created_at.to_rfc3339();
+                    let updated_at = circle.updated_at.as_ref().map(|dt| dt.to_rfc3339());
+                    let directory_visibility =
+                        directory_visibility_wire(&circle.directory_visibility).to_string();
+                    let join_rule = join_rule_wire(&circle.join_rule).to_string();
+                    let history_visibility =
+                        history_visibility_wire(&circle.history_visibility).to_string();
 
                     let breadcrumbs = vec![
                         BreadcrumbItem { label: t("circle.list_title"), route: Some(Route::CircleList {}) },
@@ -87,7 +92,6 @@ pub fn CircleShow(circle_id: String) -> Element {
                                             t("circle.mls_group_ref"),
                                             mls_group_ref.clone().unwrap_or_else(|| "-".to_string()),
                                         )}
-                                        {field_row(t("circle.member_count"), member_count.to_string())}
                                         {field_row(t("circle.created_by"), created_by)}
                                         {field_row(t("circle.created_at"), created_at)}
                                         {field_row(
@@ -154,21 +158,6 @@ pub fn CircleShow(circle_id: String) -> Element {
                                 }
                             }
                         }
-
-                        Card {
-                                CardHeader { CardTitle { {t("circle.member_count")} } }
-                                CardContent {
-                                    p { class: "text-sm text-muted-foreground",
-                                        {format!("{} {}",
-                                            t("circle.members_total"),
-                                            member_count)}
-                                    }
-                                    p { class: "mt-2 text-xs text-muted-foreground",
-                                        {t("circle.subset_hint")}
-                                    }
-                                }
-                            }
-
                         ConfirmDialog {
                             open: *confirm_archive.read(),
                             title: t("circle.confirm_archive_title"),

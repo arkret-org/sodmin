@@ -14,7 +14,7 @@ use std::collections::HashSet;
 use coauth_admin_types::applets_admin::ApprovalActionRequest;
 use dioxus::prelude::*;
 
-use crate::api::applets_agents_directory_admin as admin_api;
+use crate::api::applets_agents_directory as admin_api;
 use crate::components::dangerous_action_dialog::DangerousActionDialog;
 use crate::components::ui::auto_refresh::{self, AutoRefreshPicker, RefreshInterval};
 use crate::components::ui::badge::Badge;

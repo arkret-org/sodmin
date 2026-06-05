@@ -22,6 +22,7 @@
 //! [`crate::utils::security::primary_handle::select_primary_handle`].
 
 use chrono::Utc;
+use cokret_core::Did;
 use dioxus::prelude::*;
 
 use crate::api::directory;
@@ -56,10 +57,20 @@ pub fn HandlesBySubject(subject: Option<String>) -> Element {
             if subject.trim().is_empty() {
                 return None;
             }
+            let subject = match Did::new(subject.trim().to_string()) {
+                Ok(value) => value,
+                Err(_) => return None,
+            };
             let req = ListHandlesForSubjectRequest {
-                subject: subject.trim().to_string(),
+                subject,
+                realm_id: None,
                 intent: Some("admin_directory".to_string()),
-                ..Default::default()
+                requester: None,
+                proof_challenge: None,
+                proofs: Vec::new(),
+                as_of: None,
+                cursor: None,
+                limit: None,
             };
             Some(directory::list_handles_for_subject(&req).await)
         }
@@ -121,27 +132,35 @@ pub fn HandlesBySubject(subject: Option<String>) -> Element {
                     ErrorBanner { message: e.message.clone(), on_retry: move |_| data.restart() }
                 },
                 Some(Some(Ok(resp))) => {
-                    let subject_id = resp.subject.clone();
-                    // Defensive fail-closed view: drop claims whose
-                    // subject != response.subject (schema invariant).
-                    let visible: Vec<HandleClaim> =
-                        resp.visible_claims().into_iter().cloned().collect();
-                    // Re-derive the §3.2.1 primary handle locally; fall
-                    // back to the server-reported value.
-                    let derived_primary = {
-                        let sel = PrimaryHandleSelectInput {
-                            subject_id: &subject_id,
-                            context: None,
-                            claim_set_snapshot: &visible,
-                            accepted_issuers: &[],
-                            holder_primary_handle_at_as_of: None,
-                            resolution_as_of: Utc::now(),
+                    if let Err(e) = resp.validate() {
+                        let msg = format!("Invalid list_handles_for_subject response: {e}");
+                        rsx! {
+                            ErrorBanner { message: msg }
+                        }
+                    } else {
+                        let subject_id = resp.subject.to_string();
+                        let visible: Vec<HandleClaim> = resp.claims.clone();
+                        // Re-derive the §3.2.1 primary handle locally; fall
+                        // back to the server-reported value.
+                        let derived_primary = {
+                            let sel = PrimaryHandleSelectInput {
+                                subject_id: &subject_id,
+                                context: None,
+                                claim_set_snapshot: &visible,
+                                accepted_issuers: &[],
+                                holder_primary_handle_at_as_of: None,
+                                resolution_as_of: Utc::now(),
+                            };
+                            select_primary_handle_string(&sel)
                         };
-                        select_primary_handle_string(&sel)
-                    };
-                    let primary = derived_primary.or_else(|| resp.primary_handle.clone());
-                    rsx! {
-                        {results_card(subject_id.clone(), primary, visible, resp.has_more)}
+                        let primary = derived_primary.or_else(|| {
+                            resp.primary_handle
+                                .as_ref()
+                                .map(|handle| handle.canonical().to_owned())
+                        });
+                        rsx! {
+                            {results_card(subject_id.clone(), primary, visible, resp.has_more)}
+                        }
                     }
                 }
             }
@@ -212,18 +231,31 @@ fn results_card(
 }
 
 fn claim_row(claim: &HandleClaim, primary: Option<&str>) -> Element {
-    let handle = claim.handle.clone().unwrap_or_else(|| "-".to_string());
+    let handle = claim
+        .handle
+        .as_ref()
+        .map(|h| h.canonical().to_owned())
+        .unwrap_or_else(|| "-".to_string());
     let sigil = claim
         .handle
-        .as_deref()
+        .as_ref()
+        .map(|h| h.canonical())
         .map(display_sigil)
         .unwrap_or_default();
     let issuer = claim.issuer.clone().unwrap_or_else(|| "-".to_string());
-    let expires = claim.expires_at.clone().unwrap_or_else(|| "-".to_string());
-    let created = claim.created_at.clone().unwrap_or_else(|| "-".to_string());
+    let expires = claim
+        .expires_at
+        .as_ref()
+        .map(|dt| dt.to_rfc3339())
+        .unwrap_or_else(|| "-".to_string());
+    let created = claim
+        .created_at
+        .as_ref()
+        .map(|dt| dt.to_rfc3339())
+        .unwrap_or_else(|| "-".to_string());
     let (binding_label, binding_variant) = binding_badge(claim.binding_state);
     let is_primary = matches!(
-        (claim.handle.as_deref(), primary),
+        (claim.handle.as_ref().map(|h| h.canonical()), primary),
         (Some(h), Some(p)) if h == p
     );
     // "Why am I seeing this?" provenance: issuer DID + binding_state +

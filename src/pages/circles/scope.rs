@@ -17,6 +17,7 @@ use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::{BreadcrumbItem, Breadcrumbs, PageHeader};
 use crate::components::ui::toast::{ToastVariant, show_toast};
 use crate::router::Route;
+use crate::types::circles::{circle_is_active, encryption_profile_wire};
 use crate::utils::i18n::t;
 
 #[component]
@@ -37,10 +38,10 @@ pub fn CircleScope(circle_id: String) -> Element {
             match &*data.read() {
                 Some(Ok(circle)) => {
                     let title = circle.title.clone();
-                    let cid = circle.circle_id.clone();
+                    let cid = circle.id.to_string();
                     let mls_group_ref = circle.mls_group_ref.clone().unwrap_or_else(|| "-".to_string());
-                    let encryption_profile = circle.encryption_profile.clone();
-                    let is_active = circle.is_active();
+                    let encryption_profile = encryption_profile_wire(&circle.encryption_profile).to_string();
+                    let is_active = circle_is_active(circle);
 
                     let breadcrumbs = vec![
                         BreadcrumbItem { label: t("circle.list_title"), route: Some(Route::CircleList {}) },

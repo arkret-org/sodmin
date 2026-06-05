@@ -67,11 +67,6 @@ pub enum Route {
         #[route("/media")]
         MediaList {},
 
-        #[route("/reports")]
-        ReportList {},
-        #[route("/reports/:report_id")]
-        ReportShow { report_id: String },
-
         #[route("/moderation/reports")]
         ModerationReports {},
         // Round R2/R3 T06 — moderation appeal admin
@@ -400,16 +395,6 @@ fn ComponentsRegistry() -> Element {
 #[component]
 fn MediaList() -> Element {
     rsx! { pages::media::MediaList {} }
-}
-
-#[component]
-fn ReportList() -> Element {
-    rsx! { pages::reports::list::ReportList {} }
-}
-
-#[component]
-fn ReportShow(report_id: String) -> Element {
-    rsx! { pages::reports::show::ReportShow { report_id } }
 }
 
 #[component]

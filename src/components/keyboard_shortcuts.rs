@@ -105,7 +105,7 @@ pub fn KeyboardShortcuts() -> Element {
                         return;
                     }
                     "r" => {
-                        nav.push(Route::ReportList {});
+                        nav.push(Route::ModerationReports {});
                         return;
                     }
                     _ => {}
@@ -186,7 +186,7 @@ fn ShortcutHelpModal() -> Element {
                             ("d", "Dashboard"), ("a", "Actors"), ("s", "Spaces"),
                             ("f", "Federation"), ("v", "Devices"), ("c", "Coauth Accounts"),
                             ("l", "Audit Log"), ("p", "Policy"), ("t", "Server Status"),
-                            ("e", "Capabilities"), ("r", "Reports"),
+                            ("e", "Capabilities"), ("r", "Moderation reports"),
                         ] {
                             tr { class: "border-b",
                                 td { class: "py-2",

@@ -6,20 +6,13 @@
 //! Dismiss actions which POST `{decision, note?}` to soland's resolve
 //! route.
 //!
-//! Distinct from `pages/reports/list.rs`: both pages read **soland**
-//! report surfaces (this page hits `GET /_soland/admin/moderation/reports`
-//! with cursor pagination + a Resolve/Dismiss appeal-aware close loop;
-//! `pages/reports/list.rs` hits the legacy `GET /_soland/admin/reports`
-//! with page/per_page pagination). The difference is two soland routes,
-//! NOT two services — neither reads coauth. This page is the
-//! spec-aligned (`reporter_did`/`target_did`, cursor) operational
-//! workflow for moderation triage; the legacy `/reports` surface is a
-//! duplicate kept pending soland confirmation of whether the legacy
-//! endpoint is still served (see `_code_review/sodmin/09-duplication.md`).
+//! This is the single reports workflow in sodmin. The row projection
+//! uses spec-aligned `reporter_did` / `target_ref` naming and cursor
+//! pagination.
 
 use dioxus::prelude::*;
 
-use crate::api::moderation_admin;
+use crate::api::moderation;
 use crate::components::ui::badge::{Badge, BadgeVariant};
 use crate::components::ui::button::{Button, ButtonSize, ButtonVariant};
 use crate::components::ui::dialog::ConfirmDialog;
@@ -27,11 +20,12 @@ use crate::components::ui::empty_state::EmptyState;
 use crate::components::ui::error_banner::ErrorBanner;
 use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
+use crate::components::ui::pagination::CursorPagination;
 use crate::components::ui::table::*;
 use crate::components::ui::toast::{ToastVariant, show_toast};
 use crate::types::moderation::{ReportDecision, ReportStatus, ResolveReportRequest};
 use crate::utils::i18n::t;
-use crate::utils::net::error::format_optional_endpoint_error;
+use crate::utils::net::error::{format_optional_endpoint_error, should_reset_cursor_pagination};
 
 const PAGE_SIZE: u64 = 25;
 
@@ -51,12 +45,13 @@ pub fn ModerationReportsPage() -> Element {
     let mut in_flight = use_signal::<Option<String>>(|| None);
 
     let cursor_snapshot = cursor_stack.read().last().cloned().unwrap_or(None);
+    let cursor_for_fetch = cursor_snapshot.clone();
     let status_snapshot = status_filter.read().clone();
 
     let mut data = use_resource(move || {
-        let cursor = cursor_snapshot.clone();
+        let cursor = cursor_for_fetch.clone();
         let status = status_snapshot.clone();
-        async move { moderation_admin::list_reports(cursor.as_deref(), PAGE_SIZE, &status).await }
+        async move { moderation::list_reports(cursor.as_deref(), PAGE_SIZE, &status).await }
     });
 
     let mut reset_to_first_page = move || {
@@ -145,7 +140,7 @@ pub fn ModerationReportsPage() -> Element {
                                             {
                                                 let report_id = r.report_id.clone();
                                                 let reporter = r.reporter_did.clone();
-                                                let target = r.target_did.clone().unwrap_or_else(|| "-".to_string());
+                                                let target = r.target_ref.clone().unwrap_or_else(|| "-".to_string());
                                                 let realm = r.realm_id.clone().unwrap_or_else(|| "-".to_string());
                                                 let reason = r.reason.clone();
                                                 let typed = r.status_typed();
@@ -215,46 +210,39 @@ pub fn ModerationReportsPage() -> Element {
                                 }
                             }
 
-                            div { class: "flex items-center justify-between px-2 py-4",
-                                div { class: "text-sm text-muted-foreground",
-                                    {format!("Page {}", stack_depth)}
-                                }
-                                div { class: "flex items-center space-x-2",
-                                    Button {
-                                        variant: ButtonVariant::Outline,
-                                        size: ButtonSize::Sm,
-                                        disabled: stack_depth <= 1,
-                                        onclick: move |_| {
-                                            let mut new_stack = cursor_stack.read().clone();
-                                            if new_stack.len() > 1 {
-                                                new_stack.pop();
-                                                cursor_stack.set(new_stack);
-                                            }
-                                        },
-                                        {t("common.previous")}
+                            CursorPagination {
+                                depth: stack_depth,
+                                has_next: next_cursor.is_some(),
+                                on_prev: move |_| {
+                                    let mut new_stack = cursor_stack.read().clone();
+                                    if new_stack.len() > 1 {
+                                        new_stack.pop();
+                                        cursor_stack.set(new_stack);
                                     }
-                                    Button {
-                                        variant: ButtonVariant::Outline,
-                                        size: ButtonSize::Sm,
-                                        disabled: next_cursor.is_none(),
-                                        onclick: move |_| {
-                                            if let Some(c) = next_cursor.clone() {
-                                                let mut new_stack = cursor_stack.read().clone();
-                                                new_stack.push(Some(c));
-                                                cursor_stack.set(new_stack);
-                                            }
-                                        },
-                                        {t("common.next")}
+                                },
+                                on_next: move |_| {
+                                    if let Some(c) = next_cursor.clone() {
+                                        let mut new_stack = cursor_stack.read().clone();
+                                        new_stack.push(Some(c));
+                                        cursor_stack.set(new_stack);
                                     }
-                                }
+                                },
                             }
                         }
                     }
-                }
-                Some(Err(e)) => rsx! {
-                    ErrorBanner {
-                        message: e.message.clone(),
-                        on_retry: move |_| data.restart(),
+                },
+                Some(Err(e)) => {
+                    let reset_cursor = should_reset_cursor_pagination(e, cursor_snapshot.as_deref());
+                    rsx! {
+                        ErrorBanner {
+                            message: e.message.clone(),
+                            on_retry: move |_| {
+                                if reset_cursor {
+                                    cursor_stack.set(vec![None::<String>]);
+                                }
+                                data.restart();
+                            },
+                        }
                     }
                 },
                 None => rsx! { PageSkeleton {} },
@@ -291,7 +279,7 @@ pub fn ModerationReportsPage() -> Element {
                                         decision: p.decision,
                                         note: None,
                                     };
-                                    let res = moderation_admin::resolve_report(
+                                    let res = moderation::resolve_report(
                                         &p.report_id, &body,
                                     )
                                     .await;

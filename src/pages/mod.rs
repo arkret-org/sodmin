@@ -39,7 +39,6 @@ pub mod realm_links;
 pub mod realm_media_service;
 pub mod realms;
 pub mod relaxed_window;
-pub mod reports;
 pub mod server_status;
 pub mod spaces;
 pub mod starid_resolver;

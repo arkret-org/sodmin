@@ -11,7 +11,7 @@
 
 use dioxus::prelude::*;
 
-use crate::api::coauth_devices_admin;
+use crate::api::coauth_devices;
 use crate::components::ui::badge::{Badge, BadgeVariant};
 use crate::components::ui::button::{Button, ButtonSize, ButtonVariant};
 use crate::components::ui::dialog::ConfirmDialog;
@@ -39,9 +39,7 @@ pub fn AccountDevicesPage(account_id: String) -> Element {
     let mut data = use_resource(move || {
         let cursor = cursor_snapshot.clone();
         let acct = account_for_fetch.clone();
-        async move {
-            coauth_devices_admin::list_account_devices(&acct, cursor.as_deref(), PAGE_SIZE).await
-        }
+        async move { coauth_devices::list_account_devices(&acct, cursor.as_deref(), PAGE_SIZE).await }
     });
 
     let header_account_id = account_id.clone();
@@ -203,7 +201,7 @@ pub fn AccountDevicesPage(account_id: String) -> Element {
                         in_flight.set(Some(did.clone()));
                         let acct = account_for_revoke.clone();
                         spawn(async move {
-                            let res = coauth_devices_admin::revoke_account_device(
+                            let res = coauth_devices::revoke_account_device(
                                 &acct, &did,
                             )
                             .await;

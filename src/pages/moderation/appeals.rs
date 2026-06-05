@@ -25,7 +25,7 @@
 
 use dioxus::prelude::*;
 
-use crate::api::moderation_admin;
+use crate::api::moderation;
 use crate::components::ui::badge::{Badge, BadgeVariant};
 use crate::components::ui::button::{Button, ButtonSize, ButtonVariant};
 use crate::components::ui::card::*;
@@ -140,12 +140,12 @@ struct AppealRow {
     decisions: Vec<DecisionEntry>,
 }
 
-/// Project a `moderation_admin::AppealRowDto` (one record per
+/// Project a `moderation::AppealRowDto` (one record per
 /// appeal_id, latest event) into the page-local [`AppealRow`] view
 /// model. Lifecycle is inferred from `appeal_state`; the per-appeal
 /// `history` for reviewer notes / decision entries is fetched lazily
 /// when the row is selected.
-fn project_appeal_row(dto: moderation_admin::AppealRowDto) -> AppealRow {
+fn project_appeal_row(dto: moderation::AppealRowDto) -> AppealRow {
     let lifecycle = match dto.appeal_state.as_deref() {
         Some("under_review") => AppealLifecycle::UnderReview,
         Some("decided") => AppealLifecycle::Decided,
@@ -187,7 +187,7 @@ pub fn ModerationAppealsPage() -> Element {
         let token = reload_token.read().to_owned();
         let _ = token; // explicit read so the effect re-runs on bump
         spawn(async move {
-            match moderation_admin::list_appeals().await {
+            match moderation::list_appeals().await {
                 Ok(items) => {
                     let projected: Vec<AppealRow> =
                         items.into_iter().map(project_appeal_row).collect();
@@ -334,9 +334,9 @@ pub fn ModerationAppealsPage() -> Element {
                                     if matches!(verdict, Verdict::Overturn)
                                         && !original_decision_ref.is_empty()
                                     {
-                                        match moderation_admin::lift_decision(
+                                        match moderation::lift_decision(
                                             &original_decision_ref,
-                                            &moderation_admin::LiftDecisionRequest {
+                                            &moderation::LiftDecisionRequest {
                                                 reason_text_ref: Some(reason_text_ref.clone()),
                                                 appeal_ref: Some(appeal_id.clone()),
                                             },
@@ -364,13 +364,13 @@ pub fn ModerationAppealsPage() -> Element {
                                         Verdict::Uphold => "uphold",
                                         Verdict::Overturn => "overturn",
                                     };
-                                    let body = moderation_admin::DecideAppealRequest {
+                                    let body = moderation::DecideAppealRequest {
                                         verdict: verdict_str.to_owned(),
                                         reason_text_ref,
                                         modify_decision_ref: None,
                                         decision_lift_ref,
                                     };
-                                    match moderation_admin::decide_appeal(&appeal_id, &body).await {
+                                    match moderation::decide_appeal(&appeal_id, &body).await {
                                         Ok(_) => {
                                             show_toast(
                                                 &format!(

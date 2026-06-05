@@ -5,6 +5,7 @@
 //! refs with `circle_realm_mismatch`; the form surfaces this verbatim
 //! when the create call returns.
 
+use cokret_core::RealmId;
 use dioxus::prelude::*;
 
 use crate::api::circles;
@@ -14,7 +15,9 @@ use crate::components::ui::loading::Spinner;
 use crate::components::ui::page_header::{BreadcrumbItem, Breadcrumbs, PageHeader};
 use crate::components::ui::toast::{ToastVariant, show_toast};
 use crate::router::Route;
-use crate::types::circles::CreateCircleRequest;
+use crate::types::circles::{
+    CreateCircleRequest, parse_directory_visibility, parse_history_visibility, parse_join_rule,
+};
 use crate::utils::i18n::t;
 
 #[component]
@@ -35,15 +38,45 @@ pub fn CircleCreate() -> Element {
             error.set(t("circle.error_required"));
             return;
         }
+        let parsed_realm_id = match RealmId::new(realm_id.read().trim().to_string()) {
+            Ok(value) => value,
+            Err(_) => {
+                error.set(t("circle.error_required"));
+                return;
+            }
+        };
+        let parsed_directory_visibility =
+            match parse_directory_visibility(directory_visibility.read().trim()) {
+                Some(value) => value,
+                None => {
+                    error.set(t("circle.error_required"));
+                    return;
+                }
+            };
+        let parsed_join_rule = match parse_join_rule(join_rule.read().trim()) {
+            Some(value) => value,
+            None => {
+                error.set(t("circle.error_required"));
+                return;
+            }
+        };
+        let parsed_history_visibility =
+            match parse_history_visibility(history_visibility.read().trim()) {
+                Some(value) => value,
+                None => {
+                    error.set(t("circle.error_required"));
+                    return;
+                }
+            };
         saving.set(true);
         error.set(String::new());
         let req = CreateCircleRequest {
-            realm_id: realm_id.read().trim().to_string(),
+            realm_id: parsed_realm_id,
             title: title.read().trim().to_string(),
             summary: trim_or_none(&summary.read()),
-            directory_visibility: trim_or_none(&directory_visibility.read()),
-            join_rule: trim_or_none(&join_rule.read()),
-            history_visibility: trim_or_none(&history_visibility.read()),
+            directory_visibility: Some(parsed_directory_visibility),
+            join_rule: Some(parsed_join_rule),
+            history_visibility: Some(parsed_history_visibility),
             metadata_encryption_floor: None,
             encryption_profile: None,
         };
@@ -52,7 +85,7 @@ pub fn CircleCreate() -> Element {
                 Ok(c) => {
                     show_toast(&t("circle.created_toast"), ToastVariant::Success);
                     let _ = nav.push(Route::CircleShow {
-                        circle_id: c.circle_id,
+                        circle_id: c.id.to_string(),
                     });
                 }
                 Err(e) => {
@@ -137,8 +170,7 @@ pub fn CircleCreate() -> Element {
                             onchange: move |e| directory_visibility.set(e.value()),
                             value: directory_visibility(),
                             option { value: "members", "members" }
-                            option { value: "realm", "realm" }
-                            option { value: "public", "public" }
+                            option { value: "realm_members", "realm_members" }
                         }
                     }
                     div { class: "space-y-2",
@@ -150,8 +182,8 @@ pub fn CircleCreate() -> Element {
                             onchange: move |e| join_rule.set(e.value()),
                             value: join_rule(),
                             option { value: "invite", "invite" }
-                            option { value: "knock", "knock" }
-                            option { value: "closed", "closed" }
+                            option { value: "request", "request" }
+                            option { value: "open", "open" }
                         }
                     }
                     div { class: "space-y-2",
@@ -168,6 +200,7 @@ pub fn CircleCreate() -> Element {
                             option { value: "invited", "invited" }
                             option { value: "shared", "shared" }
                             option { value: "world_readable", "world_readable" }
+                            option { value: "restricted", "restricted" }
                         }
                     }
                 }

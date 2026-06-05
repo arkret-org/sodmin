@@ -8,7 +8,7 @@
 
 use dioxus::prelude::*;
 
-use crate::api::realm_policy_admin;
+use crate::api::realm_policy;
 use crate::components::selection_required::{is_placeholder_resource_id, selection_required_state};
 use crate::components::ui::button::{Button, ButtonVariant};
 use crate::components::ui::dialog::ConfirmDialog;
@@ -40,7 +40,7 @@ pub fn PolicyEditorPage(realm_id: String) -> Element {
     let id_for_resource = realm_id.clone();
     let mut data = use_resource(move || {
         let id = id_for_resource.clone();
-        async move { realm_policy_admin::get_policy(&id).await }
+        async move { realm_policy::get_policy(&id).await }
     });
 
     // Seed the form once from the first successful read. Subsequent
@@ -196,7 +196,7 @@ pub fn PolicyEditorPage(realm_id: String) -> Element {
                     let id = id_for_submit.clone();
                     in_flight.set(true);
                     spawn(async move {
-                        let res = realm_policy_admin::update_policy(&id, &req).await;
+                        let res = realm_policy::update_policy(&id, &req).await;
                         match res {
                             Ok(_) => show_toast(
                                 "Realm policy updated.",

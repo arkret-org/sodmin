@@ -15,7 +15,7 @@
 
 use dioxus::prelude::*;
 
-use crate::api::components_admin;
+use crate::api::components;
 use crate::components::ui::badge::{Badge, BadgeVariant};
 use crate::components::ui::button::{Button, ButtonSize, ButtonVariant};
 use crate::components::ui::empty_state::EmptyState;
@@ -29,7 +29,7 @@ use crate::utils::net::error::format_optional_endpoint_error;
 
 #[component]
 pub fn ComponentsPage() -> Element {
-    let mut data = use_resource(|| async { components_admin::list_components().await });
+    let mut data = use_resource(|| async { components::list_components().await });
     // Per-row in-flight flag keyed by component_type.
     let mut in_flight = use_signal::<Option<String>>(|| None);
 
@@ -133,7 +133,7 @@ pub fn ComponentsPage() -> Element {
                                                                         let ctype = component_type_for_btn.clone();
                                                                         in_flight.set(Some(ctype.clone()));
                                                                         spawn(async move {
-                                                                            let res = components_admin::refresh(&ctype).await;
+                                                                            let res = components::refresh(&ctype).await;
                                                                             match res {
                                                                                 Ok(r) => {
                                                                                     let status = r

@@ -207,12 +207,42 @@ pub fn format_optional_endpoint_error(action: &str, error: &HttpError) -> String
     }
 }
 
+pub fn should_reset_cursor_pagination(error: &HttpError, cursor: Option<&str>) -> bool {
+    if cursor.filter(|c| !c.trim().is_empty()).is_none() {
+        return false;
+    }
+
+    let errcode = error.body.as_ref().map(|body| body.errcode.as_str());
+    match (error.status, errcode) {
+        (410, Some("cursor_expired" | "ck.error.cursor_expired")) => true,
+        (410, None) => true,
+        (400, Some("invalid_param" | "ck.error.invalid_param")) => true,
+        _ => false,
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use super::{HttpError, display_error, format_optional_endpoint_error, redact_pii};
+    use super::{
+        AdminErrorEnvelope, HttpError, display_error, format_optional_endpoint_error, redact_pii,
+        should_reset_cursor_pagination,
+    };
 
     fn err(status: u16, message: &str) -> HttpError {
         HttpError::from_status(status, message)
+    }
+
+    fn err_with_code(status: u16, errcode: &str) -> HttpError {
+        HttpError {
+            message: errcode.to_owned(),
+            status,
+            body: Some(AdminErrorEnvelope {
+                errcode: errcode.to_owned(),
+                ..Default::default()
+            }),
+            request_id: None,
+            retry_after_ms: None,
+        }
     }
 
     #[test]
@@ -235,6 +265,26 @@ mod tests {
             format_optional_endpoint_error("covered_frontier advance", &e),
             "conflict"
         );
+    }
+
+    #[test]
+    fn cursor_reset_only_for_active_cursor_errors() {
+        assert!(should_reset_cursor_pagination(
+            &err_with_code(410, "cursor_expired"),
+            Some("ck:cursor:abc")
+        ));
+        assert!(should_reset_cursor_pagination(
+            &err_with_code(400, "invalid_param"),
+            Some("ck:cursor:abc")
+        ));
+        assert!(!should_reset_cursor_pagination(
+            &err_with_code(400, "invalid_param"),
+            None
+        ));
+        assert!(!should_reset_cursor_pagination(
+            &err_with_code(500, "cursor_expired"),
+            Some("ck:cursor:abc")
+        ));
     }
 
     #[test]

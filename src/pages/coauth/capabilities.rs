@@ -12,7 +12,7 @@
 
 use dioxus::prelude::*;
 
-use crate::api::authz_admin;
+use crate::api::authz;
 use crate::components::ui::badge::{Badge, BadgeVariant};
 use crate::components::ui::button::{Button, ButtonSize, ButtonVariant};
 use crate::components::ui::dialog::ConfirmDialog;
@@ -54,7 +54,7 @@ pub fn AuthzCapabilitiesPage() -> Element {
                 peer,
                 scope,
             };
-            authz_admin::list_capability_grants(cursor.as_deref(), PAGE_SIZE, &f).await
+            authz::list_capability_grants(cursor.as_deref(), PAGE_SIZE, &f).await
         }
     });
 
@@ -262,7 +262,7 @@ pub fn AuthzCapabilitiesPage() -> Element {
                     if let Some(gid) = pending_revoke.read().clone() {
                         in_flight.set(Some(gid.clone()));
                         spawn(async move {
-                            let res = authz_admin::revoke_capability_grant(&gid).await;
+                            let res = authz::revoke_capability_grant(&gid).await;
                             match res {
                                 Ok(_) => show_toast(
                                     "Capability revoked.",

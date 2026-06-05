@@ -11,7 +11,7 @@
 use coauth_admin_types::applets_admin::{ApprovalActionRequest, ApprovalStatus};
 use dioxus::prelude::*;
 
-use crate::api::applets_agents_directory_admin as admin_api;
+use crate::api::applets_agents_directory as admin_api;
 use crate::components::dangerous_action_dialog::{DangerousActionDialog, applet_phrase};
 use crate::components::ui::badge::{Badge, BadgeVariant};
 use crate::components::ui::button::{Button, ButtonSize, ButtonVariant};

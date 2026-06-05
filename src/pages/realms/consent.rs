@@ -16,7 +16,7 @@
 
 use dioxus::prelude::*;
 
-use crate::api::consent_admin;
+use crate::api::consent;
 use crate::components::selection_required::{is_placeholder_resource_id, selection_required_state};
 use crate::components::ui::badge::{Badge, BadgeVariant};
 use crate::components::ui::button::{Button, ButtonSize, ButtonVariant};
@@ -39,7 +39,7 @@ pub fn ConsentPage(realm_id: String) -> Element {
     let realm_id_for_fetch = realm_id.clone();
     let mut data = use_resource(move || {
         let id = realm_id_for_fetch.clone();
-        async move { consent_admin::list_consent_grants(&id).await }
+        async move { consent::list_consent_grants(&id).await }
     });
 
     let mut holder_filter = use_signal(String::new);
@@ -146,7 +146,7 @@ pub fn ConsentPage(realm_id: String) -> Element {
                                                                                         let cid = cid_a.clone();
                                                                                         in_flight.set(Some(cid.clone()));
                                                                                         spawn(async move {
-                                                                                            let res = consent_admin::resolve(
+                                                                                            let res = consent::resolve(
                                                                                                 &cid,
                                                                                                 ConsentResolveDecision::Approve,
                                                                                                 None,
@@ -179,7 +179,7 @@ pub fn ConsentPage(realm_id: String) -> Element {
                                                                                         let cid = cid_r.clone();
                                                                                         in_flight.set(Some(cid.clone()));
                                                                                         spawn(async move {
-                                                                                            let res = consent_admin::resolve(
+                                                                                            let res = consent::resolve(
                                                                                                 &cid,
                                                                                                 ConsentResolveDecision::Reject,
                                                                                                 None,

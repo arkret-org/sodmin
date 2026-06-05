@@ -12,7 +12,7 @@
 
 use dioxus::prelude::*;
 
-use crate::api::anchor_admin;
+use crate::api::anchor;
 use crate::components::selection_required::{is_placeholder_resource_id, selection_required_state};
 use crate::components::ui::badge::{Badge, BadgeVariant};
 use crate::components::ui::button::{Button, ButtonVariant};
@@ -37,7 +37,7 @@ pub fn AnchorerPage(realm_id: String) -> Element {
     let realm_id_for_fetch = realm_id.clone();
     let mut data = use_resource(move || {
         let id = realm_id_for_fetch.clone();
-        async move { anchor_admin::get_anchorer_value(&id).await }
+        async move { anchor::get_anchorer_value(&id).await }
     });
 
     let mut new_kind = use_signal(|| "single_did".to_string());
@@ -324,7 +324,7 @@ pub fn AnchorerPage(realm_id: String) -> Element {
                             if let Some(req) = staged {
                                 submitting.set(true);
                                 spawn(async move {
-                                    match anchor_admin::submit_anchorer_reconfig(&req).await {
+                                    match anchor::submit_anchorer_reconfig(&req).await {
                                         Ok(resp) => {
                                             show_toast(
                                                 &format!("Move submitted: {}", resp.move_id),
