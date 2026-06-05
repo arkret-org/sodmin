@@ -3,13 +3,13 @@
 //!
 //! Endpoints:
 //!
-//! - `GET  /_soland/admin/spaces/{id}/multisig/pending` — list pending Anchors awaiting threshold
-//!   (`k of n`). Each row includes the anchor_id, threshold, collected partials count, and missing
-//!   signers DIDs.
-//! - `POST /_soland/admin/spaces/{id}/multisig/{anchor_id}/partial` — submit the current admin's
-//!   partial signature toward the pending Anchor. soland resolves the admin DID from the bearer
-//!   token, signs the anchor's `state_root` with the bound signing key, and folds the resulting
-//!   partial into the pending signature set.
+//! - `GET  /_soland/admin/realms/{realm_id}/multisig/pending` — list pending Anchors awaiting
+//!   threshold (`k of n`). Each row includes the anchor_id, threshold, collected partials count,
+//!   and missing signers DIDs.
+//! - `POST /_soland/admin/realms/{realm_id}/multisig/{anchor_id}/partial` — submit the current
+//!   admin's partial signature toward the pending Anchor. soland resolves the admin DID from the
+//!   bearer token, signs the anchor's `state_root` with the bound signing key, and folds the
+//!   resulting partial into the pending signature set.
 //!
 //! Both routes follow the 404-tolerant pattern.
 
@@ -19,10 +19,10 @@ use crate::types::multisig::{
 };
 use crate::utils::net::error::HttpError;
 
-/// List Anchors awaiting partial signatures inside a Space.
+/// List Anchors awaiting partial signatures inside a Realm.
 pub async fn list_pending(realm_id: &str) -> Result<Vec<PendingMultisigAnchor>, HttpError> {
     let url = format!(
-        "/_soland/admin/spaces/{}/multisig/pending",
+        "/_soland/admin/realms/{}/multisig/pending",
         urlencoding::encode(realm_id)
     );
     api_client(&url, "GET", None).await
@@ -35,7 +35,7 @@ pub async fn submit_partial(
     note: Option<String>,
 ) -> Result<SubmitPartialSignatureResponse, HttpError> {
     let url = format!(
-        "/_soland/admin/spaces/{}/multisig/{}/partial",
+        "/_soland/admin/realms/{}/multisig/{}/partial",
         urlencoding::encode(realm_id),
         urlencoding::encode(anchor_id),
     );

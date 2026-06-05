@@ -1,50 +1,46 @@
+//! Soland Space container list
+//!
+//! Cursor-paginated list of Spaces visible to the current admin scope,
+//! backed by `GET /_soland/admin/spaces`. Each row shows name, member
+//! count, lifecycle state and an "Open detail"
+//! button that links to the existing per-space detail page.
+//!
+//! 404-tolerant on the client side.
+
 use dioxus::prelude::*;
 
 use crate::api::spaces;
-use crate::components::ui::auto_refresh::{self, AutoRefreshPicker, RefreshInterval};
+use crate::components::ui::badge::{Badge, BadgeVariant};
 use crate::components::ui::button::{Button, ButtonSize, ButtonVariant};
+use crate::components::ui::empty_state::EmptyState;
 use crate::components::ui::error_banner::ErrorBanner;
-use crate::components::ui::icons::Icon;
 use crate::components::ui::input::SearchInput;
 use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
-use crate::components::ui::pagination::CursorPagination;
 use crate::components::ui::table::*;
-use crate::components::ui::toast::{ToastVariant, show_toast};
 use crate::router::Route;
-use crate::utils::fmt::csv::{build_csv, export_to_csv};
+use crate::types::spaces::SpaceHealth;
 use crate::utils::i18n::t;
 
-const PAGE_SIZE: u64 = 20;
-const AUTOREFRESH_STORAGE_KEY: &str = "sodmin.spaces.autorefresh";
+const PAGE_SIZE: u64 = 25;
 
 #[component]
 pub fn SpaceList() -> Element {
     let mut cursor_stack = use_signal(|| vec![None::<String>]);
     let mut search = use_signal(String::new);
-    let mut autorefresh = use_signal(|| auto_refresh::load(AUTOREFRESH_STORAGE_KEY));
 
     let cursor_snapshot = cursor_stack.read().last().cloned().unwrap_or(None);
-    let search_val = search.read().clone();
+    let search_snapshot = search.read().clone();
 
     let mut data = use_resource(move || {
         let cursor = cursor_snapshot.clone();
-        let s = search_val.clone();
+        let s = search_snapshot.clone();
         async move { spaces::list_spaces(cursor.as_deref(), PAGE_SIZE, &s).await }
     });
 
-    let mut interval_handle = use_signal::<Option<gloo_timers::callback::Interval>>(|| None);
-    use_effect(move || {
-        let choice = *autorefresh.read();
-        interval_handle.set(None);
-        if let Some(ms) = choice.millis() {
-            let mut data = data;
-            let handle = gloo_timers::callback::Interval::new(ms, move || {
-                data.restart();
-            });
-            interval_handle.set(Some(handle));
-        }
-    });
+    let mut reset_to_first_page = move || {
+        cursor_stack.set(vec![None]);
+    };
 
     rsx! {
         div { class: "space-y-6",
@@ -53,135 +49,135 @@ pub fn SpaceList() -> Element {
                 description: t("spaces.description"),
                 Button {
                     variant: ButtonVariant::Outline,
-                    size: ButtonSize::Sm,
-                    onclick: move |_| {
-                        if let Some(Ok(resp)) = data.read().as_ref() {
-                            let rows: Vec<Vec<String>> = resp.data.iter().map(|s| vec![
-                                s.id.clone(),
-                                s.title.clone().unwrap_or_default(),
-                                realm_type_label(&s),
-                                s.member_count.to_string(),
-                                if s.is_encrypted { "true".into() } else { "false".into() },
-                                if s.is_blocked { "blocked".into() } else { "active".into() },
-                                s.created_at.clone().unwrap_or_default(),
-                            ]).collect();
-                            let csv = build_csv(
-                                &["id", "title", "realm_class", "member_count", "encrypted", "status", "created_at"],
-                                &rows,
-                            );
-                            export_to_csv("spaces.csv", &csv);
-                            show_toast("Spaces CSV downloaded", ToastVariant::Success);
-                        }
-                    },
-                    {t("common.export_csv")}
+                    onclick: move |_| data.restart(),
+                    {t("common.refresh")}
                 }
             }
 
-            div { class: "flex items-center gap-4 flex-wrap",
-                div { class: "flex-1 min-w-[240px]",
-                    SearchInput {
-                        value: search(),
-                        placeholder: t("spaces.search_placeholder"),
-                        oninput: move |evt: FormEvent| {
-                            search.set(evt.value());
-                            cursor_stack.set(vec![None::<String>]);
-                        },
-                    }
-                }
-                AutoRefreshPicker {
-                    storage_key: AUTOREFRESH_STORAGE_KEY.to_string(),
-                    value: *autorefresh.read(),
-                    onchange: move |v: RefreshInterval| autorefresh.set(v),
-                }
-                Link {
-                    to: Route::SpaceCreate {},
-                    class: "inline-flex items-center gap-2 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90",
-                    Icon { name: "plus".to_string(), class: "h-4 w-4".to_string() }
-                    {t("spaces.create")}
+            div { class: "max-w-md",
+                SearchInput {
+                    value: search.read().clone(),
+                    placeholder: t("spaces.search_placeholder"),
+                    oninput: move |evt: FormEvent| {
+                        reset_to_first_page();
+                        search.set(evt.value());
+                    },
                 }
             }
 
             match &*data.read() {
-                Some(Ok(resp)) => {
-                    let next_cursor = resp.next_cursor.clone();
+                Some(Ok(page)) => {
+                    let next_cursor = page.next_cursor.clone();
                     let stack_depth = cursor_stack.read().len();
+                    let total_label = match page.total {
+                        Some(n) => format!("{n}"),
+                        None => "?".to_string(),
+                    };
+                    let row_count = page.data.len();
                     rsx! {
-                        div { class: "rounded-lg border glass-panel overflow-hidden",
-                            Table {
-                                TableHeader {
-                                    TableRow {
-                                        TableHead { {t("spaces.id")} }
-                                        TableHead { {t("spaces.name")} }
-                                        TableHead { {t("spaces.type")} }
-                                        TableHead { {t("spaces.members")} }
-                                        TableHead { {t("spaces.encrypted")} }
-                                        TableHead { {t("spaces.status")} }
-                                        TableHead { {t("spaces.created_at")} }
+                        if page.data.is_empty() {
+                            EmptyState {
+                                icon: "message-square".to_string(),
+                                title: t("spaces.empty_title"),
+                                description: t("spaces.empty_subtitle"),
+                            }
+                        } else {
+                            p { class: "text-xs text-muted-foreground",
+                                {format!("Showing {row_count} (server total: {total_label})")}
+                            }
+                            div { class: "rounded-md border",
+                                Table {
+                                    TableHeader {
+                                        TableRow {
+                                            TableHead { {t("spaces.id")} }
+                                            TableHead { {t("spaces.name")} }
+                                            TableHead { {t("spaces.members")} }
+                                            TableHead { {t("spaces.health")} }
+                                            TableHead { {t("spaces.created_at")} }
+                                            TableHead { class: "text-right".to_string(), {t("common.actions")} }
+                                        }
                                     }
-                                }
-                                TableBody {
-                                    for space in resp.data.iter() {
-                                        {
-                                            let sid = space.id.clone();
-                                            rsx! {
-                                                TableRow {
-                                                    key: "{space.id}",
-                                                    TableCell { class: "font-mono text-xs",
-                                                        Link {
-                                                            to: Route::SpaceShow { space_id: sid.clone() },
-                                                            class: "hover:underline",
-                                                            "{space.id}"
+                                    TableBody {
+                                        for row in page.data.iter() {
+                                            {
+                                                let space_id = row.id.clone();
+                                                let name = row.name.clone().unwrap_or_else(|| "-".to_string());
+                                                let members = row.member_count;
+                                                let typed = row.health_typed();
+                                                let label = typed.label().to_string();
+                                                let variant = health_badge_variant(&typed);
+                                                let created = row
+                                                    .created_at
+                                                    .clone()
+                                                    .unwrap_or_else(|| "-".to_string());
+                                                let detail_route = Route::SpaceShow {
+                                                    space_id: space_id.clone(),
+                                                };
+                                                rsx! {
+                                                    TableRow {
+                                                        TableCell { class: "font-mono text-xs max-w-[260px] truncate".to_string(), "{space_id}" }
+                                                        TableCell { "{name}" }
+                                                        TableCell { "{members}" }
+                                                        TableCell {
+                                                            Badge { variant, "{label}" }
+                                                        }
+                                                        TableCell { class: "text-muted-foreground".to_string(), "{created}" }
+                                                        TableCell { class: "text-right".to_string(),
+                                                            div { class: "flex justify-end gap-2",
+                                                                Link {
+                                                                    to: detail_route,
+                                                                    class: "inline-flex h-8 items-center rounded-md border px-2 text-xs font-medium transition-colors hover:bg-accent".to_string(),
+                                                                    {t("spaces.open_detail")}
+                                                                }
+                                                            }
                                                         }
                                                     }
-                                                    TableCell { {space.title.as_deref().unwrap_or("-")} }
-                                                    TableCell { {realm_type_label(&space)} }
-                                                    TableCell { "{space.member_count}" }
-                                                    TableCell {
-                                                        if space.is_encrypted {
-                                                            Icon { name: "lock".to_string(), class: "h-4 w-4 text-green-500".to_string() }
-                                                        }
-                                                    }
-                                                    TableCell {
-                                                        if space.is_blocked {
-                                                            {t("spaces.blocked")}
-                                                        } else {
-                                                            {t("spaces.active")}
-                                                        }
-                                                    }
-                                                    TableCell { {space.created_at.as_deref().unwrap_or("-")} }
                                                 }
                                             }
                                         }
                                     }
                                 }
                             }
-                        }
-                        CursorPagination {
-                            depth: stack_depth,
-                            has_next: next_cursor.is_some(),
-                            on_prev: move |_| {
-                                let mut new_stack = cursor_stack.read().clone();
-                                if new_stack.len() > 1 {
-                                    new_stack.pop();
-                                    cursor_stack.set(new_stack);
+
+                            div { class: "flex items-center justify-between px-2 py-4",
+                                div { class: "text-sm text-muted-foreground",
+                                    {format!("Page {}", stack_depth)}
                                 }
-                            },
-                            on_next: move |_| {
-                                if let Some(c) = next_cursor.clone() {
-                                    let mut new_stack = cursor_stack.read().clone();
-                                    new_stack.push(Some(c));
-                                    cursor_stack.set(new_stack);
+                                div { class: "flex items-center space-x-2",
+                                    Button {
+                                        variant: ButtonVariant::Outline,
+                                        size: ButtonSize::Sm,
+                                        disabled: stack_depth <= 1,
+                                        onclick: move |_| {
+                                            let mut new_stack = cursor_stack.read().clone();
+                                            if new_stack.len() > 1 {
+                                                new_stack.pop();
+                                                cursor_stack.set(new_stack);
+                                            }
+                                        },
+                                        {t("common.previous")}
+                                    }
+                                    Button {
+                                        variant: ButtonVariant::Outline,
+                                        size: ButtonSize::Sm,
+                                        disabled: next_cursor.is_none(),
+                                        onclick: move |_| {
+                                            if let Some(c) = next_cursor.clone() {
+                                                let mut new_stack = cursor_stack.read().clone();
+                                                new_stack.push(Some(c));
+                                                cursor_stack.set(new_stack);
+                                            }
+                                        },
+                                        {t("common.next")}
+                                    }
                                 }
-                            },
+                            }
                         }
                     }
-                },
+                }
                 Some(Err(e)) => rsx! {
                     ErrorBanner {
                         message: e.message.clone(),
-                        errcode: e.body.as_ref().map(|b| b.errcode.clone()),
-                        request_id: e.request_id.clone(),
-                        retry_after_ms: e.retry_after_ms,
                         on_retry: move |_| data.restart(),
                     }
                 },
@@ -191,11 +187,33 @@ pub fn SpaceList() -> Element {
     }
 }
 
-fn realm_type_label(space: &crate::types::Realm) -> String {
-    space
-        .realm_class
-        .as_deref()
-        .or(space.legacy_realm_kind.as_deref())
-        .unwrap_or("collaboration")
-        .to_owned()
+/// Pick a Badge variant for a Space container lifecycle value.
+/// Pure helper so the mapping is unit-testable.
+pub(crate) fn health_badge_variant(health: &SpaceHealth) -> BadgeVariant {
+    match health {
+        SpaceHealth::Active => BadgeVariant::Success,
+        SpaceHealth::Archived => BadgeVariant::Secondary,
+        SpaceHealth::Tombstoned => BadgeVariant::Destructive,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn health_variant_buckets_match_severity() {
+        assert!(matches!(
+            health_badge_variant(&SpaceHealth::Active),
+            BadgeVariant::Success
+        ));
+        assert!(matches!(
+            health_badge_variant(&SpaceHealth::Archived),
+            BadgeVariant::Secondary
+        ));
+        assert!(matches!(
+            health_badge_variant(&SpaceHealth::Tombstoned),
+            BadgeVariant::Destructive
+        ));
+    }
 }

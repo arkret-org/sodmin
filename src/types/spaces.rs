@@ -1,38 +1,33 @@
-//! DTO shapes for the soland Spaces admin surface.
+//! DTO shapes for the soland Space container admin surface.
 //!
 //! Mirrors `GET /_soland/admin/spaces` (list) and
 //! `GET /_soland/admin/spaces/{id}/hierarchy` (per-space hierarchy).
 
 use serde::{Deserialize, Serialize};
 
-/// Health badge for a single Space row. `Active` is the happy path
-/// (Move/Anchor accepting writes); `Frozen` means the space is
-/// quarantined (admin-induced or replication lag); `Destroyed` means a
-/// `ck.space.tombstone` event (the spec container-tombstone event kind,
-/// per spec_digest §4.1) has landed and the space is in the
-/// tombstone-period for audit reads.
+/// Lifecycle badge for a single Space container row.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum SpaceHealth {
     Active,
-    Frozen,
-    Destroyed,
+    Archived,
+    Tombstoned,
 }
 
 impl SpaceHealth {
     pub fn label(&self) -> &'static str {
         match self {
             SpaceHealth::Active => "Active",
-            SpaceHealth::Frozen => "Frozen",
-            SpaceHealth::Destroyed => "Destroyed",
+            SpaceHealth::Archived => "Archived",
+            SpaceHealth::Tombstoned => "Tombstoned",
         }
     }
 
     pub fn from_wire(s: &str) -> Option<Self> {
         match s {
             "active" => Some(SpaceHealth::Active),
-            "frozen" => Some(SpaceHealth::Frozen),
-            "destroyed" => Some(SpaceHealth::Destroyed),
+            "archived" => Some(SpaceHealth::Archived),
+            "tombstoned" => Some(SpaceHealth::Tombstoned),
             _ => None,
         }
     }
@@ -40,7 +35,7 @@ impl SpaceHealth {
 
 /// One Space row in the admin list.
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct SpaceAdminRow {
+pub struct SpaceRow {
     #[serde(default)]
     pub id: String,
     #[serde(default)]
@@ -56,7 +51,7 @@ pub struct SpaceAdminRow {
     pub parent_space_id: Option<String>,
 }
 
-impl SpaceAdminRow {
+impl SpaceRow {
     pub fn health_typed(&self) -> SpaceHealth {
         SpaceHealth::from_wire(&self.health).unwrap_or(SpaceHealth::Active)
     }
@@ -104,8 +99,8 @@ mod tests {
     fn space_health_wire_round_trip() {
         for (wire, label) in [
             ("active", "Active"),
-            ("frozen", "Frozen"),
-            ("destroyed", "Destroyed"),
+            ("archived", "Archived"),
+            ("tombstoned", "Tombstoned"),
         ] {
             let h = SpaceHealth::from_wire(wire).expect("variant");
             assert_eq!(h.label(), label);
@@ -114,17 +109,17 @@ mod tests {
     }
 
     #[test]
-    fn space_admin_row_health_typed_falls_back_to_active() {
-        let r = SpaceAdminRow {
+    fn space_row_health_typed_falls_back_to_active() {
+        let r = SpaceRow {
             health: "garbage".into(),
             ..Default::default()
         };
         assert_eq!(r.health_typed(), SpaceHealth::Active);
 
-        let r = SpaceAdminRow {
-            health: "frozen".into(),
+        let r = SpaceRow {
+            health: "archived".into(),
             ..Default::default()
         };
-        assert_eq!(r.health_typed(), SpaceHealth::Frozen);
+        assert_eq!(r.health_typed(), SpaceHealth::Archived);
     }
 }

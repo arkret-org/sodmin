@@ -1,7 +1,7 @@
 //! DTO shapes for the E2EE covered_frontier lag admin surface (Stream H',
 //! H'7).
 //!
-//! Read from `GET /_soland/admin/spaces/{id}/mls/covered-frontier` —
+//! Read from `GET /_soland/admin/realms/{id}/mls/covered-frontier` —
 //! soland projects the lattice or-set state for the
 //! `ck:cell:ck.component.mls.covered_frontier.v1:<realm_id>` cell. The
 //! cell records which governance Anchors / Moves the MLS group has
@@ -40,7 +40,7 @@ pub struct CoveredFrontierSnapshot {
     pub last_covered_at: Option<String>,
 }
 
-/// Response from the `POST /_soland/admin/spaces/{id}/mls/covered-frontier/advance`
+/// Response from the `POST /_soland/admin/realms/{id}/mls/covered-frontier/advance`
 /// route. soland reports the new lag count after the override Move
 /// landed; the page uses this to render an immediate "now caught up"
 /// confirmation toast without waiting for a re-fetch round-trip.

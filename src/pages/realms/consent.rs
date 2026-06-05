@@ -1,7 +1,7 @@
 //! Consent admin panel (Stream H', H'5).
 //!
 //! Read-mostly view over the consent cell or-set values exposed by the
-//! soland describe endpoint `GET /_soland/admin/spaces/{id}/consent`.
+//! soland describe endpoint `GET /_soland/admin/realms/{id}/consent`.
 //! The page lists one row per (holder, peer, scope) triple, with a
 //! holder-DID filter to narrow down by user.
 //!
@@ -31,14 +31,14 @@ use crate::types::consent::{ConsentResolveDecision, ConsentStatus, filter_by_hol
 use crate::utils::net::error::format_optional_endpoint_error;
 
 #[component]
-pub fn ConsentPage(space_id: String) -> Element {
-    if is_placeholder_resource_id(&space_id) {
-        return selection_required_state("Space");
+pub fn ConsentPage(realm_id: String) -> Element {
+    if is_placeholder_resource_id(&realm_id) {
+        return selection_required_state("Realm");
     }
 
-    let space_id_for_fetch = space_id.clone();
+    let realm_id_for_fetch = realm_id.clone();
     let mut data = use_resource(move || {
-        let id = space_id_for_fetch.clone();
+        let id = realm_id_for_fetch.clone();
         async move { consent_admin::list_consent_grants(&id).await }
     });
 
@@ -46,13 +46,13 @@ pub fn ConsentPage(space_id: String) -> Element {
     // Per-row in-flight flag so the buttons disable while a resolve POST
     // is mid-air. Keyed by `consent_id`.
     let mut in_flight = use_signal::<Option<String>>(|| None);
-    let header_space_id = space_id.clone();
+    let header_realm_id = realm_id.clone();
 
     rsx! {
         div { class: "space-y-6",
             PageHeader {
-                title: format!("Consent · {}", header_space_id),
-                description: "Read-only view of consent cell or-set values inside this Space.".to_string(),
+                title: format!("Consent · {}", header_realm_id),
+                description: "Read-only view of consent cell or-set values inside this Realm.".to_string(),
             }
 
             div { class: "max-w-md space-y-1",
@@ -76,7 +76,7 @@ pub fn ConsentPage(space_id: String) -> Element {
                             EmptyState {
                                 icon: "shield".to_string(),
                                 title: "No consent grants".to_string(),
-                                description: "soland reported no consent cells joined inside this Space yet.".to_string(),
+                                description: "soland reported no consent cells joined inside this Realm yet.".to_string(),
                             }
                         } else {
                             p { class: "text-xs text-muted-foreground",

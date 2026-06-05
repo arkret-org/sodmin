@@ -1,6 +1,6 @@
 //! HTTP client for the soland federation status admin surface.
 //!
-//! Endpoint: `GET /_soland/admin/federation/status` — per-Space
+//! Endpoint: `GET /_soland/admin/federation/status` — per-Realm
 //! federation peers + last-anchor-pulled-at + outbound queue depth.
 //! 404-tolerant on the client side.
 //!
@@ -24,10 +24,10 @@ pub struct FederationStatusEnvelope {
     pub generated_at: Option<String>,
 }
 
-pub async fn get_status(space_id: Option<&str>) -> Result<FederationStatusEnvelope, HttpError> {
+pub async fn get_status(realm_id: Option<&str>) -> Result<FederationStatusEnvelope, HttpError> {
     let mut params: Vec<(&str, &str)> = Vec::with_capacity(1);
-    if let Some(s) = space_id.filter(|s| !s.is_empty()) {
-        params.push(("space_id", s));
+    if let Some(s) = realm_id.filter(|s| !s.is_empty()) {
+        params.push(("realm_id", s));
     }
     let url = build_url("/_soland/admin/federation/status", &params)?;
     api_client(&url, "GET", None).await

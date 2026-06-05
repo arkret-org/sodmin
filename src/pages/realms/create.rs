@@ -1,6 +1,6 @@
 use dioxus::prelude::*;
 
-use crate::api::spaces;
+use crate::api::realms;
 use crate::components::ui::button::Button;
 use crate::components::ui::input::Input;
 use crate::components::ui::loading::Spinner;
@@ -10,11 +10,11 @@ use crate::types::CreateRealmRequest;
 use crate::utils::i18n::t;
 
 #[component]
-pub fn SpaceCreate() -> Element {
+pub fn RealmCreate() -> Element {
     let mut name = use_signal(String::new);
     let mut topic = use_signal(String::new);
     let mut is_encrypted = use_signal(|| false);
-    let discoverability = use_signal(|| "listed".to_string());
+    let discoverability = use_signal(|| "invite_only".to_string());
     // P3A.6 — required at create time per CKP-0007. Defaults to
     // `collaboration` because principal-control Realms are rare and
     // operators should opt into the heavier classification
@@ -45,9 +45,9 @@ pub fn SpaceCreate() -> Element {
             ..Default::default()
         };
         spawn(async move {
-            match spaces::create_space(&req).await {
-                Ok(space) => {
-                    let _ = nav.push(Route::SpaceShow { space_id: space.id });
+            match realms::create_realm(&req).await {
+                Ok(realm) => {
+                    let _ = nav.push(Route::RealmShow { realm_id: realm.id });
                 }
                 Err(e) => {
                     error.set(e.message);
@@ -59,7 +59,7 @@ pub fn SpaceCreate() -> Element {
 
     rsx! {
         div { class: "space-y-6",
-            PageHeader { title: t("spaces.create") }
+            PageHeader { title: t("realms.create") }
 
             form { class: "space-y-4 max-w-lg", onsubmit: on_submit,
                 if !error.read().is_empty() {
@@ -67,7 +67,7 @@ pub fn SpaceCreate() -> Element {
                 }
 
                 div { class: "space-y-2",
-                    label { class: "text-sm font-medium", {t("spaces.name")} }
+                    label { class: "text-sm font-medium", {t("realms.name")} }
                     Input {
                         value: name(),
                         r#type: "text",
@@ -77,7 +77,7 @@ pub fn SpaceCreate() -> Element {
                 }
 
                 div { class: "space-y-2",
-                    label { class: "text-sm font-medium", {t("spaces.topic")} }
+                    label { class: "text-sm font-medium", {t("realms.topic")} }
                     textarea {
                         class: "flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm",
                         value: "{topic}",
@@ -91,7 +91,7 @@ pub fn SpaceCreate() -> Element {
                         checked: is_encrypted(),
                         onchange: move |e| is_encrypted.set(e.checked()),
                     }
-                    label { class: "text-sm", {t("spaces.encrypted")} }
+                    label { class: "text-sm", {t("realms.encrypted")} }
                 }
 
                 // P3A.6 — Realm classification picker. Required at
@@ -118,7 +118,7 @@ pub fn SpaceCreate() -> Element {
                         {t("common.create")}
                     }
                     Link {
-                        to: Route::SpaceList {},
+                        to: Route::RealmList {},
                         class: "rounded-md border px-3 py-2 text-sm hover:bg-accent",
                         {t("common.cancel")}
                     }

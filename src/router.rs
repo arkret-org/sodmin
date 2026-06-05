@@ -30,32 +30,33 @@ pub enum Route {
         #[route("/actors/:actor_id")]
         ActorShow { actor_id: String },
 
+        #[route("/realms")]
+        RealmList {},
+        #[route("/realms/create")]
+        RealmCreate {},
+        #[route("/realms/:realm_id")]
+        RealmShow { realm_id: String },
+        #[route("/realms/:realm_id/anchorer")]
+        RealmAnchorer { realm_id: String },
+        #[route("/realms/:realm_id/anchor-dag")]
+        RealmAnchorDag { realm_id: String },
+        #[route("/realms/:realm_id/consent")]
+        RealmConsent { realm_id: String },
+        #[route("/realms/:realm_id/covered-frontier")]
+        RealmCoveredFrontier { realm_id: String },
+        #[route("/realms/:realm_id/signing-keys")]
+        RealmSigningKeys { realm_id: String },
+        #[route("/realms/:realm_id/multisig")]
+        RealmMultiSig { realm_id: String },
+        #[route("/realms/:realm_id/federation-status")]
+        RealmFederationStatus { realm_id: String },
+        #[route("/realms/:realm_id/policy-editor")]
+        RealmPolicyEditor { realm_id: String },
+
         #[route("/spaces")]
         SpaceList {},
-        #[route("/spaces/admin")]
-        SpaceAdminList {},
-        #[route("/spaces/create")]
-        SpaceCreate {},
         #[route("/spaces/:space_id")]
         SpaceShow { space_id: String },
-        #[route("/spaces/:space_id/hierarchy")]
-        SpaceHierarchy { space_id: String },
-        #[route("/spaces/:space_id/anchorer")]
-        SpaceAnchorer { space_id: String },
-        #[route("/spaces/:space_id/anchor-dag")]
-        SpaceAnchorDag { space_id: String },
-        #[route("/spaces/:space_id/consent")]
-        SpaceConsent { space_id: String },
-        #[route("/spaces/:space_id/covered-frontier")]
-        SpaceCoveredFrontier { space_id: String },
-        #[route("/spaces/:space_id/signing-keys")]
-        SpaceSigningKeys { space_id: String },
-        #[route("/spaces/:space_id/multisig")]
-        SpaceMultiSig { space_id: String },
-        #[route("/spaces/:space_id/federation-status")]
-        SpaceFederationStatus { space_id: String },
-        #[route("/spaces/:space_id/policy-editor")]
-        SpacePolicyEditor { space_id: String },
 
         #[route("/anchor/bottom")]
         AnchorBottom {},
@@ -111,15 +112,8 @@ pub enum Route {
         #[route("/push-routes")]
         PushRouteList {},
 
-        // Realm-rework: the security boundary is now spelled "Realm"
-        // (`/realms/{id}/delivery-binding`); the old `/spaces/{id}/...`
-        // route is kept as an alias so existing bookmarks keep working.
-        // TODO(realm-rework): drop the SpaceDeliveryBinding alias once
-        // the old route is no longer linked anywhere.
         #[route("/realms/:realm_id/delivery-binding")]
         RealmDeliveryBinding { realm_id: String },
-        #[route("/spaces/:space_id/delivery-binding")]
-        SpaceDeliveryBinding { space_id: String },
 
         // R5.2 — Realm link-graph admin page. Sits next to delivery
         // binding because they share the same Realm-scoped /realms/:id/
@@ -339,23 +333,58 @@ fn ActorShow(actor_id: String) -> Element {
 }
 
 #[component]
+fn RealmList() -> Element {
+    rsx! { pages::realms::list::RealmList {} }
+}
+
+#[component]
+fn RealmCreate() -> Element {
+    rsx! { pages::realms::create::RealmCreate {} }
+}
+
+#[component]
+fn RealmShow(realm_id: String) -> Element {
+    rsx! { pages::realms::show::RealmShow { realm_id } }
+}
+
+#[component]
+fn RealmAnchorer(realm_id: String) -> Element {
+    rsx! { pages::realms::anchorer::AnchorerPage { realm_id } }
+}
+
+#[component]
+fn RealmAnchorDag(realm_id: String) -> Element {
+    rsx! { pages::realms::anchor_dag::AnchorDagPage { realm_id } }
+}
+
+#[component]
+fn AnchorBottom() -> Element {
+    rsx! { pages::anchor_bottom::BottomDiagnosticsPage {} }
+}
+
+#[component]
+fn RealmConsent(realm_id: String) -> Element {
+    rsx! { pages::realms::consent::ConsentPage { realm_id } }
+}
+
+#[component]
+fn RealmCoveredFrontier(realm_id: String) -> Element {
+    rsx! { pages::realms::covered_frontier::CoveredFrontierPage { realm_id } }
+}
+
+#[component]
+fn RealmSigningKeys(realm_id: String) -> Element {
+    rsx! { pages::realms::signing_keys::SigningKeysPage { realm_id } }
+}
+
+#[component]
+fn RealmMultiSig(realm_id: String) -> Element {
+    rsx! { pages::realms::multisig::MultiSigPage { realm_id } }
+}
+
+#[component]
 fn SpaceList() -> Element {
     rsx! { pages::spaces::list::SpaceList {} }
-}
-
-#[component]
-fn SpaceAdminList() -> Element {
-    rsx! { pages::spaces::admin_list::SpaceAdminList {} }
-}
-
-#[component]
-fn SpaceHierarchy(space_id: String) -> Element {
-    rsx! { pages::spaces::hierarchy::SpaceHierarchyPage { space_id } }
-}
-
-#[component]
-fn SpaceCreate() -> Element {
-    rsx! { pages::spaces::create::SpaceCreate {} }
 }
 
 #[component]
@@ -364,43 +393,8 @@ fn SpaceShow(space_id: String) -> Element {
 }
 
 #[component]
-fn SpaceAnchorer(space_id: String) -> Element {
-    rsx! { pages::spaces::anchorer::AnchorerPage { space_id } }
-}
-
-#[component]
-fn SpaceAnchorDag(space_id: String) -> Element {
-    rsx! { pages::spaces::anchor_dag::AnchorDagPage { space_id } }
-}
-
-#[component]
-fn AnchorBottom() -> Element {
-    rsx! { pages::spaces::bottom::BottomDiagnosticsPage {} }
-}
-
-#[component]
-fn SpaceConsent(space_id: String) -> Element {
-    rsx! { pages::spaces::consent::ConsentPage { space_id } }
-}
-
-#[component]
-fn SpaceCoveredFrontier(space_id: String) -> Element {
-    rsx! { pages::spaces::covered_frontier::CoveredFrontierPage { space_id } }
-}
-
-#[component]
-fn SpaceSigningKeys(space_id: String) -> Element {
-    rsx! { pages::spaces::signing_keys::SigningKeysPage { space_id } }
-}
-
-#[component]
-fn SpaceMultiSig(space_id: String) -> Element {
-    rsx! { pages::spaces::multisig::MultiSigPage { space_id } }
-}
-
-#[component]
 fn ComponentsRegistry() -> Element {
-    rsx! { pages::spaces::components::ComponentsPage {} }
+    rsx! { pages::components_registry::ComponentsPage {} }
 }
 
 #[component]
@@ -519,12 +513,6 @@ fn RealmDeliveryBinding(realm_id: String) -> Element {
 }
 
 #[component]
-fn SpaceDeliveryBinding(space_id: String) -> Element {
-    // Legacy alias — forward to the realm-rework component.
-    rsx! { pages::delivery_binding::DeliveryBindingPolicy { realm_id: space_id } }
-}
-
-#[component]
 fn RealmLinks(realm_id: String) -> Element {
     rsx! { pages::realm_links::RealmLinks { realm_id } }
 }
@@ -575,13 +563,13 @@ fn DirectoryAdmin() -> Element {
 }
 
 #[component]
-fn SpaceFederationStatus(space_id: String) -> Element {
-    rsx! { pages::spaces::federation_status::FederationStatusPage { space_id } }
+fn RealmFederationStatus(realm_id: String) -> Element {
+    rsx! { pages::realms::federation_status::FederationStatusPage { realm_id } }
 }
 
 #[component]
-fn SpacePolicyEditor(space_id: String) -> Element {
-    rsx! { pages::spaces::policy_editor::PolicyEditorPage { space_id } }
+fn RealmPolicyEditor(realm_id: String) -> Element {
+    rsx! { pages::realms::policy_editor::PolicyEditorPage { realm_id } }
 }
 
 #[component]

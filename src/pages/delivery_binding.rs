@@ -1,7 +1,7 @@
-//! T6.2 §3 — Realm delivery-binding-policy editor (post realm-rework).
+//! Realm delivery-binding-policy editor.
 //!
 //! Renders the effective `delivery_binding_policy` cell for a single
-//! Realm (the security boundary; pre realm-rework these were "Spaces")
+//! Realm (the security boundary)
 //! and lets the operator mutate the editable fields
 //! (`allowed_recipient_services`, `binding_source_policy`).
 //! `policy_frontier` is reducer-owned and surfaced read-only.

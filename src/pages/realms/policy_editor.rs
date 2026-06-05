@@ -1,14 +1,14 @@
-//! Space policy editor
+//! Realm policy editor
 //!
-//! Form to view and edit a Space's `ck.component.space.policy.v1`
+//! Form to view and edit a Realm's `ck.component.realm.policy.v1`
 //! components. Submit constructs a cas-register Move via
-//! `POST /_soland/admin/spaces/{id}/policy`. The Submit flow goes
+//! `POST /_soland/admin/realms/{id}/policy`. The Submit flow goes
 //! through ConfirmDialog because policy mutations land permanently in
 //! the Anchor frontier.
 
 use dioxus::prelude::*;
 
-use crate::api::space_policy_admin;
+use crate::api::realm_policy_admin;
 use crate::components::selection_required::{is_placeholder_resource_id, selection_required_state};
 use crate::components::ui::button::{Button, ButtonVariant};
 use crate::components::ui::dialog::ConfirmDialog;
@@ -17,14 +17,14 @@ use crate::components::ui::input::{Input, Label};
 use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::toast::{ToastVariant, show_toast};
-use crate::types::space_policy::{SpacePolicy, UpdateSpacePolicyRequest};
+use crate::types::realm_policy::{RealmPolicy, UpdateRealmPolicyRequest};
 use crate::utils::i18n::t;
 use crate::utils::net::error::format_optional_endpoint_error;
 
 #[component]
-pub fn PolicyEditorPage(space_id: String) -> Element {
-    if is_placeholder_resource_id(&space_id) {
-        return selection_required_state("Space");
+pub fn PolicyEditorPage(realm_id: String) -> Element {
+    if is_placeholder_resource_id(&realm_id) {
+        return selection_required_state("Realm");
     }
 
     let mut history_visibility = use_signal(String::new);
@@ -37,10 +37,10 @@ pub fn PolicyEditorPage(space_id: String) -> Element {
     let mut in_flight = use_signal(|| false);
     let mut form_seeded = use_signal(|| false);
 
-    let id_for_resource = space_id.clone();
+    let id_for_resource = realm_id.clone();
     let mut data = use_resource(move || {
         let id = id_for_resource.clone();
-        async move { space_policy_admin::get_policy(&id).await }
+        async move { realm_policy_admin::get_policy(&id).await }
     });
 
     // Seed the form once from the first successful read. Subsequent
@@ -56,7 +56,7 @@ pub fn PolicyEditorPage(space_id: String) -> Element {
         form_seeded.set(true);
     }
 
-    let id_for_submit = space_id.clone();
+    let id_for_submit = realm_id.clone();
 
     rsx! {
         div { class: "space-y-6",
@@ -74,7 +74,7 @@ pub fn PolicyEditorPage(space_id: String) -> Element {
             }
 
             p { class: "text-xs text-muted-foreground",
-                {format!("Space: {space_id}")}
+                {format!("Realm: {realm_id}")}
             }
 
             match &*data.read() {
@@ -186,7 +186,7 @@ pub fn PolicyEditorPage(space_id: String) -> Element {
                         *federate.read(),
                         &encryption_algorithm.read(),
                     );
-                    let req = UpdateSpacePolicyRequest {
+                    let req = UpdateRealmPolicyRequest {
                         policy,
                         note: {
                             let n = note.read().clone();
@@ -196,15 +196,15 @@ pub fn PolicyEditorPage(space_id: String) -> Element {
                     let id = id_for_submit.clone();
                     in_flight.set(true);
                     spawn(async move {
-                        let res = space_policy_admin::update_policy(&id, &req).await;
+                        let res = realm_policy_admin::update_policy(&id, &req).await;
                         match res {
                             Ok(_) => show_toast(
-                                "Space policy updated.",
+                                "Realm policy updated.",
                                 ToastVariant::Success,
                             ),
                             Err(e) => {
                                 let msg = format_optional_endpoint_error(
-                                    "space policy update",
+                                    "realm policy update",
                                     &e,
                                 );
                                 show_toast(&msg, ToastVariant::Error);
@@ -220,7 +220,7 @@ pub fn PolicyEditorPage(space_id: String) -> Element {
 }
 
 /// Pure helper — gather the current form values into a typed
-/// `SpacePolicy`. Trims each text field so accidental whitespace
+/// `RealmPolicy`. Trims each text field so accidental whitespace
 /// doesn't slip into the cas-register Move.
 pub(crate) fn current_policy(
     history_visibility: &str,
@@ -228,8 +228,8 @@ pub(crate) fn current_policy(
     guest_access: &str,
     federate: bool,
     encryption_algorithm: &str,
-) -> SpacePolicy {
-    SpacePolicy {
+) -> RealmPolicy {
+    RealmPolicy {
         history_visibility: history_visibility.trim().to_string(),
         join_rule: join_rule.trim().to_string(),
         guest_access: guest_access.trim().to_string(),

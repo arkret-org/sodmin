@@ -1,6 +1,6 @@
 //! Multi-sig partial-signature aggregation panel (Stream H', H'9).
 //!
-//! Lists pending Anchors for a Space's anchorer cell that's configured as
+//! Lists pending Anchors for a Realm's anchorer cell that's configured as
 //! `threshold(k of n)` or `mixed`. Each row shows the anchor_id, the
 //! `k of n` threshold, the count of partials collected, and the missing
 //! signer DIDs. When the current admin DID is in the missing-signers
@@ -25,24 +25,24 @@ use crate::types::multisig::PendingMultisigAnchor;
 use crate::utils::net::error::format_optional_endpoint_error;
 
 #[component]
-pub fn MultiSigPage(space_id: String) -> Element {
-    if is_placeholder_resource_id(&space_id) {
-        return selection_required_state("Space");
+pub fn MultiSigPage(realm_id: String) -> Element {
+    if is_placeholder_resource_id(&realm_id) {
+        return selection_required_state("Realm");
     }
 
-    let space_id_for_fetch = space_id.clone();
+    let realm_id_for_fetch = realm_id.clone();
     let mut data = use_resource(move || {
-        let id = space_id_for_fetch.clone();
+        let id = realm_id_for_fetch.clone();
         async move { multisig_admin::list_pending(&id).await }
     });
     // Per-row in-flight flag keyed by anchor_id.
     let mut in_flight = use_signal::<Option<String>>(|| None);
-    let header_space_id = space_id.clone();
+    let header_realm_id = realm_id.clone();
 
     rsx! {
         div { class: "space-y-6",
             PageHeader {
-                title: format!("Multi-sig pending · {}", header_space_id),
+                title: format!("Multi-sig pending · {}", header_realm_id),
                 description: "Anchors awaiting threshold partial signatures from the anchorer cell members.".to_string(),
                 Button {
                     variant: ButtonVariant::Outline,
@@ -57,7 +57,7 @@ pub fn MultiSigPage(space_id: String) -> Element {
                         EmptyState {
                             icon: "shield".to_string(),
                             title: "No pending multi-sig Anchors".to_string(),
-                            description: "All Anchors in this Space have reached threshold and assembled.".to_string(),
+                            description: "All Anchors in this Realm have reached threshold and assembled.".to_string(),
                         }
                     }
                 } else {
@@ -80,7 +80,7 @@ pub fn MultiSigPage(space_id: String) -> Element {
                                         {
                                             let anchor_id = entry.anchor_id.clone();
                                             let anchor_id_for_btn = anchor_id.clone();
-                                            let space_id_for_btn = space_id.clone();
+                                            let realm_id_for_btn = realm_id.clone();
                                             let threshold_label = entry.threshold_label();
                                             let collected = entry.collected_partials;
                                             let remaining = entry.remaining();
@@ -126,7 +126,7 @@ pub fn MultiSigPage(space_id: String) -> Element {
                                                                 disabled: row_in_flight,
                                                                 onclick: move |_| {
                                                                     let aid = anchor_id_for_btn.clone();
-                                                                    let sid = space_id_for_btn.clone();
+                                                                    let sid = realm_id_for_btn.clone();
                                                                     in_flight.set(Some(aid.clone()));
                                                                     spawn(async move {
                                                                         let res = multisig_admin::submit_partial(

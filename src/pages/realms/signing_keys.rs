@@ -4,7 +4,7 @@
 //! origin (Configured / Ephemeral), verification method id (`<did>#<kid>`),
 //! and last-rotation timestamp. When the key is `Configured` the page
 //! exposes a `Rotate signing key` button that POSTs to
-//! `/_soland/admin/spaces/{id}/anchorer/rotate-signing-key`. When the key
+//! `/_soland/admin/realms/{id}/anchorer/rotate-signing-key`. When the key
 //! is `Ephemeral` the rotation button is hidden and a destructive banner
 //! warns the operator that production deployments must redeploy with a
 //! configured key (rotating an ephemeral key just spawns another
@@ -30,26 +30,26 @@ use crate::types::signing_key::SigningKeyOrigin;
 use crate::utils::net::error::format_optional_endpoint_error;
 
 #[component]
-pub fn SigningKeysPage(space_id: String) -> Element {
-    if is_placeholder_resource_id(&space_id) {
-        return selection_required_state("Space");
+pub fn SigningKeysPage(realm_id: String) -> Element {
+    if is_placeholder_resource_id(&realm_id) {
+        return selection_required_state("Realm");
     }
 
-    let space_id_for_fetch = space_id.clone();
+    let realm_id_for_fetch = realm_id.clone();
     let mut data = use_resource(move || {
-        let id = space_id_for_fetch.clone();
+        let id = realm_id_for_fetch.clone();
         async move { signing_key_admin::get_signing_key(&id).await }
     });
 
     let mut confirming = use_signal(|| false);
     let mut submitting = use_signal(|| false);
-    let header_space_id = space_id.clone();
-    let space_id_for_rotate = space_id.clone();
+    let header_realm_id = realm_id.clone();
+    let realm_id_for_rotate = realm_id.clone();
 
     rsx! {
         div { class: "space-y-6",
             PageHeader {
-                title: format!("Signing key · {}", header_space_id),
+                title: format!("Signing key · {}", header_realm_id),
                 description: "AnchorerWorker signing key origin, verification method and rotation controls.".to_string(),
                 Button {
                     variant: ButtonVariant::Outline,
@@ -155,7 +155,7 @@ pub fn SigningKeysPage(space_id: String) -> Element {
                             } else {
                                 "Confirm rotation".to_string()
                             };
-                            let space_id = space_id_for_rotate.clone();
+                            let realm_id = realm_id_for_rotate.clone();
                             rsx! {
                                 ConfirmDialog {
                                     open,
@@ -168,7 +168,7 @@ pub fn SigningKeysPage(space_id: String) -> Element {
                                     on_confirm: move |_| {
                                         if *submitting.read() { return; }
                                         submitting.set(true);
-                                        let id = space_id.clone();
+                                        let id = realm_id.clone();
                                         spawn(async move {
                                             let res = signing_key_admin::rotate_signing_key(&id).await;
                                             match res {

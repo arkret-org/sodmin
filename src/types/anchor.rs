@@ -133,7 +133,7 @@ pub enum SelfSignViolation {
 
 /// Profile sent to the "construct anchorer reconfig Move" form. The
 /// admin client converts this into a Move payload before POSTing to
-/// `soland /_soland/admin/spaces/{id}/anchorer/reconfigure`.
+/// `soland /_soland/admin/realms/{id}/anchorer/reconfigure`.
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AnchorerReconfigRequest {
     pub realm_id: String,

@@ -9,9 +9,7 @@ pub struct ListResponse<T> {
     #[serde(default)]
     pub total: u64,
     /// Opaque cursor for the next page. `None` when the current page is
-    /// the last one. Backends that haven't migrated to cursor pagination
-    /// yet simply omit this field — callers fall back to the legacy
-    /// page+total UX in that case.
+    /// the last one.
     #[serde(default)]
     pub next_cursor: Option<String>,
 }
@@ -82,13 +80,9 @@ pub struct UpdateActorRequest {
 
 // ── Realm types (security boundary) ──
 //
-// Post realm-rework: the object that carries the encryption / join-rule /
-// history-visibility / realm-class **boundary** fields is a Realm (the
-// spec's `ck:realm:` boundary), NOT a Space (the spec's authorization-
-// transparent `ck:space:` container — that one lives in
-// `spaces_admin::SpaceAdminRow`). Canonical display name is `title`,
-// creator is `created_by`, and Realm purpose/class is exposed through
-// `realm_class` (aliasing `purpose` for spec-shaped projections).
+// The object that carries encryption / join-rule / history-visibility /
+// realm-class boundary fields is a Realm. Space containers are represented
+// separately by `spaces::SpaceRow`.
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct Realm {
@@ -96,8 +90,6 @@ pub struct Realm {
     pub id: String,
     #[serde(default)]
     pub title: Option<String>,
-    #[serde(default, rename = "realm_kind")]
-    pub legacy_realm_kind: Option<String>,
     #[serde(default)]
     pub discoverability: Option<String>,
     #[serde(default)]
@@ -116,15 +108,12 @@ pub struct Realm {
     pub avatar_url: Option<String>,
     #[serde(default)]
     pub created_at: Option<String>,
-    #[serde(default, rename = "default_join_rule", alias = "join_rule")]
+    #[serde(default, rename = "default_join_rule")]
     pub join_rule: Option<String>,
     #[serde(default)]
     pub history_visibility: Option<String>,
-    /// CKP-0007 (P3A.6) — `principal_control` vs `collaboration`. The
-    /// admin SPA renders a Realm-classification badge whenever this
-    /// is populated. Older soland releases omit the field; the
-    /// `Option<String>` defaults to `None` for those rows.
-    #[serde(default, alias = "purpose")]
+    /// CKP-0007 (P3A.6) — `principal_control` vs `collaboration`.
+    #[serde(default)]
     pub realm_class: Option<String>,
 }
 
@@ -136,7 +125,7 @@ pub struct CreateRealmRequest {
     pub topic: Option<String>,
     #[serde(default)]
     pub discoverability: Option<String>,
-    #[serde(default, rename = "default_join_rule", alias = "join_rule")]
+    #[serde(default, rename = "default_join_rule")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub join_rule: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -152,7 +141,7 @@ pub struct CreateRealmRequest {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct SpaceMember {
+pub struct RealmMember {
     #[serde(default)]
     pub actor_id: String,
     #[serde(default)]
@@ -165,21 +154,19 @@ pub struct SpaceMember {
     /// the admin UI "routable" / "unroutable" indicator.
     #[serde(default)]
     pub delivery_status: Option<String>,
-    /// Per-Space delivery binding for this member. When present the
+    /// Per-Realm delivery binding for this member. When present the
     /// admin UI MUST surface member_delivery_binding.recipient_service_did, binding_source,
     /// expiry, and the rebind action.
     #[serde(default)]
     pub delivery_binding: Option<MemberDeliveryBinding>,
-    /// R3.1 (ROST-1) — membership state from the new
+    /// R3.1 (ROST-1) — membership state from the
     /// `member_roster_entry` wire shape (`join` / `invite` / `knock`).
-    /// `None` on responses that pre-date the rename so the field is
-    /// backwards-compatible.
     #[serde(default)]
     pub membership: Option<String>,
     /// R3.1 (ROST-1) — effective `ck.member.identity.update` event
     /// ids. Admin rows MUST source `display_name` / `primary_handle`
-    /// from the joined effective MemberIdentity rather than the
-    /// legacy in-roster fields when this list is non-empty (MID-1).
+    /// from the joined effective MemberIdentity when this list is
+    /// non-empty (MID-1).
     #[serde(default)]
     pub identity_event_ids: Vec<String>,
     /// R3.2 (ROST-1, UI-SOD-2) — roster display-selection digest. Renamed
@@ -223,7 +210,7 @@ pub struct SpaceMember {
     pub primary_handle: Option<String>,
 }
 
-/// `member_delivery_binding` shape carried inside [`SpaceMember`].
+/// `member_delivery_binding` shape carried inside [`RealmMember`].
 /// Mirrors `event-payload.schema.json#/$defs/member_delivery_binding`.
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct MemberDeliveryBinding {
@@ -245,7 +232,7 @@ pub struct MemberDeliveryBinding {
     #[serde(default)]
     pub service_acceptance_ref: Option<String>,
     /// Reference to the policy event that authorised this binding
-    /// (`join_policy` / `organization_policy` / `space_policy` sources).
+    /// (`join_policy` / `organization_policy` / `realm_policy` sources).
     #[serde(default)]
     pub policy_event_ref: Option<String>,
 }
@@ -1206,16 +1193,14 @@ pub struct HandleReassignRequest {
 
 // ── Delivery binding policy (T6.2 §3) ──
 
-/// Effective `ck.cell.realm.delivery_binding_policy` for a Realm
-/// (security boundary; pre realm-rework these were called Spaces).
+/// Effective `ck.cell.realm.delivery_binding_policy` for a Realm.
 /// `allowed_recipient_services` and `binding_source_policy` are
 /// operator-mutable; `policy_frontier` is written by the soland
 /// reducer and is therefore read-only on the admin surface.
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct RealmDeliveryBindingPolicy {
-    /// Realm identifier (security boundary). The legacy wire name
-    /// `space_id` is still accepted on the response shape.
-    #[serde(default, alias = "space_id")]
+    /// Realm identifier (security boundary).
+    #[serde(default)]
     pub realm_id: String,
     #[serde(default)]
     pub allowed_recipient_services: Vec<String>,
@@ -1235,9 +1220,7 @@ pub struct UpdateDeliveryBindingPolicyRequest {
     pub binding_source_policy: Option<String>,
 }
 
-/// One row in the per-Space "is each member routable?" check table. We
-/// pull this straight from the Space members projection plus the
-/// effective delivery_binding_policy.
+/// One row in the per-Realm "is each member routable?" check table.
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct MemberRoutabilityRow {
     #[serde(default)]

@@ -20,32 +20,32 @@ use crate::components::ui::table::*;
 use crate::components::ui::toast::{ToastVariant, show_toast};
 
 #[component]
-pub fn AnchorDagPage(space_id: String) -> Element {
-    if is_placeholder_resource_id(&space_id) {
-        return selection_required_state("Space");
+pub fn AnchorDagPage(realm_id: String) -> Element {
+    if is_placeholder_resource_id(&realm_id) {
+        return selection_required_state("Realm");
     }
 
-    let space_id_for_fetch = space_id.clone();
+    let realm_id_for_fetch = realm_id.clone();
     let mut data = use_resource(move || {
-        let id = space_id_for_fetch.clone();
+        let id = realm_id_for_fetch.clone();
         async move { anchor_admin::get_anchor_dag(&id).await }
     });
 
     let mut compacting = use_signal(|| false);
-    let space_id_for_compact = space_id.clone();
-    let header_space_id = space_id.clone();
+    let realm_id_for_compact = realm_id.clone();
+    let header_realm_id = realm_id.clone();
 
     rsx! {
         div { class: "space-y-6",
             PageHeader {
-                title: format!("Anchor DAG · {}", header_space_id),
-                description: "Visualize Anchor leaves, frontier and state_root for this Space.".to_string(),
+                title: format!("Anchor DAG · {}", header_realm_id),
+                description: "Visualize Anchor leaves, frontier and state_root for this Realm.".to_string(),
                 Button {
                     variant: ButtonVariant::Default,
                     disabled: *compacting.read(),
                     onclick: move |_| {
                         compacting.set(true);
-                        let id = space_id_for_compact.clone();
+                        let id = realm_id_for_compact.clone();
                         spawn(async move {
                             match anchor_admin::trigger_compaction(&id).await {
                                 Ok(r) => show_toast(
@@ -67,7 +67,7 @@ pub fn AnchorDagPage(space_id: String) -> Element {
             match &*data.read() {
                 Some(Ok(snapshot)) => {
                     // True empty snapshot: soland returned 200 but the
-                    // Space has no Anchors yet. Distinguish from the
+                    // Realm has no Anchors yet. Distinguish from the
                     // error path so the operator sees "nothing to show"
                     // rather than "fetch failed".
                     if snapshot.leaves.is_empty()
@@ -79,7 +79,7 @@ pub fn AnchorDagPage(space_id: String) -> Element {
                                 EmptyState {
                                     icon: "shield".to_string(),
                                     title: "No Anchors yet".to_string(),
-                                    description: "soland returned no Anchor leaves for this Space — the DAG is empty.".to_string(),
+                                    description: "soland returned no Anchor leaves for this Realm — the DAG is empty.".to_string(),
                                 }
                             }
                         };

@@ -1,21 +1,17 @@
-//! Admin DTOs for the soland Space Policy editor.
+//! Admin DTOs for the soland Realm policy editor.
 //!
-//! Mirrors the `ck.component.space.policy.v1` component body. Submit
+//! Mirrors the `ck.component.realm.policy.v1` component body. Submit
 //! constructs a cas-register Move via
-//! `POST /_soland/admin/spaces/{id}/policy` with a typed body the
+//! `POST /_soland/admin/realms/{realm_id}/policy` with a typed body the
 //! backend wraps into a Move + signature.
-//!
-//! These types previously lived in `coauth-admin-types::space_policy_admin`;
-//! that module was removed when coauth narrowed the shared crate, so sodmin
-//! now owns the read/write projection locally.
 
 use serde::{Deserialize, Serialize};
 
-/// Components inside a Space policy. Each lives at a known component
+/// Components inside a Realm policy. Each lives at a known component
 /// state-key; the editor exposes them in a flat form so the operator
 /// edits the whole policy as one transaction.
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct SpacePolicy {
+pub struct RealmPolicy {
     /// History visibility for unauthenticated joiners. One of:
     /// `joined` / `invited` / `shared` / `world_readable`.
     #[serde(default)]
@@ -26,7 +22,7 @@ pub struct SpacePolicy {
     /// Guest access — `can_join` / `forbidden`.
     #[serde(default)]
     pub guest_access: String,
-    /// Federate the Space at all. `false` = same-server only.
+    /// Federate the Realm at all. `false` = same-server only.
     #[serde(default = "default_federate")]
     pub federate: bool,
     /// Encryption algorithm — empty string = no E2EE.
@@ -38,7 +34,7 @@ fn default_federate() -> bool {
     true
 }
 
-impl SpacePolicy {
+impl RealmPolicy {
     /// Validate that the policy is internally consistent. Returns the
     /// first invariant violation as a human-readable string. Used by the
     /// editor before posting the cas-register Move.
@@ -83,10 +79,10 @@ impl SpacePolicy {
     }
 }
 
-/// Body `POSTed` to `/_soland/admin/spaces/{id}/policy`.
+/// Body `POSTed` to `/_soland/admin/realms/{realm_id}/policy`.
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct UpdateSpacePolicyRequest {
-    pub policy: SpacePolicy,
+pub struct UpdateRealmPolicyRequest {
+    pub policy: RealmPolicy,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub note: Option<String>,
 }

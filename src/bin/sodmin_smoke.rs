@@ -8,7 +8,7 @@
 //! cargo run --bin sodmin-smoke -- \
 //!     --base-url https://soland.example.com \
 //!     --token $SOLAND_ADMIN_TOKEN \
-//!     --space-id ck:space:demo
+//!     --realm-id ck:realm:demo
 //! ```
 //!
 //! Exit code is non-zero when any check fails so this can be wired into
@@ -30,7 +30,7 @@ const DEFAULT_TIMEOUT_SECS: u64 = 10;
 struct Args {
     base_url: String,
     token: Option<String>,
-    space_id: String,
+    realm_id: String,
     /// When true, treat 404 as a soft pass — the route may not yet be
     /// wired on this deployment (Stream H' is partially scaffolded). The
     /// summary marks these as `SKIP` and they don't count toward FAIL.
@@ -44,7 +44,7 @@ impl Args {
         let mut token = env::var("SODMIN_SMOKE_TOKEN")
             .ok()
             .or_else(|| env::var("SOLAND_ADMIN_TOKEN").ok());
-        let mut space_id = env::var("SODMIN_SMOKE_SPACE_ID").ok();
+        let mut realm_id = env::var("SODMIN_SMOKE_REALM_ID").ok();
         let mut tolerate_404 = env::var("SODMIN_SMOKE_TOLERATE_404")
             .map(|v| matches!(v.as_str(), "1" | "true" | "yes"))
             .unwrap_or(true);
@@ -65,10 +65,10 @@ impl Args {
                             .ok_or_else(|| "--token requires a value".to_string())?,
                     );
                 }
-                "--space-id" | "-s" => {
-                    space_id = Some(
+                "--realm-id" | "-r" => {
+                    realm_id = Some(
                         args.next()
-                            .ok_or_else(|| "--space-id requires a value".to_string())?,
+                            .ok_or_else(|| "--realm-id requires a value".to_string())?,
                     );
                 }
                 "--strict" => {
@@ -93,13 +93,13 @@ impl Args {
 
         let base_url = base_url
             .ok_or_else(|| "--base-url (or SODMIN_SMOKE_BASE_URL env) is required".to_string())?;
-        let space_id = space_id
-            .ok_or_else(|| "--space-id (or SODMIN_SMOKE_SPACE_ID env) is required".to_string())?;
+        let realm_id = realm_id
+            .ok_or_else(|| "--realm-id (or SODMIN_SMOKE_REALM_ID env) is required".to_string())?;
 
         Ok(Args {
             base_url: base_url.trim_end_matches('/').to_string(),
             token,
-            space_id,
+            realm_id,
             tolerate_404,
             timeout_secs,
         })
@@ -109,8 +109,8 @@ impl Args {
 fn print_help() {
     println!(
         "sodmin-smoke — soland admin endpoint smoke test\n\n\
-USAGE:\n  sodmin-smoke --base-url <URL> --token <BEARER> --space-id <SPACE_ID>\n\n\
-OPTIONS:\n  -u, --base-url     soland base URL (e.g. https://soland.example.com)\n  -t, --token        admin bearer token (also: $SOLAND_ADMIN_TOKEN)\n  -s, --space-id     Space id to probe (Stream H' is per-Space)\n      --strict       fail on 404 (default: skip — H' routes may not be wired)\n      --tolerate-404 treat 404 as SKIP (default)\n      --timeout      per-request timeout in seconds (default {DEFAULT_TIMEOUT_SECS})\n  -h, --help         print this message\n"
+USAGE:\n  sodmin-smoke --base-url <URL> --token <BEARER> --realm-id <REALM_ID>\n\n\
+OPTIONS:\n  -u, --base-url     soland base URL (e.g. https://soland.example.com)\n  -t, --token        admin bearer token (also: $SOLAND_ADMIN_TOKEN)\n  -r, --realm-id     Realm id to probe (Stream H' is per-Realm)\n      --strict       fail on 404 (default: skip — H' routes may not be wired)\n      --tolerate-404 treat 404 as SKIP (default)\n      --timeout      per-request timeout in seconds (default {DEFAULT_TIMEOUT_SECS})\n  -h, --help         print this message\n"
     );
 }
 
@@ -147,13 +147,13 @@ pub(crate) fn classify_status(status: u16, tolerate_404: bool) -> CheckOutcome {
     }
 }
 
-/// Pure helper: build a per-Space admin URL like
-/// `<base>/_soland/admin/spaces/<id>/<suffix>`. URL-encodes the space id.
-pub(crate) fn build_space_url(base_url: &str, space_id: &str, suffix: &str) -> String {
+/// Pure helper: build a per-Realm admin URL like
+/// `<base>/_soland/admin/realms/<id>/<suffix>`. URL-encodes the Realm id.
+pub(crate) fn build_realm_url(base_url: &str, realm_id: &str, suffix: &str) -> String {
     format!(
-        "{}/_soland/admin/spaces/{}/{}",
+        "{}/_soland/admin/realms/{}/{}",
         base_url.trim_end_matches('/'),
-        urlencoding_encode(space_id),
+        urlencoding_encode(realm_id),
         suffix.trim_start_matches('/'),
     )
 }
@@ -172,7 +172,7 @@ fn urlencoding_encode(s: &str) -> String {
             }
             b':' => {
                 // Colon is allowed in URI path segments per RFC 3986
-                // (pchar) and `ck:space:...` ids depend on it. Leaving
+                // (pchar) and `ck:realm:...` ids depend on it. Leaving
                 // it un-encoded keeps the smoke output readable.
                 out.push(':');
             }
@@ -276,7 +276,7 @@ fn run() -> ExitCode {
     };
 
     let base = &args.base_url;
-    let space_id = &args.space_id;
+    let realm_id = &args.realm_id;
 
     // Health probe + Stream H' GET endpoints. Mutating endpoints
     // (rotate-signing-key, partial-signature submit, anchorer/reconfigure,
@@ -290,24 +290,24 @@ fn run() -> ExitCode {
             format!("{base}/_soland/admin/health"),
         ),
         (
-            "spaces/anchorer (H'1/H'2)",
+            "realms/anchorer (H'1/H'2)",
             "GET",
-            build_space_url(base, space_id, "anchorer"),
+            build_realm_url(base, realm_id, "anchorer"),
         ),
         (
-            "spaces/anchor-dag (H'4)",
+            "realms/anchor-dag (H'4)",
             "GET",
-            build_space_url(base, space_id, "anchor-dag"),
+            build_realm_url(base, realm_id, "anchor-dag"),
         ),
         (
-            "spaces/bottom (H'3)",
+            "realms/bottom (H'3)",
             "GET",
-            build_space_url(base, space_id, "bottom"),
+            build_realm_url(base, realm_id, "bottom"),
         ),
         (
-            "spaces/consent (H'5)",
+            "realms/consent (H'5)",
             "GET",
-            build_space_url(base, space_id, "consent"),
+            build_realm_url(base, realm_id, "consent"),
         ),
         (
             "components (H'6)",
@@ -315,23 +315,23 @@ fn run() -> ExitCode {
             format!("{base}/_soland/admin/components"),
         ),
         (
-            "spaces/covered-frontier (H'7)",
+            "realms/covered-frontier (H'7)",
             "GET",
-            build_space_url(base, space_id, "mls/covered-frontier"),
+            build_realm_url(base, realm_id, "mls/covered-frontier"),
         ),
         (
-            "spaces/anchorer/signing-key (H'8)",
+            "realms/anchorer/signing-key (H'8)",
             "GET",
-            build_space_url(base, space_id, "anchorer/signing-key"),
+            build_realm_url(base, realm_id, "anchorer/signing-key"),
         ),
         (
-            "spaces/multisig/pending (H'9)",
+            "realms/multisig/pending (H'9)",
             "GET",
-            build_space_url(base, space_id, "multisig/pending"),
+            build_realm_url(base, realm_id, "multisig/pending"),
         ),
     ];
 
-    println!("sodmin-smoke → {base} (space={space_id})");
+    println!("sodmin-smoke → {base} (realm={realm_id})");
     if args.token.is_none() {
         println!("  (no admin token supplied — auth-required endpoints will likely FAIL)");
     }
@@ -387,7 +387,7 @@ fn main() -> ExitCode {
 
 #[cfg(test)]
 mod tests {
-    use super::{CheckOutcome, build_space_url, classify_status, urlencoding_encode};
+    use super::{CheckOutcome, build_realm_url, classify_status, urlencoding_encode};
 
     #[test]
     fn classify_status_buckets_by_code() {
@@ -406,32 +406,32 @@ mod tests {
     }
 
     #[test]
-    fn build_space_url_strips_trailing_base_slash() {
-        let url = build_space_url("https://soland.example.com/", "ck:space:demo", "anchorer");
+    fn build_realm_url_strips_trailing_base_slash() {
+        let url = build_realm_url("https://soland.example.com/", "ck:realm:demo", "anchorer");
         assert_eq!(
             url,
-            "https://soland.example.com/_soland/admin/spaces/ck:space:demo/anchorer"
+            "https://soland.example.com/_soland/admin/realms/ck:realm:demo/anchorer"
         );
     }
 
     #[test]
-    fn build_space_url_handles_compound_suffix() {
-        let url = build_space_url(
+    fn build_realm_url_handles_compound_suffix() {
+        let url = build_realm_url(
             "https://soland.example.com",
-            "ck:space:demo",
+            "ck:realm:demo",
             "mls/covered-frontier",
         );
         assert_eq!(
             url,
-            "https://soland.example.com/_soland/admin/spaces/ck:space:demo/mls/covered-frontier"
+            "https://soland.example.com/_soland/admin/realms/ck:realm:demo/mls/covered-frontier"
         );
     }
 
     #[test]
     fn urlencoding_encode_preserves_colon_and_alnum() {
-        // `ck:space:01J9` is the typical id shape — colons MUST stay
+        // `ck:realm:01J9` is the typical id shape — colons MUST stay
         // unescaped or the URL becomes unreadable in logs.
-        assert_eq!(urlencoding_encode("ck:space:01J9"), "ck:space:01J9");
+        assert_eq!(urlencoding_encode("ck:realm:01J9"), "ck:realm:01J9");
         assert_eq!(urlencoding_encode("abc-123_~."), "abc-123_~.");
     }
 

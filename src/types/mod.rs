@@ -13,6 +13,6 @@ pub mod consent;
 pub mod covered_frontier;
 pub mod moderation;
 pub mod multisig;
+pub mod realm_policy;
 pub mod signing_key;
-pub mod space_policy;
-pub mod spaces_admin;
+pub mod spaces;

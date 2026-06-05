@@ -1,9 +1,9 @@
 //! Anchorer cell admin page (Stream H', H'2).
 //!
-//! Renders the current `ck:cell:ck.component.anchorer.v1:<space>` cell
+//! Renders the current `ck:cell:ck.component.anchorer.v1:<realm_id>` cell
 //! value (single_did / threshold / open_set / mixed) and exposes a form
 //! that constructs an anchorer-reconfig Move. The submit path posts to
-//! soland's `/_soland/admin/spaces/{id}/anchorer/reconfigure` endpoint;
+//! soland's `/_soland/admin/realms/{realm_id}/anchorer/reconfigure` endpoint;
 //! soland builds the typed Move + signs with the admin's signer flow.
 //!
 //! Spec rule: a new anchorer cannot self-sign itself in. We mirror that
@@ -29,14 +29,14 @@ use crate::types::anchor::{
 use crate::utils::net::session;
 
 #[component]
-pub fn AnchorerPage(space_id: String) -> Element {
-    if is_placeholder_resource_id(&space_id) {
-        return selection_required_state("Space");
+pub fn AnchorerPage(realm_id: String) -> Element {
+    if is_placeholder_resource_id(&realm_id) {
+        return selection_required_state("Realm");
     }
 
-    let space_id_for_fetch = space_id.clone();
+    let realm_id_for_fetch = realm_id.clone();
     let mut data = use_resource(move || {
-        let id = space_id_for_fetch.clone();
+        let id = realm_id_for_fetch.clone();
         async move { anchor_admin::get_anchorer_value(&id).await }
     });
 
@@ -70,14 +70,14 @@ pub fn AnchorerPage(space_id: String) -> Element {
     let admin_did_for_submit = admin_did.clone();
     let admin_did_for_modal = admin_did.clone();
 
-    let space_id_for_submit = space_id.clone();
-    let header_space_id = space_id.clone();
+    let realm_id_for_submit = realm_id.clone();
+    let header_realm_id = realm_id.clone();
 
     rsx! {
         div { class: "space-y-6",
             PageHeader {
-                title: format!("Anchorer · {}", header_space_id),
-                description: "Configure the anchorer cell for this Space (single_did / threshold / open_set / mixed).".to_string(),
+                title: format!("Anchorer · {}", header_realm_id),
+                description: "Configure the anchorer cell for this Realm (single_did / threshold / open_set / mixed).".to_string(),
             }
 
             match &*data.read() {
@@ -210,7 +210,7 @@ pub fn AnchorerPage(space_id: String) -> Element {
                                 onclick: move |_| {
                                     let kind = new_kind.read().clone();
                                     let req = AnchorerReconfigRequest {
-                                        realm_id: space_id_for_submit.clone(),
+                                        realm_id: realm_id_for_submit.clone(),
                                         kind: kind.clone(),
                                         single_did: opt_string(&new_single_did.read()),
                                         threshold_k: parse_u32(&new_threshold_k.read()),

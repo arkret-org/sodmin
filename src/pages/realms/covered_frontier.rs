@@ -1,14 +1,14 @@
 //! E2EE covered_frontier lag admin page (Stream H', H'7).
 //!
 //! Renders the snapshot returned by
-//! `GET /_soland/admin/spaces/{id}/mls/covered-frontier` and shows how
+//! `GET /_soland/admin/realms/{id}/mls/covered-frontier` and shows how
 //! many governance Moves the MLS group has yet to acknowledge. Above the
 //! configurable threshold the lag count is painted in destructive red
 //! with a warning banner so the admin sees the urgency, AND a
 //! "Manually advance covered_frontier" override button is surfaced so
 //! the operator can fold the current governance frontier into the MLS
 //! cover or-set when members are stuck offline. The override POSTs to
-//! `/_soland/admin/spaces/{id}/mls/covered-frontier/advance` and follows
+//! `/_soland/admin/realms/{id}/mls/covered-frontier/advance` and follows
 //! the same 404-tolerant pattern as the other Stream H' admin actions.
 
 use dioxus::prelude::*;
@@ -27,24 +27,24 @@ use crate::types::covered_frontier::DEFAULT_LAG_WARN_THRESHOLD;
 use crate::utils::net::error::format_optional_endpoint_error;
 
 #[component]
-pub fn CoveredFrontierPage(space_id: String) -> Element {
-    if is_placeholder_resource_id(&space_id) {
-        return selection_required_state("Space");
+pub fn CoveredFrontierPage(realm_id: String) -> Element {
+    if is_placeholder_resource_id(&realm_id) {
+        return selection_required_state("Realm");
     }
 
-    let space_id_for_fetch = space_id.clone();
+    let realm_id_for_fetch = realm_id.clone();
     let mut data = use_resource(move || {
-        let id = space_id_for_fetch.clone();
+        let id = realm_id_for_fetch.clone();
         async move { covered_frontier_admin::get_covered_frontier(&id).await }
     });
     let mut advancing = use_signal(|| false);
-    let header_space_id = space_id.clone();
-    let space_id_for_action = space_id.clone();
+    let header_realm_id = realm_id.clone();
+    let realm_id_for_action = realm_id.clone();
 
     rsx! {
         div { class: "space-y-6",
             PageHeader {
-                title: format!("covered_frontier · {}", header_space_id),
+                title: format!("covered_frontier · {}", header_realm_id),
                 description: "Governance frontier vs MLS group epoch — Move acknowledgement lag.".to_string(),
             }
 
@@ -74,11 +74,11 @@ pub fn CoveredFrontierPage(space_id: String) -> Element {
                             EmptyState {
                                 icon: "shield".to_string(),
                                 title: "No covered_frontier data yet".to_string(),
-                                description: "soland has not yet seen any governance Moves for this Space — covered_frontier is empty by construction.".to_string(),
+                                description: "soland has not yet seen any governance Moves for this Realm — covered_frontier is empty by construction.".to_string(),
                             }
                         }
                     } else {
-                        let space_id_for_button = space_id_for_action.clone();
+                        let realm_id_for_button = realm_id_for_action.clone();
                         let advancing_now = *advancing.read();
                         rsx! {
                             if above_threshold {
@@ -92,7 +92,7 @@ pub fn CoveredFrontierPage(space_id: String) -> Element {
                                         variant: ButtonVariant::Destructive,
                                         disabled: advancing_now,
                                         onclick: move |_| {
-                                            let id = space_id_for_button.clone();
+                                            let id = realm_id_for_button.clone();
                                             advancing.set(true);
                                             spawn(async move {
                                                 let res = covered_frontier_admin::advance(&id).await;

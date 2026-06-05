@@ -153,12 +153,8 @@ fn build_nav_sections() -> Vec<NavSection> {
         NavSection::new(
             t("nav.section_moderation"),
             vec![
+                NavItem::new(t("nav.realms"), Route::RealmList {}, "shield"),
                 NavItem::new(t("nav.spaces"), Route::SpaceList {}, "message-square"),
-                NavItem::new(
-                    t("nav.spaces_admin"),
-                    Route::SpaceAdminList {},
-                    "message-square",
-                ),
                 NavItem::new(t("nav.reports"), Route::ReportList {}, "flag"),
                 NavItem::new(
                     t("nav.moderation_reports"),
@@ -205,15 +201,15 @@ fn build_nav_sections() -> Vec<NavSection> {
                 NavItem::new(t("nav.directory_admin"), Route::DirectoryAdmin {}, "globe"),
                 NavItem::new(
                     t("nav.federation_status"),
-                    Route::SpaceFederationStatus {
-                        space_id: "_".to_string(),
+                    Route::RealmFederationStatus {
+                        realm_id: "_".to_string(),
                     },
                     "globe",
                 ),
                 NavItem::new(
                     t("nav.policy_editor"),
-                    Route::SpacePolicyEditor {
-                        space_id: "_".to_string(),
+                    Route::RealmPolicyEditor {
+                        realm_id: "_".to_string(),
                     },
                     "file-text",
                 ),
@@ -292,9 +288,8 @@ fn build_nav_sections() -> Vec<NavSection> {
 
     // Stream H' (Move/Anchor/Lattice admin) — gated on the soland bridge
     // (without the principal server there is no Move/Anchor surface) and
-    // on the anchor admin scope. Per-space deep links keep their
-    // placeholder space id since admins typically arrive from the Space
-    // detail page.
+    // on the anchor admin scope. Realm deep links keep a placeholder id
+    // because admins typically arrive from the Realm detail page.
     sections.push(
         NavSection::new(
             t("nav.section_anchor"),
@@ -306,44 +301,44 @@ fn build_nav_sections() -> Vec<NavSection> {
                 ),
                 NavItem::new(
                     t("nav.anchor_anchorer"),
-                    Route::SpaceAnchorer {
-                        space_id: "_".to_string(),
+                    Route::RealmAnchorer {
+                        realm_id: "_".to_string(),
                     },
                     "shield",
                 ),
                 NavItem::new(
                     t("nav.anchor_dag"),
-                    Route::SpaceAnchorDag {
-                        space_id: "_".to_string(),
+                    Route::RealmAnchorDag {
+                        realm_id: "_".to_string(),
                     },
                     "git-branch",
                 ),
                 NavItem::new(
                     t("nav.consent"),
-                    Route::SpaceConsent {
-                        space_id: "_".to_string(),
+                    Route::RealmConsent {
+                        realm_id: "_".to_string(),
                     },
                     "shield",
                 ),
                 NavItem::new(
                     t("nav.covered_frontier"),
-                    Route::SpaceCoveredFrontier {
-                        space_id: "_".to_string(),
+                    Route::RealmCoveredFrontier {
+                        realm_id: "_".to_string(),
                     },
                     "lock",
                 ),
                 NavItem::new(t("nav.components"), Route::ComponentsRegistry {}, "plug"),
                 NavItem::new(
                     t("nav.signing_keys"),
-                    Route::SpaceSigningKeys {
-                        space_id: "_".to_string(),
+                    Route::RealmSigningKeys {
+                        realm_id: "_".to_string(),
                     },
                     "key",
                 ),
                 NavItem::new(
                     t("nav.multisig"),
-                    Route::SpaceMultiSig {
-                        space_id: "_".to_string(),
+                    Route::RealmMultiSig {
+                        realm_id: "_".to_string(),
                     },
                     "users",
                 ),
@@ -516,11 +511,11 @@ fn is_route_active(current: &Route, target: &Route) -> bool {
             Route::ActorList {} | Route::ActorShow { .. } | Route::ActorCreate {}
         ),
         Route::HandleList {} => matches!(current, Route::HandleList {} | Route::HandleShow { .. }),
-        Route::SpaceList {} => matches!(current, Route::SpaceList {} | Route::SpaceShow { .. }),
-        Route::SpaceAdminList {} => matches!(
+        Route::RealmList {} => matches!(
             current,
-            Route::SpaceAdminList {} | Route::SpaceHierarchy { .. }
+            Route::RealmList {} | Route::RealmShow { .. } | Route::RealmCreate { .. }
         ),
+        Route::SpaceList {} => matches!(current, Route::SpaceList {} | Route::SpaceShow { .. }),
         Route::ReportList {} => matches!(current, Route::ReportList {} | Route::ReportShow { .. }),
         Route::ModerationReports {} => matches!(current, Route::ModerationReports {}),
         Route::FederationList {} => matches!(

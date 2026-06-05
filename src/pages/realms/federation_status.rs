@@ -1,6 +1,6 @@
 //! Federation status admin page
 //!
-//! Per-Space federation peers + last-anchor-pulled-at + outbound queue
+//! Per-Realm federation peers + last-anchor-pulled-at + outbound queue
 //! depth. Reads from soland's `GET /_soland/admin/federation/status`
 //! (404-tolerant — surfaces "endpoint not yet wired" toast).
 
@@ -18,9 +18,9 @@ use crate::components::ui::table::*;
 use crate::utils::i18n::t;
 
 #[component]
-pub fn FederationStatusPage(space_id: String) -> Element {
-    let id_for_resource = space_id.clone();
-    let id_filter = if space_id == "_" {
+pub fn FederationStatusPage(realm_id: String) -> Element {
+    let id_for_resource = realm_id.clone();
+    let id_filter = if realm_id == "_" {
         None
     } else {
         Some(id_for_resource.clone())
@@ -64,7 +64,7 @@ pub fn FederationStatusPage(space_id: String) -> Element {
                                 Table {
                                     TableHeader {
                                         TableRow {
-                                            TableHead { {t("federation_status.space_id")} }
+                                            TableHead { {t("federation_status.realm_id")} }
                                             TableHead { {t("federation_status.peer")} }
                                             TableHead { {t("federation_status.health")} }
                                             TableHead { {t("federation_status.last_anchor_pulled_at")} }
@@ -82,11 +82,11 @@ pub fn FederationStatusPage(space_id: String) -> Element {
                                                 let pulled = r.last_anchor_pulled_at.clone().unwrap_or_else(|| "-".to_string());
                                                 let pushed = r.last_pushed_at.clone().unwrap_or_else(|| "-".to_string());
                                                 let depth = r.outbound_queue_depth;
-                                                let space = r.space_id.clone();
+                                                let realm = r.realm_id.clone();
                                                 let peer = r.peer_did.clone();
                                                 rsx! {
                                                     TableRow {
-                                                        TableCell { class: "font-mono text-xs max-w-[260px] truncate".to_string(), "{space}" }
+                                                        TableCell { class: "font-mono text-xs max-w-[260px] truncate".to_string(), "{realm}" }
                                                         TableCell {
                                                             div { class: "flex flex-col",
                                                                 if !peer_label.is_empty() {

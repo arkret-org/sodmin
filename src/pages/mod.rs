@@ -1,11 +1,13 @@
 pub mod actors;
 pub mod agents;
+pub mod anchor_bottom;
 pub mod applets;
 pub mod audit;
 pub mod audit_attestation;
 pub mod capabilities;
 pub mod circles;
 pub mod coauth;
+pub mod components_registry;
 pub mod dashboard;
 pub mod deactivation_review;
 pub mod delivery_binding;
@@ -35,6 +37,7 @@ pub mod realm_identity_audit;
 pub mod realm_links;
 /// R3 (UI-3) — Realm `media_service.foci[]` editor.
 pub mod realm_media_service;
+pub mod realms;
 pub mod relaxed_window;
 pub mod reports;
 pub mod server_status;

@@ -64,6 +64,7 @@ pub mod soland {
     pub const SERVER_DESCRIBE: &str = "/_cokret/describe";
     pub const SERVER_STATUS: &str = "/_soland/admin/server/status";
     pub const SERVER_STATS: &str = "/_soland/admin/server/stats";
+    pub const REALMS: &str = "/_soland/admin/realms";
     pub const SPACES: &str = "/_soland/admin/spaces";
     pub const MODERATION_REPORTS: &str = "/_soland/admin/moderation/reports";
     pub const MODERATION_APPEALS: &str = "/_soland/admin/moderation/appeals";
@@ -92,6 +93,7 @@ mod tests {
     #[test]
     fn generated_manifest_covers_soland_wrapper_roots() {
         assert!(soland_has_operation("GET", soland::SERVER_INFO));
+        assert!(soland_has_operation("GET", soland::REALMS));
         assert!(soland_has_operation("GET", soland::SPACES));
         assert!(soland_has_operation(
             "POST",

@@ -3,8 +3,8 @@
 //!
 //! Endpoints:
 //!
-//! - `GET /_soland/admin/spaces/{id}/consent` — read the joined or-set value of
-//!   `ck:cell:ck.component.consent.v1:<holder_did>` for every holder visible inside the Space.
+//! - `GET /_soland/admin/realms/{realm_id}/consent` — read the joined or-set value of
+//!   `ck:cell:ck.component.consent.v1:<holder_did>` for every holder visible inside the Realm.
 //!   soland is responsible for redaction: it MUST NOT expose holder-private peer relations beyond
 //!   the public admin-visible projection (DID / peer DID / scope / status / created_at).
 //! - `POST /_soland/admin/consent/{consent_id}/resolve` — admin override for **pending** consent
@@ -23,15 +23,15 @@ use crate::api::client::api_client;
 use crate::types::consent::{ConsentGrant, ConsentResolveDecision, ConsentResolveRequest};
 use crate::utils::net::error::HttpError;
 
-/// Fetch the list of consent grants visible inside the Space.
+/// Fetch the list of consent grants visible inside the Realm.
 ///
-/// `GET /_soland/admin/spaces/{id}/consent`. soland projects each consent
+/// `GET /_soland/admin/realms/{realm_id}/consent`. soland projects each consent
 /// cell's joined or-set value into one row per (holder, peer, scope)
 /// triple.
-pub async fn list_consent_grants(space_id: &str) -> Result<Vec<ConsentGrant>, HttpError> {
+pub async fn list_consent_grants(realm_id: &str) -> Result<Vec<ConsentGrant>, HttpError> {
     let url = format!(
-        "/_soland/admin/spaces/{}/consent",
-        urlencoding::encode(space_id)
+        "/_soland/admin/realms/{}/consent",
+        urlencoding::encode(realm_id)
     );
     api_client(&url, "GET", None).await
 }
