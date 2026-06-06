@@ -23,7 +23,7 @@ use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::table::*;
 use crate::components::ui::toast::{ToastVariant, show_toast};
 use crate::components::validated_input::{ValidatedInput, ValidationKind};
-use crate::types::{AccountabilityGrantRequest, Agent, AgentProvisionRequest};
+use crate::types::{AccountabilityGrantRequest, Agent, AgentProvisionRequestBody};
 
 const PAGE_SIZE: u64 = 25;
 
@@ -586,7 +586,7 @@ fn ProvisionWizard(props: ProvisionWizardProps) -> Element {
                                 };
                                 error_msg.set(String::new());
                                 spawn(async move {
-                                    let req = AgentProvisionRequest {
+                                    let req = AgentProvisionRequestBody {
                                         controller_did: did,
                                         display_name: if name.is_empty() { None } else { Some(name) },
                                         agent_key_proof: proof,

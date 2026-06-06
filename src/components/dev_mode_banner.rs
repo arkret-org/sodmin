@@ -21,7 +21,7 @@ use crate::utils::i18n::t;
 /// reports `development_mode == true`. Returns false for all other
 /// shapes (not loaded yet, request failed, production server, or an
 /// older soland that doesn't emit the field).
-fn server_in_dev_mode(describe: &Option<crate::types::ServerDescribeResBody>) -> bool {
+fn server_in_dev_mode(describe: &Option<crate::types::ServerDescribeOutcome>) -> bool {
     describe
         .as_ref()
         .and_then(|d| d.development_mode)

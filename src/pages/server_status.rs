@@ -6,7 +6,7 @@ use crate::components::ui::button::{Button, ButtonVariant};
 use crate::components::ui::card::*;
 use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
-use crate::types::ServerDescribeResBody;
+use crate::types::ServerDescribeOutcome;
 use crate::utils::i18n::t;
 
 #[component]
@@ -164,7 +164,7 @@ fn info_cell(label: String, value: String) -> Element {
 fn service_describe_card(
     title: String,
     description: String,
-    describe: Option<&ServerDescribeResBody>,
+    describe: Option<&ServerDescribeOutcome>,
     not_configured_label: Option<String>,
 ) -> Element {
     let badge = match (describe.is_some(), not_configured_label.is_some()) {
@@ -203,7 +203,7 @@ fn service_describe_card(
     }
 }
 
-fn describe_body(describe: &ServerDescribeResBody) -> Element {
+fn describe_body(describe: &ServerDescribeOutcome) -> Element {
     let did = if describe.service_did.is_empty() {
         "-".to_string()
     } else {
@@ -564,7 +564,7 @@ fn chip_section(label: String, items: &[String]) -> Element {
 /// codes. When `dev_mode_active` is true, verified profiles are crossed
 /// out and labelled "unavailable in dev mode" because the relaxed
 /// proof verifier breaks the verification chain.
-fn conformance_section(describe: &ServerDescribeResBody, dev_mode_active: bool) -> Element {
+fn conformance_section(describe: &ServerDescribeOutcome, dev_mode_active: bool) -> Element {
     let verified = describe
         .verified_profiles
         .iter()
@@ -682,7 +682,7 @@ fn conformance_bucket(label: String, items: &[String], tone: ConformanceTone) ->
 
 /// T6.2 §6 — surface every weak runtime knob as a red posture card.
 /// Renders nothing on a clean production server.
-fn dev_posture_card(describe: &ServerDescribeResBody) -> Element {
+fn dev_posture_card(describe: &ServerDescribeOutcome) -> Element {
     let verifier_dev = describe
         .proof_verifier_mode
         .as_deref()

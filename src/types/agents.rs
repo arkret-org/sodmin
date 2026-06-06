@@ -73,7 +73,7 @@ pub struct AgentGrantEntry {
 
 /// CKP-0008 — agent provision wizard request body.
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct AgentProvisionRequest {
+pub struct AgentProvisionRequestBody {
     #[serde(default)]
     pub controller_did: String,
     #[serde(default)]
@@ -86,7 +86,7 @@ pub struct AgentProvisionRequest {
 /// CKP-0008 — agent provision wizard response (returns the freshly
 /// issued agent principal DID).
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct AgentProvisionResponse {
+pub struct AgentProvisionOutcome {
     #[serde(default)]
     pub agent_principal_id: String,
     #[serde(default)]

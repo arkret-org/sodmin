@@ -84,7 +84,7 @@ impl CompatSurface {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct ServerDescribeResBody {
+pub struct ServerDescribeOutcome {
     #[serde(default)]
     pub service_did: String,
     /// Round 4 — required `trust_domain` per ServerDescribe v2 (spec
@@ -176,7 +176,7 @@ pub struct ServerDescribeResBody {
     pub hardening: Option<HardeningStatus>,
 }
 
-impl ServerDescribeResBody {
+impl ServerDescribeOutcome {
     /// Round 4 — render-time check used by the ServerDescribe v2 admin
     /// view. When `development_mode == true` AND `verified_profiles` is
     /// non-empty the server is making contradictory claims (relaxed
@@ -269,11 +269,11 @@ pub struct ServerStatusResponse {
 mod tests {
     use serde_json::json;
 
-    use super::ServerDescribeResBody;
+    use super::ServerDescribeOutcome;
 
     #[test]
     fn server_describe_accepts_principal_server_profile_status() {
-        let describe: ServerDescribeResBody = serde_json::from_value(json!({
+        let describe: ServerDescribeOutcome = serde_json::from_value(json!({
             "service_did": "did:web:soland.local",
             "service_type": "principal_server",
             "protocol_version": "1.0",
@@ -306,7 +306,7 @@ mod tests {
 
     #[test]
     fn server_describe_accepts_coauth_issuer_and_registry() {
-        let describe: ServerDescribeResBody = serde_json::from_value(json!({
+        let describe: ServerDescribeOutcome = serde_json::from_value(json!({
             "service_did": "did:web:auth.example.com",
             "service_type": "auth_account_server",
             "protocol_version": "1.0",
@@ -345,7 +345,7 @@ mod tests {
 
     #[test]
     fn server_describe_reads_supported_profiles() {
-        let describe: ServerDescribeResBody = serde_json::from_value(json!({
+        let describe: ServerDescribeOutcome = serde_json::from_value(json!({
             "service_did": "did:web:identity.example",
             "supported_profiles": ["ck.profile.identity_registry.v1"]
         }))
@@ -359,7 +359,7 @@ mod tests {
 
     #[test]
     fn server_describe_reads_conformance_buckets() {
-        let describe: ServerDescribeResBody = serde_json::from_value(json!({
+        let describe: ServerDescribeOutcome = serde_json::from_value(json!({
             "service_did": "did:web:soland.local",
             "verified_profiles": [{
                 "profile_id": "ck.profile.principal_server.v1",

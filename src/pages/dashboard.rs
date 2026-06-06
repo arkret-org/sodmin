@@ -5,7 +5,7 @@ use crate::components::dev_mode_banner::DevModeDashboardNotice;
 use crate::components::ui::card::*;
 use crate::components::ui::icons::Icon;
 use crate::components::ui::loading::StatsSkeleton;
-use crate::types::{ServerDescribeResBody, ServerStatusResponse};
+use crate::types::{ServerDescribeOutcome, ServerStatusResponse};
 use crate::utils::cache::cached;
 use crate::utils::i18n::t;
 use crate::utils::net::perf;
@@ -325,7 +325,7 @@ fn join_or_dash(items: &[String]) -> String {
     }
 }
 
-fn coauth_issuer_did(describe: &ServerDescribeResBody) -> Option<String> {
+fn coauth_issuer_did(describe: &ServerDescribeOutcome) -> Option<String> {
     describe
         .auth_metadata
         .as_ref()
@@ -333,7 +333,7 @@ fn coauth_issuer_did(describe: &ServerDescribeResBody) -> Option<String> {
         .or_else(|| non_empty(describe.service_did.clone()))
 }
 
-fn identity_registry_endpoint(describe: &ServerDescribeResBody) -> Option<String> {
+fn identity_registry_endpoint(describe: &ServerDescribeOutcome) -> Option<String> {
     describe
         .identity_registry_resolver
         .as_ref()
@@ -341,21 +341,21 @@ fn identity_registry_endpoint(describe: &ServerDescribeResBody) -> Option<String
         .and_then(|delegated| delegated.resolver.clone())
 }
 
-fn schema_registry_version(describe: &ServerDescribeResBody) -> Option<String> {
+fn schema_registry_version(describe: &ServerDescribeOutcome) -> Option<String> {
     describe.schema_registry_version.clone().or_else(|| {
         (!describe.supported_schema_profiles.is_empty())
             .then(|| join_or_dash(&describe.supported_schema_profiles))
     })
 }
 
-fn event_kind_registry_version(describe: &ServerDescribeResBody) -> Option<String> {
+fn event_kind_registry_version(describe: &ServerDescribeOutcome) -> Option<String> {
     describe
         .event_kind_registry_version
         .clone()
         .or_else(|| json_string(&describe.registry, &["event_kind_registry_version"]))
 }
 
-fn conformance_level(describe: &ServerDescribeResBody) -> Option<String> {
+fn conformance_level(describe: &ServerDescribeOutcome) -> Option<String> {
     json_string(&describe.limits, &["profile_status", "conformance"])
 }
 
@@ -378,7 +378,7 @@ fn health_summary(status: Option<&ServerStatusResponse>) -> String {
     }
 }
 
-fn conformance_rows(describe: Option<&ServerDescribeResBody>) -> Vec<ConformanceRow> {
+fn conformance_rows(describe: Option<&ServerDescribeOutcome>) -> Vec<ConformanceRow> {
     let checks = [
         (
             "core_event_store",
@@ -408,7 +408,7 @@ fn conformance_rows(describe: Option<&ServerDescribeResBody>) -> Vec<Conformance
         .collect()
 }
 
-fn has_any_declared_surface(describe: &ServerDescribeResBody, needles: &[&str]) -> bool {
+fn has_any_declared_surface(describe: &ServerDescribeOutcome, needles: &[&str]) -> bool {
     let implemented_surfaces = json_strings(
         &describe.limits,
         &["profile_status", "implemented_surfaces"],

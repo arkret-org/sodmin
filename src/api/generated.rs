@@ -198,7 +198,7 @@ pub mod starid {
     use chrono::{DateTime, Utc};
     use serde::{Deserialize, Serialize};
 
-    /// OpenAPI schema: `IdentityDescribeResBody` from starid.
+    /// OpenAPI schema: `IdentityDescribeOutcome` from starid.
     #[derive(Debug, Clone, Default, Serialize, Deserialize)]
     pub struct StaridDescribe {
         #[serde(default)]
