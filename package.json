@@ -1,6 +1,6 @@
-{
+﻿{
   "name": "sodmin",
-  "version": "1.0.0",
+  "version": "0.3.0",
   "description": "Cokret administrator web UI (Playwright e2e harness).",
   "main": "index.js",
   "directories": {
