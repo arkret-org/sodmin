@@ -407,9 +407,6 @@ fn build_nav_sections() -> Vec<NavSection> {
                     "heart-pulse",
                 )
                 .scoped(scope::COAUTH),
-                // R3 (UI-4) — recovery policies + receipts stub.
-                NavItem::new(t("recovery.title"), Route::CoauthRecovery {}, "shield")
-                    .scoped(scope::COAUTH),
             ],
         )
         .bridge(bridge::COAUTH),

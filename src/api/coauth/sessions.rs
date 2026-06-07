@@ -28,19 +28,28 @@ pub struct CoauthOAuth2Session {
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 #[non_exhaustive]
-pub struct CoauthPersonalSession {
+pub struct CoauthPersonalSessionRow {
     #[serde(default)]
     pub id: String,
-    #[serde(default)]
+    #[serde(default, alias = "actor_user_id", alias = "owner_user_id")]
     pub user_id: Option<String>,
-    #[serde(default)]
+    #[serde(default, alias = "human_name")]
     pub name: Option<String>,
     #[serde(default)]
     pub created_at: Option<String>,
     #[serde(default)]
     pub last_active_at: Option<String>,
-    #[serde(default)]
-    pub token: Option<String>,
+}
+
+pub type CoauthPersonalSession = CoauthPersonalSessionRow;
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[non_exhaustive]
+pub struct CoauthPersonalSessionOneShot {
+    #[serde(flatten)]
+    pub session: CoauthPersonalSessionRow,
+    #[serde(default, alias = "token", alias = "access_token")]
+    pub access_token: Option<String>,
 }
 
 pub async fn list_oauth2_sessions(
@@ -79,7 +88,9 @@ pub async fn list_personal_sessions(
     api_client(&url, "GET", None).await
 }
 
-pub async fn create_personal_session(name: &str) -> Result<CoauthPersonalSession, HttpError> {
+pub async fn create_personal_session(
+    name: &str,
+) -> Result<CoauthPersonalSessionOneShot, HttpError> {
     let body = serde_json::json!({ "name": name });
     api_client(
         "/_soland/admin/personal-sessions",
@@ -97,10 +108,54 @@ pub async fn revoke_personal_session(id: &str) -> Result<(), HttpError> {
     api_client(&url, "POST", None).await
 }
 
-pub async fn regenerate_personal_session(id: &str) -> Result<CoauthPersonalSession, HttpError> {
+pub async fn regenerate_personal_session(
+    id: &str,
+) -> Result<CoauthPersonalSessionOneShot, HttpError> {
     let url = format!(
         "/_soland/admin/personal-sessions/{}/regenerate",
         urlencoding::encode(id)
     );
     api_client(&url, "POST", None).await
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{CoauthPersonalSessionOneShot, CoauthPersonalSessionRow};
+
+    #[test]
+    fn personal_session_row_drops_token_fields() {
+        let row: CoauthPersonalSessionRow = serde_json::from_value(serde_json::json!({
+            "id": "session-1",
+            "actor_user_id": "user-1",
+            "human_name": "ops key",
+            "created_at": "2026-06-07T00:00:00Z",
+            "token": "secret-token",
+            "access_token": "secret-access-token"
+        }))
+        .expect("row should deserialize while ignoring one-shot secrets");
+
+        assert_eq!(row.id, "session-1");
+        assert_eq!(row.user_id.as_deref(), Some("user-1"));
+        assert_eq!(row.name.as_deref(), Some("ops key"));
+
+        let serialized = serde_json::to_value(&row).expect("row serializes");
+        assert!(serialized.get("token").is_none());
+        assert!(serialized.get("access_token").is_none());
+    }
+
+    #[test]
+    fn personal_session_one_shot_accepts_access_token_alias() {
+        let response: CoauthPersonalSessionOneShot = serde_json::from_value(serde_json::json!({
+            "id": "session-1",
+            "human_name": "ops key",
+            "access_token": "secret-access-token"
+        }))
+        .expect("one-shot response should deserialize");
+
+        assert_eq!(response.session.name.as_deref(), Some("ops key"));
+        assert_eq!(
+            response.access_token.as_deref(),
+            Some("secret-access-token")
+        );
+    }
 }

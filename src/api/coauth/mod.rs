@@ -48,9 +48,9 @@ pub use registration::{
     revoke_registration_token,
 };
 pub use sessions::{
-    CoauthOAuth2Session, CoauthPersonalSession, create_personal_session, finish_oauth2_session,
-    list_oauth2_sessions, list_personal_sessions, regenerate_personal_session,
-    revoke_personal_session,
+    CoauthOAuth2Session, CoauthPersonalSession, CoauthPersonalSessionOneShot,
+    CoauthPersonalSessionRow, create_personal_session, finish_oauth2_session, list_oauth2_sessions,
+    list_personal_sessions, regenerate_personal_session, revoke_personal_session,
 };
 pub use upstream::{
     CoauthUpstreamLink, CoauthUpstreamProvider, create_upstream_provider, delete_upstream_link,

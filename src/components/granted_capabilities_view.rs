@@ -17,7 +17,7 @@
 //! TODO(P5-impl): once coauth ships a typed `/_soland/admin/me/grants`
 //! endpoint, swap the current `list_capabilities` heuristic (which lists
 //! every grant on the server) for the scoped self-grant call. Until
-//! then we filter the list client-side by viewer grantee_id.
+//! then we filter the list client-side by viewer subject.
 
 use dioxus::prelude::*;
 
@@ -69,17 +69,17 @@ pub fn GrantedCapabilitiesView(props: GrantedCapabilitiesViewProps) -> Element {
                         .data
                         .iter()
                         .filter(|g| {
-                            !g.is_revoked
+                            !g.is_revoked()
                                 && viewer
                                     .as_ref()
-                                    .map(|sub| g.grantee_id == *sub)
+                                    .map(|sub| g.subject == *sub)
                                     .unwrap_or(true)
                         })
                         .collect();
 
                     let scope_match = required
                         .as_ref()
-                        .map(|cap| self_grants.iter().any(|g| g.capability == *cap))
+                        .map(|cap| self_grants.iter().any(|g| g.actions.iter().any(|action| action == cap)))
                         .unwrap_or(true);
 
                     rsx! {
@@ -106,14 +106,16 @@ pub fn GrantedCapabilitiesView(props: GrantedCapabilitiesViewProps) -> Element {
                         } else {
                             ul { class: "flex flex-wrap gap-1.5",
                                 for grant in self_grants.iter() {
-                                    li {
-                                        Badge {
-                                            variant: if required.as_ref().map(|r| r == &grant.capability).unwrap_or(false) {
-                                                BadgeVariant::Default
-                                            } else {
-                                                BadgeVariant::Secondary
-                                            },
-                                            "{grant.capability}"
+                                    for action in grant.actions.iter() {
+                                        li {
+                                            Badge {
+                                                variant: if required.as_ref().map(|r| r == action).unwrap_or(false) {
+                                                    BadgeVariant::Default
+                                                } else {
+                                                    BadgeVariant::Secondary
+                                                },
+                                                "{action}"
+                                            }
                                         }
                                     }
                                 }

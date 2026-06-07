@@ -12,7 +12,10 @@ use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::pagination::Pagination;
 use crate::components::ui::table::*;
 use crate::components::ui::toast::{ToastVariant, show_toast};
-use crate::types::{GrantCapabilityRequest, UpdateCapabilityRequest};
+use crate::types::{
+    CAPABILITY_GRANT_SCHEMA, GrantCapabilityRequest, UpdateCapabilityRequest,
+    capability_resources_from_input,
+};
 use crate::utils::i18n::t;
 
 const PAGE_SIZE: u64 = 25;
@@ -92,24 +95,24 @@ pub fn CapabilityList() -> Element {
                                     for cap in resp.data.iter() {
                                         {
                                             let id = cap.id.clone();
-                                            let grantor_id = cap.grantor_id.clone();
-                                            let grantee = cap.grantee_id.clone();
-                                            let cap_name = cap.capability.clone();
-                                            let cap_scope = cap.scope.clone().unwrap_or_else(|| "-".to_string());
-                                            let granted_at = cap.granted_at.clone().unwrap_or_else(|| "-".to_string());
+                                            let issuer = cap.issuer.clone();
+                                            let subject = cap.subject.clone();
+                                            let actions = cap.actions_display();
+                                            let resources = cap.resources_display();
+                                            let issued_at = cap.issued_at.clone().unwrap_or_else(|| "-".to_string());
                                             let expires = cap.expires_at.clone().unwrap_or_else(|| "-".to_string());
-                                            let is_revoked = cap.is_revoked;
+                                            let is_revoked = cap.is_revoked();
 
                                             let id_for_revoke = id.clone();
 
                                             rsx! {
                                                 TableRow {
                                                     TableCell { class: "font-medium".to_string(), "{id}" }
-                                                    TableCell { class: "max-w-[150px] truncate".to_string(), "{grantor_id}" }
-                                                    TableCell { class: "max-w-[150px] truncate".to_string(), "{grantee}" }
-                                                    TableCell { "{cap_name}" }
-                                                    TableCell { class: "max-w-[200px] truncate".to_string(), "{cap_scope}" }
-                                                    TableCell { class: "text-muted-foreground".to_string(), "{granted_at}" }
+                                                    TableCell { class: "max-w-[150px] truncate".to_string(), "{issuer}" }
+                                                    TableCell { class: "max-w-[150px] truncate".to_string(), "{subject}" }
+                                                    TableCell { "{actions}" }
+                                                    TableCell { class: "max-w-[200px] truncate".to_string(), "{resources}" }
+                                                    TableCell { class: "text-muted-foreground".to_string(), "{issued_at}" }
                                                     TableCell { class: "text-muted-foreground".to_string(), "{expires}" }
                                                     TableCell {
                                                         if is_revoked {
@@ -137,7 +140,10 @@ pub fn CapabilityList() -> Element {
                                                                     let mut fields = Vec::<String>::new();
                                                                     let mut facets = Vec::<String>::new();
                                                                     let mut approval = false;
-                                                                    if let Some(serde_json::Value::Object(map)) = constraints.as_ref() {
+                                                                    for constraint in constraints.iter() {
+                                                                        let Some(map) = constraint.as_object() else {
+                                                                            continue;
+                                                                        };
                                                                         if let Some(serde_json::Value::Array(arr)) = map.get("allowed_write_fields") {
                                                                             fields = arr.iter().filter_map(|v| v.as_str().map(|s| s.to_string())).collect();
                                                                         }
@@ -289,17 +295,21 @@ pub fn CapabilityList() -> Element {
                                         .filter(|s| !s.is_empty())
                                         .collect();
                                     let constraints = if circle_ids.is_empty() {
-                                        None
+                                        Vec::new()
                                     } else {
-                                        Some(serde_json::json!({
+                                        vec![serde_json::json!({
                                             "allowed_circle_ids": circle_ids,
-                                        }))
+                                        })]
                                     };
+                                    let action = capability_name.read().trim().to_string();
                                     let req = GrantCapabilityRequest {
-                                        grantee_id: grantee_id.read().clone(),
-                                        capability: capability_name.read().clone(),
-                                        scope: if scope.read().is_empty() { None } else { Some(scope.read().clone()) },
+                                        schema: CAPABILITY_GRANT_SCHEMA.to_string(),
+                                        subject: grantee_id.read().trim().to_string(),
+                                        actions: if action.is_empty() { Vec::new() } else { vec![action] },
+                                        resources: capability_resources_from_input(&scope.read()),
                                         constraints,
+                                        parent_grant_id: None,
+                                        not_before: None,
                                         expires_at: if expires_at.read().is_empty() { None } else { Some(expires_at.read().clone()) },
                                     };
                                     spawn(async move {
