@@ -6,7 +6,7 @@
 
 pub use cokret_core::model::Circle;
 use cokret_core::model::{
-    CircleDirectoryVisibility, CircleJoinRule, CircleMemberState, CircleMetadataEncryptionFloor,
+    CircleDirectoryVisibility, CircleJoinRule, CircleMemberState, EncryptionFloor,
     CircleState, EncryptionProfile, HistoryVisibility,
 };
 use cokret_core::{CircleId, Did, RealmId};
@@ -35,7 +35,7 @@ pub struct CreateCircleRequest {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub history_visibility: Option<HistoryVisibility>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub metadata_encryption_floor: Option<CircleMetadataEncryptionFloor>,
+    pub metadata_encryption_floor: Option<EncryptionFloor>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub encryption_profile: Option<EncryptionProfile>,
 }
