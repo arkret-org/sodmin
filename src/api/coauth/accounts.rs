@@ -118,13 +118,13 @@ pub struct CoauthAccountDetail {
 }
 
 pub use coauth_admin_types::{
-    AccountRiskActionApprovalRequest as CoauthAccountRiskActionApprovalDraft,
-    AccountRiskActionApprovalResponse as CoauthAccountRiskActionApproval,
-    AccountRiskActionCurrentResponse as CoauthAccountRiskActionCurrentState,
-    AccountRiskActionExecuteRequest as CoauthAccountRiskActionExecuteDraft,
-    AccountRiskActionHistoryResponse as CoauthAccountRiskActionHistoryEnvelopeShared,
-    AccountRiskActionProposalRequest as CoauthAccountRiskActionDraft,
-    AccountRiskActionProposalResponse as CoauthAccountRiskActionProposal,
+    AccountRiskActionApprovalRequestBody as CoauthAccountRiskActionApprovalDraft,
+    AccountRiskActionApprovalOutcome as CoauthAccountRiskActionApproval,
+    AccountRiskActionCurrentOutcome as CoauthAccountRiskActionCurrentState,
+    AccountRiskActionExecuteRequestBody as CoauthAccountRiskActionExecuteDraft,
+    AccountRiskActionHistoryOutcome as CoauthAccountRiskActionHistoryEnvelopeShared,
+    AccountRiskActionProposalRequestBody as CoauthAccountRiskActionDraft,
+    AccountRiskActionProposalOutcome as CoauthAccountRiskActionProposal,
     AccountRiskActionTransitionRecord as CoauthAccountRiskActionHistoryEntry,
 };
 
@@ -165,7 +165,7 @@ pub struct CoauthAccountRiskActionExecute {
     pub todo: String,
 }
 
-type CoauthAccountClaimsEnvelope = coauth_admin_types::AdminAccountClaimsResponse;
+type CoauthAccountClaimsEnvelope = coauth_admin_types::AdminAccountClaimsOutcome;
 
 #[derive(Debug, Clone, Deserialize, Default)]
 struct CoauthAccountSessionGrantsEnvelope {
@@ -183,7 +183,7 @@ struct CoauthAdminPaginatedEnvelope<T> {
     links: coauth_admin_types::PaginationLinks,
 }
 
-type CoauthAdminSingleEnvelope<T> = coauth_admin_types::SingleResponse<T>;
+type CoauthAdminSingleEnvelope<T> = coauth_admin_types::SingleOutcome<T>;
 type CoauthAdminResource<T> = coauth_admin_types::SingleResource<T>;
 
 #[derive(Debug, Clone, Deserialize, Default)]
@@ -193,7 +193,7 @@ struct CoauthAdminPaginationMeta {
 }
 
 type CoauthAdminAccountRecord = coauth_admin_types::AdminAccountAttributes;
-type CoauthAdminDidBindingsEnvelope = coauth_admin_types::AdminAccountDidBindingsResponse;
+type CoauthAdminDidBindingsEnvelope = coauth_admin_types::AdminAccountDidBindingsOutcome;
 type CoauthAdminDidBindingRecord = coauth_admin_types::AdminAccountDidBinding;
 
 /// Filter inputs accepted by `list_accounts_cursor`. Empty strings are

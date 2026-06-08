@@ -8,7 +8,9 @@
 //! line via `utils::net::audit::emit_admin_audit` (in addition to the
 //! soland-side audit row that the HTTP endpoint writes itself).
 
-use coauth_admin_types::applets_admin::{ApprovalActionRequest, ApprovalStatus};
+use coauth_admin_types::applets_admin::{
+    ApprovalActionRequestBody as ApprovalActionRequest, ApprovalStatus,
+};
 use dioxus::prelude::*;
 
 use crate::api::applets_agents_directory as admin_api;

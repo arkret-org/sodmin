@@ -11,7 +11,7 @@
 
 use std::collections::HashSet;
 
-use coauth_admin_types::applets_admin::ApprovalActionRequest;
+use coauth_admin_types::applets_admin::ApprovalActionRequestBody as ApprovalActionRequest;
 use dioxus::prelude::*;
 
 use crate::api::applets_agents_directory as admin_api;

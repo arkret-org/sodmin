@@ -5,7 +5,8 @@
 //! "endpoint not yet wired" toast on 404.
 
 use coauth_admin_types::applets_admin::{
-    AgentAdminRow, AppletAdminRow, ApprovalActionRequest, DirectoryAdminRow,
+    AgentAdminRow, AppletAdminRow, ApprovalActionRequestBody as ApprovalActionRequest,
+    DirectoryAdminRow,
 };
 
 use crate::api::client::{api_client, build_url};
