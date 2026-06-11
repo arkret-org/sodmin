@@ -35,12 +35,6 @@ pub fn ActorList() -> Element {
                     placeholder: t("actors.search_placeholder"),
                     oninput: move |evt: FormEvent| { search.set(evt.value()); page.set(1); },
                 }
-                Link {
-                    to: Route::ActorCreate {},
-                    class: "inline-flex items-center gap-2 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90",
-                    Icon { name: "plus".to_string(), class: "h-4 w-4".to_string() }
-                    {t("actors.create")}
-                }
             }
 
             match &*data.read() {

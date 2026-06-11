@@ -27,10 +27,6 @@ pub mod circles;
 
 pub mod coauth_devices;
 
-pub mod components;
-
-pub mod consent;
-
 pub mod covered_frontier;
 
 pub mod delivery_binding;
@@ -48,9 +44,6 @@ pub use handles::*;
 pub mod invite_tokens;
 pub use invite_tokens::*;
 
-pub mod invites_3pid;
-pub use invites_3pid::*;
-
 pub mod key_backup;
 pub use key_backup::*;
 
@@ -62,9 +55,6 @@ pub mod moderation;
 pub mod multisig;
 
 pub mod policy;
-
-pub mod push_routes;
-pub use push_routes::*;
 
 pub mod realm_links;
 pub use realm_links::*;

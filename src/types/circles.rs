@@ -12,7 +12,7 @@ use cokret_core::model::{
 use cokret_core::{CircleId, Did, RealmId};
 use serde::{Deserialize, Serialize};
 
-/// `GET /_cokret/self/circles?realm_id=...` response.
+/// `GET /_soland/self/circles?realm_id=...` response.
 #[derive(Debug, Clone, Deserialize, Default)]
 pub struct ListCirclesResponse {
     #[serde(default)]
@@ -21,7 +21,7 @@ pub struct ListCirclesResponse {
     pub circles: Vec<Circle>,
 }
 
-/// `POST /_cokret/self/circles` request body.
+/// `POST /_soland/self/circles` request body.
 #[derive(Debug, Clone, Serialize)]
 pub struct CreateCircleRequest {
     pub realm_id: RealmId,
@@ -40,7 +40,7 @@ pub struct CreateCircleRequest {
     pub encryption_profile: Option<EncryptionProfile>,
 }
 
-/// `POST /_cokret/self/circles/{id}/members` request body.
+/// `POST /_soland/self/circles/{id}/members` request body.
 #[derive(Debug, Clone, Serialize)]
 pub struct CircleMemberRequest {
     pub actor_id: Did,
@@ -48,7 +48,7 @@ pub struct CircleMemberRequest {
     pub state: Option<CircleMemberState>,
 }
 
-/// `POST /_cokret/self/circles/{id}/members` response.
+/// `POST /_soland/self/circles/{id}/members` response.
 #[derive(Debug, Clone, Deserialize)]
 pub struct CircleMembershipResponse {
     pub circle_id: CircleId,
@@ -56,7 +56,7 @@ pub struct CircleMembershipResponse {
     pub state: CircleMemberState,
 }
 
-/// `POST /_cokret/self/circles/{id}/scope-rotate` response.
+/// `POST /_soland/self/circles/{id}/scope-rotate` response.
 #[derive(Debug, Clone, Deserialize)]
 pub struct CircleScopeRotateResponse {
     pub circle_id: CircleId,

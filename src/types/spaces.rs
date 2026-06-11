@@ -1,7 +1,7 @@
 //! DTO shapes for the soland Space container admin surface.
 //!
-//! Mirrors `GET /_soland/admin/spaces` (list) and
-//! `GET /_soland/admin/spaces/{id}/hierarchy` (per-space hierarchy).
+//! Mirrors `GET /_soland/admin/spaces` (list). Per-space hierarchy is
+//! assembled client-side from the snapshot's `parent_space_id` fields.
 
 use serde::{Deserialize, Serialize};
 
@@ -57,11 +57,9 @@ impl SpaceRow {
     }
 }
 
-/// One node in the hierarchy tree returned by
-/// `GET /_soland/admin/spaces/{id}/hierarchy`. `parent` is at most one
-/// step up; `children` is the full set of immediate children. Deeper
-/// transitive ancestry must be paginated by following each parent in a
-/// follow-up request.
+/// One node in the hierarchy tree derived from the admin Spaces snapshot.
+/// `parent` is at most one step up; `children` is the full set of
+/// immediate children found in the loaded snapshot.
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct SpaceHierarchy {
     /// The Space this hierarchy is centered on.

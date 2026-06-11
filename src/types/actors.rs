@@ -9,6 +9,8 @@ pub struct Actor {
     #[serde(default)]
     pub id: String,
     #[serde(default)]
+    pub account_id: Option<String>,
+    #[serde(default)]
     pub did: String,
     #[serde(default)]
     pub handle: Option<String>,

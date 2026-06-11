@@ -1,4 +1,4 @@
-use crate::api::client::{api_client, json_body};
+use crate::api::client::api_client;
 use crate::api::openapi_contract::soland as soland_paths;
 use crate::types::*;
 use crate::utils::net::error::HttpError;
@@ -26,68 +26,6 @@ pub async fn get_server_status() -> Result<ServerStatusResponse, HttpError> {
     api_client(soland_paths::SERVER_STATUS, "GET", None).await
 }
 
-#[derive(Debug, Clone, serde::Deserialize, Default)]
-pub struct TrustDomainSetting {
-    #[serde(default)]
-    pub value: String,
-}
-
-#[derive(Debug, Clone, serde::Serialize)]
-pub struct UpdateTrustDomainRequest {
-    pub value: String,
-    pub reconfirm: bool,
-}
-
-pub async fn get_trust_domain() -> Result<TrustDomainSetting, HttpError> {
-    api_client("/_soland/admin/server/trust-domain", "GET", None).await
-}
-
-pub async fn update_trust_domain(
-    body: &UpdateTrustDomainRequest,
-) -> Result<TrustDomainSetting, HttpError> {
-    let payload = json_body(body)?;
-    api_client("/_soland/admin/server/trust-domain", "PUT", Some(payload)).await
-}
-
-#[derive(Debug, Clone, serde::Deserialize, Default)]
-pub struct RelaxedWindowSetting {
-    #[serde(default)]
-    pub enabled: bool,
-    #[serde(default)]
-    pub window_ms: u32,
-    #[serde(default)]
-    pub active_profile: Option<String>,
-}
-
-#[derive(Debug, Clone, serde::Serialize)]
-pub struct UpdateRelaxedWindowRequest {
-    pub enabled: bool,
-    pub window_ms: u32,
-}
-
-pub async fn get_relaxed_window() -> Result<RelaxedWindowSetting, HttpError> {
-    api_client("/_soland/admin/server/relaxed-window", "GET", None).await
-}
-
-pub async fn update_relaxed_window(
-    body: &UpdateRelaxedWindowRequest,
-) -> Result<RelaxedWindowSetting, HttpError> {
-    let payload = json_body(body)?;
-    api_client("/_soland/admin/server/relaxed-window", "PUT", Some(payload)).await
-}
-
-pub async fn submit_attestation_evidence(
-    body: &serde_json::Value,
-) -> Result<serde_json::Value, HttpError> {
-    let payload = json_body(body)?;
-    api_client(
-        "/_soland/admin/audit/attestation-evidence",
-        "POST",
-        Some(payload),
-    )
-    .await
-}
-
 #[derive(Debug, Clone, serde::Serialize)]
 pub struct DestroyRealmRequest {
     pub confirmation: String,
@@ -100,26 +38,18 @@ pub struct RetryRealmDestroyRequest {
 
 pub async fn destroy_realm(
     realm_id: &str,
-    body: &DestroyRealmRequest,
+    _body: &DestroyRealmRequest,
 ) -> Result<serde_json::Value, HttpError> {
-    let url = format!(
-        "/_soland/admin/realms/{}/destroy",
-        urlencoding::encode(realm_id)
-    );
-    let payload = json_body(body)?;
-    api_client(&url, "POST", Some(payload)).await
+    let url = format!("/_soland/admin/realms/{}", urlencoding::encode(realm_id));
+    api_client(&url, "DELETE", None).await
 }
 
 pub async fn retry_realm_destroy(
     realm_id: &str,
-    body: &RetryRealmDestroyRequest,
+    _body: &RetryRealmDestroyRequest,
 ) -> Result<serde_json::Value, HttpError> {
-    let url = format!(
-        "/_soland/admin/realms/{}/destroy/retry",
-        urlencoding::encode(realm_id)
-    );
-    let payload = json_body(body)?;
-    api_client(&url, "POST", Some(payload)).await
+    let url = format!("/_soland/admin/realms/{}", urlencoding::encode(realm_id));
+    api_client(&url, "DELETE", None).await
 }
 
 /// T8.3 — `/health` envelope deserialized for the hardening dashboard.

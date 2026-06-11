@@ -6,13 +6,12 @@
 //! `identity_registry_resolver`, `admin_audience`, …) are captured in a
 //! flattened `extra` envelope and read by the view layer on demand.
 
-use serde::{Deserialize, Serialize};
-
 // (The `ClaimedProfileEntry` / `VerifiedProfileEntry` /
 // `CompatSurfaceEntry` element types are reachable through the SDK
 // directly; sodmin views consume them via the `ServerDescription`
 // fields and need no local re-export.)
 pub use cokret_core::model::ServerDescription;
+use serde::{Deserialize, Serialize};
 
 // ── Server info types ──
 

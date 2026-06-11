@@ -1,7 +1,6 @@
 use dioxus::prelude::*;
 
 use crate::api::media;
-use crate::components::ui::card::*;
 use crate::components::ui::error_banner::ErrorBanner;
 use crate::components::ui::input::SearchInput;
 use crate::components::ui::loading::PageSkeleton;
@@ -16,53 +15,17 @@ const PAGE_SIZE: u64 = 25;
 pub fn MediaList() -> Element {
     let mut search = use_signal(String::new);
     let mut page = use_signal(|| 1u64);
-
     let page_val = *page.read();
-
-    let stats = use_resource(|| async { media::get_media_statistics().await });
+    let needle = search.read().to_ascii_lowercase();
 
     let mut media_data =
-        use_resource(move || async move { media::list_actor_media(page_val, PAGE_SIZE).await });
+        use_resource(move || async move { media::list_media(page_val, PAGE_SIZE).await });
 
     rsx! {
         div { class: "space-y-6",
             PageHeader {
                 title: t("media.title"),
                 description: t("media.subtitle"),
-            }
-
-            match &*stats.read() {
-                Some(Ok(s)) => rsx! {
-                    div { class: "grid gap-4 md:grid-cols-3",
-                        Card {
-                            CardContent { class: "p-4".to_string(),
-                                p { class: "text-sm text-muted-foreground", {t("media.total_blobs")} }
-                                p { class: "text-2xl font-bold", "{s.total_blobs}" }
-                            }
-                        }
-                        Card {
-                            CardContent { class: "p-4".to_string(),
-                                p { class: "text-sm text-muted-foreground", {t("media.total_size")} }
-                                p { class: "text-2xl font-bold", {format_bytes(s.total_size)} }
-                            }
-                        }
-                        Card {
-                            CardContent { class: "p-4".to_string(),
-                                p { class: "text-sm text-muted-foreground", {t("media.quarantined")} }
-                                p { class: "text-2xl font-bold", "{s.quarantined_count}" }
-                            }
-                        }
-                    }
-                },
-                Some(Err(e)) => rsx! {
-                    ErrorBanner {
-                        message: e.message.clone(),
-                        errcode: e.body.as_ref().map(|body| body.errcode.clone()),
-                        request_id: e.request_id.clone(),
-                        retry_after_ms: e.retry_after_ms,
-                    }
-                },
-                _ => rsx! {},
             }
 
             SearchInput {
@@ -75,38 +38,54 @@ pub fn MediaList() -> Element {
             }
 
             match &*media_data.read() {
-                Some(Ok(data)) => rsx! {
-                    div { class: "rounded-md border",
-                        Table {
-                            TableHeader {
-                                TableRow {
-                                    TableHead { {t("media.actor_id")} }
-                                    TableHead { {t("media.display_name")} }
-                                    TableHead { {t("media.blob_count")} }
-                                    TableHead { {t("media.total_size")} }
-                                }
-                            }
-                            TableBody {
-                                if data.data.is_empty() {
+                Some(Ok(data)) => {
+                    let rows = data
+                        .data
+                        .iter()
+                        .filter(|row| media_row_matches(row, &needle))
+                        .cloned()
+                        .collect::<Vec<_>>();
+                    rsx! {
+                        div { class: "rounded-md border",
+                            Table {
+                                TableHeader {
                                     TableRow {
-                                        TableCell { class: "text-center text-muted-foreground py-8".to_string(), colspan: 99,
-                                            {t("media.no_media")}
-                                        }
+                                        TableHead { "Filename" }
+                                        TableHead { "Type" }
+                                        TableHead { "Realm" }
+                                        TableHead { "Uploaded by" }
+                                        TableHead { "Size" }
+                                        TableHead { "Encrypted" }
+                                        TableHead { "Created" }
                                     }
-                                } else {
-                                    for stat in data.data.iter() {
-                                        {
-                                            let actor_id = stat.actor_id.clone();
-                                            let display_name = stat.display_name.clone().unwrap_or_else(|| "-".to_string());
-                                            let blob_count = stat.blob_count;
-                                            let total_size = format_bytes(stat.total_size);
-
-                                            rsx! {
-                                                TableRow {
-                                                    TableCell { class: "font-medium".to_string(), "{actor_id}" }
-                                                    TableCell { "{display_name}" }
-                                                    TableCell { "{blob_count}" }
-                                                    TableCell { "{total_size}" }
+                                }
+                                TableBody {
+                                    if rows.is_empty() {
+                                        TableRow {
+                                            TableCell { class: "text-center text-muted-foreground py-8".to_string(), colspan: 99,
+                                                {t("media.no_media")}
+                                            }
+                                        }
+                                    } else {
+                                        for row in rows.iter() {
+                                            {
+                                                let filename = row.filename.clone().unwrap_or_else(|| "-".to_string());
+                                                let media_type = row.media_type.clone().unwrap_or_else(|| "-".to_string());
+                                                let realm_id = row.realm_id.clone().unwrap_or_else(|| "-".to_string());
+                                                let uploaded_by = row.uploaded_by.clone().unwrap_or_else(|| "-".to_string());
+                                                let size = format_bytes(row.size_bytes);
+                                                let encrypted = if row.encrypted { "yes" } else { "no" };
+                                                let created = row.created_at.clone().unwrap_or_else(|| "-".to_string());
+                                                rsx! {
+                                                    TableRow {
+                                                        TableCell { "{filename}" }
+                                                        TableCell { "{media_type}" }
+                                                        TableCell { class: "font-mono text-xs max-w-[220px] truncate".to_string(), "{realm_id}" }
+                                                        TableCell { class: "font-mono text-xs max-w-[220px] truncate".to_string(), "{uploaded_by}" }
+                                                        TableCell { "{size}" }
+                                                        TableCell { "{encrypted}" }
+                                                        TableCell { class: "text-muted-foreground".to_string(), "{created}" }
+                                                    }
                                                 }
                                             }
                                         }
@@ -114,13 +93,13 @@ pub fn MediaList() -> Element {
                                 }
                             }
                         }
-                    }
 
-                    Pagination {
-                        page: page_val,
-                        total: data.total_or_len(),
-                        per_page: PAGE_SIZE,
-                        on_page_change: move |p| page.set(p),
+                        Pagination {
+                            page: page_val,
+                            total: data.total_or_len(),
+                            per_page: PAGE_SIZE,
+                            on_page_change: move |p| page.set(p),
+                        }
                     }
                 },
                 Some(Err(e)) => rsx! {
@@ -136,6 +115,21 @@ pub fn MediaList() -> Element {
             }
         }
     }
+}
+
+fn media_row_matches(row: &crate::types::MediaRow, needle: &str) -> bool {
+    if needle.trim().is_empty() {
+        return true;
+    }
+    [
+        row.filename.as_deref(),
+        row.media_type.as_deref(),
+        row.realm_id.as_deref(),
+        row.uploaded_by.as_deref(),
+    ]
+    .into_iter()
+    .flatten()
+    .any(|value| value.to_ascii_lowercase().contains(needle))
 }
 
 fn format_bytes(bytes: u64) -> String {

@@ -59,235 +59,194 @@ fn build_nav_sections() -> Vec<NavSection> {
         )],
     )];
 
-    sections.push(
-        NavSection::new(
-            t("nav.section_identity"),
-            vec![
-                NavItem::new(t("nav.actors"), Route::ActorList {}, "users"),
-                NavItem::new(t("nav.devices"), Route::DeviceList {}, "smartphone"),
-                NavItem::new(t("nav.handles"), Route::HandleList {}, "fingerprint"),
-                NavItem::new(
-                    t("nav.handles_by_subject"),
-                    Route::HandlesBySubject { subject: None },
-                    "search",
-                ),
-                NavItem::new(t("nav.push_routes"), Route::PushRouteList {}, "smartphone"),
-                NavItem::new(t("nav.capabilities"), Route::CapabilityList {}, "shield"),
-                NavItem::new(
-                    t("nav.coauth_capabilities"),
-                    Route::CoauthCapabilities {},
-                    "shield",
-                ),
-                NavItem::new(t("nav.invite_tokens"), Route::InviteTokenList {}, "key"),
-                // Round 4 — 3PID third-party invite state-machine view.
-                NavItem::new(t("nav.invites_3pid"), Route::ThirdPartyInvites {}, "mail"),
-            ],
-        ),
-    );
+    sections.push(NavSection::new(
+        t("nav.section_identity"),
+        vec![
+            NavItem::new(t("nav.actors"), Route::ActorList {}, "users"),
+            NavItem::new(t("nav.devices"), Route::DeviceList {}, "smartphone"),
+            NavItem::new(t("nav.handles"), Route::HandleList {}, "fingerprint"),
+            NavItem::new(
+                t("nav.handles_by_subject"),
+                Route::HandlesBySubject { subject: None },
+                "search",
+            ),
+            NavItem::new(t("nav.capabilities"), Route::CapabilityList {}, "shield"),
+            NavItem::new(
+                t("nav.coauth_capabilities"),
+                Route::CoauthCapabilities {},
+                "shield",
+            ),
+            NavItem::new(t("nav.invite_tokens"), Route::InviteTokenList {}, "key"),
+        ],
+    ));
 
     // CKP-0007 Circles — encrypted sub-boundary admin (P3A.3).
     // Pinned right under Identity so operators see Circles next to
     // the Realm membership surfaces they extend.
-    sections.push(
-        NavSection::new(
-            t("nav.section_circles"),
-            vec![NavItem::new(
-                t("nav.circles"),
-                Route::CircleList {},
-                "users",
-            )],
-        ),
-    );
+    sections.push(NavSection::new(
+        t("nav.section_circles"),
+        vec![NavItem::new(
+            t("nav.circles"),
+            Route::CircleList {},
+            "users",
+        )],
+    ));
 
-    sections.push(
-        NavSection::new(
-            t("nav.section_moderation"),
-            vec![
-                NavItem::new(t("nav.realms"), Route::RealmList {}, "shield"),
-                NavItem::new(t("nav.spaces"), Route::SpaceList {}, "message-square"),
-                NavItem::new(
-                    t("nav.moderation_reports"),
-                    Route::ModerationReports {},
-                    "flag",
-                ),
-                // Round R2/R3 T06 — moderation appeal admin.
-                NavItem::new(
-                    "Moderation appeals".to_string(),
-                    Route::ModerationAppeals {},
-                    "flag",
-                ),
-                NavItem::new(t("nav.audit"), Route::AuditLog {}, "scroll-text"),
-                // Round R2/R3 T10 — attestation evidence admin.
-                NavItem::new(
-                    "Audit attestation".to_string(),
-                    Route::AuditAttestation {},
-                    "shield",
-                ),
-            ],
-        ),
-    );
+    sections.push(NavSection::new(
+        t("nav.section_moderation"),
+        vec![
+            NavItem::new(t("nav.realms"), Route::RealmList {}, "shield"),
+            NavItem::new(t("nav.spaces"), Route::SpaceList {}, "message-square"),
+            NavItem::new(
+                t("nav.moderation_reports"),
+                Route::ModerationReports {},
+                "flag",
+            ),
+            // Round R2/R3 T06 — moderation appeal admin.
+            NavItem::new(
+                "Moderation appeals".to_string(),
+                Route::ModerationAppeals {},
+                "flag",
+            ),
+            NavItem::new(t("nav.audit"), Route::AuditLog {}, "scroll-text"),
+        ],
+    ));
 
-    sections.push(
-        NavSection::new(
-            t("nav.section_infrastructure"),
-            vec![
-                NavItem::new(t("nav.federation"), Route::FederationList {}, "globe"),
-                NavItem::new(t("nav.media"), Route::MediaList {}, "image"),
-                NavItem::new(t("nav.applets"), Route::AppletList {}, "plug"),
-                NavItem::new(t("nav.applets_admin"), Route::AppletAdmin {}, "plug"),
-                NavItem::new(t("nav.agents"), Route::AgentList {}, "bot"),
-                NavItem::new(t("nav.agents_admin"), Route::AgentAdmin {}, "bot"),
-                // CKP-0008 personal-agent admin (P3-A).
-                NavItem::new(
-                    "Personal agents".to_string(),
-                    Route::PersonalAgentList {},
-                    "bot",
-                ),
-                // B-C key-backup recovery admin (P3-B).
-                NavItem::new("Key backup".to_string(), Route::KeyBackupList {}, "key"),
-                NavItem::new(t("nav.directory_admin"), Route::DirectoryAdmin {}, "globe"),
-                NavItem::new(
-                    t("nav.federation_status"),
-                    Route::RealmFederationStatus {
-                        realm_id: "_".to_string(),
-                    },
-                    "globe",
-                ),
-                NavItem::new(
-                    t("nav.policy_editor"),
-                    Route::RealmPolicyEditor {
-                        realm_id: "_".to_string(),
-                    },
-                    "file-text",
-                ),
-                NavItem::new(
-                    t("nav.delivery_binding"),
-                    // Realm-rework: link to the Realm-scoped editor.
-                    Route::RealmDeliveryBinding {
-                        realm_id: "_".to_string(),
-                    },
-                    "shield",
-                ),
-                // R5.2 — Realm link-graph (outbound / inbound
-                // `ck.realm.link` rows). Sits next to delivery binding
-                // so the operator can pivot from a single Realm's
-                // routing policy to its boundary topology.
-                NavItem::new(
-                    t("nav.realm_links"),
-                    Route::RealmLinks {
-                        realm_id: "_".to_string(),
-                    },
-                    "link",
-                ),
-                // R3 (UI-3) — Realm media_service.foci[] editor.
-                NavItem::new(
-                    t("media_service.title"),
-                    Route::RealmMediaService {
-                        realm_id: "_".to_string(),
-                    },
-                    "video",
-                ),
-            ],
-        ),
-    );
+    sections.push(NavSection::new(
+        t("nav.section_infrastructure"),
+        vec![
+            NavItem::new(t("nav.federation"), Route::FederationList {}, "globe"),
+            NavItem::new(t("nav.media"), Route::MediaList {}, "image"),
+            NavItem::new(t("nav.applets"), Route::AppletList {}, "plug"),
+            NavItem::new(t("nav.applets_admin"), Route::AppletAdmin {}, "plug"),
+            NavItem::new(t("nav.agents"), Route::AgentList {}, "bot"),
+            NavItem::new(t("nav.agents_admin"), Route::AgentAdmin {}, "bot"),
+            // CKP-0008 personal-agent admin (P3-A).
+            NavItem::new(
+                "Personal agents".to_string(),
+                Route::PersonalAgentList {},
+                "bot",
+            ),
+            // B-C key-backup recovery admin (P3-B).
+            NavItem::new("Key backup".to_string(), Route::KeyBackupList {}, "key"),
+            NavItem::new(t("nav.directory_admin"), Route::DirectoryAdmin {}, "globe"),
+            NavItem::new(
+                t("nav.federation_status"),
+                Route::RealmFederationStatus {
+                    realm_id: "_".to_string(),
+                },
+                "globe",
+            ),
+            NavItem::new(
+                t("nav.policy_editor"),
+                Route::RealmPolicyEditor {
+                    realm_id: "_".to_string(),
+                },
+                "file-text",
+            ),
+            NavItem::new(
+                t("nav.delivery_binding"),
+                // Realm-rework: link to the Realm-scoped editor.
+                Route::RealmDeliveryBinding {
+                    realm_id: "_".to_string(),
+                },
+                "shield",
+            ),
+            // R5.2 — Realm link-graph (outbound / inbound
+            // `ck.realm.link` rows). Sits next to delivery binding
+            // so the operator can pivot from a single Realm's
+            // routing policy to its boundary topology.
+            NavItem::new(
+                t("nav.realm_links"),
+                Route::RealmLinks {
+                    realm_id: "_".to_string(),
+                },
+                "link",
+            ),
+            // R3 (UI-3) — Realm media_service.foci[] editor.
+            NavItem::new(
+                t("media_service.title"),
+                Route::RealmMediaService {
+                    realm_id: "_".to_string(),
+                },
+                "video",
+            ),
+        ],
+    ));
 
-    sections.push(
-        NavSection::new(
-            t("nav.section_server_ops"),
-            vec![
-                NavItem::new(t("nav.policy"), Route::PolicyList {}, "file-text"),
-                NavItem::new(t("nav.server_status"), Route::ServerStatus {}, "activity"),
-                NavItem::new(
-                    "Hardening".to_string(),
-                    Route::HardeningDashboard {},
-                    "shield",
-                ),
-                NavItem::new(
-                    t("nav.starid_resolver"),
-                    Route::StaridResolver {},
-                    "fingerprint",
-                ),
-                // Round R2/R3 T08 — deployment-wide trust_domain edit.
-                NavItem::new(
-                    "Trust domain".to_string(),
-                    Route::TrustDomainConfig {},
-                    "shield",
-                ),
-                // Round R2/R3 T09 — relaxed ephemeral window slider.
-                NavItem::new(
-                    "Relaxed window".to_string(),
-                    Route::RelaxedWindow {},
-                    "activity",
-                ),
-                // Round R2/R3 T07 — deactivation fanout review.
-                NavItem::new(
-                    "Deactivation review".to_string(),
-                    Route::DeactivationReview {},
-                    "alert-triangle",
-                ),
-            ],
-        ),
-    );
+    sections.push(NavSection::new(
+        t("nav.section_server_ops"),
+        vec![
+            NavItem::new(t("nav.policy"), Route::PolicyList {}, "file-text"),
+            NavItem::new(t("nav.server_status"), Route::ServerStatus {}, "activity"),
+            NavItem::new(
+                "Hardening".to_string(),
+                Route::HardeningDashboard {},
+                "shield",
+            ),
+            NavItem::new(
+                t("nav.starid_resolver"),
+                Route::StaridResolver {},
+                "fingerprint",
+            ),
+            // Round R2/R3 T07 — deactivation fanout review.
+            NavItem::new(
+                "Deactivation review".to_string(),
+                Route::DeactivationReview {},
+                "alert-triangle",
+            ),
+        ],
+    ));
 
     // Stream H' (Move/Anchor/Lattice admin) — gated on the soland bridge
     // (without the principal server there is no Move/Anchor surface) and
     // on the anchor admin scope. Realm deep links keep a placeholder id
     // because admins typically arrive from the Realm detail page.
-    sections.push(
-        NavSection::new(
-            t("nav.section_anchor"),
-            vec![
-                NavItem::new(
-                    t("nav.anchor_bottom"),
-                    Route::AnchorBottom {},
-                    "alert-triangle",
-                ),
-                NavItem::new(
-                    t("nav.anchor_anchorer"),
-                    Route::RealmAnchorer {
-                        realm_id: "_".to_string(),
-                    },
-                    "shield",
-                ),
-                NavItem::new(
-                    t("nav.anchor_dag"),
-                    Route::RealmAnchorDag {
-                        realm_id: "_".to_string(),
-                    },
-                    "git-branch",
-                ),
-                NavItem::new(
-                    t("nav.consent"),
-                    Route::RealmConsent {
-                        realm_id: "_".to_string(),
-                    },
-                    "shield",
-                ),
-                NavItem::new(
-                    t("nav.covered_frontier"),
-                    Route::RealmCoveredFrontier {
-                        realm_id: "_".to_string(),
-                    },
-                    "lock",
-                ),
-                NavItem::new(t("nav.components"), Route::ComponentsRegistry {}, "plug"),
-                NavItem::new(
-                    t("nav.signing_keys"),
-                    Route::RealmSigningKeys {
-                        realm_id: "_".to_string(),
-                    },
-                    "key",
-                ),
-                NavItem::new(
-                    t("nav.multisig"),
-                    Route::RealmMultiSig {
-                        realm_id: "_".to_string(),
-                    },
-                    "users",
-                ),
-            ],
-        ),
-    );
+    sections.push(NavSection::new(
+        t("nav.section_anchor"),
+        vec![
+            NavItem::new(
+                t("nav.anchor_bottom"),
+                Route::AnchorBottom {},
+                "alert-triangle",
+            ),
+            NavItem::new(
+                t("nav.anchor_anchorer"),
+                Route::RealmAnchorer {
+                    realm_id: "_".to_string(),
+                },
+                "shield",
+            ),
+            NavItem::new(
+                t("nav.anchor_dag"),
+                Route::RealmAnchorDag {
+                    realm_id: "_".to_string(),
+                },
+                "git-branch",
+            ),
+            NavItem::new(
+                t("nav.covered_frontier"),
+                Route::RealmCoveredFrontier {
+                    realm_id: "_".to_string(),
+                },
+                "lock",
+            ),
+            NavItem::new(
+                t("nav.signing_keys"),
+                Route::RealmSigningKeys {
+                    realm_id: "_".to_string(),
+                },
+                "key",
+            ),
+            NavItem::new(
+                t("nav.multisig"),
+                Route::RealmMultiSig {
+                    realm_id: "_".to_string(),
+                },
+                "users",
+            ),
+        ],
+    ));
 
     sections.push(
         NavSection::new(
@@ -434,10 +393,7 @@ fn is_route_active(current: &Route, target: &Route) -> bool {
     }
 
     match target {
-        Route::ActorList {} => matches!(
-            current,
-            Route::ActorList {} | Route::ActorShow { .. } | Route::ActorCreate {}
-        ),
+        Route::ActorList {} => matches!(current, Route::ActorList {} | Route::ActorShow { .. }),
         Route::HandleList {} => matches!(current, Route::HandleList {} | Route::HandleShow { .. }),
         Route::RealmList {} => matches!(
             current,

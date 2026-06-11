@@ -205,8 +205,8 @@ mod tests {
         );
         // Numeric id templated.
         assert_eq!(
-            redact_path("/_soland/admin/moderation/reports/12345/resolve"),
-            "/_soland/admin/moderation/reports/{id}/resolve"
+            redact_path("/_soland/admin/accounts/12345/deactivate"),
+            "/_soland/admin/accounts/{id}/deactivate"
         );
         // No ids → unchanged.
         assert_eq!(

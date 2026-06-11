@@ -1,12 +1,12 @@
-//! DTO shapes for the AnchorerWorker signing-key admin surface.
+//! DTO shapes for the NotaryWorker signing-key admin surface.
 //!
-//! These mirror the join-projection of the principal-server's anchorer
+//! These mirror the join-projection of the principal-server's notary
 //! signing-key configuration that soland exposes via the admin describe
 //! endpoint.
 
 use serde::{Deserialize, Serialize};
 
-/// Origin of the AnchorerWorker signing key. `Configured` means an
+/// Origin of the NotaryWorker signing key. `Configured` means an
 /// operator-provisioned PEM is loaded from disk / KMS; `Ephemeral` means
 /// the worker generated a key in-memory at startup (insecure for
 /// production — the operator should rotate to a configured key ASAP).
@@ -34,7 +34,7 @@ impl SigningKeyOrigin {
     }
 }
 
-/// Read-only describe view for the current AnchorerWorker signing key.
+/// Read-only describe view for the current NotaryWorker signing key.
 /// soland projects this from the running worker's bound key material; the
 /// `verification_method_id` is the canonical `<did>#<kid>` reference admins
 /// can search for in audit logs.
@@ -71,7 +71,7 @@ impl SigningKeyDescribe {
     /// Whether the `Rotate signing key` button should be enabled. Ephemeral
     /// keys cannot be rotated in-place — the operator MUST redeploy with a
     /// configured key first; otherwise rotation would just spin up another
-    /// ephemeral key, leaving anchorer signatures un-anchored to a stable
+    /// ephemeral key, leaving notary signatures un-anchored to a stable
     /// DID.
     pub fn can_rotate(&self) -> bool {
         self.rotatable && matches!(self.origin_typed(), SigningKeyOrigin::Configured)

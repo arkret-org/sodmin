@@ -25,8 +25,6 @@ pub enum Route {
 
         #[route("/actors")]
         ActorList {},
-        #[route("/actors/create")]
-        ActorCreate {},
         #[route("/actors/:actor_id")]
         ActorShow { actor_id: String },
 
@@ -36,12 +34,10 @@ pub enum Route {
         RealmCreate {},
         #[route("/realms/:realm_id")]
         RealmShow { realm_id: String },
-        #[route("/realms/:realm_id/anchorer")]
+        #[route("/realms/:realm_id/notary")]
         RealmAnchorer { realm_id: String },
-        #[route("/realms/:realm_id/anchor-dag")]
+        #[route("/realms/:realm_id/seal-dag")]
         RealmAnchorDag { realm_id: String },
-        #[route("/realms/:realm_id/consent")]
-        RealmConsent { realm_id: String },
         #[route("/realms/:realm_id/covered-frontier")]
         RealmCoveredFrontier { realm_id: String },
         #[route("/realms/:realm_id/signing-keys")]
@@ -60,9 +56,6 @@ pub enum Route {
 
         #[route("/anchor/bottom")]
         AnchorBottom {},
-
-        #[route("/components")]
-        ComponentsRegistry {},
 
         #[route("/media")]
         MediaList {},
@@ -103,9 +96,6 @@ pub enum Route {
         HandleList {},
         #[route("/handles/:handle_id")]
         HandleShow { handle_id: String },
-
-        #[route("/push-routes")]
-        PushRouteList {},
 
         #[route("/realms/:realm_id/delivery-binding")]
         RealmDeliveryBinding { realm_id: String },
@@ -166,10 +156,6 @@ pub enum Route {
         #[route("/invite-tokens")]
         InviteTokenList {},
 
-        // Round 4 — 3PID third-party-invite state-machine admin view.
-        #[route("/invites/3pid")]
-        ThirdPartyInvites {},
-
         #[route("/policy")]
         PolicyList {},
 
@@ -186,16 +172,6 @@ pub enum Route {
         // fanout + erasure receipt panel.
         #[route("/realms/:realm_id/destroy")]
         RealmDestroy { realm_id: String },
-        // Round R2/R3 T08 — deployment-wide trust_domain edit.
-        #[route("/server/trust-domain")]
-        TrustDomainConfig {},
-        // Round R2/R3 T09 — relaxed ephemeral window slider.
-        #[route("/server/relaxed-window")]
-        RelaxedWindow {},
-        // Round R2/R3 T10 — audit attestation evidence upload + review.
-        #[route("/audit/attestation")]
-        AuditAttestation {},
-
         #[route("/starid/resolver")]
         StaridResolver {},
 
@@ -318,11 +294,6 @@ fn ActorList() -> Element {
 }
 
 #[component]
-fn ActorCreate() -> Element {
-    rsx! { pages::actors::create::ActorCreate {} }
-}
-
-#[component]
 fn ActorShow(actor_id: String) -> Element {
     rsx! { pages::actors::show::ActorShow { actor_id } }
 }
@@ -358,11 +329,6 @@ fn AnchorBottom() -> Element {
 }
 
 #[component]
-fn RealmConsent(realm_id: String) -> Element {
-    rsx! { pages::realms::consent::ConsentPage { realm_id } }
-}
-
-#[component]
 fn RealmCoveredFrontier(realm_id: String) -> Element {
     rsx! { pages::realms::covered_frontier::CoveredFrontierPage { realm_id } }
 }
@@ -388,11 +354,6 @@ fn SpaceShow(space_id: String) -> Element {
 }
 
 #[component]
-fn ComponentsRegistry() -> Element {
-    rsx! { pages::components_registry::ComponentsPage {} }
-}
-
-#[component]
 fn MediaList() -> Element {
     rsx! { pages::media::MediaList {} }
 }
@@ -415,21 +376,6 @@ fn DeactivationReview() -> Element {
 #[component]
 fn RealmDestroy(realm_id: String) -> Element {
     rsx! { pages::realm_destroy::RealmDestroyPage { realm_id } }
-}
-
-#[component]
-fn TrustDomainConfig() -> Element {
-    rsx! { pages::trust_domain::TrustDomainConfigPage {} }
-}
-
-#[component]
-fn RelaxedWindow() -> Element {
-    rsx! { pages::relaxed_window::RelaxedWindowPage {} }
-}
-
-#[component]
-fn AuditAttestation() -> Element {
-    rsx! { pages::audit_attestation::AuditAttestationPage {} }
 }
 
 #[component]
@@ -485,11 +431,6 @@ fn HandleList() -> Element {
 #[component]
 fn HandleShow(handle_id: String) -> Element {
     rsx! { pages::handles::HandleShow { handle_id } }
-}
-
-#[component]
-fn PushRouteList() -> Element {
-    rsx! { pages::push_routes::PushRoutes {} }
 }
 
 #[component]
@@ -585,11 +526,6 @@ fn AuditLog() -> Element {
 #[component]
 fn InviteTokenList() -> Element {
     rsx! { pages::invite_tokens::InviteTokenList {} }
-}
-
-#[component]
-fn ThirdPartyInvites() -> Element {
-    rsx! { pages::invites_3pid::ThirdPartyInvitesPage {} }
 }
 
 #[component]

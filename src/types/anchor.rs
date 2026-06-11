@@ -1,8 +1,8 @@
 //! DTO shapes for the Move/Anchor/Lattice admin surface.
 //!
 //! These types mirror what soland's anchor / move / bottom admin APIs
-//! return. The admin surface here is anchorer cells, bottom diagnostics
-//! and the Anchor DAG.
+//! return. The admin surface here is notary cells, bottom diagnostics
+//! and the Seal DAG.
 
 use serde::{Deserialize, Serialize};
 
@@ -133,7 +133,7 @@ pub enum SelfSignViolation {
 
 /// Profile sent to the "construct anchorer reconfig Move" form. The
 /// admin client converts this into a Move payload before POSTing to
-/// `soland /_soland/admin/realms/{id}/anchorer/reconfigure`.
+/// `soland /_soland/admin/realms/{id}/notary/reconfigure`.
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AnchorerReconfigRequest {
     pub realm_id: String,
@@ -399,7 +399,7 @@ pub struct BottomRepairRequest {
     pub strategy: BottomRepairStrategy,
 }
 
-// ── Anchor DAG ───────────────────────────────────────────────────────────
+// ── Seal DAG ─────────────────────────────────────────────────────────────
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AnchorLeaf {
@@ -436,7 +436,7 @@ pub struct SignAnchorResponse {
     pub move_count: u64,
 }
 
-/// Body POSTed to `anchor-dag/compact`. Hint to soland how aggressively
+/// Body POSTed to `seal-dag/compact`. Hint to soland how aggressively
 /// to compact — `max_moves` lets the operator bound how many leaves to
 /// fold into the new compaction Anchor.
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]

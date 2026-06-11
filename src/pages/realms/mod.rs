@@ -2,7 +2,6 @@
 
 pub mod anchor_dag;
 pub mod anchorer;
-pub mod consent;
 pub mod covered_frontier;
 pub mod create;
 pub mod federation_status;

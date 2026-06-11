@@ -44,8 +44,8 @@ pub fn CircleList() -> Element {
     rsx! {
         div { class: "space-y-6",
             PageHeader {
-                title: t("circle.list_title"),
-                description: t("circle.list_description"),
+                title: "My Circles".to_string(),
+                description: "Self-scoped Circle operations for the authenticated principal.".to_string(),
                 Link {
                     to: Route::CircleCreate {},
                     class: "inline-flex items-center gap-2 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90",

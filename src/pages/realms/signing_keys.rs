@@ -1,14 +1,14 @@
-//! Anchorer signing-key admin page (Stream H', H'8).
+//! Notary signing-key admin page (Stream H', H'8).
 //!
-//! Read-mostly view over the AnchorerWorker's currently-bound signing key:
+//! Read-mostly view over the NotaryWorker's currently-bound signing key:
 //! origin (Configured / Ephemeral), verification method id (`<did>#<kid>`),
 //! and last-rotation timestamp. When the key is `Configured` the page
 //! exposes a `Rotate signing key` button that POSTs to
-//! `/_soland/admin/realms/{id}/anchorer/rotate-signing-key`. When the key
+//! `/_soland/admin/realms/{id}/notary/rotate-signing-key`. When the key
 //! is `Ephemeral` the rotation button is hidden and a destructive banner
 //! warns the operator that production deployments must redeploy with a
 //! configured key (rotating an ephemeral key just spawns another
-//! ephemeral key, leaving anchorer signatures un-anchored to a stable DID).
+//! ephemeral key, leaving notary signatures un-anchored to a stable DID).
 //!
 //! Follows the 404-tolerant pattern shared with the rest of Stream H' —
 //! when the soland route hasn't been wired the operator sees a clear
@@ -50,7 +50,7 @@ pub fn SigningKeysPage(realm_id: String) -> Element {
         div { class: "space-y-6",
             PageHeader {
                 title: format!("Signing key · {}", header_realm_id),
-                description: "AnchorerWorker signing key origin, verification method and rotation controls.".to_string(),
+                description: "NotaryWorker signing key origin, verification method and rotation controls.".to_string(),
                 Button {
                     variant: ButtonVariant::Outline,
                     onclick: move |_| data.restart(),
@@ -80,7 +80,7 @@ pub fn SigningKeysPage(realm_id: String) -> Element {
                             // for live workloads. The destructive banner
                             // mirrors the covered_frontier lag pattern.
                             div { class: "rounded-md bg-destructive/10 p-3 text-sm text-destructive",
-                                "Anchorer is signing with an EPHEMERAL key. This key will be lost on the next worker restart and cannot be rotated in place — redeploy the principal-server with a configured key (PEM / KMS) before promoting to production."
+                                "NotaryWorker is signing with an EPHEMERAL key. This key will be lost on the next worker restart and cannot be rotated in place — redeploy the principal-server with a configured key (PEM / KMS) before promoting to production."
                             }
                         }
                         Card {

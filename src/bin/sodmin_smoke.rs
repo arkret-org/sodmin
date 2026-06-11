@@ -285,8 +285,8 @@ fn run() -> ExitCode {
     let realm_id = &args.realm_id;
 
     // Health probe + Stream H' GET endpoints. Mutating endpoints
-    // (rotate-signing-key, partial-signature submit, anchorer/reconfigure,
-    // bottom/repair, anchor-dag/compact, covered-frontier/advance) are
+    // (rotate-signing-key, partial-signature submit, notary/reconfigure,
+    // bottom/repair, seal-dag/compact, covered-frontier/advance) are
     // intentionally NOT exercised here — running them post-deploy would
     // mutate state. Smoke checks reachability + auth only.
     let checks = vec![
@@ -298,38 +298,27 @@ fn run() -> ExitCode {
             format!("{base}/health"),
         ),
         (
-            "realms/anchorer (H'1/H'2)",
+            "realms/notary (H'1/H'2)",
             "GET",
-            build_realm_url(base, realm_id, "anchorer"),
+            build_realm_url(base, realm_id, "notary"),
         ),
         (
-            "realms/anchor-dag (H'4)",
+            "realms/seal-dag (H'4)",
             "GET",
-            build_realm_url(base, realm_id, "anchor-dag"),
+            build_realm_url(base, realm_id, "seal-dag"),
         ),
         (
             "realms/bottom (H'3)",
             "GET",
             build_realm_url(base, realm_id, "bottom"),
         ),
-        (
-            "realms/consent (H'5)",
-            "GET",
-            build_realm_url(base, realm_id, "consent"),
-        ),
-        // NOTE: a former `components (H'6)` check hit
-        // `/_soland/admin/components`, which soland does not mount (the
-        // admin collection whitelist has no `components` resource). It was
+        // NOTE: former consent, components, and signing-key describe
+        // checks hit endpoints that soland does not mount. They were
         // removed so the smoke signal is not a false negative.
         (
             "realms/covered-frontier (H'7)",
             "GET",
             build_realm_url(base, realm_id, "mls/covered-frontier"),
-        ),
-        (
-            "realms/anchorer/signing-key (H'8)",
-            "GET",
-            build_realm_url(base, realm_id, "anchorer/signing-key"),
         ),
         (
             "realms/multisig/pending (H'9)",
@@ -414,10 +403,10 @@ mod tests {
 
     #[test]
     fn build_realm_url_strips_trailing_base_slash() {
-        let url = build_realm_url("https://soland.example.com/", "ck:realm:demo", "anchorer");
+        let url = build_realm_url("https://soland.example.com/", "ck:realm:demo", "notary");
         assert_eq!(
             url,
-            "https://soland.example.com/_soland/admin/realms/ck:realm:demo/anchorer"
+            "https://soland.example.com/_soland/admin/realms/ck:realm:demo/notary"
         );
     }
 

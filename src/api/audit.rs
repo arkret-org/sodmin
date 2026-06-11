@@ -49,16 +49,31 @@ pub async fn list_audit_entries(
     per_page: u64,
     filter: AuditFilter,
 ) -> Result<ListResponse<AuditEntry>, HttpError> {
-    let page_str = page.to_string();
-    let per_page_str = per_page.to_string();
-    let mut params: Vec<(&str, &str)> = vec![
-        ("page", page_str.as_str()),
-        ("per_page", per_page_str.as_str()),
-    ];
-    let owned = filter.into_query();
-    for (k, v) in owned.iter() {
-        params.push((k, v.as_str()));
-    }
+    let limit = per_page.max(1);
+    let cursor = page.saturating_sub(1).saturating_mul(limit).to_string();
+    let limit_str = limit.to_string();
+    let params: Vec<(&str, &str)> = vec![("limit", limit_str.as_str()), ("cursor", &cursor)];
     let url = build_url("/_soland/admin/audit", &params)?;
-    api_client(&url, "GET", None).await
+    let mut resp: ListResponse<AuditEntry> = api_client(&url, "GET", None).await?;
+    let filters = filter.into_query();
+    if !filters.is_empty() {
+        resp.data
+            .retain(|entry| audit_entry_matches(entry, &filters));
+    }
+    Ok(resp)
+}
+
+fn audit_entry_matches(entry: &AuditEntry, filters: &[(&'static str, String)]) -> bool {
+    filters.iter().all(|(key, value)| {
+        let needle = value.to_ascii_lowercase();
+        let haystack = match *key {
+            "action" | "event_kind" => entry.action.as_str(),
+            "actor_id" => entry.actor_id.as_deref().unwrap_or_default(),
+            "target_type" => entry.target_type.as_deref().unwrap_or_default(),
+            "target_id" => entry.target_id.as_deref().unwrap_or_default(),
+            "effective_scope" => entry.effective_scope.as_deref().unwrap_or_default(),
+            _ => "",
+        };
+        haystack.to_ascii_lowercase().contains(&needle)
+    })
 }

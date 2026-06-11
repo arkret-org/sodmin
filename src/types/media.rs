@@ -25,3 +25,21 @@ pub struct ActorMediaStatistics {
     #[serde(default)]
     pub total_size: u64,
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct MediaRow {
+    #[serde(default)]
+    pub media_type: Option<String>,
+    #[serde(default)]
+    pub filename: Option<String>,
+    #[serde(default)]
+    pub realm_id: Option<String>,
+    #[serde(default)]
+    pub encrypted: bool,
+    #[serde(default)]
+    pub uploaded_by: Option<String>,
+    #[serde(default, alias = "size")]
+    pub size_bytes: u64,
+    #[serde(default)]
+    pub created_at: Option<String>,
+}

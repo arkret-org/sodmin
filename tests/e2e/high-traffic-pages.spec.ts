@@ -23,8 +23,6 @@ const pageSmokes = [
   { name: "audit log", path: "/audit", heading: /audit|审计/i },
   { name: "policy", path: "/policy", heading: /policy|策略/i },
   { name: "server status", path: "/server-status", heading: /server|status|服务器|状态/i },
-  { name: "trust domain", path: "/server/trust-domain", heading: /trust domain/i },
-  { name: "3PID invites", path: "/invites/3pid", heading: /3pid invite|3PID/i },
 ];
 
 test.describe("high-traffic page smoke", () => {

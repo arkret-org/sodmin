@@ -14,6 +14,26 @@ const RECOVERY_POLICIES_PATH: &str = "/_soland/root/identity/recovery-policies";
 const RECOVERY_POLICY_PATH: &str = "/_soland/root/identity/recovery-policy";
 const RECOVERY_RECEIPTS_PATH: &str = "/_soland/root/identity/recovery-receipts";
 
+#[derive(Debug, Clone, serde::Deserialize, Default)]
+struct RecoveryPoliciesEnvelope {
+    #[serde(default)]
+    policies: Vec<RecoveryPolicy>,
+    #[serde(default)]
+    next_cursor: Option<String>,
+    #[serde(default)]
+    total: Option<u64>,
+}
+
+#[derive(Debug, Clone, serde::Deserialize, Default)]
+struct RecoveryReceiptsEnvelope {
+    #[serde(default)]
+    receipts: Vec<RecoveryReceipt>,
+    #[serde(default)]
+    next_cursor: Option<String>,
+    #[serde(default)]
+    total: Option<u64>,
+}
+
 /// `GET /_cokret/self/keys/backups?series_id=&backup_class=` — list backup
 /// envelopes grouped by series. Empty `series_id` returns the per-series
 /// frontier roll-up.
@@ -33,8 +53,20 @@ pub async fn list_backups(
 }
 
 /// `GET /_soland/root/identity/recovery-policies` — current recovery policies.
-pub async fn list_recovery_policies() -> Result<ListResponse<RecoveryPolicy>, HttpError> {
-    api_client(RECOVERY_POLICIES_PATH, "GET", None).await
+pub async fn list_recovery_policies(
+    principal_id: Option<&str>,
+) -> Result<ListResponse<RecoveryPolicy>, HttpError> {
+    let mut params: Vec<(&str, &str)> = Vec::with_capacity(1);
+    if let Some(principal_id) = principal_id.filter(|s| !s.is_empty()) {
+        params.push(("principal_id", principal_id));
+    }
+    let url = build_url(RECOVERY_POLICIES_PATH, &params)?;
+    let resp: RecoveryPoliciesEnvelope = api_client(&url, "GET", None).await?;
+    Ok(ListResponse {
+        data: resp.policies,
+        total: resp.total,
+        next_cursor: resp.next_cursor,
+    })
 }
 
 /// `POST /_soland/root/identity/recovery-policy` — upsert a policy's
@@ -52,11 +84,20 @@ pub async fn upsert_recovery_policy(policy: &RecoveryPolicy) -> Result<RecoveryP
 /// recovery receipts.
 pub async fn list_recovery_receipts(
     session_id: Option<&str>,
+    principal_id: Option<&str>,
 ) -> Result<ListResponse<RecoveryReceipt>, HttpError> {
-    let mut params: Vec<(&str, &str)> = Vec::with_capacity(1);
+    let mut params: Vec<(&str, &str)> = Vec::with_capacity(2);
     if let Some(s) = session_id {
         params.push(("session_id", s));
     }
+    if let Some(principal_id) = principal_id.filter(|s| !s.is_empty()) {
+        params.push(("principal_id", principal_id));
+    }
     let url = build_url(RECOVERY_RECEIPTS_PATH, &params)?;
-    api_client(&url, "GET", None).await
+    let resp: RecoveryReceiptsEnvelope = api_client(&url, "GET", None).await?;
+    Ok(ListResponse {
+        data: resp.receipts,
+        total: resp.total,
+        next_cursor: resp.next_cursor,
+    })
 }

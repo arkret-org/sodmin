@@ -22,8 +22,7 @@ use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::table::*;
 use crate::components::ui::toast::{ToastVariant, show_toast};
 use crate::types::anchor::{
-    BottomEntry, BottomKind, BottomKindExt, BottomRepairStrategy, WinnerHead,
-    bottom_kind_from_wire,
+    BottomEntry, BottomKind, BottomKindExt, BottomRepairStrategy, WinnerHead, bottom_kind_from_wire,
 };
 
 #[component]

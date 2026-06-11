@@ -24,6 +24,7 @@ use crate::types::RecoveryPolicy;
 pub fn KeyBackupList() -> Element {
     let mut series_filter = use_signal(String::new);
     let mut backup_class_filter = use_signal(String::new);
+    let mut principal_filter = use_signal(String::new);
 
     let series_q = series_filter.read().clone();
     let class_q = backup_class_filter.read().clone();
@@ -59,17 +60,37 @@ pub fn KeyBackupList() -> Element {
         }
     });
 
-    let mut policies_data =
-        use_resource(|| async move { key_backup::list_recovery_policies().await });
+    let principal_q = principal_filter.read().clone();
+    let mut policies_data = use_resource(move || {
+        let principal_q = principal_q.clone();
+        async move {
+            let principal_id = if principal_q.is_empty() {
+                None
+            } else {
+                Some(principal_q.as_str())
+            };
+            key_backup::list_recovery_policies(principal_id).await
+        }
+    });
 
-    let mut receipts_data =
-        use_resource(|| async move { key_backup::list_recovery_receipts(None).await });
+    let receipts_principal_q = principal_filter.read().clone();
+    let mut receipts_data = use_resource(move || {
+        let principal_q = receipts_principal_q.clone();
+        async move {
+            let principal_id = if principal_q.is_empty() {
+                None
+            } else {
+                Some(principal_q.as_str())
+            };
+            key_backup::list_recovery_receipts(None, principal_id).await
+        }
+    });
 
     rsx! {
         div { class: "space-y-6",
             PageHeader {
                 title: "Key backup".to_string(),
-                description: "Backup series, recovery policies, recovery receipts (CKP B-C)".to_string(),
+                description: "Self key backups plus recovery policies and receipts filtered by principal_id when authorized.".to_string(),
             }
 
             // ── Series filter ──
@@ -97,6 +118,27 @@ pub fn KeyBackupList() -> Element {
                         size: ButtonSize::Sm,
                         onclick: move |_| series_data.restart(),
                         "Apply filter"
+                    }
+                }
+            }
+
+            div { class: "rounded-md border bg-card p-4",
+                div { class: "space-y-1",
+                    Label { class: "text-xs text-muted-foreground".to_string(), "principal_id" }
+                    Input {
+                        placeholder: "current principal when empty".to_string(),
+                        value: principal_filter.read().clone(),
+                        oninput: move |evt: FormEvent| principal_filter.set(evt.value()),
+                    }
+                }
+                div { class: "mt-3 flex gap-2",
+                    Button {
+                        size: ButtonSize::Sm,
+                        onclick: move |_| {
+                            policies_data.restart();
+                            receipts_data.restart();
+                        },
+                        "Apply recovery filter"
                     }
                 }
             }

@@ -73,10 +73,10 @@ pub mod soland {
     pub const SERVER_STATS: &str = "/_soland/admin/server/stats";
     pub const REALMS: &str = "/_soland/admin/realms";
     pub const SPACES: &str = "/_soland/admin/spaces";
-    pub const MODERATION_REPORTS: &str = "/_soland/admin/moderation/reports";
+    pub const MODERATION_REPORTS: &str = "/_soland/admin/reports";
     pub const MODERATION_APPEALS: &str = "/_soland/admin/moderation/appeals";
-    pub const FEDERATION_STATUS: &str = "/_soland/admin/federation/status";
-    pub const AUTHZ_CAPABILITIES: &str = "/_soland/admin/authz/capabilities";
+    pub const FEDERATION: &str = "/_soland/admin/federation";
+    pub const CAPABILITIES: &str = "/_soland/admin/capabilities";
 }
 
 #[cfg(test)]
@@ -127,9 +127,10 @@ mod tests {
         assert!(soland_has_operation("GET", soland::SERVER_INFO));
         assert!(soland_has_operation("GET", soland::REALMS));
         assert!(soland_has_operation("GET", soland::SPACES));
+        assert!(soland_has_operation("GET", soland::MODERATION_REPORTS));
         assert!(soland_has_operation(
-            "POST",
-            "/_soland/admin/realms/{realm_id}/destroy"
+            "DELETE",
+            "/_soland/admin/realms/{realm_id}"
         ));
     }
 }

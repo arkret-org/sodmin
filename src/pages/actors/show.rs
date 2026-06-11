@@ -9,13 +9,11 @@ use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::{BreadcrumbItem, Breadcrumbs, PageHeader};
 use crate::components::ui::toast::{ToastVariant, show_toast};
 use crate::router::Route;
-use crate::types::UpdateActorRequest;
 use crate::utils::i18n::t;
 use crate::utils::net::audit::{AdminAuditOutcome, emit_admin_audit_server};
 
 #[component]
 pub fn ActorShow(actor_id: String) -> Element {
-    let mut suspending = use_signal(|| false);
     let mut show_deactivate_dialog = use_signal(|| false);
     let actor_id_clone = actor_id.clone();
     let mut data = use_resource(move || {
@@ -23,8 +21,6 @@ pub fn ActorShow(actor_id: String) -> Element {
         async move { actors::get_actor(&id).await }
     });
 
-    let actor_id_for_suspend = actor_id.clone();
-    let actor_id_for_unsuspend = actor_id.clone();
     let actor_id_for_deactivate = actor_id.clone();
 
     rsx! {
@@ -102,64 +98,16 @@ pub fn ActorShow(actor_id: String) -> Element {
                                 CardHeader { CardTitle { {t("actors.actions")} } }
                                 CardContent {
                                     div { class: "space-y-2",
-                                        if !actor.is_suspended && !actor.is_deactivated {
-                                            Button {
-                                                class: "w-full".to_string(),
-                                                disabled: suspending(),
-                                                onclick: move |_| {
-                                                    let aid = actor_id_for_suspend.clone();
-                                                    suspending.set(true);
-                                                    spawn(async move {
-                                                        let req = UpdateActorRequest { is_suspended: Some(true), ..Default::default() };
-                                                        match actors::update_actor(&aid, &req).await {
-                                                            Ok(_) => {
-                                                                show_toast(&t("actors.suspended"), ToastVariant::Success);
-                                                                emit_admin_audit_server("actor", &aid, "suspend", AdminAuditOutcome::Accepted, None);
-                                                            }
-                                                            Err(e) => {
-                                                                show_toast(&e.message, ToastVariant::Error);
-                                                                emit_admin_audit_server("actor", &aid, "suspend", AdminAuditOutcome::Rejected, Some(&e.message));
-                                                            }
-                                                        }
-                                                        suspending.set(false);
-                                                        data.restart();
-                                                    });
-                                                },
-                                                {t("actors.suspend")}
-                                            }
-                                        }
-                                        if actor.is_suspended {
-                                            Button {
-                                                class: "w-full".to_string(),
-                                                disabled: suspending(),
-                                                onclick: move |_| {
-                                                    let aid = actor_id_for_unsuspend.clone();
-                                                    suspending.set(true);
-                                                    spawn(async move {
-                                                        let req = UpdateActorRequest { is_suspended: Some(false), ..Default::default() };
-                                                        match actors::update_actor(&aid, &req).await {
-                                                            Ok(_) => {
-                                                                show_toast(&t("actors.active"), ToastVariant::Success);
-                                                                emit_admin_audit_server("actor", &aid, "unsuspend", AdminAuditOutcome::Accepted, None);
-                                                            }
-                                                            Err(e) => {
-                                                                show_toast(&e.message, ToastVariant::Error);
-                                                                emit_admin_audit_server("actor", &aid, "unsuspend", AdminAuditOutcome::Rejected, Some(&e.message));
-                                                            }
-                                                        }
-                                                        suspending.set(false);
-                                                        data.restart();
-                                                    });
-                                                },
-                                                {t("actors.unsuspend")}
-                                            }
-                                        }
-                                        if !actor.is_deactivated {
+                                        if !actor.is_deactivated && actor.account_id.is_some() {
                                             Button {
                                                 variant: ButtonVariant::Destructive,
                                                 class: "w-full".to_string(),
                                                 onclick: move |_| show_deactivate_dialog.set(true),
                                                 {t("actors.deactivate")}
+                                            }
+                                        } else {
+                                            p { class: "text-sm text-muted-foreground",
+                                                "Actor lifecycle writes are available only when the admin actor snapshot carries an account_id."
                                             }
                                         }
                                     }
@@ -192,14 +140,25 @@ pub fn ActorShow(actor_id: String) -> Element {
                             let aid = aid.clone();
                             show_deactivate_dialog.set(false);
                             spawn(async move {
-                                match actors::deactivate_actor(&aid).await {
+                                let account_id = match actors::get_actor(&aid).await {
+                                    Ok(actor) => actor.account_id.unwrap_or_default(),
+                                    Err(e) => {
+                                        show_toast(&e.message, ToastVariant::Error);
+                                        return;
+                                    }
+                                };
+                                if account_id.is_empty() {
+                                    show_toast("Actor snapshot has no account_id.", ToastVariant::Error);
+                                    return;
+                                }
+                                match actors::deactivate_account(&account_id).await {
                                     Ok(_) => {
                                         show_toast(&t("actors.deactivated"), ToastVariant::Success);
-                                        emit_admin_audit_server("actor", &aid, "deactivate", AdminAuditOutcome::Accepted, None);
+                                        emit_admin_audit_server("account", &account_id, "deactivate", AdminAuditOutcome::Accepted, None);
                                     }
                                     Err(e) => {
                                         show_toast(&e.message, ToastVariant::Error);
-                                        emit_admin_audit_server("actor", &aid, "deactivate", AdminAuditOutcome::Rejected, Some(&e.message));
+                                        emit_admin_audit_server("account", &account_id, "deactivate", AdminAuditOutcome::Rejected, Some(&e.message));
                                     }
                                 }
                                 data.restart();

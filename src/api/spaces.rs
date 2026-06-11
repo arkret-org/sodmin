@@ -4,16 +4,12 @@
 //!
 //! - `GET /_soland/admin/spaces` — list of Spaces visible to the current admin scope.
 //!   Cursor-paginated.
-//! - `GET /_soland/admin/spaces/{id}/hierarchy` — parent + immediate children for a single Space.
-//!
-//! Both routes are 404-tolerant on the client side — the
-//! `format_optional_endpoint_error` helper turns 404 into a clear
-//! "not yet wired" toast so operators can tell "feature not deployed"
-//! apart from "row missing".
+//! Per-space hierarchy views are assembled client-side from the same
+//! snapshot; soland does not expose a dedicated hierarchy endpoint.
 
 use crate::api::client::{api_client, build_url};
 use crate::types::api::ListResponse;
-use crate::types::spaces::{SpaceHierarchy, SpaceRow};
+use crate::types::spaces::{SpaceHierarchy, SpaceHierarchyNode, SpaceRow};
 use crate::utils::net::error::HttpError;
 
 #[derive(Debug, Clone, Default)]
@@ -38,17 +34,56 @@ pub async fn list_spaces(
     }
     let url = build_url("/_soland/admin/spaces", &params)?;
     let resp: ListResponse<SpaceRow> = api_client(&url, "GET", None).await?;
+    let needle = search.trim().to_ascii_lowercase();
+    let data = if needle.is_empty() {
+        resp.data
+    } else {
+        resp.data
+            .into_iter()
+            .filter(|row| {
+                row.id.to_ascii_lowercase().contains(&needle)
+                    || row
+                        .name
+                        .as_deref()
+                        .is_some_and(|name| name.to_ascii_lowercase().contains(&needle))
+            })
+            .collect()
+    };
     Ok(SpacePage {
-        data: resp.data,
+        data,
         next_cursor: resp.next_cursor,
         total: resp.total,
     })
 }
 
 pub async fn get_space(space_id: &str) -> Result<SpaceHierarchy, HttpError> {
-    let url = format!(
-        "/_soland/admin/spaces/{}/hierarchy",
-        urlencoding::encode(space_id)
-    );
-    api_client(&url, "GET", None).await
+    let page = list_spaces(None, 10_000, "").await?;
+    let Some(center) = page.data.iter().find(|row| row.id == space_id).cloned() else {
+        return Err(HttpError::message("space not found in admin snapshot"));
+    };
+    let parent = center
+        .parent_space_id
+        .as_ref()
+        .and_then(|parent_id| page.data.iter().find(|row| row.id == *parent_id))
+        .map(space_node);
+    let children = page
+        .data
+        .iter()
+        .filter(|row| row.parent_space_id.as_deref() == Some(space_id))
+        .map(space_node)
+        .collect();
+    Ok(SpaceHierarchy {
+        space_id: center.id,
+        name: center.name,
+        parent,
+        children,
+    })
+}
+
+fn space_node(row: &SpaceRow) -> SpaceHierarchyNode {
+    SpaceHierarchyNode {
+        space_id: row.id.clone(),
+        name: row.name.clone(),
+        member_count: row.member_count,
+    }
 }

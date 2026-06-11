@@ -1,8 +1,8 @@
 //! HTTP client for the soland federation status admin surface.
 //!
-//! Endpoint: `GET /_soland/admin/federation/status` — per-Realm
-//! federation peers + last-anchor-pulled-at + outbound queue depth.
-//! 404-tolerant on the client side.
+//! The per-Realm federation health endpoint is not currently wired by
+//! soland. The page keeps the DTOs so the UI can render a clear local
+//! "not wired" error without probing a false path.
 //!
 //! Row / health DTOs are sourced from `coauth_admin_types::federation_admin`.
 //! The top-level envelope is the sodmin client's list-paging shape.
@@ -10,12 +10,9 @@
 use coauth_admin_types::federation_admin::FederationStatusRow;
 use serde::{Deserialize, Serialize};
 
-use crate::api::client::{api_client, build_url};
 use crate::utils::net::error::HttpError;
 
-/// Top-level envelope returned by `GET /_soland/admin/federation/status`.
-/// soland MAY return either a flat list or a wrapped envelope; the API
-/// client supports both shapes.
+/// Top-level envelope expected once soland exposes federation health.
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct FederationStatusEnvelope {
     #[serde(default)]
@@ -25,10 +22,8 @@ pub struct FederationStatusEnvelope {
 }
 
 pub async fn get_status(realm_id: Option<&str>) -> Result<FederationStatusEnvelope, HttpError> {
-    let mut params: Vec<(&str, &str)> = Vec::with_capacity(1);
-    if let Some(s) = realm_id.filter(|s| !s.is_empty()) {
-        params.push(("realm_id", s));
-    }
-    let url = build_url("/_soland/admin/federation/status", &params)?;
-    api_client(&url, "GET", None).await
+    let _ = realm_id;
+    Err(HttpError::message(
+        "federation status endpoint is not wired",
+    ))
 }

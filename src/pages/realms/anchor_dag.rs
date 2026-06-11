@@ -1,4 +1,4 @@
-//! Anchor DAG / compaction admin page (Stream H', H'4).
+//! Seal DAG / compaction admin page (Stream H', H'4).
 //!
 //! Visualises the latest Anchor leaves, the current frontier, the latest
 //! `state_root` and exposes a "trigger compaction" button that POSTs (today,
@@ -38,7 +38,7 @@ pub fn AnchorDagPage(realm_id: String) -> Element {
     rsx! {
         div { class: "space-y-6",
             PageHeader {
-                title: format!("Anchor DAG · {}", header_realm_id),
+                title: format!("Seal DAG · {}", header_realm_id),
                 description: "Visualize Anchor leaves, frontier and state_root for this Realm.".to_string(),
                 Button {
                     variant: ButtonVariant::Default,

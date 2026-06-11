@@ -6,9 +6,10 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct Device {
-    #[serde(default)]
+    #[serde(default, alias = "device_id")]
     pub id: String,
     #[serde(default)]
+    #[serde(alias = "actor")]
     pub actor_id: Option<String>,
     #[serde(default)]
     pub display_name: Option<String>,
@@ -18,7 +19,7 @@ pub struct Device {
     pub last_seen_ip: Option<String>,
     #[serde(default)]
     pub last_seen_ts: Option<u64>,
-    #[serde(default)]
+    #[serde(default, alias = "verification_state")]
     pub verification_status: Option<String>,
     #[serde(default)]
     pub is_cross_signed: bool,

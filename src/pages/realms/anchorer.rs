@@ -1,9 +1,9 @@
-//! Anchorer cell admin page (Stream H', H'2).
+//! Notary cell admin page (Stream H', H'2).
 //!
 //! Renders the current `ck:cell:ck.component.anchorer.v1:<realm_id>` cell
 //! value (single_did / threshold / open_set / mixed) and exposes a form
-//! that constructs an anchorer-reconfig Move. The submit path posts to
-//! soland's `/_soland/admin/realms/{realm_id}/anchorer/reconfigure` endpoint;
+//! that constructs a notary reconfig Move. The submit path posts to
+//! soland's `/_soland/admin/realms/{realm_id}/notary/reconfigure` endpoint;
 //! soland builds the typed Move + signs with the admin's signer flow.
 //!
 //! Spec rule: a new anchorer cannot self-sign itself in. We mirror that
@@ -76,14 +76,14 @@ pub fn AnchorerPage(realm_id: String) -> Element {
     rsx! {
         div { class: "space-y-6",
             PageHeader {
-                title: format!("Anchorer · {}", header_realm_id),
-                description: "Configure the anchorer cell for this Realm (single_did / threshold / open_set / mixed).".to_string(),
+                title: format!("Notary · {}", header_realm_id),
+                description: "Configure the notary cell for this Realm (single_did / threshold / open_set / mixed).".to_string(),
             }
 
             match &*data.read() {
                 Some(Ok(value)) => rsx! {
                     Card {
-                        CardHeader { CardTitle { "Current anchorer value" } }
+                        CardHeader { CardTitle { "Current notary value" } }
                         CardContent {
                             div { class: "space-y-2 text-sm",
                                 div { class: "flex items-center gap-2",
@@ -113,7 +113,7 @@ pub fn AnchorerPage(realm_id: String) -> Element {
             }
 
             Card {
-                CardHeader { CardTitle { "Construct anchorer-reconfig Move" } }
+                CardHeader { CardTitle { "Construct notary reconfig Move" } }
                 CardContent {
                     div { class: "space-y-3",
                         div { class: "space-y-1",
@@ -288,7 +288,7 @@ pub fn AnchorerPage(realm_id: String) -> Element {
             {
                 let pending_snapshot = pending.read().clone();
                 let open = pending_snapshot.is_some();
-                let title = "Submit anchorer reconfig?".to_string();
+                let title = "Submit notary reconfig?".to_string();
                 let admin_did_for_warn = admin_did_for_modal.clone();
                 let description = match &pending_snapshot {
                     Some(req) => {

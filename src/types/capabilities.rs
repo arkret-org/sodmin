@@ -7,9 +7,8 @@
 //! field aliases; display-only conveniences live in
 //! [`CapabilityGrantExt`].
 
-use serde::Serialize;
-
 pub use cokret_core::model::{CapabilityGrant, CapabilitySubject};
+use serde::Serialize;
 
 pub const CAPABILITY_GRANT_SCHEMA: &str = "ck.schema.capability.v1";
 

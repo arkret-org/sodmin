@@ -1,8 +1,8 @@
 //! Federation status admin page
 //!
 //! Per-Realm federation peers + last-anchor-pulled-at + outbound queue
-//! depth. Reads from soland's `GET /_soland/admin/federation/status`
-//! (404-tolerant — surfaces "endpoint not yet wired" toast).
+//! depth. soland does not currently expose this health endpoint, so the
+//! API client returns a local "endpoint not wired" error.
 
 use coauth_admin_types::federation_admin::FederationPeerHealth;
 use dioxus::prelude::*;

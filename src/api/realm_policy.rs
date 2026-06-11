@@ -1,29 +1,32 @@
 //! HTTP client for the soland Realm policy editor
 //!
-//! - `GET  /_soland/admin/realms/{realm_id}/policy` — current `ck.component.realm.policy.v1` value.
-//! - `POST /_soland/admin/realms/{realm_id}/policy` — write a new policy. soland wraps the body
-//!   into a cas-register Move.
+//! Realm policy writes are not an admin DB wrapper. The read path is a
+//! best-effort projection from the Realm admin snapshot; mutation waits
+//! for the B6 event-backed governance decision.
 
-use crate::api::client::{api_client, json_body};
+use crate::api::client::api_client;
 use crate::types::realm_policy::{RealmPolicy, UpdateRealmPolicyRequest};
 use crate::utils::net::error::HttpError;
 
 pub async fn get_policy(realm_id: &str) -> Result<RealmPolicy, HttpError> {
-    let url = format!(
-        "/_soland/admin/realms/{}/policy",
-        urlencoding::encode(realm_id)
-    );
-    api_client(&url, "GET", None).await
+    let url = format!("/_soland/admin/realms/{}", urlencoding::encode(realm_id));
+    let value: serde_json::Value = api_client(&url, "GET", None).await?;
+    let Some(policy) = value.get("policy").or_else(|| value.get("realm_policy")) else {
+        return Err(HttpError::message(
+            "realm policy projection is not wired on the admin realm snapshot",
+        ));
+    };
+    serde_json::from_value(policy.clone()).map_err(|error| {
+        HttpError::message(format!("realm policy projection parse error: {error}"))
+    })
 }
 
 pub async fn update_policy(
     realm_id: &str,
     body: &UpdateRealmPolicyRequest,
 ) -> Result<RealmPolicy, HttpError> {
-    let url = format!(
-        "/_soland/admin/realms/{}/policy",
-        urlencoding::encode(realm_id)
-    );
-    let payload = json_body(body)?;
-    api_client(&url, "POST", Some(payload)).await
+    let _ = (realm_id, body);
+    Err(HttpError::message(
+        "realm policy write endpoint is not wired",
+    ))
 }

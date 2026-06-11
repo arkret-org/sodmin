@@ -27,7 +27,7 @@ const AUTOREFRESH_STORAGE_KEY: &str = "sodmin.devices.autorefresh";
 pub fn DeviceList() -> Element {
     let mut search = use_signal(String::new);
     let mut cursor_stack = use_signal(|| vec![None::<String>]);
-    let mut show_delete_dialog = use_signal(|| None::<String>);
+    let mut show_revoke_dialog = use_signal(|| None::<String>);
     let mut selected = use_signal::<HashSet<String>>(HashSet::new);
     let mut show_bulk_dialog = use_signal(|| false);
     let mut bulk_progress = use_signal::<Option<(usize, usize)>>(|| None);
@@ -221,7 +221,7 @@ pub fn DeviceList() -> Element {
                                                         .unwrap_or_else(|| "-".to_string())
                                                 });
 
-                                                let id_for_delete = id.clone();
+                                                let id_for_revoke = id.clone();
                                                 let id_for_check = id.clone();
                                                 let is_checked = selected.read().contains(&id);
                                                 let check_id = format!("dev-check-{}", id);
@@ -256,10 +256,10 @@ pub fn DeviceList() -> Element {
                                                                 variant: ButtonVariant::Ghost,
                                                                 size: ButtonSize::Sm,
                                                                 onclick: {
-                                                                    let id = id_for_delete.clone();
-                                                                    move |_| show_delete_dialog.set(Some(id.clone()))
+                                                                    let id = id_for_revoke.clone();
+                                                                    move |_| show_revoke_dialog.set(Some(id.clone()))
                                                                 },
-                                                                {t("common.delete")}
+                                                                {t("capabilities.revoke")}
                                                             }
                                                         }
                                                     }
@@ -310,9 +310,9 @@ pub fn DeviceList() -> Element {
             }
         }
 
-        // Single-row delete confirmation.
+        // Single-row revoke confirmation.
         {
-            let pending = show_delete_dialog.read().clone();
+            let pending = show_revoke_dialog.read().clone();
             let phrase = pending
                 .as_deref()
                 .map(|id| crate::components::dangerous_action_dialog::device_revoke_phrase(id, 4))
@@ -321,30 +321,30 @@ pub fn DeviceList() -> Element {
             rsx! {
                 DangerousActionDialog {
                     open: pending.is_some(),
-                    title: t("common.delete"),
+                    title: "Revoke device".to_string(),
                     description: format!(
                         "Revoke device {}? This signs out the session, drops device keys, and cannot be undone.",
                         pending_id_desc
                     ),
                     confirmation_phrase: phrase,
-                    confirm_text: t("common.delete"),
+                    confirm_text: "Revoke".to_string(),
                     cancel_text: t("common.cancel"),
                     on_confirm: move |_| {
-                        if let Some(id) = show_delete_dialog.read().clone() {
+                        if let Some(id) = show_revoke_dialog.read().clone() {
                             let id = id.clone();
                             spawn(async move {
-                                match devices::delete_device(&id).await {
+                                match devices::revoke_device(&id).await {
                                     Ok(_) => {
-                                        show_toast("Device deleted", ToastVariant::Success);
+                                        show_toast("Device revoked", ToastVariant::Success);
                                         data.restart();
                                     }
                                     Err(e) => show_toast(&format!("Failed: {}", e.message), ToastVariant::Error),
                                 }
                             });
                         }
-                        show_delete_dialog.set(None);
+                        show_revoke_dialog.set(None);
                     },
-                    on_cancel: move |_| show_delete_dialog.set(None),
+                    on_cancel: move |_| show_revoke_dialog.set(None),
                 }
             }
         }

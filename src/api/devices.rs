@@ -24,15 +24,8 @@ pub async fn list_devices(
     api_client(&url, "GET", None).await
 }
 
-pub async fn delete_device(id: &str) -> Result<(), HttpError> {
-    let url = format!("/_soland/admin/devices/{}", urlencoding::encode(id));
-    api_client(&url, "DELETE", None).await
-}
-
-/// Bulk-revoke helper — same wire shape as `delete_device` but hits the
-/// soland `/revoke` action which signs out the live session and drops
-/// device keys in addition to deleting the row. Used by the device list
-/// "Bulk Revoke" toolbar.
+/// Revoke helper. Revocation is terminal and audit-retaining; sodmin does
+/// not issue physical DELETEs for devices.
 pub async fn revoke_device(id: &str) -> Result<(), HttpError> {
     let url = format!("/_soland/admin/devices/{}/revoke", urlencoding::encode(id));
     api_client(&url, "POST", None).await

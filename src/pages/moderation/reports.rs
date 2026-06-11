@@ -23,7 +23,9 @@ use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::pagination::CursorPagination;
 use crate::components::ui::table::*;
 use crate::components::ui::toast::{ToastVariant, show_toast};
-use crate::types::moderation::{ReportDecision, ReportStatus, ResolveReportRequest};
+use crate::types::moderation::{
+    ModerationReport, ReportDecision, ReportStatus, ResolveReportRequest,
+};
 use crate::utils::i18n::t;
 use crate::utils::net::error::{format_optional_endpoint_error, should_reset_cursor_pagination};
 
@@ -33,7 +35,7 @@ const PAGE_SIZE: u64 = 25;
 /// Dismiss; the decision goes into the request body.
 #[derive(Debug, Clone)]
 struct PendingDecision {
-    report_id: String,
+    report: ModerationReport,
     decision: ReportDecision,
 }
 
@@ -148,6 +150,8 @@ pub fn ModerationReportsPage() -> Element {
                                                 let variant = report_status_variant(&typed);
                                                 let created = r.created_at.clone().unwrap_or_else(|| "-".to_string());
                                                 let resolvable = r.is_resolvable();
+                                                let report_for_resolve = r.clone();
+                                                let report_for_dismiss = r.clone();
                                                 let row_in_flight = in_flight
                                                     .read()
                                                     .as_deref()
@@ -167,8 +171,6 @@ pub fn ModerationReportsPage() -> Element {
                                                         TableCell { class: "text-right".to_string(),
                                                             if resolvable {
                                                                 {
-                                                                    let id_a = report_id.clone();
-                                                                    let id_d = report_id.clone();
                                                                     rsx! {
                                                                         div { class: "flex justify-end gap-2",
                                                                             Button {
@@ -177,7 +179,7 @@ pub fn ModerationReportsPage() -> Element {
                                                                                 disabled: row_in_flight,
                                                                                 onclick: move |_| {
                                                                                     pending.set(Some(PendingDecision {
-                                                                                        report_id: id_a.clone(),
+                                                                                        report: report_for_resolve.clone(),
                                                                                         decision: ReportDecision::Resolve,
                                                                                     }));
                                                                                 },
@@ -189,7 +191,7 @@ pub fn ModerationReportsPage() -> Element {
                                                                                 disabled: row_in_flight,
                                                                                 onclick: move |_| {
                                                                                     pending.set(Some(PendingDecision {
-                                                                                        report_id: id_d.clone(),
+                                                                                        report: report_for_dismiss.clone(),
                                                                                         decision: ReportDecision::Dismiss,
                                                                                     }));
                                                                                 },
@@ -273,14 +275,14 @@ pub fn ModerationReportsPage() -> Element {
                         on_cancel: move |_| pending.set(None),
                         on_confirm: move |_| {
                             if let Some(p) = pending.read().clone() {
-                                in_flight.set(Some(p.report_id.clone()));
+                                in_flight.set(Some(p.report.report_id.clone()));
                                 spawn(async move {
                                     let body = ResolveReportRequest {
                                         decision: p.decision,
                                         note: None,
                                     };
                                     let res = moderation::resolve_report(
-                                        &p.report_id, &body,
+                                        &p.report, &body,
                                     )
                                     .await;
                                     match res {
@@ -348,13 +350,19 @@ mod tests {
         // report) so the dialog renders the destructive button. Dismiss
         // is just a status flip so it stays neutral.
         let p = PendingDecision {
-            report_id: "r1".into(),
+            report: ModerationReport {
+                report_id: "r1".into(),
+                ..Default::default()
+            },
             decision: ReportDecision::Resolve,
         };
         assert!(matches!(p.decision, ReportDecision::Resolve));
 
         let p = PendingDecision {
-            report_id: "r1".into(),
+            report: ModerationReport {
+                report_id: "r1".into(),
+                ..Default::default()
+            },
             decision: ReportDecision::Dismiss,
         };
         assert!(matches!(p.decision, ReportDecision::Dismiss));
