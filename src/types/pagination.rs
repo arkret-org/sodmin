@@ -3,8 +3,9 @@
 //! These are deliberately kept separate from the JSON:API envelope
 //! (`coauth_admin_types::PaginatedResponse` — `{data, meta, links}`) and
 //! from the soland flat list envelope ([`crate::types::api::ListResponse`]
-//! — `{data, total, next_cursor}`). The wire shapes differ field-for-field,
-//! so they are NOT interchangeable and must not be merged.
+//! — `{data, total?, next_cursor}`). The wire shapes differ field-for-field,
+//! so they are NOT interchangeable and must not be merged with JSON:API
+//! pagination.
 
 use serde::Deserialize;
 

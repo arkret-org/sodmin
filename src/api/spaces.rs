@@ -12,6 +12,7 @@
 //! apart from "row missing".
 
 use crate::api::client::{api_client, build_url};
+use crate::types::api::ListResponse;
 use crate::types::spaces::{SpaceHierarchy, SpaceRow};
 use crate::utils::net::error::HttpError;
 
@@ -20,16 +21,6 @@ pub struct SpacePage {
     pub data: Vec<SpaceRow>,
     pub next_cursor: Option<String>,
     pub total: Option<u64>,
-}
-
-#[derive(Debug, Clone, serde::Deserialize, Default)]
-struct SpaceEnvelope {
-    #[serde(default)]
-    data: Vec<SpaceRow>,
-    #[serde(default)]
-    next_cursor: Option<String>,
-    #[serde(default)]
-    total: Option<u64>,
 }
 
 pub async fn list_spaces(
@@ -46,7 +37,7 @@ pub async fn list_spaces(
         params.push(("cursor", cursor));
     }
     let url = build_url("/_soland/admin/spaces", &params)?;
-    let resp: SpaceEnvelope = api_client(&url, "GET", None).await?;
+    let resp: ListResponse<SpaceRow> = api_client(&url, "GET", None).await?;
     Ok(SpacePage {
         data: resp.data,
         next_cursor: resp.next_cursor,

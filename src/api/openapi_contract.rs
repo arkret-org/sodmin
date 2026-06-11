@@ -58,7 +58,8 @@ pub mod coauth {
     pub const CONNECTOR_HEALTH: &str = "/_coauth/admin/connector-health";
     pub const NOTIFICATION_CHANNELS: &str = "/_coauth/admin/notification-channels";
     pub const NOTIFICATION_TEMPLATES: &str = "/_coauth/admin/notification-templates";
-    pub const NOTIFICATION_TEMPLATES_PUBLISH: &str = "/_coauth/admin/notification-templates/publish";
+    pub const NOTIFICATION_TEMPLATES_PUBLISH: &str =
+        "/_coauth/admin/notification-templates/publish";
     pub const ACCOUNTS: &str = "/_coauth/admin/accounts";
     pub const BRIDGE_DESCRIBE: &str = "/_coauth/admin/bridge/describe";
     // soland product-surface integration describe (not a `/_cokret` protocol op).

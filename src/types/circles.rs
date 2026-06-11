@@ -6,8 +6,8 @@
 
 pub use cokret_core::model::Circle;
 use cokret_core::model::{
-    CircleDirectoryVisibility, CircleJoinRule, CircleMemberState, EncryptionFloor,
-    CircleState, EncryptionProfile, HistoryVisibility,
+    CircleDirectoryVisibility, CircleJoinRule, CircleMemberState, CircleState, EncryptionFloor,
+    EncryptionProfile, HistoryVisibility,
 };
 use cokret_core::{CircleId, Did, RealmId};
 use serde::{Deserialize, Serialize};

@@ -118,13 +118,13 @@ pub struct CoauthAccountDetail {
 }
 
 pub use coauth_admin_types::{
-    AccountRiskActionApprovalRequestBody as CoauthAccountRiskActionApprovalDraft,
     AccountRiskActionApprovalOutcome as CoauthAccountRiskActionApproval,
+    AccountRiskActionApprovalRequestBody as CoauthAccountRiskActionApprovalDraft,
     AccountRiskActionCurrentOutcome as CoauthAccountRiskActionCurrentState,
     AccountRiskActionExecuteRequestBody as CoauthAccountRiskActionExecuteDraft,
     AccountRiskActionHistoryOutcome as CoauthAccountRiskActionHistoryEnvelopeShared,
-    AccountRiskActionProposalRequestBody as CoauthAccountRiskActionDraft,
     AccountRiskActionProposalOutcome as CoauthAccountRiskActionProposal,
+    AccountRiskActionProposalRequestBody as CoauthAccountRiskActionDraft,
     AccountRiskActionTransitionRecord as CoauthAccountRiskActionHistoryEntry,
 };
 

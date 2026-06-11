@@ -291,7 +291,7 @@ pub fn AuditLog() -> Element {
 
                     Pagination {
                         page: page_val,
-                        total: resp.total,
+                        total: resp.total_or_len(),
                         per_page: PAGE_SIZE,
                         on_page_change: move |p| page.set(p),
                     }

@@ -1,8 +1,7 @@
 pub use cokret_contracts::ops::HardeningStatus;
 pub use cokret_core::model::{
     DirectoryListHandlesForSubjectRequestBody as ListHandlesForSubjectRequest,
-    DirectorySubjectHandleList as DirectorySubjectHandleList, HandleBindingState,
-    HandleClaim, MemberDeliveryBinding,
+    DirectorySubjectHandleList, HandleBindingState, HandleClaim, MemberDeliveryBinding,
 };
 use serde::{Deserialize, Serialize};
 
@@ -12,9 +11,15 @@ use serde::{Deserialize, Serialize};
 pub struct ListResponse<T> {
     pub data: Vec<T>,
     #[serde(default)]
-    pub total: u64,
+    pub total: Option<u64>,
     /// Opaque cursor for the next page. `None` when the current page is
     /// the last one.
     #[serde(default)]
     pub next_cursor: Option<String>,
+}
+
+impl<T> ListResponse<T> {
+    pub fn total_or_len(&self) -> u64 {
+        self.total.unwrap_or(self.data.len() as u64)
+    }
 }

@@ -118,7 +118,7 @@ pub fn MediaList() -> Element {
 
                     Pagination {
                         page: page_val,
-                        total: data.total,
+                        total: data.total_or_len(),
                         per_page: PAGE_SIZE,
                         on_page_change: move |p| page.set(p),
                     }

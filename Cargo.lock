@@ -3232,6 +3232,7 @@ dependencies = [
  "cokret-identifiers",
  "dioxus",
  "dioxus-logger",
+ "futures-util",
  "gloo-net 0.7.0",
  "gloo-storage",
  "gloo-timers 0.4.0",

@@ -19,13 +19,22 @@ const REQUIRED_COAUTH: &[(&str, &str)] = &[
     ("GET", "/_coauth/admin/upstream-oauth-providers"),
     ("POST", "/_coauth/admin/upstream-oauth-providers"),
     ("DELETE", "/_coauth/admin/upstream-oauth-providers/{id}"),
-    ("POST", "/_coauth/admin/upstream-oauth-providers/{id}/enable"),
-    ("POST", "/_coauth/admin/upstream-oauth-providers/{id}/disable"),
+    (
+        "POST",
+        "/_coauth/admin/upstream-oauth-providers/{id}/enable",
+    ),
+    (
+        "POST",
+        "/_coauth/admin/upstream-oauth-providers/{id}/disable",
+    ),
     ("GET", "/_coauth/admin/upstream-oauth-links"),
     ("DELETE", "/_coauth/admin/upstream-oauth-links/{id}"),
     ("GET", "/_coauth/admin/user-registration-tokens"),
     ("POST", "/_coauth/admin/user-registration-tokens"),
-    ("POST", "/_coauth/admin/user-registration-tokens/{id}/revoke"),
+    (
+        "POST",
+        "/_coauth/admin/user-registration-tokens/{id}/revoke",
+    ),
     ("GET", "/_coauth/admin/connector-health"),
     ("GET", "/_coauth/admin/notification-channels"),
     ("GET", "/_coauth/admin/notification-templates"),
@@ -88,7 +97,10 @@ const REQUIRED_SOLAND: &[(&str, &str)] = &[
     ),
     ("GET", "/_soland/admin/realms/{realm_id}/bottom"),
     ("GET", "/_soland/admin/realms/{realm_id}/anchor-dag"),
-    ("POST", "/_soland/admin/realms/{realm_id}/anchor-dag/compact"),
+    (
+        "POST",
+        "/_soland/admin/realms/{realm_id}/anchor-dag/compact",
+    ),
     ("GET", "/_soland/admin/moderation/reports"),
     ("POST", "/_soland/admin/moderation/reports/{id}/resolve"),
     ("GET", "/_soland/admin/moderation/appeals"),
@@ -133,6 +145,8 @@ fn main() {
         .unwrap_or_else(|| manifest_dir.join("target").join("openapi"));
     println!("cargo:rerun-if-env-changed=SODMIN_OPENAPI_DIR");
     println!("cargo:rerun-if-env-changed=SODMIN_OPENAPI_STRICT");
+    println!("cargo:rerun-if-env-changed=SODMIN_I18N_STRICT");
+    println!("cargo:rerun-if-env-changed=CI");
     println!("cargo:rerun-if-changed={}", openapi_dir.display());
 
     let coauth_path = openapi_dir.join("coauth.openapi.json");
@@ -163,24 +177,33 @@ fn generate_i18n_tables(manifest_dir: &Path, out_dir: &Path) {
     let en = load_i18n_table(&en_path);
     let zh = load_i18n_table(&zh_path);
 
-    // Consistency check: warn (do not panic) on key-set drift between locales.
+    // Consistency check: key-set drift is a hard error in strict/CI mode.
     let en_keys: BTreeSet<&str> = en.iter().map(|(k, _)| k.as_str()).collect();
     let zh_keys: BTreeSet<&str> = zh.iter().map(|(k, _)| k.as_str()).collect();
     let missing_in_zh: Vec<&str> = en_keys.difference(&zh_keys).copied().collect();
     let missing_in_en: Vec<&str> = zh_keys.difference(&en_keys).copied().collect();
+    let strict_i18n = i18n_strict();
     if !missing_in_zh.is_empty() {
-        println!(
-            "cargo:warning=i18n: {} key(s) present in en.json but missing in zh-CN.json: {}",
+        let message = format!(
+            "{} key(s) present in en.json but missing in zh-CN.json: {}",
             missing_in_zh.len(),
             missing_in_zh.join(", ")
         );
+        if strict_i18n {
+            panic!("i18n: {message}");
+        }
+        println!("cargo:warning=i18n: {message}");
     }
     if !missing_in_en.is_empty() {
-        println!(
-            "cargo:warning=i18n: {} key(s) present in zh-CN.json but missing in en.json: {}",
+        let message = format!(
+            "{} key(s) present in zh-CN.json but missing in en.json: {}",
             missing_in_en.len(),
             missing_in_en.join(", ")
         );
+        if strict_i18n {
+            panic!("i18n: {message}");
+        }
+        println!("cargo:warning=i18n: {message}");
     }
 
     let mut out = String::new();
@@ -188,6 +211,12 @@ fn generate_i18n_tables(manifest_dir: &Path, out_dir: &Path) {
     render_i18n_table(&mut out, "I18N_EN", &en);
     render_i18n_table(&mut out, "I18N_ZH_CN", &zh);
     fs::write(out_dir.join("i18n_tables.rs"), out).expect("write i18n tables");
+}
+
+fn i18n_strict() -> bool {
+    env::var("SODMIN_I18N_STRICT").ok().as_deref() == Some("1")
+        || env::var("CI").ok().as_deref() == Some("true")
+        || env::var("CI").ok().as_deref() == Some("1")
 }
 
 /// Parses a flat `{ "key": "value", ... }` JSON object into a key-sorted

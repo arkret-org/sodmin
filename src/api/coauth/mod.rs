@@ -24,7 +24,7 @@ mod viewer;
 // CursorPage}` paths stay valid. NOTE: these are intentionally distinct
 // from the JSON:API envelope `coauth_admin_types::PaginatedResponse`
 // (`{data, meta, links}`) and from `crate::types::api::ListResponse`
-// (`{data, total, next_cursor}`) — the wire shapes differ field-for-field.
+// (`{data, total?, next_cursor}`) — the wire shapes differ field-for-field.
 pub use accounts::{
     AccountListFilter, CoauthAccountClaim, CoauthAccountDetail, CoauthAccountRiskActionApproval,
     CoauthAccountRiskActionApprovalDraft, CoauthAccountRiskActionCurrentState,

@@ -31,6 +31,7 @@ use crate::components::ui::table::*;
 use crate::components::ui::toast::{ToastVariant, show_toast};
 use crate::pages::applets::admin::{RowAction, approval_variant};
 use crate::utils::fmt::search::matches_name_or_id;
+use crate::utils::futures::join_all;
 use crate::utils::i18n::t;
 use crate::utils::net::audit::{AdminAuditOutcome, emit_admin_audit_server};
 use crate::utils::net::error::format_optional_endpoint_error;
@@ -504,7 +505,6 @@ async fn run_bulk_agent_revoke<F>(
 where
     F: FnMut(usize) + 'static,
 {
-    use crate::pages::devices::futures_join_all;
     let mut ok = 0usize;
     let mut failed: Vec<(String, String)> = Vec::new();
     let mut done = 0usize;
@@ -519,7 +519,7 @@ where
                 (id, res)
             })
             .collect();
-        let results = futures_join_all(futures).await;
+        let results = join_all(futures).await;
         for (id, res) in results {
             done += 1;
             match res {

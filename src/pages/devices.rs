@@ -16,6 +16,7 @@ use crate::components::ui::table::*;
 use crate::components::ui::toast::{ToastVariant, show_toast};
 use crate::utils::fmt::csv::{build_csv, export_to_csv};
 use crate::utils::fmt::search::matches_name_or_id;
+use crate::utils::futures::join_all as futures_join_all;
 use crate::utils::i18n::t;
 
 const PAGE_SIZE: u64 = 25;
@@ -452,8 +453,3 @@ where
     }
     (ok, failed)
 }
-
-// Concurrent `join_all` shim — exposed as `pub` so the agents admin
-// bulk revoke helper can reuse the same primitive without taking a
-// `futures` crate dep just for one combinator.
-pub use crate::utils::futures::join_all as futures_join_all;
