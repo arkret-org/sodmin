@@ -12,3 +12,11 @@ pub async fn list_media(page: u64, per_page: u64) -> Result<ListResponse<MediaRo
     )?;
     api_client(&url, "GET", None).await
 }
+
+pub async fn get_media_statistics() -> Result<MediaStatistics, HttpError> {
+    api_client("/_soland/admin/media/statistics", "GET", None).await
+}
+
+pub async fn list_media_by_actor() -> Result<ListResponse<ActorMediaStatistics>, HttpError> {
+    api_client("/_soland/admin/media/by-actor", "GET", None).await
+}

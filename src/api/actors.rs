@@ -33,11 +33,8 @@ pub async fn list_actors(
 }
 
 pub async fn get_actor(id: &str) -> Result<Actor, HttpError> {
-    let page = list_actors(1, 1000, "").await?;
-    page.data
-        .into_iter()
-        .find(|actor| actor.id == id || actor.did == id)
-        .ok_or_else(|| HttpError::message("actor not found in admin snapshot"))
+    let url = format!("/_soland/admin/actors/{}", urlencoding::encode(id));
+    api_client(&url, "GET", None).await
 }
 
 pub async fn deactivate_account(account_id: &str) -> Result<(), HttpError> {
