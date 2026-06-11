@@ -83,8 +83,26 @@ pub mod soland {
 mod tests {
     use super::{coauth, coauth_has_operation, soland, soland_has_operation};
 
+    /// True when the named manifest was generated WITHOUT a real
+    /// upstream OpenAPI snapshot (build.rs echoed the REQUIRED list and
+    /// tagged the source with a `fallback:` prefix). Contract assertions
+    /// against a fallback manifest are self-certification, not
+    /// verification — these tests skip rather than report green. Run
+    /// scripts/local-openapi-snapshot.sh (or set SODMIN_OPENAPI_DIR) to
+    /// make them meaningful.
+    fn manifest_is_fallback(source: &str) -> bool {
+        source.starts_with("fallback:")
+    }
+
     #[test]
     fn generated_manifest_covers_coauth_wrapper_roots() {
+        if manifest_is_fallback(super::COAUTH_OPENAPI_SOURCE) {
+            eprintln!(
+                "skipped: coauth OpenAPI manifest is fallback ({})",
+                super::COAUTH_OPENAPI_SOURCE
+            );
+            return;
+        }
         assert!(coauth_has_operation("GET", coauth::VIEWER));
         assert!(coauth_has_operation("GET", coauth::ACCOUNTS));
         assert!(coauth_has_operation(
@@ -99,6 +117,13 @@ mod tests {
 
     #[test]
     fn generated_manifest_covers_soland_wrapper_roots() {
+        if manifest_is_fallback(super::SOLAND_OPENAPI_SOURCE) {
+            eprintln!(
+                "skipped: soland OpenAPI manifest is fallback ({})",
+                super::SOLAND_OPENAPI_SOURCE
+            );
+            return;
+        }
         assert!(soland_has_operation("GET", soland::SERVER_INFO));
         assert!(soland_has_operation("GET", soland::REALMS));
         assert!(soland_has_operation("GET", soland::SPACES));

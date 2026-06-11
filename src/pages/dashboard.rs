@@ -6,7 +6,7 @@ use crate::components::ui::card::*;
 use crate::components::ui::error_banner::ErrorBanner;
 use crate::components::ui::icons::Icon;
 use crate::components::ui::loading::StatsSkeleton;
-use crate::types::{ServerDescribeOutcome, ServerStatusResponse};
+use crate::types::{ServerDescribeDocument, ServerStatusResponse};
 use crate::utils::cache::cached_result;
 use crate::utils::i18n::t;
 use crate::utils::net::error::HttpError;
@@ -89,13 +89,13 @@ pub fn Dashboard() -> Element {
 
     let protocol_str = describe_data
         .as_ref()
-        .and_then(|i| i.protocol_version.clone())
+        .map(|i| i.protocol_version.clone())
         .or_else(|| info_data.as_ref().and_then(|i| i.protocol_version.clone()))
         .unwrap_or_else(|| "1.0".to_string());
 
     let service_did = describe_data
         .as_ref()
-        .and_then(|d| non_empty(d.service_did.clone()))
+        .map(|d| d.service_did.to_string())
         .unwrap_or_else(|| "-".to_string());
     let coauth_issuer_did = coauth_describe_data
         .as_ref()
@@ -123,7 +123,7 @@ pub fn Dashboard() -> Element {
         .unwrap_or_else(|| "-".to_string());
     let openapi_version = describe_data
         .as_ref()
-        .and_then(|d| d.openapi_version.clone())
+        .and_then(|d| d.extra_str(&["openapi_version"]))
         .unwrap_or_else(|| "-".to_string());
     let conformance = describe_data
         .as_ref()
@@ -359,37 +359,37 @@ fn join_or_dash(items: &[String]) -> String {
     }
 }
 
-fn coauth_issuer_did(describe: &ServerDescribeOutcome) -> Option<String> {
-    describe
-        .auth_metadata
-        .as_ref()
-        .and_then(|metadata| metadata.issuer_did.clone())
-        .or_else(|| non_empty(describe.service_did.clone()))
+fn coauth_issuer_did(describe: &ServerDescribeDocument) -> Option<String> {
+    // `auth_metadata` is free-form `Value` in the SDK shape; coauth puts
+    // its issuer DID at the top level of that object.
+    json_string(&describe.auth_metadata, &["issuer_did"])
+        .or_else(|| non_empty(describe.service_did.to_string()))
 }
 
-fn identity_registry_endpoint(describe: &ServerDescribeOutcome) -> Option<String> {
-    describe
-        .identity_registry_resolver
-        .as_ref()
-        .and_then(|resolver| resolver.delegated_resolver.as_ref())
-        .and_then(|delegated| delegated.resolver.clone())
+fn identity_registry_endpoint(describe: &ServerDescribeDocument) -> Option<String> {
+    // coauth-proprietary top-level extension block (not part of the spec
+    // ServiceDescribe shape) — read via the extension envelope.
+    describe.extra_str(&[
+        "identity_registry_resolver",
+        "delegated_resolver",
+        "resolver",
+    ])
 }
 
-fn schema_registry_version(describe: &ServerDescribeOutcome) -> Option<String> {
-    describe.schema_registry_version.clone().or_else(|| {
+fn schema_registry_version(describe: &ServerDescribeDocument) -> Option<String> {
+    describe.extra_str(&["schema_registry_version"]).or_else(|| {
         (!describe.supported_schema_profiles.is_empty())
             .then(|| join_or_dash(&describe.supported_schema_profiles))
     })
 }
 
-fn event_kind_registry_version(describe: &ServerDescribeOutcome) -> Option<String> {
+fn event_kind_registry_version(describe: &ServerDescribeDocument) -> Option<String> {
     describe
-        .event_kind_registry_version
-        .clone()
-        .or_else(|| json_string(&describe.registry, &["event_kind_registry_version"]))
+        .extra_str(&["event_kind_registry_version"])
+        .or_else(|| describe.extra_str(&["registry", "event_kind_registry_version"]))
 }
 
-fn conformance_level(describe: &ServerDescribeOutcome) -> Option<String> {
+fn conformance_level(describe: &ServerDescribeDocument) -> Option<String> {
     json_string(&describe.limits, &["profile_status", "conformance"])
 }
 
@@ -412,7 +412,7 @@ fn health_summary(status: Option<&ServerStatusResponse>) -> String {
     }
 }
 
-fn conformance_rows(describe: Option<&ServerDescribeOutcome>) -> Vec<ConformanceRow> {
+fn conformance_rows(describe: Option<&ServerDescribeDocument>) -> Vec<ConformanceRow> {
     let checks = [
         (
             "core_event_store",
@@ -442,7 +442,7 @@ fn conformance_rows(describe: Option<&ServerDescribeOutcome>) -> Vec<Conformance
         .collect()
 }
 
-fn has_any_declared_surface(describe: &ServerDescribeOutcome, needles: &[&str]) -> bool {
+fn has_any_declared_surface(describe: &ServerDescribeDocument, needles: &[&str]) -> bool {
     let implemented_surfaces = json_strings(
         &describe.limits,
         &["profile_status", "implemented_surfaces"],

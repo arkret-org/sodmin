@@ -285,6 +285,16 @@ fn load_or_fallback(path: &Path, name: &str, required: &[(&str, &str)]) -> Opera
                     path.display()
                 );
             }
+            // Degraded manifest: the REQUIRED list is echoed as the
+            // operation set. The `fallback:` source prefix makes the
+            // degradation machine-readable (openapi_contract tests skip
+            // instead of self-certifying green).
+            println!(
+                "cargo:warning={} OpenAPI snapshot missing at {} — using fallback manifest \
+                 (contract NOT verified against upstream; run scripts/local-openapi-snapshot.sh)",
+                name,
+                path.display()
+            );
             OperationSet {
                 source: format!("fallback:{}", path.display()),
                 operations: required

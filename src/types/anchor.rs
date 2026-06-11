@@ -298,43 +298,33 @@ pub struct SubmitMoveResponse {
 
 // ── Bottom diagnostics ───────────────────────────────────────────────────
 
-/// Structured Bottom kind exposed by the lattice when `join` produces a
-/// `Bottom`. Matches the soland reducer enum.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-#[serde(rename_all = "snake_case")]
-pub enum BottomKind {
-    Conflict,
-    InvalidTransition,
-    MissingDependency,
-    Unauthorized,
-    AnchorerSplit,
-    SchemaError,
+// SDK-authoritative Bottom kind (`bottom.schema.json` — six normative
+// variants; receivers MUST fail closed on unrecognized kinds, hence the
+// `Option` in [`bottom_kind_from_wire`]).
+pub use cokret_core::BottomKind;
+
+/// Display helpers for the SDK [`BottomKind`].
+pub trait BottomKindExt {
+    fn label(&self) -> &'static str;
 }
 
-impl BottomKind {
-    pub fn label(&self) -> &'static str {
+impl BottomKindExt for BottomKind {
+    fn label(&self) -> &'static str {
         match self {
             BottomKind::Conflict => "Conflict",
             BottomKind::InvalidTransition => "Invalid Transition",
             BottomKind::MissingDependency => "Missing Dependency",
             BottomKind::Unauthorized => "Unauthorized",
-            BottomKind::AnchorerSplit => "Anchorer Split",
+            BottomKind::NotarySplit => "Notary Split",
             BottomKind::SchemaError => "Schema Error",
         }
     }
+}
 
-    /// Parse from the wire enum string.
-    pub fn from_wire(s: &str) -> Option<Self> {
-        match s {
-            "conflict" => Some(BottomKind::Conflict),
-            "invalid_transition" => Some(BottomKind::InvalidTransition),
-            "missing_dependency" => Some(BottomKind::MissingDependency),
-            "unauthorized" => Some(BottomKind::Unauthorized),
-            "anchorer_split" => Some(BottomKind::AnchorerSplit),
-            "schema_error" => Some(BottomKind::SchemaError),
-            _ => None,
-        }
-    }
+/// Parse a [`BottomKind`] from the wire enum string. `None` for
+/// unrecognized kinds (fail closed — never misclassify a new kind).
+pub fn bottom_kind_from_wire(s: &str) -> Option<BottomKind> {
+    serde_json::from_value(serde_json::Value::String(s.to_owned())).ok()
 }
 
 /// One row in the bottom diagnostics view.
@@ -524,14 +514,17 @@ mod tests {
             ("invalid_transition", "Invalid Transition"),
             ("missing_dependency", "Missing Dependency"),
             ("unauthorized", "Unauthorized"),
-            ("anchorer_split", "Anchorer Split"),
+            ("notary_split", "Notary Split"),
             ("schema_error", "Schema Error"),
         ] {
-            let k = BottomKind::from_wire(wire).expect("wire variant parses");
+            let k = bottom_kind_from_wire(wire).expect("wire variant parses");
             assert_eq!(k.label(), expected_label);
         }
-        assert!(BottomKind::from_wire("CONFLICT").is_none());
-        assert!(BottomKind::from_wire("not_a_kind").is_none());
+        assert!(bottom_kind_from_wire("CONFLICT").is_none());
+        assert!(bottom_kind_from_wire("not_a_kind").is_none());
+        // anchorer_split was the pre-neutralization name; the SDK enum is
+        // authoritative and only accepts notary_split.
+        assert!(bottom_kind_from_wire("anchorer_split").is_none());
     }
 
     #[test]

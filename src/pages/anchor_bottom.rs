@@ -21,7 +21,10 @@ use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::table::*;
 use crate::components::ui::toast::{ToastVariant, show_toast};
-use crate::types::anchor::{BottomEntry, BottomKind, BottomRepairStrategy, WinnerHead};
+use crate::types::anchor::{
+    BottomEntry, BottomKind, BottomKindExt, BottomRepairStrategy, WinnerHead,
+    bottom_kind_from_wire,
+};
 
 #[component]
 pub fn BottomDiagnosticsPage() -> Element {
@@ -311,8 +314,8 @@ pub(crate) fn repair_strategy_for_entry(
     head_idx: usize,
 ) -> BottomRepairStrategy {
     if let Some(head) = entry.candidate_heads.get(head_idx) {
-        match BottomKind::from_wire(&entry.kind) {
-            Some(BottomKind::Conflict) | Some(BottomKind::AnchorerSplit) => {
+        match bottom_kind_from_wire(&entry.kind) {
+            Some(BottomKind::Conflict) | Some(BottomKind::NotarySplit) => {
                 return BottomRepairStrategy::HeadInWinner { head: head.clone() };
             }
             _ => {}
@@ -333,13 +336,13 @@ pub(crate) fn repair_strategy_for_entry(
 ///   closed if the operator clicks "Submit" without first filling in effects.
 pub(crate) fn default_repair_strategy(entry: &BottomEntry) -> BottomRepairStrategy {
     match (
-        BottomKind::from_wire(&entry.kind),
+        bottom_kind_from_wire(&entry.kind),
         entry.candidate_heads.first(),
     ) {
         (Some(BottomKind::Conflict), Some(head)) => {
             BottomRepairStrategy::HeadInWinner { head: head.clone() }
         }
-        (Some(BottomKind::AnchorerSplit), Some(head)) => {
+        (Some(BottomKind::NotarySplit), Some(head)) => {
             BottomRepairStrategy::HeadInWinner { head: head.clone() }
         }
         _ => BottomRepairStrategy::Manual {
@@ -353,14 +356,14 @@ pub(crate) fn default_repair_strategy(entry: &BottomEntry) -> BottomRepairStrate
 }
 
 pub(crate) fn format_kind_label(wire: &str) -> String {
-    BottomKind::from_wire(wire)
+    bottom_kind_from_wire(wire)
         .map(|k| k.label().to_string())
         .unwrap_or_else(|| wire.to_string())
 }
 
 pub(crate) fn bottom_kind_variant(wire: &str) -> BadgeVariant {
-    match BottomKind::from_wire(wire) {
-        Some(BottomKind::Conflict) | Some(BottomKind::AnchorerSplit) => BadgeVariant::Destructive,
+    match bottom_kind_from_wire(wire) {
+        Some(BottomKind::Conflict) | Some(BottomKind::NotarySplit) => BadgeVariant::Destructive,
         Some(BottomKind::Unauthorized) | Some(BottomKind::SchemaError) => BadgeVariant::Destructive,
         Some(BottomKind::InvalidTransition) | Some(BottomKind::MissingDependency) => {
             BadgeVariant::Secondary
@@ -381,7 +384,7 @@ mod tests {
     #[test]
     fn format_kind_label_falls_back_to_raw() {
         assert_eq!(format_kind_label("conflict"), "Conflict");
-        assert_eq!(format_kind_label("anchorer_split"), "Anchorer Split");
+        assert_eq!(format_kind_label("notary_split"), "Notary Split");
         // Unknown wire value falls back to the raw string so admins see
         // SOMETHING rather than an empty cell.
         assert_eq!(format_kind_label("never_seen"), "never_seen");
@@ -394,7 +397,7 @@ mod tests {
             BadgeVariant::Destructive
         ));
         assert!(matches!(
-            bottom_kind_variant("anchorer_split"),
+            bottom_kind_variant("notary_split"),
             BadgeVariant::Destructive
         ));
         assert!(matches!(

@@ -13,7 +13,7 @@ use crate::components::ui::pagination::Pagination;
 use crate::components::ui::table::*;
 use crate::components::ui::toast::{ToastVariant, show_toast};
 use crate::types::{
-    CAPABILITY_GRANT_SCHEMA, GrantCapabilityRequest, UpdateCapabilityRequest,
+    CAPABILITY_GRANT_SCHEMA, CapabilityGrantExt, GrantCapabilityRequest, UpdateCapabilityRequest,
     capability_resources_from_input,
 };
 use crate::utils::i18n::t;
@@ -94,13 +94,13 @@ pub fn CapabilityList() -> Element {
                                 } else {
                                     for cap in resp.data.iter() {
                                         {
-                                            let id = cap.id.clone();
-                                            let issuer = cap.issuer.clone();
-                                            let subject = cap.subject.clone();
+                                            let id = cap.id.to_string();
+                                            let issuer = cap.issuer.to_string();
+                                            let subject = cap.subject_display();
                                             let actions = cap.actions_display();
                                             let resources = cap.resources_display();
-                                            let issued_at = cap.issued_at.clone().unwrap_or_else(|| "-".to_string());
-                                            let expires = cap.expires_at.clone().unwrap_or_else(|| "-".to_string());
+                                            let issued_at = cap.issued_at.to_rfc3339();
+                                            let expires = cap.expires_at.map(|at| at.to_rfc3339()).unwrap_or_else(|| "-".to_string());
                                             let is_revoked = cap.is_revoked();
 
                                             let id_for_revoke = id.clone();
@@ -129,7 +129,7 @@ pub fn CapabilityList() -> Element {
                                                             onclick: {
                                                                 let id = id_for_revoke.clone();
                                                                 let constraints = cap.constraints.clone();
-                                                                let exp = cap.expires_at.clone().unwrap_or_default();
+                                                                let exp = cap.expires_at.map(|at| at.to_rfc3339()).unwrap_or_default();
                                                                 move |_| {
                                                                     // Hydrate edit signals from the
                                                                     // existing grant. `constraints`

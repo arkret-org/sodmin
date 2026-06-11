@@ -7,11 +7,11 @@ pub async fn get_server_info() -> Result<ServerInfo, HttpError> {
     api_client(soland_paths::SERVER_INFO, "GET", None).await
 }
 
-pub async fn get_server_describe() -> Result<ServerDescribeOutcome, HttpError> {
+pub async fn get_server_describe() -> Result<ServerDescribeDocument, HttpError> {
     api_client(soland_paths::SERVER_DESCRIBE, "GET", None).await
 }
 
-pub async fn get_coauth_server_describe() -> Result<ServerDescribeOutcome, HttpError> {
+pub async fn get_coauth_server_describe() -> Result<ServerDescribeDocument, HttpError> {
     let url = crate::utils::net::session::coauth_public_url()
         .map(|base| format!("{}/_cokret/describe", base.trim_end_matches('/')))
         .unwrap_or_else(|| "/_cokret/describe".to_string());

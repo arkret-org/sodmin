@@ -19,12 +19,11 @@ use crate::utils::i18n::t;
 
 /// Returns true when the cached / freshly-fetched server describe
 /// reports `development_mode == true`. Returns false for all other
-/// shapes (not loaded yet, request failed, production server, or an
-/// older soland that doesn't emit the field).
-fn server_in_dev_mode(describe: &Option<crate::types::ServerDescribeOutcome>) -> bool {
+/// shapes (not loaded yet, request failed, or a production server).
+fn server_in_dev_mode(describe: &Option<crate::types::ServerDescribeDocument>) -> bool {
     describe
         .as_ref()
-        .and_then(|d| d.development_mode)
+        .map(|d| d.development_mode)
         .unwrap_or(false)
 }
 

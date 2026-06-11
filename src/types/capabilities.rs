@@ -1,50 +1,39 @@
-//! DTO shapes for the capability grant admin surface.
+//! Capability grant admin surface — SDK-authoritative types plus thin
+//! display helpers.
+//!
+//! The grant itself is the SDK `cokret_core::model::CapabilityGrant`
+//! (`GrantId` / `Did` / `DateTime<Utc>` strong types, field set per
+//! `ck.schema.capability.v1`). sodmin adds no wire mirror and no legacy
+//! field aliases; display-only conveniences live in
+//! [`CapabilityGrantExt`].
 
-use serde::de::{self, Deserializer};
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
+
+pub use cokret_core::model::{CapabilityGrant, CapabilitySubject};
 
 pub const CAPABILITY_GRANT_SCHEMA: &str = "ck.schema.capability.v1";
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct CapabilityGrant {
-    #[serde(default)]
-    pub id: String,
-    #[serde(default = "capability_schema")]
-    pub schema: String,
-    #[serde(default, alias = "grantor_id")]
-    pub issuer: String,
-    #[serde(default, alias = "grantee_id")]
-    pub subject: String,
-    #[serde(default, alias = "capability", deserialize_with = "string_or_vec")]
-    pub actions: Vec<String>,
-    #[serde(default, alias = "scope", deserialize_with = "resources_from_wire")]
-    pub resources: Vec<serde_json::Value>,
-    #[serde(default, deserialize_with = "constraints_from_wire")]
-    pub constraints: Vec<serde_json::Value>,
-    #[serde(default)]
-    pub parent_grant_id: Option<String>,
-    #[serde(default, alias = "granted_at")]
-    pub issued_at: Option<String>,
-    #[serde(default)]
-    pub not_before: Option<String>,
-    #[serde(default)]
-    pub expires_at: Option<String>,
-    #[serde(default)]
-    pub revoked_at: Option<String>,
-    #[serde(default)]
-    pub revoked_by: Option<String>,
-    #[serde(default, alias = "is_revoked", skip_serializing)]
-    pub lifecycle_revoked: bool,
-    #[serde(default)]
-    pub proofs: Vec<serde_json::Value>,
+/// Display helpers for the SDK [`CapabilityGrant`].
+pub trait CapabilityGrantExt {
+    fn is_revoked(&self) -> bool;
+    fn subject_display(&self) -> String;
+    fn actions_display(&self) -> String;
+    fn resources_display(&self) -> String;
 }
 
-impl CapabilityGrant {
-    pub fn is_revoked(&self) -> bool {
-        self.lifecycle_revoked || self.revoked_at.is_some()
+impl CapabilityGrantExt for CapabilityGrant {
+    fn is_revoked(&self) -> bool {
+        self.revoked_at.is_some()
     }
 
-    pub fn actions_display(&self) -> String {
+    fn subject_display(&self) -> String {
+        match &self.subject {
+            CapabilitySubject::Did(did) => did.to_string(),
+            CapabilitySubject::Selector(value) => value.to_string(),
+        }
+    }
+
+    fn actions_display(&self) -> String {
         if self.actions.is_empty() {
             "-".to_string()
         } else {
@@ -52,7 +41,7 @@ impl CapabilityGrant {
         }
     }
 
-    pub fn resources_display(&self) -> String {
+    fn resources_display(&self) -> String {
         if self.resources.is_empty() {
             return "-".to_string();
         }
@@ -64,14 +53,15 @@ impl CapabilityGrant {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+/// POST body for `/_soland/admin/capabilities` — spec-shaped
+/// (`ck.schema.capability.v1` field names; no legacy aliases).
+#[derive(Debug, Clone, Serialize, Default)]
 pub struct GrantCapabilityRequest {
-    #[serde(default = "capability_schema")]
     pub schema: String,
     pub subject: String,
     pub actions: Vec<String>,
     pub resources: Vec<serde_json::Value>,
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub constraints: Vec<serde_json::Value>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub parent_grant_id: Option<String>,
@@ -79,10 +69,6 @@ pub struct GrantCapabilityRequest {
     pub not_before: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub expires_at: Option<String>,
-}
-
-pub fn capability_schema() -> String {
-    CAPABILITY_GRANT_SCHEMA.to_string()
 }
 
 pub fn capability_resources_from_input(input: &str) -> Vec<serde_json::Value> {
@@ -111,70 +97,7 @@ pub fn capability_resources_from_input(input: &str) -> Vec<serde_json::Value> {
     vec![serde_json::json!({ "kind": "*", "selector": trimmed })]
 }
 
-fn string_or_vec<'de, D>(deserializer: D) -> Result<Vec<String>, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    let value = Option::<serde_json::Value>::deserialize(deserializer)?;
-    match value {
-        None | Some(serde_json::Value::Null) => Ok(Vec::new()),
-        Some(serde_json::Value::String(s)) => Ok(if s.trim().is_empty() {
-            Vec::new()
-        } else {
-            vec![s]
-        }),
-        Some(serde_json::Value::Array(items)) => Ok(items
-            .into_iter()
-            .filter_map(|item| item.as_str().map(ToOwned::to_owned))
-            .collect()),
-        Some(other) => Err(de::Error::custom(format!(
-            "expected action string or array, got {other}"
-        ))),
-    }
-}
-
-fn resources_from_wire<'de, D>(deserializer: D) -> Result<Vec<serde_json::Value>, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    let value = Option::<serde_json::Value>::deserialize(deserializer)?;
-    match value {
-        None | Some(serde_json::Value::Null) => Ok(Vec::new()),
-        Some(serde_json::Value::String(scope)) => Ok(if scope.trim().is_empty() {
-            Vec::new()
-        } else {
-            vec![serde_json::json!({ "kind": "*", "legacy_scope": scope })]
-        }),
-        Some(serde_json::Value::Array(items)) => Ok(items),
-        Some(serde_json::Value::Object(map)) => Ok(vec![serde_json::Value::Object(map)]),
-        Some(other) => Err(de::Error::custom(format!(
-            "expected resource selector array, got {other}"
-        ))),
-    }
-}
-
-fn constraints_from_wire<'de, D>(deserializer: D) -> Result<Vec<serde_json::Value>, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    let value = Option::<serde_json::Value>::deserialize(deserializer)?;
-    match value {
-        None | Some(serde_json::Value::Null) => Ok(Vec::new()),
-        Some(serde_json::Value::Array(items)) => Ok(items),
-        Some(serde_json::Value::Object(map)) => Ok(vec![serde_json::Value::Object(map)]),
-        Some(other) => Err(de::Error::custom(format!(
-            "expected constraint object or array, got {other}"
-        ))),
-    }
-}
-
 fn display_resource_selector(value: &serde_json::Value) -> String {
-    if let Some(scope) = value
-        .get("legacy_scope")
-        .and_then(serde_json::Value::as_str)
-    {
-        return scope.to_string();
-    }
     if value == &serde_json::json!({ "kind": "*" }) {
         return "*".to_string();
     }
@@ -184,7 +107,7 @@ fn display_resource_selector(value: &serde_json::Value) -> String {
 /// PATCH body for `/_soland/admin/capabilities/{id}` - fine-grained
 /// edits to an existing grant's constraints. All fields optional; the
 /// admin only sends the keys that actually changed.
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Serialize, Default)]
 pub struct UpdateCapabilityRequest {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub expires_at: Option<String>,
@@ -199,8 +122,8 @@ pub struct UpdateCapabilityRequest {
 #[cfg(test)]
 mod tests {
     use super::{
-        CAPABILITY_GRANT_SCHEMA, CapabilityGrant, GrantCapabilityRequest, UpdateCapabilityRequest,
-        capability_resources_from_input,
+        CAPABILITY_GRANT_SCHEMA, CapabilityGrant, CapabilityGrantExt, GrantCapabilityRequest,
+        UpdateCapabilityRequest, capability_resources_from_input,
     };
 
     #[test]
@@ -243,29 +166,23 @@ mod tests {
     }
 
     #[test]
-    fn capability_grant_reads_legacy_response_without_emitting_legacy_fields() {
+    fn sdk_capability_grant_parses_spec_wire_shape() {
         let grant: CapabilityGrant = serde_json::from_value(serde_json::json!({
             "id": "ck:grant:01964137-0000-7000-8000-000000000001",
-            "grantor_id": "did:web:issuer.example",
-            "grantee_id": "did:web:subject.example",
-            "capability": "ck.message.create",
-            "scope": "ck:realm:01964137-0000-7000-8000-000000000001",
-            "granted_at": "2026-06-07T00:00:00Z",
-            "is_revoked": true
+            "schema": CAPABILITY_GRANT_SCHEMA,
+            "issuer": "did:web:issuer.example",
+            "subject": "did:web:subject.example",
+            "actions": ["ck.message.create"],
+            "resources": [{ "kind": "*" }],
+            "issued_at": "2026-06-07T00:00:00Z",
+            "proofs": []
         }))
-        .expect("legacy response should deserialize");
+        .expect("spec-shaped grant should deserialize");
 
-        assert_eq!(grant.issuer, "did:web:issuer.example");
-        assert_eq!(grant.subject, "did:web:subject.example");
-        assert_eq!(grant.actions, vec!["ck.message.create"]);
-        assert!(grant.is_revoked());
-        assert_eq!(grant.issued_at.as_deref(), Some("2026-06-07T00:00:00Z"));
-
-        let value = serde_json::to_value(&grant).expect("serializes");
-        assert!(value.get("grantor_id").is_none());
-        assert!(value.get("grantee_id").is_none());
-        assert!(value.get("capability").is_none());
-        assert!(value.get("scope").is_none());
-        assert!(value.get("is_revoked").is_none());
+        assert_eq!(grant.issuer.as_str(), "did:web:issuer.example");
+        assert_eq!(grant.subject_display(), "did:web:subject.example");
+        assert_eq!(grant.actions_display(), "ck.message.create");
+        assert_eq!(grant.resources_display(), "*");
+        assert!(!grant.is_revoked());
     }
 }

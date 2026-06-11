@@ -3,42 +3,27 @@ use dioxus::prelude::*;
 use crate::components::ui::icons::Icon;
 use crate::router::Route;
 use crate::utils::i18n::t;
-use crate::utils::net::session::{self, bridge, scope};
+use crate::utils::net::session;
 
 struct NavItem {
     title: String,
     route: Route,
     icon: &'static str,
-    /// Required scope this nav item needs. `None` means "always allowed
-    /// when the parent group is shown".
-    required_scope: Option<&'static str>,
 }
 
 impl NavItem {
     fn new(title: String, route: Route, icon: &'static str) -> Self {
-        Self {
-            title,
-            route,
-            icon,
-            required_scope: None,
-        }
-    }
-
-    fn scoped(mut self, scope: &'static str) -> Self {
-        self.required_scope = Some(scope);
-        self
+        Self { title, route, icon }
     }
 }
 
 struct NavSection {
     label: String,
     items: Vec<NavItem>,
-    /// Required active bridge contract for the whole group. `None` means
-    /// "always shown".
-    required_bridge: Option<&'static str>,
-    /// Required admin scope for the whole group. `None` means "show iff
-    /// at least one inner item is allowed by `has_scope`".
-    required_scope: Option<&'static str>,
+    /// True for sections that only make sense when a coauth upstream is
+    /// configured (auto-derived from `session::has_coauth()`; server-side
+    /// RBAC remains the authorization authority).
+    requires_coauth: bool,
 }
 
 impl NavSection {
@@ -46,53 +31,22 @@ impl NavSection {
         Self {
             label,
             items,
-            required_bridge: None,
-            required_scope: None,
+            requires_coauth: false,
         }
     }
 
-    fn bridge(mut self, b: &'static str) -> Self {
-        self.required_bridge = Some(b);
+    fn coauth(mut self) -> Self {
+        self.requires_coauth = true;
         self
     }
 
-    fn scope(mut self, s: &'static str) -> Self {
-        self.required_scope = Some(s);
-        self
-    }
-
-    /// Item filter — keep only entries whose required_scope is held by
-    /// the current session.
-    fn filtered_items(&self) -> Vec<&NavItem> {
-        self.items
-            .iter()
-            .filter(|item| match item.required_scope {
-                Some(s) => session::has_scope(s),
-                None => true,
-            })
-            .collect()
-    }
-
-    /// Hide a whole section if its bridge is not active or its scope is
-    /// not held — also hide if every item has been filtered out.
     fn is_visible(&self) -> bool {
-        if let Some(b) = self.required_bridge
-            && !session::has_bridge(b)
-        {
-            return false;
-        }
-        if let Some(s) = self.required_scope
-            && !session::has_scope(s)
-        {
-            return false;
-        }
-        !self.filtered_items().is_empty()
+        !self.requires_coauth || session::has_coauth()
     }
 }
 
-/// Build the dynamic sidebar nav. Reads `active_bridges` + `admin_scope`
-/// from the cached session info and only emits groups/items the operator
-/// is actually allowed to see. Unknown extras in either set are ignored.
+/// Build the sidebar nav. The only dynamic gate is the coauth section,
+/// which hides itself when no coauth upstream is configured.
 fn build_nav_sections() -> Vec<NavSection> {
     // Dashboard is always visible — it has its own per-bridge readiness
     // surface.
@@ -128,9 +82,7 @@ fn build_nav_sections() -> Vec<NavSection> {
                 // Round 4 — 3PID third-party invite state-machine view.
                 NavItem::new(t("nav.invites_3pid"), Route::ThirdPartyInvites {}, "mail"),
             ],
-        )
-        .bridge(bridge::SOLAND)
-        .scope(scope::IDENTITY),
+        ),
     );
 
     // CKP-0007 Circles — encrypted sub-boundary admin (P3A.3).
@@ -144,9 +96,7 @@ fn build_nav_sections() -> Vec<NavSection> {
                 Route::CircleList {},
                 "users",
             )],
-        )
-        .bridge(bridge::SOLAND)
-        .scope(scope::IDENTITY),
+        ),
     );
 
     sections.push(
@@ -174,9 +124,7 @@ fn build_nav_sections() -> Vec<NavSection> {
                     "shield",
                 ),
             ],
-        )
-        .bridge(bridge::SOLAND)
-        .scope(scope::MODERATION),
+        ),
     );
 
     sections.push(
@@ -240,9 +188,7 @@ fn build_nav_sections() -> Vec<NavSection> {
                     "video",
                 ),
             ],
-        )
-        .bridge(bridge::SOLAND)
-        .scope(scope::INFRASTRUCTURE),
+        ),
     );
 
     sections.push(
@@ -280,9 +226,7 @@ fn build_nav_sections() -> Vec<NavSection> {
                     "alert-triangle",
                 ),
             ],
-        )
-        .bridge(bridge::SOLAND)
-        .scope(scope::SERVER_OPS),
+        ),
     );
 
     // Stream H' (Move/Anchor/Lattice admin) — gated on the soland bridge
@@ -342,9 +286,7 @@ fn build_nav_sections() -> Vec<NavSection> {
                     "users",
                 ),
             ],
-        )
-        .bridge(bridge::SOLAND)
-        .scope(scope::ANCHOR),
+        ),
     );
 
     sections.push(
@@ -355,61 +297,51 @@ fn build_nav_sections() -> Vec<NavSection> {
                     t("nav.coauth_accounts"),
                     Route::CoauthAccountList {},
                     "user-round",
-                )
-                .scoped(scope::COAUTH),
-                NavItem::new(t("nav.audit_log"), Route::CoauthAuditLog {}, "scroll-text")
-                    .scoped(scope::COAUTH),
+                ),
+                NavItem::new(t("nav.audit_log"), Route::CoauthAuditLog {}, "scroll-text"),
                 NavItem::new(
                     t("nav.oauth2_sessions"),
                     Route::CoauthOAuth2Sessions {},
                     "key",
-                )
-                .scoped(scope::COAUTH),
+                ),
                 NavItem::new(
                     t("nav.personal_tokens"),
                     Route::CoauthPersonalSessions {},
                     "fingerprint",
-                )
-                .scoped(scope::COAUTH),
+                ),
                 NavItem::new(
                     t("nav.registration_tokens"),
                     Route::CoauthRegistrationTokens {},
                     "ticket",
-                )
-                .scoped(scope::COAUTH),
+                ),
                 NavItem::new(
                     t("nav.upstream_providers"),
                     Route::CoauthUpstreamProviders {},
                     "link",
-                )
-                .scoped(scope::COAUTH),
+                ),
                 NavItem::new(
                     t("nav.upstream_links"),
                     Route::CoauthUpstreamLinks {},
                     "link",
-                )
-                .scoped(scope::COAUTH),
+                ),
                 NavItem::new(
                     t("nav.notification_channels"),
                     Route::CoauthNotificationChannels {},
                     "mail",
-                )
-                .scoped(scope::COAUTH),
+                ),
                 NavItem::new(
                     t("nav.notification_templates"),
                     Route::CoauthNotificationTemplates {},
                     "scroll-text",
-                )
-                .scoped(scope::COAUTH),
+                ),
                 NavItem::new(
                     t("nav.connector_health"),
                     Route::CoauthConnectorHealth {},
                     "heart-pulse",
-                )
-                .scoped(scope::COAUTH),
+                ),
             ],
         )
-        .bridge(bridge::COAUTH),
+        .coauth(),
     );
 
     sections.into_iter().filter(|s| s.is_visible()).collect()
@@ -464,7 +396,7 @@ pub fn AppSidebar(collapsed: Signal<bool>, mobile_open: Signal<bool>) -> Element
                                 {section.label.clone()}
                             }
                         }
-                        for item in section.filtered_items().into_iter() {
+                        for item in section.items.iter() {
                             {
                                 let is_active = is_route_active(&current_path, &item.route);
                                 let active_class = if is_active {
@@ -530,72 +462,29 @@ fn is_route_active(current: &Route, target: &Route) -> bool {
 mod tests {
     use super::*;
 
-    /// Apply the same filtering as `NavSection::filtered_items` but using
-    /// an explicit (storage-free) scope set so the unit tests don't need
-    /// browser `LocalStorage`. Mirrors the runtime semantics exactly.
-    fn filter_with_scopes<'a>(section: &'a NavSection, scopes: &[&str]) -> Vec<&'a NavItem> {
-        section
-            .items
-            .iter()
-            .filter(|item| match item.required_scope {
-                Some(s) => scopes.contains(&scope::WILDCARD) || scopes.contains(&s),
-                None => true,
-            })
-            .collect()
-    }
-
-    fn section_visible_with(section: &NavSection, bridges: &[&str], scopes: &[&str]) -> bool {
-        if let Some(b) = section.required_bridge
-            && !bridges.contains(&b)
-        {
-            return false;
-        }
-        if let Some(s) = section.required_scope
-            && !(scopes.contains(&scope::WILDCARD) || scopes.contains(&s))
-        {
-            return false;
-        }
-        !filter_with_scopes(section, scopes).is_empty()
+    /// Storage-free mirror of `NavSection::is_visible` so the unit test
+    /// doesn't need browser `LocalStorage`.
+    fn section_visible_with(section: &NavSection, coauth_configured: bool) -> bool {
+        !section.requires_coauth || coauth_configured
     }
 
     #[test]
-    fn nav_section_hidden_when_required_bridge_inactive() {
+    fn coauth_section_hidden_without_coauth_upstream() {
         let section = NavSection::new(
             "x".to_string(),
             vec![NavItem::new("y".to_string(), Route::Dashboard {}, "x")],
         )
-        .bridge(bridge::SOLAND);
-        assert!(!section_visible_with(&section, &[], &[scope::WILDCARD]));
-        assert!(section_visible_with(
-            &section,
-            &[bridge::SOLAND],
-            &[scope::WILDCARD]
-        ));
+        .coauth();
+        assert!(!section_visible_with(&section, false));
+        assert!(section_visible_with(&section, true));
     }
 
     #[test]
-    fn nav_section_filters_items_by_scope() {
+    fn plain_section_always_visible() {
         let section = NavSection::new(
             "x".to_string(),
-            vec![
-                NavItem::new("a".to_string(), Route::Dashboard {}, "x"),
-                NavItem::new("b".to_string(), Route::Dashboard {}, "x").scoped(scope::COAUTH),
-            ],
+            vec![NavItem::new("y".to_string(), Route::Dashboard {}, "x")],
         );
-        // Wildcard sees both items.
-        assert_eq!(filter_with_scopes(&section, &[scope::WILDCARD]).len(), 2);
-        // No scope at all hides the coauth-scoped item.
-        assert_eq!(filter_with_scopes(&section, &[]).len(), 1);
-        // Explicit coauth scope sees both.
-        assert_eq!(filter_with_scopes(&section, &[scope::COAUTH]).len(), 2);
-    }
-
-    #[test]
-    fn nav_section_hidden_when_all_items_filtered_out() {
-        let section = NavSection::new(
-            "x".to_string(),
-            vec![NavItem::new("y".to_string(), Route::Dashboard {}, "x").scoped(scope::COAUTH)],
-        );
-        assert!(!section_visible_with(&section, &[], &[]));
+        assert!(section_visible_with(&section, false));
     }
 }

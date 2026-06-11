@@ -76,6 +76,30 @@ path = "src/main.rs"
 name = "sodmin-smoke"
 path = "src/bin/sodmin_smoke.rs"
 
+# cokret fork of DioxusLabs/dioxus, branched off the v0.7.9 tag (same patch
+# set as yougen — keep the two in lockstep). The only delta is
+# `Callback::__point_to` in `packages/core/src/events.rs`: upstream 0.7.9
+# calls `.unwrap()` on `point_to`, which aborts the entire wasm instance
+# (white screen) when an `Option<EventHandler>` prop's owner scope is
+# reclaimed in the same frame the rsx diff tries to re-point its stable
+# handle — surfacing as `Result::unwrap() on Dropped(ValueDroppedError)`.
+# The fork degrades that unwrap to a trace-log no-op.
+#
+# The wasm-shared lifetime crates below MUST come from the same git source as
+# `dioxus-core`: a git `dioxus-core` pulls in git `generational-box` /
+# `subsecond` via workspace deps, and if the registry copies remained, the
+# same crate would exist under two sources and `GenerationalBox<T>` would
+# mismatch across the registry `dioxus-signals`/`dioxus-web` and the patched
+# core.
+# See https://github.com/cokret/dioxus/commit/e59f9f24a5c27c9303cd61edd0452b44161374ab
+# rev 钉死,升级时手工 bump。
+[patch.crates-io]
+dioxus-core       = { git = "https://github.com/cokret/dioxus", rev = "e59f9f24a5c27c9303cd61edd0452b44161374ab" }
+dioxus-core-types = { git = "https://github.com/cokret/dioxus", rev = "e59f9f24a5c27c9303cd61edd0452b44161374ab" }
+generational-box  = { git = "https://github.com/cokret/dioxus", rev = "e59f9f24a5c27c9303cd61edd0452b44161374ab" }
+subsecond         = { git = "https://github.com/cokret/dioxus", rev = "e59f9f24a5c27c9303cd61edd0452b44161374ab" }
+subsecond-types   = { git = "https://github.com/cokret/dioxus", rev = "e59f9f24a5c27c9303cd61edd0452b44161374ab" }
+
 [workspace]
 resolver = "3"
 

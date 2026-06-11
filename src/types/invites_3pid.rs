@@ -4,19 +4,11 @@ use serde::{Deserialize, Serialize};
 
 // ── Round 4 — 3PID invite admin row ─────────────────────────────────
 
-/// Round 4 — terminal state for an admin-visible 3PID invite. Every
-/// terminal value MUST be displayed truthfully; in particular
-/// `send_failed` is a permanent failure (the OOB code was never
-/// delivered) and the admin UI must not paper it over as success.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum ThirdPartyInviteTerminalState {
-    Claimed,
-    SendFailed,
-    RevokedByCapabilityLoss,
-    RevokedByInviterLeft,
-    InvalidatedByRateLimit,
-}
+// SDK-authoritative terminal state for an admin-visible 3PID invite.
+// Every terminal value MUST be displayed truthfully; in particular
+// `send_failed` is a permanent failure (the OOB code was never
+// delivered) and the admin UI must not paper it over as success.
+pub use cokret_core::model::ThirdPartyInviteTerminalState;
 
 /// Round 4 — admin-visible 3PID invite row. The plaintext 3PID is
 /// intentionally absent — the wire never carries it, and the admin UI

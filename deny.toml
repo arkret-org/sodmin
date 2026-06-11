@@ -38,3 +38,5 @@ skip-tree = []
 unknown-registry = "warn"
 unknown-git = "warn"
 allow-registry = ["https://github.com/rust-lang/crates.io-index"]
+# cokret/dioxus point-to-graceful fork (see Cargo.toml [patch.crates-io]).
+allow-git = ["https://github.com/cokret/dioxus"]

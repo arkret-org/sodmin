@@ -24,7 +24,7 @@ use dioxus::prelude::*;
 use crate::api::{capabilities, coauth};
 use crate::components::ui::badge::{Badge, BadgeVariant};
 use crate::components::ui::loading::PageSkeleton;
-use crate::types::CapabilityGrant;
+use crate::types::{CapabilityGrant, CapabilityGrantExt};
 
 const VIEW_PAGE_SIZE: u64 = 100;
 
@@ -72,7 +72,7 @@ pub fn GrantedCapabilitiesView(props: GrantedCapabilitiesViewProps) -> Element {
                             !g.is_revoked()
                                 && viewer
                                     .as_ref()
-                                    .map(|sub| g.subject == *sub)
+                                    .map(|sub| g.subject_display() == *sub)
                                     .unwrap_or(true)
                         })
                         .collect();

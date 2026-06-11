@@ -48,7 +48,7 @@ jobs:
           shared-key: wasm
 
       - name: Install dioxus-cli
-        run: cargo install dioxus-cli@0.7.5 --locked
+        run: cargo install dioxus-cli@0.7.9 --locked
 
       - name: dx build --release
         run: dx build --release

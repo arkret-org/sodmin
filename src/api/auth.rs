@@ -537,11 +537,6 @@ fn clear_session_marker() {
         "user_display_name",
         "user_avatar_url",
         OAUTH_DEVICE_ID_STORAGE_KEY,
-        // session scope / advertised bridges (utils::net::session). Cleared
-        // on logout so a prior admin's scope hint can't leak to the next
-        // user on a shared browser if/when these are ever written.
-        "session_admin_scope",
-        "session_active_bridges",
     ];
     for key in KEYS_TO_CLEAR {
         storage::remove_item(key);

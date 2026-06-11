@@ -7,7 +7,7 @@ use crate::components::ui::card::*;
 use crate::components::ui::error_banner::ErrorBanner;
 use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
-use crate::types::ServerDescribeOutcome;
+use crate::types::ServerDescribeDocument;
 use crate::utils::i18n::t;
 use crate::utils::net::error::HttpError;
 
@@ -195,7 +195,7 @@ fn info_cell(label: String, value: String) -> Element {
 fn service_describe_card(
     title: String,
     description: String,
-    describe: Option<&ServerDescribeOutcome>,
+    describe: Option<&ServerDescribeDocument>,
     not_configured_label: Option<String>,
 ) -> Element {
     let badge = match (describe.is_some(), not_configured_label.is_some()) {
@@ -234,38 +234,23 @@ fn service_describe_card(
     }
 }
 
-fn describe_body(describe: &ServerDescribeOutcome) -> Element {
-    let did = if describe.service_did.is_empty() {
-        "-".to_string()
-    } else {
-        describe.service_did.clone()
-    };
-    // Round 4 — `trust_domain` is a required ServerDescribe v2 field;
-    // an empty value means the server is pre-round-4 or misconfigured.
-    let trust_domain = describe
-        .trust_domain
-        .clone()
-        .filter(|s| !s.is_empty())
-        .unwrap_or_else(|| "-".to_string());
-    let service_type = describe
-        .service_type
-        .clone()
-        .unwrap_or_else(|| "-".to_string());
-    let protocol = describe
-        .protocol_version
-        .clone()
-        .unwrap_or_else(|| "-".to_string());
+fn describe_body(describe: &ServerDescribeDocument) -> Element {
+    let did = describe.service_did.to_string();
+    // Round 4 — `trust_domain` is a required (validated) ServerDescribe
+    // v2 field in the SDK type, so it is always present here.
+    let trust_domain = describe.trust_domain.to_string();
+    let service_type = describe.service_type.clone();
+    let protocol = describe.protocol_version.clone();
+    // Service-proprietary top-level extensions (not part of the spec
+    // ServiceDescribe shape) — read via the extension envelope.
     let openapi = describe
-        .openapi_version
-        .clone()
+        .extra_str(&["openapi_version"])
         .unwrap_or_else(|| "-".to_string());
     let schema = describe
-        .schema_registry_version
-        .clone()
+        .extra_str(&["schema_registry_version"])
         .unwrap_or_else(|| "-".to_string());
     let event_kind = describe
-        .event_kind_registry_version
-        .clone()
+        .extra_str(&["event_kind_registry_version"])
         .unwrap_or_else(|| "-".to_string());
 
     let profiles = describe.supported_profiles.clone();
@@ -274,22 +259,24 @@ fn describe_body(describe: &ServerDescribeOutcome) -> Element {
     let operations = describe.supported_operations.clone();
     let bindings = describe.supported_bindings.clone();
 
-    // T1.4 — surface the runtime posture. `development_mode` is rendered
-    // separately below (with red styling) so the operator can't miss it.
+    // T1.4 — surface the runtime posture. These are soland extension
+    // fields (only emitted on `/health` and the legacy `/_soland/describe`
+    // today), so they come from the extension envelope and usually render
+    // as "-" on the spec-shaped `/_cokret/describe`. `development_mode`
+    // is rendered separately below (with red styling) so the operator
+    // can't miss it.
     let proof_verifier_mode = describe
-        .proof_verifier_mode
-        .clone()
+        .extra_str(&["proof_verifier_mode"])
         .unwrap_or_else(|| "-".to_string());
     let admin_auth_mode = describe
-        .admin_auth_mode
-        .clone()
+        .extra_str(&["admin_auth_mode"])
         .unwrap_or_else(|| "-".to_string());
-    let development_mode_label = match describe.development_mode {
-        Some(true) => t("server_status.dev_banner"),
-        Some(false) => "production".to_string(),
-        None => "-".to_string(),
+    let development_mode_label = if describe.development_mode {
+        t("server_status.dev_banner")
+    } else {
+        "production".to_string()
     };
-    let development_mode_is_dev = describe.development_mode.unwrap_or(false);
+    let development_mode_is_dev = describe.development_mode;
     // Round 4 — when development_mode + verified_profiles both present,
     // the server is making contradictory claims. Surface a loud red
     // banner above the rest of the card.
@@ -595,22 +582,22 @@ fn chip_section(label: String, items: &[String]) -> Element {
 /// codes. When `dev_mode_active` is true, verified profiles are crossed
 /// out and labelled "unavailable in dev mode" because the relaxed
 /// proof verifier breaks the verification chain.
-fn conformance_section(describe: &ServerDescribeOutcome, dev_mode_active: bool) -> Element {
+fn conformance_section(describe: &ServerDescribeDocument, dev_mode_active: bool) -> Element {
     let verified = describe
         .verified_profiles
         .iter()
-        .map(|profile| profile.profile_id().to_owned())
+        .map(|profile| profile.profile_id.clone())
         .collect::<Vec<_>>();
     let claimed = describe
         .claimed_profiles
         .iter()
-        .map(|profile| profile.profile_id().to_owned())
+        .map(|profile| profile.profile_id.clone())
         .collect::<Vec<_>>();
     let experimental = describe.experimental_features.clone();
     let compat = describe
         .compat_surfaces
         .iter()
-        .map(|surface| surface.name().to_owned())
+        .map(|surface| surface.name.clone())
         .collect::<Vec<_>>();
 
     if verified.is_empty() && claimed.is_empty() && experimental.is_empty() && compat.is_empty() {
@@ -713,18 +700,16 @@ fn conformance_bucket(label: String, items: &[String], tone: ConformanceTone) ->
 
 /// T6.2 §6 — surface every weak runtime knob as a red posture card.
 /// Renders nothing on a clean production server.
-fn dev_posture_card(describe: &ServerDescribeOutcome) -> Element {
+fn dev_posture_card(describe: &ServerDescribeDocument) -> Element {
     let verifier_dev = describe
-        .proof_verifier_mode
-        .as_deref()
+        .extra_str(&["proof_verifier_mode"])
         .map(|m| m.eq_ignore_ascii_case("development"))
         .unwrap_or(false);
     let admin_dev = describe
-        .admin_auth_mode
-        .as_deref()
+        .extra_str(&["admin_auth_mode"])
         .map(|m| m.eq_ignore_ascii_case("development"))
         .unwrap_or(false);
-    let plaintext = describe.plaintext_visibility.clone();
+    let plaintext = describe.plaintext_visibility_entries();
 
     if !verifier_dev && !admin_dev && plaintext.is_empty() {
         return rsx! {};
