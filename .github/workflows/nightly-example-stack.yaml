@@ -36,7 +36,7 @@ jobs:
     timeout-minutes: 60
     steps:
       - name: Check out sodmin
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           path: sodmin
 
@@ -45,7 +45,7 @@ jobs:
       # `main` keeps nightly bring-up reproducible against the umbrella
       # `cokret` layout described in examples/README.md.
       - name: Check out coauth
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: ${{ github.repository_owner }}/coauth
           path: coauth
@@ -53,7 +53,7 @@ jobs:
           token: ${{ secrets.CI_REPO_TOKEN || github.token }}
 
       - name: Check out soland
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: ${{ github.repository_owner }}/soland
           path: soland
@@ -61,7 +61,7 @@ jobs:
           token: ${{ secrets.CI_REPO_TOKEN || github.token }}
 
       - name: Check out floria
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: ${{ github.repository_owner }}/floria
           path: floria

@@ -21,7 +21,7 @@ jobs:
 
     steps:
       - name: Check out sodmin
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           path: sodmin
 
@@ -30,7 +30,7 @@ jobs:
       # `../coauth/crates/admin-types` resolve in the build sandbox.
       # Pin to `main` so single-repo image builds match nightly stack.
       - name: Check out coauth
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: ${{ github.repository_owner }}/coauth
           path: coauth
@@ -38,7 +38,7 @@ jobs:
           token: ${{ secrets.CI_REPO_TOKEN || github.token }}
 
       - name: Check out cokret-rust-sdk
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: ${{ github.repository_owner }}/cokret-rust-sdk
           path: cokret-rust-sdk
