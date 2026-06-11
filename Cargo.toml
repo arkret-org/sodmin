@@ -1,4 +1,4 @@
-﻿[package]
+[package]
 name = "sodmin"
 version = "0.3.0"
 authors = ["Cokret Authors"]
@@ -16,11 +16,11 @@ cokret-contracts = { path = "../cokret-rust-sdk/crates/contracts", default-featu
 cokret-identifiers = { path = "../cokret-rust-sdk/crates/identifiers", default-features = false }
 dioxus = { version = "0.7.9", features = ["web", "router"] }
 serde = { version = "1.0.228", features = ["derive"] }
-serde_json = "1.0.149"
+serde_json = "1.0.150"
 gloo-net = { version = "0.7", features = ["http", "json"] }
 gloo-storage = "0.4.0"
 gloo-timers = { version = "0.4", features = ["futures"] }
-web-sys = { version = "0.3.95", features = [
+web-sys = { version = "0.3.100", features = [
     "Window",
     "Document",
     "HtmlDocument",
@@ -48,24 +48,24 @@ web-sys = { version = "0.3.95", features = [
     "StorageEvent",
     "SubtleCrypto",
 ] }
-wasm-bindgen = "0.2.118"
-wasm-bindgen-futures = "0.4.68"
-js-sys = "0.3.95"
-chrono = { version = "0.4.44", features = ["serde", "wasmbind"] }
+wasm-bindgen = "0.2.123"
+wasm-bindgen-futures = "0.4.73"
+js-sys = "0.3.100"
+chrono = { version = "0.4.45", features = ["serde", "wasmbind"] }
 urlencoding = "2.1.3"
 base64 = { version = "0.22", default-features = false, features = ["alloc"] }
-log = "0.4.29"
+log = "0.4.32"
 dioxus-logger = "0.7.9"
 regex-lite = "0.1.9"
 
 [build-dependencies]
-serde_json = "1.0.149"
+serde_json = "1.0.150"
 
 # Native-only deps used by the `sodmin-smoke` post-deploy smoke test
 # binary (src/bin/sodmin_smoke.rs). Gated on cfg(not(target_arch="wasm32"))
 # so they don't bloat the wasm bundle.
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-reqwest = { version = "0.12", default-features = false, features = ["blocking", "json", "rustls-tls"] }
+reqwest = { version = "0.13", default-features = false, features = ["blocking", "json", "rustls-tls"] }
 
 [[bin]]
 name = "sodmin"
