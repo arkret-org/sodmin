@@ -8,8 +8,8 @@
 //! - `POST /_soland/admin/moderation/reports/{id}/resolve` — admin decision body `{decision:
 //!   "resolve" | "dismiss", note?}`. Same 404-tolerant pattern as the rest of Stream H'.
 
-use crate::api::client::{api_client, build_url};
-use crate::api::generated::soland_admin::{ModerationReport, ResolveReportRequest};
+use crate::api::client::{api_client, build_url, json_body};
+use crate::api::contracts::soland_admin::{ModerationReport, ResolveReportRequest};
 use crate::utils::net::error::HttpError;
 
 #[derive(Debug, Clone, Default)]
@@ -54,7 +54,7 @@ pub async fn resolve_report(report_id: &str, body: &ResolveReportRequest) -> Res
         "/_soland/admin/moderation/reports/{}/resolve",
         urlencoding::encode(report_id)
     );
-    let payload = serde_json::to_string(body).unwrap_or_default();
+    let payload = json_body(body)?;
     let _: serde_json::Value = api_client(&url, "POST", Some(payload)).await?;
     Ok(())
 }
@@ -124,7 +124,7 @@ pub async fn decide_appeal(
         "/_soland/admin/moderation/appeals/{}/decision",
         urlencoding::encode(appeal_id)
     );
-    let payload = serde_json::to_string(body).unwrap_or_default();
+    let payload = json_body(body)?;
     api_client(&url, "POST", Some(payload)).await
 }
 
@@ -144,6 +144,6 @@ pub async fn lift_decision(
         "/_soland/admin/moderation/decision/{}/lift",
         urlencoding::encode(decision_id)
     );
-    let payload = serde_json::to_string(body).unwrap_or_default();
+    let payload = json_body(body)?;
     api_client(&url, "POST", Some(payload)).await
 }

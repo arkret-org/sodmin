@@ -1,4 +1,4 @@
-use crate::api::client::{api_client, build_url};
+use crate::api::client::{api_client, build_url, json_body};
 use crate::types::*;
 use crate::utils::net::error::HttpError;
 
@@ -20,7 +20,7 @@ pub async fn create_invite_token(req: &CreateInviteTokenRequest) -> Result<Invit
     api_client(
         "/_soland/admin/invite-tokens",
         "POST",
-        Some(serde_json::to_string(req).unwrap_or_default()),
+        Some(json_body(req)?),
     )
     .await
 }

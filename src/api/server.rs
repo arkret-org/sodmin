@@ -1,4 +1,4 @@
-use crate::api::client::api_client;
+use crate::api::client::{api_client, json_body};
 use crate::api::openapi_contract::soland as soland_paths;
 use crate::types::*;
 use crate::utils::net::error::HttpError;
@@ -45,7 +45,7 @@ pub async fn get_trust_domain() -> Result<TrustDomainSetting, HttpError> {
 pub async fn update_trust_domain(
     body: &UpdateTrustDomainRequest,
 ) -> Result<TrustDomainSetting, HttpError> {
-    let payload = serde_json::to_string(body).unwrap_or_default();
+    let payload = json_body(body)?;
     api_client("/_soland/admin/server/trust-domain", "PUT", Some(payload)).await
 }
 
@@ -72,14 +72,14 @@ pub async fn get_relaxed_window() -> Result<RelaxedWindowSetting, HttpError> {
 pub async fn update_relaxed_window(
     body: &UpdateRelaxedWindowRequest,
 ) -> Result<RelaxedWindowSetting, HttpError> {
-    let payload = serde_json::to_string(body).unwrap_or_default();
+    let payload = json_body(body)?;
     api_client("/_soland/admin/server/relaxed-window", "PUT", Some(payload)).await
 }
 
 pub async fn submit_attestation_evidence(
     body: &serde_json::Value,
 ) -> Result<serde_json::Value, HttpError> {
-    let payload = serde_json::to_string(body).unwrap_or_default();
+    let payload = json_body(body)?;
     api_client(
         "/_soland/admin/audit/attestation-evidence",
         "POST",
@@ -106,7 +106,7 @@ pub async fn destroy_realm(
         "/_soland/admin/realms/{}/destroy",
         urlencoding::encode(realm_id)
     );
-    let payload = serde_json::to_string(body).unwrap_or_default();
+    let payload = json_body(body)?;
     api_client(&url, "POST", Some(payload)).await
 }
 
@@ -118,7 +118,7 @@ pub async fn retry_realm_destroy(
         "/_soland/admin/realms/{}/destroy/retry",
         urlencoding::encode(realm_id)
     );
-    let payload = serde_json::to_string(body).unwrap_or_default();
+    let payload = json_body(body)?;
     api_client(&url, "POST", Some(payload)).await
 }
 

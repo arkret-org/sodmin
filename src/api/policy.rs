@@ -1,5 +1,5 @@
-use crate::api::client::{api_client, build_url};
-use crate::api::generated::soland_admin::{CreatePolicyRequest, Policy, PolicyListResponse};
+use crate::api::client::{api_client, build_url, json_body};
+use crate::api::contracts::soland_admin::{CreatePolicyRequest, Policy, PolicyListResponse};
 use crate::utils::net::error::HttpError;
 
 pub async fn list_policies(
@@ -16,22 +16,12 @@ pub async fn list_policies(
 }
 
 pub async fn create_policy(req: &CreatePolicyRequest) -> Result<Policy, HttpError> {
-    api_client(
-        "/_soland/admin/policies",
-        "POST",
-        Some(serde_json::to_string(req).unwrap_or_default()),
-    )
-    .await
+    api_client("/_soland/admin/policies", "POST", Some(json_body(req)?)).await
 }
 
 pub async fn update_policy(id: &str, req: &CreatePolicyRequest) -> Result<Policy, HttpError> {
     let url = format!("/_soland/admin/policies/{}", urlencoding::encode(id));
-    api_client(
-        &url,
-        "PUT",
-        Some(serde_json::to_string(req).unwrap_or_default()),
-    )
-    .await
+    api_client(&url, "PUT", Some(json_body(req)?)).await
 }
 
 pub async fn delete_policy(id: &str) -> Result<(), HttpError> {

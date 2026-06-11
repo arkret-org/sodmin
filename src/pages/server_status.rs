@@ -4,29 +4,34 @@ use crate::api::server;
 use crate::components::ui::badge::{Badge, BadgeVariant};
 use crate::components::ui::button::{Button, ButtonVariant};
 use crate::components::ui::card::*;
+use crate::components::ui::error_banner::ErrorBanner;
 use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
 use crate::types::ServerDescribeOutcome;
 use crate::utils::i18n::t;
+use crate::utils::net::error::HttpError;
 
 #[component]
 pub fn ServerStatus() -> Element {
-    let mut info_data = use_resource(|| async { server::get_server_info().await.ok() });
-    let mut status_data = use_resource(|| async { server::get_server_status().await.ok() });
-    let mut admin_describe = use_resource(|| async { server::get_server_describe().await.ok() });
+    let mut info_data = use_resource(|| async { server::get_server_info().await });
+    let mut status_data = use_resource(|| async { server::get_server_status().await });
+    let mut admin_describe = use_resource(|| async { server::get_server_describe().await });
     let mut coauth_describe = use_resource(|| async {
         if !crate::utils::net::session::has_coauth() {
             return None;
         }
-        server::get_coauth_server_describe().await.ok()
+        Some(server::get_coauth_server_describe().await)
     });
 
-    let info = info_data.read().clone().flatten();
-    let status = status_data.read().clone().flatten();
-    let admin_d = admin_describe.read().clone().flatten();
-    let coauth_d = coauth_describe.read().clone().flatten();
+    let info_result = info_data.read().clone();
+    let status_result = status_data.read().clone();
+    let admin_describe_result = admin_describe.read().clone();
+    let coauth_describe_result = coauth_describe.read().clone().flatten();
+
+    let info = result_data(&info_result).cloned();
+    let admin_d = result_data(&admin_describe_result).cloned();
+    let coauth_d = result_data(&coauth_describe_result).cloned();
     let coauth_configured = crate::utils::net::session::has_coauth();
-    let status_resolved = status_data.read().is_some();
 
     rsx! {
         div { class: "space-y-6",
@@ -44,6 +49,10 @@ pub fn ServerStatus() -> Element {
                     {t("common.refresh")}
                 }
             }
+
+            {resource_error(&info_result)}
+            {resource_error(&admin_describe_result)}
+            {resource_error(&coauth_describe_result)}
 
             if let Some(info) = info.as_ref() {
                 {
@@ -105,50 +114,72 @@ pub fn ServerStatus() -> Element {
             // Component-level status panel (admin /server/status).
             div { class: "space-y-4",
                 h2 { class: "text-xl font-semibold tracking-tight", {t("server_status.components_title")} }
-                if let Some(status) = status.as_ref() {
-                    div { class: "flex items-center gap-4 mb-4",
-                        if status.ok {
-                            Badge { variant: BadgeVariant::Success, class: "text-base px-4 py-1".to_string(), {t("server_status.healthy")} }
-                        } else {
-                            Badge { variant: BadgeVariant::Destructive, class: "text-base px-4 py-1".to_string(), {t("server_status.issues")} }
+                match &status_result {
+                    Some(Ok(status)) => rsx! {
+                        div { class: "flex items-center gap-4 mb-4",
+                            if status.ok {
+                                Badge { variant: BadgeVariant::Success, class: "text-base px-4 py-1".to_string(), {t("server_status.healthy")} }
+                            } else {
+                                Badge { variant: BadgeVariant::Destructive, class: "text-base px-4 py-1".to_string(), {t("server_status.issues")} }
+                            }
                         }
-                    }
-                    div { class: "grid gap-4 md:grid-cols-2 lg:grid-cols-3",
-                        for component in status.results.iter() {
-                            Card {
-                                CardContent { class: "p-4".to_string(),
-                                    div { class: "flex items-center justify-between",
-                                        div { class: "space-y-1",
-                                            p { class: "font-medium",
-                                                {component.label.as_deref().unwrap_or("Unknown").to_string()}
-                                            }
-                                            if !component.ok {
-                                                if let Some(ref reason) = component.reason {
-                                                    p { class: "text-xs text-destructive mt-1", "{reason}" }
+                        div { class: "grid gap-4 md:grid-cols-2 lg:grid-cols-3",
+                            for component in status.results.iter() {
+                                Card {
+                                    CardContent { class: "p-4".to_string(),
+                                        div { class: "flex items-center justify-between",
+                                            div { class: "space-y-1",
+                                                p { class: "font-medium",
+                                                    {component.label.as_deref().unwrap_or("Unknown").to_string()}
+                                                }
+                                                if !component.ok {
+                                                    if let Some(ref reason) = component.reason {
+                                                        p { class: "text-xs text-destructive mt-1", "{reason}" }
+                                                    }
                                                 }
                                             }
-                                        }
-                                        if component.ok {
-                                            Badge { variant: BadgeVariant::Success, "OK" }
-                                        } else {
-                                            Badge { variant: BadgeVariant::Destructive, "Error" }
+                                            if component.ok {
+                                                Badge { variant: BadgeVariant::Success, "OK" }
+                                            } else {
+                                                Badge { variant: BadgeVariant::Destructive, "Error" }
+                                            }
                                         }
                                     }
                                 }
                             }
                         }
-                    }
-                } else if status_resolved {
-                    Card {
-                        CardContent { class: "p-8 text-center".to_string(),
-                            p { class: "text-muted-foreground", {t("server_status.unable")} }
+                    },
+                    Some(Err(error)) => rsx! {
+                        ErrorBanner {
+                            message: error.message.clone(),
+                            errcode: error.body.as_ref().map(|body| body.errcode.clone()),
+                            request_id: error.request_id.clone(),
+                            retry_after_ms: error.retry_after_ms,
+                            on_retry: move |_| status_data.restart(),
                         }
-                    }
-                } else {
-                    PageSkeleton {}
+                    },
+                    None => rsx! { PageSkeleton {} },
                 }
             }
         }
+    }
+}
+
+fn result_data<T>(result: &Option<Result<T, HttpError>>) -> Option<&T> {
+    result.as_ref().and_then(|value| value.as_ref().ok())
+}
+
+fn resource_error<T>(result: &Option<Result<T, HttpError>>) -> Element {
+    match result.as_ref().and_then(|value| value.as_ref().err()) {
+        Some(error) => rsx! {
+            ErrorBanner {
+                message: error.message.clone(),
+                errcode: error.body.as_ref().map(|body| body.errcode.clone()),
+                request_id: error.request_id.clone(),
+                retry_after_ms: error.retry_after_ms,
+            }
+        },
+        None => rsx! {},
     }
 }
 

@@ -4,7 +4,7 @@
 //! - `POST /_soland/admin/realms/{realm_id}/policy` — write a new policy. soland wraps the body
 //!   into a cas-register Move.
 
-use crate::api::client::api_client;
+use crate::api::client::{api_client, json_body};
 use crate::types::realm_policy::{RealmPolicy, UpdateRealmPolicyRequest};
 use crate::utils::net::error::HttpError;
 
@@ -24,6 +24,6 @@ pub async fn update_policy(
         "/_soland/admin/realms/{}/policy",
         urlencoding::encode(realm_id)
     );
-    let payload = serde_json::to_string(body).unwrap_or_default();
+    let payload = json_body(body)?;
     api_client(&url, "POST", Some(payload)).await
 }

@@ -1,7 +1,7 @@
 //! P5 — minimal opt-in browser error telemetry.
 //!
 //! This module is intentionally tiny: when the deployment exposes a
-//! `SODMIN_TELEMETRY_ENDPOINT` value in `/config.json` AND the operator
+//! same-origin telemetry endpoint value in `/config.json` AND the operator
 //! has flipped the local `sodmin_telemetry_opt_in` flag in localStorage,
 //! browser-side errors (HTTP errors with a status, JSON parse failures,
 //! capability denials) are POSTed to that endpoint as a structured
@@ -35,13 +35,18 @@ const OPT_IN_KEY: &str = "sodmin_telemetry_opt_in";
 /// at boot from `/config.json#telemetry_endpoint`. May be unset.
 const ENDPOINT_KEY: &str = "sodmin_telemetry_endpoint";
 
-/// Set the endpoint URL — called from `pages::login` after
-/// `load_runtime_config` reports a non-empty `telemetry_endpoint`.
+/// Set the endpoint URL. CSP keeps `connect-src` on `'self'`, so only
+/// same-origin absolute paths are accepted.
 pub fn set_endpoint(url: &str) {
-    if url.trim().is_empty() {
+    let endpoint = url.trim();
+    if endpoint.is_empty()
+        || !endpoint.starts_with('/')
+        || endpoint.starts_with("//")
+        || endpoint.contains("://")
+    {
         storage::remove_item(ENDPOINT_KEY);
     } else {
-        storage::set_item(ENDPOINT_KEY, url.trim());
+        storage::set_item(ENDPOINT_KEY, endpoint);
     }
 }
 
@@ -134,10 +139,8 @@ pub fn report_http_error(path: &str, error: &HttpError) {
 /// Fire-and-forget reporter for browser-side errors that do NOT originate
 /// from an HTTP envelope (panics, decoder failures, UI assertion misses).
 ///
-/// Posts to the soland-side `/api/v1/telemetry/error` endpoint when the
-/// admin runtime endpoint is configured (a future operator deployment may
-/// route to that path directly; today the same `SODMIN_TELEMETRY_ENDPOINT`
-/// sink is used). No-op when telemetry is disabled or the endpoint is unset.
+/// Posts to the configured same-origin telemetry endpoint. No-op when
+/// telemetry is disabled or the endpoint is unset.
 ///
 /// `code` is a stable wire-style identifier (e.g. `ui.error_banner.shown`).
 /// `context` is a short human-readable hint, MUST NOT include operator
@@ -149,17 +152,6 @@ pub fn report_error(code: &str, context: &str) {
     let endpoint = match storage::get_item(ENDPOINT_KEY) {
         Some(e) if !e.is_empty() => e,
         _ => return,
-    };
-
-    // Prefer the canonical "/api/v1/telemetry/error" path when the
-    // operator configured a host-only base URL; otherwise POST directly
-    // to whatever the operator set.
-    let target = if endpoint.ends_with("/telemetry/error") {
-        endpoint
-    } else if endpoint.ends_with('/') {
-        format!("{endpoint}api/v1/telemetry/error")
-    } else {
-        format!("{endpoint}/api/v1/telemetry/error")
     };
 
     let payload = serde_json::json!({
@@ -175,7 +167,7 @@ pub fn report_error(code: &str, context: &str) {
     // Fire-and-forget. We do not await — telemetry MUST never block.
     wasm_bindgen_futures::spawn_local(async move {
         // Telemetry MUST never break the UI: drop on builder failure.
-        if let Ok(req) = gloo_net::http::Request::post(&target)
+        if let Ok(req) = gloo_net::http::Request::post(&endpoint)
             .header("Content-Type", "application/json")
             .body(body)
         {

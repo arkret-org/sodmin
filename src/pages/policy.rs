@@ -1,6 +1,6 @@
 use dioxus::prelude::*;
 
-use crate::api::generated::soland_admin::CreatePolicyRequest;
+use crate::api::contracts::soland_admin::CreatePolicyRequest;
 use crate::api::policy;
 use crate::components::ui::badge::{Badge, BadgeVariant};
 use crate::components::ui::button::{Button, ButtonVariant};

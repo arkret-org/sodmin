@@ -11,7 +11,7 @@
 //! triaging cross-actor identity drift without hitting the soland audit
 //! log directly.
 //!
-//! Route: `/admin/realms/:realm_id/identity-audit`.
+//! Route: `/realms/:realm_id/identity-audit`.
 //!
 //! Data plumbing is not yet wired through soland's admin API — the
 //! page renders a stub-state today and ships the full live view once

@@ -1,4 +1,4 @@
-use crate::api::client::{api_client, build_url};
+use crate::api::client::{api_client, build_url, json_body};
 use crate::types::*;
 use crate::utils::net::error::HttpError;
 
@@ -17,12 +17,7 @@ pub async fn list_capabilities(
 }
 
 pub async fn grant_capability(req: &GrantCapabilityRequest) -> Result<CapabilityGrant, HttpError> {
-    api_client(
-        "/_soland/admin/capabilities",
-        "POST",
-        Some(serde_json::to_string(req).unwrap_or_default()),
-    )
-    .await
+    api_client("/_soland/admin/capabilities", "POST", Some(json_body(req)?)).await
 }
 
 pub async fn revoke_capability(id: &str) -> Result<(), HttpError> {
@@ -41,10 +36,5 @@ pub async fn update_capability(
     req: &UpdateCapabilityRequest,
 ) -> Result<CapabilityGrant, HttpError> {
     let url = format!("/_soland/admin/capabilities/{}", urlencoding::encode(id));
-    api_client(
-        &url,
-        "PATCH",
-        Some(serde_json::to_string(req).unwrap_or_default()),
-    )
-    .await
+    api_client(&url, "PATCH", Some(json_body(req)?)).await
 }

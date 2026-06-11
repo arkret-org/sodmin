@@ -1,6 +1,6 @@
 //! R3.2 (UI-SOD-4) — "Subject → Handles" directory admin page.
 //!
-//! Route: `/admin/handles/by-subject?subject=did:...`
+//! Route: `/handles/by-subject?subject=did:...`
 //!
 //! Given a known holder/principal DID the operator can look up the
 //! currently visible signed `ck.schema.handle_claim.v1` evidence via

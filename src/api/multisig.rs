@@ -13,7 +13,7 @@
 //!
 //! Both routes follow the 404-tolerant pattern.
 
-use crate::api::client::api_client;
+use crate::api::client::{api_client, json_body};
 use crate::types::multisig::{
     PendingMultisigAnchor, SubmitPartialSignatureRequest, SubmitPartialSignatureResponse,
 };
@@ -40,10 +40,5 @@ pub async fn submit_partial(
         urlencoding::encode(anchor_id),
     );
     let body = SubmitPartialSignatureRequest { note };
-    api_client(
-        &url,
-        "POST",
-        Some(serde_json::to_string(&body).unwrap_or_default()),
-    )
-    .await
+    api_client(&url, "POST", Some(json_body(&body)?)).await
 }

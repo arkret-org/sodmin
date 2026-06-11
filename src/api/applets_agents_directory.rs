@@ -9,7 +9,7 @@ use coauth_admin_types::applets_admin::{
     DirectoryAdminRow,
 };
 
-use crate::api::client::{api_client, build_url};
+use crate::api::client::{api_client, build_url, json_body};
 use crate::utils::net::error::HttpError;
 
 #[derive(Debug, Clone, Default)]
@@ -77,21 +77,21 @@ pub async fn list_applets(cursor: Option<&str>, limit: u64) -> Result<AppletAdmi
 
 pub async fn approve_applet(id: &str, body: &ApprovalActionRequest) -> Result<(), HttpError> {
     let url = format!("/_soland/admin/applets/{}/approve", urlencoding::encode(id));
-    let payload = serde_json::to_string(body).unwrap_or_default();
+    let payload = json_body(body)?;
     let _: serde_json::Value = api_client(&url, "POST", Some(payload)).await?;
     Ok(())
 }
 
 pub async fn suspend_applet(id: &str, body: &ApprovalActionRequest) -> Result<(), HttpError> {
     let url = format!("/_soland/admin/applets/{}/suspend", urlencoding::encode(id));
-    let payload = serde_json::to_string(body).unwrap_or_default();
+    let payload = json_body(body)?;
     let _: serde_json::Value = api_client(&url, "POST", Some(payload)).await?;
     Ok(())
 }
 
 pub async fn revoke_applet(id: &str, body: &ApprovalActionRequest) -> Result<(), HttpError> {
     let url = format!("/_soland/admin/applets/{}/revoke", urlencoding::encode(id));
-    let payload = serde_json::to_string(body).unwrap_or_default();
+    let payload = json_body(body)?;
     let _: serde_json::Value = api_client(&url, "POST", Some(payload)).await?;
     Ok(())
 }
@@ -114,21 +114,21 @@ pub async fn list_agents_admin(
 
 pub async fn approve_agent(id: &str, body: &ApprovalActionRequest) -> Result<(), HttpError> {
     let url = format!("/_soland/admin/agents/{}/approve", urlencoding::encode(id));
-    let payload = serde_json::to_string(body).unwrap_or_default();
+    let payload = json_body(body)?;
     let _: serde_json::Value = api_client(&url, "POST", Some(payload)).await?;
     Ok(())
 }
 
 pub async fn suspend_agent(id: &str, body: &ApprovalActionRequest) -> Result<(), HttpError> {
     let url = format!("/_soland/admin/agents/{}/suspend", urlencoding::encode(id));
-    let payload = serde_json::to_string(body).unwrap_or_default();
+    let payload = json_body(body)?;
     let _: serde_json::Value = api_client(&url, "POST", Some(payload)).await?;
     Ok(())
 }
 
 pub async fn revoke_agent(id: &str, body: &ApprovalActionRequest) -> Result<(), HttpError> {
     let url = format!("/_soland/admin/agents/{}/revoke", urlencoding::encode(id));
-    let payload = serde_json::to_string(body).unwrap_or_default();
+    let payload = json_body(body)?;
     let _: serde_json::Value = api_client(&url, "POST", Some(payload)).await?;
     Ok(())
 }
@@ -157,7 +157,7 @@ pub async fn approve_directory_entry(
         "/_soland/admin/directory/{}/approve",
         urlencoding::encode(id)
     );
-    let payload = serde_json::to_string(body).unwrap_or_default();
+    let payload = json_body(body)?;
     let _: serde_json::Value = api_client(&url, "POST", Some(payload)).await?;
     Ok(())
 }
@@ -173,7 +173,7 @@ pub async fn reject_directory_entry(
         "/_soland/admin/directory/{}/reject",
         urlencoding::encode(id)
     );
-    let payload = serde_json::to_string(body).unwrap_or_default();
+    let payload = json_body(body)?;
     let _: serde_json::Value = api_client(&url, "POST", Some(payload)).await?;
     Ok(())
 }

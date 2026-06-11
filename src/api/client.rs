@@ -35,6 +35,11 @@ pub fn generate_idempotency_key() -> String {
     format!("sodmin-{}", random_token(16))
 }
 
+pub fn json_body<T: serde::Serialize + ?Sized>(value: &T) -> Result<String, HttpError> {
+    serde_json::to_string(value)
+        .map_err(|err| HttpError::message(format!("failed to serialize request body: {err}")))
+}
+
 pub async fn raw_fetch<T, F>(
     url: &str,
     method: &str,

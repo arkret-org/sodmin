@@ -19,7 +19,7 @@ pub fn MediaList() -> Element {
 
     let page_val = *page.read();
 
-    let stats = use_resource(|| async { media::get_media_statistics().await.ok() });
+    let stats = use_resource(|| async { media::get_media_statistics().await });
 
     let mut media_data =
         use_resource(move || async move { media::list_actor_media(page_val, PAGE_SIZE).await });
@@ -32,7 +32,7 @@ pub fn MediaList() -> Element {
             }
 
             match &*stats.read() {
-                Some(Some(s)) => rsx! {
+                Some(Ok(s)) => rsx! {
                     div { class: "grid gap-4 md:grid-cols-3",
                         Card {
                             CardContent { class: "p-4".to_string(),
@@ -52,6 +52,14 @@ pub fn MediaList() -> Element {
                                 p { class: "text-2xl font-bold", "{s.quarantined_count}" }
                             }
                         }
+                    }
+                },
+                Some(Err(e)) => rsx! {
+                    ErrorBanner {
+                        message: e.message.clone(),
+                        errcode: e.body.as_ref().map(|body| body.errcode.clone()),
+                        request_id: e.request_id.clone(),
+                        retry_after_ms: e.retry_after_ms,
                     }
                 },
                 _ => rsx! {},
@@ -118,6 +126,9 @@ pub fn MediaList() -> Element {
                 Some(Err(e)) => rsx! {
                     ErrorBanner {
                         message: e.message.clone(),
+                        errcode: e.body.as_ref().map(|body| body.errcode.clone()),
+                        request_id: e.request_id.clone(),
+                        retry_after_ms: e.retry_after_ms,
                         on_retry: move |_| media_data.restart(),
                     }
                 },

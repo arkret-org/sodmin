@@ -124,14 +124,14 @@ pub enum Route {
         // R3.1 (MID-3) — Realm identity audit diagnostic page. Stub
         // view today; full data plumbing lands after yougen MID-4 ships
         // the MLS decrypt pipeline (TODO(R4)).
-        #[route("/admin/realms/:realm_id/identity-audit")]
+        #[route("/realms/:realm_id/identity-audit")]
         RealmIdentityAudit { realm_id: String },
 
         // R3.2 (UI-SOD-4) — Subject → Handles directory page. Operator
         // enters a holder/principal DID; the page calls
         // `ck.find.directory.list_handles_for_subject` and lists the visible
         // signed handle claims + the §3.2.1 primary handle.
-        #[route("/admin/handles/by-subject?:subject")]
+        #[route("/handles/by-subject?:subject")]
         HandlesBySubject { subject: Option<String> },
 
         #[route("/applets")]

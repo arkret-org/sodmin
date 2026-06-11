@@ -65,7 +65,7 @@ web-sys = {workspace = true,features = [
 # so they don't bloat the wasm bundle.
 serde_json = {workspace = true}
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-reqwest = {workspace = true,default-features = false,features = ["blocking", "json", "rustls-tls"]}
+reqwest = {workspace = true,default-features = false,features = ["blocking", "json", "rustls"]}
 
 [[bin]]
 name = "sodmin"

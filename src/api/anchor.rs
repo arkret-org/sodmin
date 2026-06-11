@@ -19,7 +19,7 @@
 //! flow with the bearer token from the `Authorization` header), and
 //! POST onto the canonical Move / Anchor pipelines.
 
-use crate::api::client::{api_client, build_url};
+use crate::api::client::{api_client, build_url, json_body};
 use crate::types::anchor::{
     AnchorDagSnapshot, AnchorerReconfigRequest, AnchorerValue, BottomEntry, BottomRepairRequest,
     BottomRepairStrategy, CompactionRequest, SignAnchorResponse, SubmitMoveResponse,
@@ -55,12 +55,7 @@ pub async fn submit_anchorer_reconfig(
         urlencoding::encode(&req.realm_id)
     );
     let body = req.to_reconfigure_body();
-    api_client(
-        &url,
-        "POST",
-        Some(serde_json::to_string(&body).unwrap_or_default()),
-    )
-    .await
+    api_client(&url, "POST", Some(json_body(&body)?)).await
 }
 
 /// List bottom entries across every Realm the admin can see — used by
@@ -95,12 +90,7 @@ pub async fn submit_bottom_repair(
         cell_id: cell_id.to_string(),
         strategy,
     };
-    api_client(
-        &url,
-        "POST",
-        Some(serde_json::to_string(&req).unwrap_or_default()),
-    )
-    .await
+    api_client(&url, "POST", Some(json_body(&req)?)).await
 }
 
 /// Fetch the Anchor DAG snapshot (leaves + frontier + state_root + last
@@ -130,12 +120,7 @@ pub async fn trigger_compaction(realm_id: &str) -> Result<SignAnchorResponse, Ht
         realm_id: realm_id.to_string(),
         max_moves: None,
     };
-    api_client(
-        &url,
-        "POST",
-        Some(serde_json::to_string(&req).unwrap_or_default()),
-    )
-    .await
+    api_client(&url, "POST", Some(json_body(&req)?)).await
 }
 
 #[cfg(test)]

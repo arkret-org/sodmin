@@ -8,7 +8,7 @@
 //! The admin endpoint is
 //! `/_soland/admin/realms/{id}/delivery-binding-policy`.
 
-use crate::api::client::api_client;
+use crate::api::client::{api_client, json_body};
 use crate::types::*;
 use crate::utils::net::error::HttpError;
 
@@ -30,12 +30,7 @@ pub async fn update_delivery_binding_policy(
         "/_soland/admin/realms/{}/delivery-binding-policy",
         urlencoding::encode(realm_id)
     );
-    api_client(
-        &url,
-        "PATCH",
-        Some(serde_json::to_string(req).unwrap_or_default()),
-    )
-    .await
+    api_client(&url, "PATCH", Some(json_body(req)?)).await
 }
 
 pub async fn list_member_routability(

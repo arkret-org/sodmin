@@ -9,7 +9,7 @@
 //! - `POST /_soland/admin/handles/{id}/revoke` — publish a revoke Move.
 //! - `POST /_soland/admin/handles/{id}/reassign` — force a re-bind to a new subject DID.
 
-use crate::api::client::{api_client, build_url};
+use crate::api::client::{api_client, build_url, json_body};
 use crate::types::*;
 use crate::utils::net::error::HttpError;
 
@@ -52,10 +52,5 @@ pub async fn reassign_handle(
         "/_soland/admin/handles/{}/reassign",
         urlencoding::encode(id)
     );
-    api_client(
-        &url,
-        "POST",
-        Some(serde_json::to_string(req).unwrap_or_default()),
-    )
-    .await
+    api_client(&url, "POST", Some(json_body(req)?)).await
 }

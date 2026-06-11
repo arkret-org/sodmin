@@ -18,16 +18,19 @@
 //!   "include"` so the cookie travels with the request automatically. There is no `Authorization:
 //!   Bearer` header from the SPA.
 //! - **Refresh** — when the cookie has expired the server returns 401, the client invokes
-//!   `handle_unauthorized` which calls `/oauth/token` (grant_type=refresh_token) (also with `credentials: "include"`) and
-//!   the server sets a new cookie. No JS-visible refresh_token.
+//!   `handle_unauthorized` which calls `/oauth/token` (grant_type=refresh_token) (also with
+//!   `credentials: "include"`) and the server sets a new cookie. No JS-visible refresh_token.
 //! - **Logout** — `logout` POSTs to `/oauth/revoke` (same cookie credentials), then clears the
 //!   JS-visible session marker + userinfo + the SPA-side cached config.
 
+use std::cell::Cell;
+
 use gloo_net::http::Request;
+use gloo_timers::future::TimeoutFuture;
 use serde::Deserialize;
-use wasm_bindgen::JsCast;
+use wasm_bindgen::{JsCast, JsValue};
 use wasm_bindgen_futures::JsFuture;
-use web_sys::{RequestCredentials, RequestMode};
+use web_sys::RequestCredentials;
 
 use crate::utils::net::error::HttpError;
 use crate::utils::security::crypto::{base64url_encode, random_token};
@@ -73,16 +76,40 @@ fn coauth_public_base() -> Option<String> {
         .filter(|v| !v.is_empty())
 }
 
-fn oauth_public_url(path: &str) -> Option<String> {
-    coauth_public_base().map(|base| format!("{base}{path}"))
-}
-
 fn make_err(msg: String) -> HttpError {
     HttpError::message(msg)
 }
 
-fn is_public_oauth_url(url: &str) -> bool {
-    url.starts_with("https://") || url.starts_with("http://")
+fn js_error(value: JsValue) -> String {
+    value
+        .as_string()
+        .unwrap_or_else(|| "browser API call failed".to_string())
+}
+
+fn browser_window() -> Result<web_sys::Window, HttpError> {
+    web_sys::window().ok_or_else(|| make_err("Browser window is unavailable".into()))
+}
+
+fn session_storage() -> Result<web_sys::Storage, HttpError> {
+    browser_window()?
+        .session_storage()
+        .map_err(js_error)
+        .map_err(make_err)?
+        .ok_or_else(|| make_err("Session storage is unavailable".into()))
+}
+
+fn current_origin() -> Result<String, HttpError> {
+    browser_window()?
+        .location()
+        .origin()
+        .map_err(js_error)
+        .map_err(make_err)
+}
+
+fn redirect_to_login() {
+    if let Some(window) = web_sys::window() {
+        let _ = window.location().set_href("/login");
+    }
 }
 
 async fn read_text_response(response: gloo_net::http::Response) -> Result<TextResponse, HttpError> {
@@ -92,17 +119,13 @@ async fn read_text_response(response: gloo_net::http::Response) -> Result<TextRe
 }
 
 async fn send_form_post(url: &str, body: &str) -> Result<TextResponse, HttpError> {
-    let mut builder = Request::post(url)
+    let builder = Request::post(url)
         .header("Content-Type", "application/x-www-form-urlencoded")
         .header("Accept", "application/json")
         // S5: every OAuth call must carry the httpOnly cookie so the
         // server can both set the cookie on /token and read it on
         // /refresh and /revoke.
         .credentials(RequestCredentials::Include);
-
-    if is_public_oauth_url(url) {
-        builder = builder.mode(RequestMode::Cors);
-    }
 
     let response = builder
         .body(body.to_string())
@@ -115,76 +138,64 @@ async fn send_form_post(url: &str, body: &str) -> Result<TextResponse, HttpError
 }
 
 async fn send_oauth_form_request(path: &str, body: &str) -> Result<TextResponse, HttpError> {
-    match send_form_post(path, body).await {
-        Ok(response) if response.status < 500 => Ok(response),
-        Ok(proxy_response) => {
-            let Some(public_url) = oauth_public_url(path) else {
-                return Ok(proxy_response);
-            };
-            match send_form_post(&public_url, body).await {
-                Ok(public_response) => Ok(public_response),
-                Err(_) => Ok(proxy_response),
-            }
-        }
-        Err(proxy_err) => {
-            let Some(public_url) = oauth_public_url(path) else {
-                return Err(proxy_err);
-            };
-            match send_form_post(&public_url, body).await {
-                Ok(public_response) => Ok(public_response),
-                Err(_) => Err(proxy_err),
-            }
-        }
-    }
+    send_form_post(path, body).await
 }
 
 fn generate_code_verifier() -> String {
     random_token(32)
 }
 
-async fn compute_code_challenge(verifier: &str) -> String {
-    let crypto = web_sys::window().unwrap().crypto().unwrap();
+async fn compute_code_challenge(verifier: &str) -> Result<String, HttpError> {
+    let crypto = browser_window()?
+        .crypto()
+        .map_err(js_error)
+        .map_err(make_err)?;
     let subtle = crypto.subtle();
     let data = js_sys::Uint8Array::from(verifier.as_bytes());
     let promise = subtle
         .digest_with_str_and_buffer_source("SHA-256", &data)
-        .expect("digest failed");
-    let result = JsFuture::from(promise).await.expect("digest await failed");
-    let buffer = result.dyn_into::<js_sys::ArrayBuffer>().unwrap();
+        .map_err(js_error)
+        .map_err(make_err)?;
+    let result = JsFuture::from(promise)
+        .await
+        .map_err(js_error)
+        .map_err(make_err)?;
+    let buffer = result
+        .dyn_into::<js_sys::ArrayBuffer>()
+        .map_err(|_| make_err("SHA-256 digest returned an unexpected value".into()))?;
     let bytes = js_sys::Uint8Array::new(&buffer).to_vec();
-    base64url_encode(&bytes)
+    Ok(base64url_encode(&bytes))
 }
 
-pub async fn start_oauth_login() {
+pub async fn start_oauth_login() -> Result<(), HttpError> {
     let verifier = generate_code_verifier();
-    let challenge = compute_code_challenge(&verifier).await;
+    let challenge = compute_code_challenge(&verifier).await?;
     let state = generate_code_verifier();
     let nonce = generate_code_verifier();
     let _device_id = get_or_create_device_id();
     let scope = build_oauth_scope();
 
-    let session = web_sys::window()
-        .unwrap()
-        .session_storage()
-        .unwrap()
-        .unwrap();
+    let session = session_storage()?;
     session
         .set_item(PKCE_VERIFIER_KEY, &verifier)
-        .expect("sessionStorage set failed");
+        .map_err(js_error)
+        .map_err(make_err)?;
     session
         .set_item(OAUTH_STATE_KEY, &state)
-        .expect("sessionStorage set failed");
+        .map_err(js_error)
+        .map_err(make_err)?;
     session
         .set_item(OAUTH_NONCE_KEY, &nonce)
-        .expect("sessionStorage set failed");
+        .map_err(js_error)
+        .map_err(make_err)?;
 
     let redirect_uri = {
-        let location = web_sys::window().unwrap().location();
-        let origin = location.origin().unwrap();
+        let origin = current_origin()?;
         format!("{origin}/oauth/callback")
     };
 
-    let coauth_base = coauth_public_base().unwrap_or_default();
+    let coauth_base =
+        coauth_public_base().ok_or_else(|| make_err("Missing coauth public URL".into()))?;
 
     let auth_url = format!(
         "{coauth_base}/authorize?response_type=code\
@@ -201,19 +212,16 @@ pub async fn start_oauth_login() {
         urlencoding::encode(&nonce),
     );
 
-    web_sys::window()
-        .unwrap()
+    browser_window()?
         .location()
         .set_href(&auth_url)
-        .expect("redirect failed");
+        .map_err(js_error)
+        .map_err(make_err)?;
+    Ok(())
 }
 
 pub async fn handle_oauth_callback(code: &str, state: Option<&str>) -> Result<(), HttpError> {
-    let session = web_sys::window()
-        .unwrap()
-        .session_storage()
-        .unwrap()
-        .unwrap();
+    let session = session_storage()?;
     let verifier = session
         .get_item(PKCE_VERIFIER_KEY)
         .ok()
@@ -237,7 +245,7 @@ pub async fn handle_oauth_callback(code: &str, state: Option<&str>) -> Result<()
     session.remove_item(OAUTH_NONCE_KEY).ok();
 
     let redirect_uri = {
-        let origin = web_sys::window().unwrap().location().origin().unwrap();
+        let origin = current_origin()?;
         format!("{origin}/oauth/callback")
     };
 
@@ -300,13 +308,19 @@ pub async fn handle_oauth_callback(code: &str, state: Option<&str>) -> Result<()
     storage::set_item(SESSION_ACTIVE_KEY, "1");
     persist_token_expiry(token_resp.expires_in);
 
-    let viewer_resp = crate::api::coauth::get_viewer().await?;
-    storage::set_item("user_id", &viewer_resp.sub);
-    if let Some(name) = viewer_resp.display_name {
-        storage::set_item("user_display_name", &name);
-    }
-    if let Some(url) = viewer_resp.avatar_url {
-        storage::set_item("user_avatar_url", &url);
+    match crate::api::coauth::get_viewer().await {
+        Ok(viewer_resp) => {
+            storage::set_item("user_id", &viewer_resp.sub);
+            if let Some(name) = viewer_resp.display_name {
+                storage::set_item("user_display_name", &name);
+            }
+            if let Some(url) = viewer_resp.avatar_url {
+                storage::set_item("user_avatar_url", &url);
+            }
+        }
+        Err(err) => {
+            log::warn!("OAuth viewer fetch failed after token exchange: {}", err);
+        }
     }
 
     Ok(())
@@ -333,11 +347,56 @@ fn extract_id_token_nonce(id_token: &str) -> Option<String> {
 }
 
 pub async fn handle_unauthorized() -> bool {
-    if refresh_oauth_token().await {
+    if refresh_oauth_token_singleflight().await {
         return true;
     }
     clear_session_marker();
+    redirect_to_login();
     false
+}
+
+thread_local! {
+    static REFRESH_IN_FLIGHT: Cell<bool> = const { Cell::new(false) };
+}
+
+struct RefreshFlightGuard;
+
+impl RefreshFlightGuard {
+    fn acquire() -> Option<Self> {
+        let acquired = REFRESH_IN_FLIGHT.with(|flag| {
+            if flag.get() {
+                false
+            } else {
+                flag.set(true);
+                true
+            }
+        });
+        acquired.then_some(Self)
+    }
+}
+
+impl Drop for RefreshFlightGuard {
+    fn drop(&mut self) {
+        REFRESH_IN_FLIGHT.with(|flag| flag.set(false));
+    }
+}
+
+fn refresh_in_flight() -> bool {
+    REFRESH_IN_FLIGHT.with(|flag| flag.get())
+}
+
+async fn wait_for_refresh() {
+    while refresh_in_flight() {
+        TimeoutFuture::new(25).await;
+    }
+}
+
+async fn refresh_oauth_token_singleflight() -> bool {
+    if let Some(_guard) = RefreshFlightGuard::acquire() {
+        return refresh_oauth_token().await;
+    }
+    wait_for_refresh().await;
+    is_authenticated() && !token_expires_soon()
 }
 
 pub async fn refresh_oauth_token() -> bool {
@@ -442,7 +501,7 @@ pub async fn refresh_if_expiring_soon() {
     if !token_expires_soon() {
         return;
     }
-    let _ = refresh_oauth_token().await;
+    let _ = refresh_oauth_token_singleflight().await;
 }
 
 pub async fn logout() -> Result<(), HttpError> {

@@ -3,11 +3,13 @@ use dioxus::prelude::*;
 use crate::api::server;
 use crate::components::dev_mode_banner::DevModeDashboardNotice;
 use crate::components::ui::card::*;
+use crate::components::ui::error_banner::ErrorBanner;
 use crate::components::ui::icons::Icon;
 use crate::components::ui::loading::StatsSkeleton;
 use crate::types::{ServerDescribeOutcome, ServerStatusResponse};
-use crate::utils::cache::cached;
+use crate::utils::cache::cached_result;
 use crate::utils::i18n::t;
+use crate::utils::net::error::HttpError;
 use crate::utils::net::perf;
 
 const CACHE_TTL_MS: f64 = 300_000.0;
@@ -15,22 +17,22 @@ const CACHE_TTL_MS: f64 = 300_000.0;
 #[component]
 pub fn Dashboard() -> Element {
     let stats = use_resource(|| async {
-        cached("dashboard_stats", CACHE_TTL_MS, || async {
-            server::get_server_stats().await.ok()
+        cached_result("dashboard_stats", CACHE_TTL_MS, || async {
+            server::get_server_stats().await
         })
         .await
     });
 
     let server_info = use_resource(|| async {
-        cached("dashboard_server_info", CACHE_TTL_MS, || async {
-            server::get_server_info().await.ok()
+        cached_result("dashboard_server_info", CACHE_TTL_MS, || async {
+            server::get_server_info().await
         })
         .await
     });
 
     let server_describe = use_resource(|| async {
-        cached("dashboard_server_describe", CACHE_TTL_MS, || async {
-            server::get_server_describe().await.ok()
+        cached_result("dashboard_server_describe", CACHE_TTL_MS, || async {
+            server::get_server_describe().await
         })
         .await
     });
@@ -39,15 +41,17 @@ pub fn Dashboard() -> Element {
         if !crate::utils::net::session::has_coauth() {
             return None;
         }
-        cached("dashboard_coauth_describe", CACHE_TTL_MS, || async {
-            server::get_coauth_server_describe().await.ok()
-        })
-        .await
+        Some(
+            cached_result("dashboard_coauth_describe", CACHE_TTL_MS, || async {
+                server::get_coauth_server_describe().await
+            })
+            .await,
+        )
     });
 
     let server_status = use_resource(|| async {
-        cached("dashboard_server_status", CACHE_TTL_MS, || async {
-            server::get_server_status().await.ok()
+        cached_result("dashboard_server_status", CACHE_TTL_MS, || async {
+            server::get_server_status().await
         })
         .await
     });
@@ -66,11 +70,17 @@ pub fn Dashboard() -> Element {
         };
     }
 
-    let stats_data = stats.read().clone().flatten();
-    let info_data = server_info.read().clone().flatten();
-    let describe_data = server_describe.read().clone().flatten();
-    let coauth_describe_data = coauth_describe.read().clone().flatten();
-    let status_data = server_status.read().clone().flatten();
+    let stats_result = stats.read().clone();
+    let info_result = server_info.read().clone();
+    let describe_result = server_describe.read().clone();
+    let coauth_describe_result = coauth_describe.read().clone().flatten();
+    let status_result = server_status.read().clone();
+
+    let stats_data = result_data(&stats_result).cloned();
+    let info_data = result_data(&info_result).cloned();
+    let describe_data = result_data(&describe_result).cloned();
+    let coauth_describe_data = result_data(&coauth_describe_result).cloned();
+    let status_data = result_data(&status_result).cloned();
 
     let version_str = info_data
         .as_ref()
@@ -133,6 +143,12 @@ pub fn Dashboard() -> Element {
                 h1 { class: "text-2xl font-bold tracking-tight", {t("dashboard.title")} }
                 p { class: "text-muted-foreground", {t("dashboard.welcome")} }
             }
+
+            {resource_error(&stats_result)}
+            {resource_error(&info_result)}
+            {resource_error(&describe_result)}
+            {resource_error(&coauth_describe_result)}
+            {resource_error(&status_result)}
 
             {
                 let s = stats_data.as_ref();
@@ -233,6 +249,24 @@ pub fn Dashboard() -> Element {
                 }
             }
         }
+    }
+}
+
+fn result_data<T>(result: &Option<Result<T, HttpError>>) -> Option<&T> {
+    result.as_ref().and_then(|value| value.as_ref().ok())
+}
+
+fn resource_error<T>(result: &Option<Result<T, HttpError>>) -> Element {
+    match result.as_ref().and_then(|value| value.as_ref().err()) {
+        Some(error) => rsx! {
+            ErrorBanner {
+                message: error.message.clone(),
+                errcode: error.body.as_ref().map(|body| body.errcode.clone()),
+                request_id: error.request_id.clone(),
+                retry_after_ms: error.retry_after_ms,
+            }
+        },
+        None => rsx! {},
     }
 }
 

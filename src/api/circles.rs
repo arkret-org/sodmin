@@ -17,7 +17,7 @@
 //! `circle_not_active`) via the standard `AppError.code` field, which the
 //! admin UI maps to localised strings in `utils::net::error`.
 
-use crate::api::client::{api_client, build_url};
+use crate::api::client::{api_client, build_url, json_body};
 use crate::types::circles::{
     Circle, CircleMemberRequest, CircleMembershipResponse, CircleScopeRotateResponse,
     CreateCircleRequest, ListCirclesResponse,
@@ -40,7 +40,7 @@ pub async fn get_circle(circle_id: &str) -> Result<Circle, HttpError> {
 
 /// Create a Circle inside the given Realm. Requires `ck.circle.create`.
 pub async fn create_circle(req: &CreateCircleRequest) -> Result<Circle, HttpError> {
-    let body = serde_json::to_string(req).unwrap_or_default();
+    let body = json_body(req)?;
     api_client("/_soland/self/circles", "POST", Some(body)).await
 }
 
@@ -57,7 +57,7 @@ pub async fn add_circle_member(
         "/_soland/self/circles/{}/members",
         urlencoding::encode(circle_id),
     );
-    let body = serde_json::to_string(req).unwrap_or_default();
+    let body = json_body(req)?;
     api_client(&url, "POST", Some(body)).await
 }
 

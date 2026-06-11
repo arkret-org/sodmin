@@ -2,6 +2,6 @@
 
 #![allow(unused_imports)]
 
-pub use crate::api::generated::soland_admin::{
+pub use crate::api::contracts::soland_admin::{
     AuthzCapabilityGrant, AuthzGrantFilter, AuthzGrantStatus, filter_grants,
 };

@@ -10,6 +10,7 @@ pub fn LoginPage() -> Element {
     let mut loading = use_signal(|| false);
     let mut ready = use_signal(|| false);
     let mut config_error = use_signal::<Option<String>>(|| None);
+    let mut login_error = use_signal::<Option<String>>(|| None);
 
     use_effect(move || {
         spawn(async move {
@@ -33,8 +34,11 @@ pub fn LoginPage() -> Element {
 
     let handle_login = move |_evt: MouseEvent| {
         loading.set(true);
+        login_error.set(None);
         spawn(async move {
-            auth::start_oauth_login().await;
+            if let Err(err) = auth::start_oauth_login().await {
+                login_error.set(Some(err.to_string()));
+            }
             loading.set(false);
         });
     };
@@ -42,6 +46,7 @@ pub fn LoginPage() -> Element {
     let is_ready = *ready.read();
     let is_loading = *loading.read();
     let error_message = config_error.read().clone();
+    let oauth_error = login_error.read().clone();
 
     if let Some(message) = error_message {
         return rsx! { ConfigErrorPanel { message } };
@@ -62,6 +67,11 @@ pub fn LoginPage() -> Element {
                 }
 
                 div { class: "rounded-lg border glass-panel p-6 shadow-sm space-y-4",
+                    if let Some(message) = oauth_error {
+                        div { class: "rounded-md bg-destructive/10 p-3 text-sm text-destructive",
+                            "{message}"
+                        }
+                    }
                     p { class: "text-sm text-center text-muted-foreground",
                         {t("auth.oauth_hint")}
                     }

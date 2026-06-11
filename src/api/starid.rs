@@ -6,7 +6,7 @@
 //! count, and freshness.
 
 use crate::api::client::api_client;
-pub use crate::api::generated::starid::StaridDescribe;
+pub use crate::api::contracts::starid::StaridDescribe;
 use crate::utils::net::error::HttpError;
 use crate::utils::net::session;
 

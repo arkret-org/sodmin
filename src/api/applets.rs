@@ -1,4 +1,4 @@
-use crate::api::client::{api_client, build_url};
+use crate::api::client::{api_client, build_url, json_body};
 use crate::types::*;
 use crate::utils::net::error::HttpError;
 
@@ -14,12 +14,7 @@ pub async fn list_applets(page: u64, per_page: u64) -> Result<ListResponse<Apple
 }
 
 pub async fn register_applet(req: &RegisterAppletRequest) -> Result<Applet, HttpError> {
-    api_client(
-        "/_soland/admin/applets",
-        "POST",
-        Some(serde_json::to_string(req).unwrap_or_default()),
-    )
-    .await
+    api_client("/_soland/admin/applets", "POST", Some(json_body(req)?)).await
 }
 
 pub async fn delete_applet(id: &str) -> Result<(), HttpError> {

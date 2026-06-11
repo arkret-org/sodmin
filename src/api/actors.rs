@@ -1,4 +1,4 @@
-use crate::api::client::{api_client, build_url};
+use crate::api::client::{api_client, build_url, json_body};
 use crate::types::*;
 use crate::utils::net::error::HttpError;
 
@@ -24,22 +24,12 @@ pub async fn get_actor(id: &str) -> Result<Actor, HttpError> {
 }
 
 pub async fn create_actor(req: &CreateActorRequest) -> Result<Actor, HttpError> {
-    api_client(
-        "/_soland/admin/actors",
-        "POST",
-        Some(serde_json::to_string(req).unwrap_or_default()),
-    )
-    .await
+    api_client("/_soland/admin/actors", "POST", Some(json_body(req)?)).await
 }
 
 pub async fn update_actor(id: &str, req: &UpdateActorRequest) -> Result<Actor, HttpError> {
     let url = format!("/_soland/admin/actors/{}", urlencoding::encode(id));
-    api_client(
-        &url,
-        "PATCH",
-        Some(serde_json::to_string(req).unwrap_or_default()),
-    )
-    .await
+    api_client(&url, "PATCH", Some(json_body(req)?)).await
 }
 
 pub async fn deactivate_actor(id: &str) -> Result<(), HttpError> {

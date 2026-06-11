@@ -1,4 +1,4 @@
-//! Generated/shared contract facade for sodmin API clients.
+//! Shared contract facade for sodmin API clients.
 //!
 //! This module is the single import point for DTOs that are owned by
 //! upstream contracts.  Where an upstream shared crate exists
@@ -231,7 +231,7 @@ mod tests {
     use super::starid::StaridDescribe;
 
     #[test]
-    fn authz_generated_dto_round_trips_status() {
+    fn authz_contract_dto_round_trips_status() {
         let raw = r#"{
             "grant_id": "grant-1",
             "holder_did": "did:web:alice.example",
@@ -245,7 +245,7 @@ mod tests {
     }
 
     #[test]
-    fn moderation_generated_request_serializes_snake_case() {
+    fn moderation_contract_request_serializes_snake_case() {
         let req = ResolveReportRequest {
             decision: ReportDecision::Dismiss,
             note: None,
@@ -256,7 +256,7 @@ mod tests {
     }
 
     #[test]
-    fn starid_generated_describe_tolerates_optional_status_fields() {
+    fn starid_contract_describe_tolerates_optional_status_fields() {
         let raw = r#"{
             "service_did": "did:web:starid.example",
             "registry_mode": "writer",

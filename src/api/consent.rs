@@ -19,7 +19,7 @@
 //! key). Resolve only exists for the narrow case of stuck `Pending` rows
 //! that need an operator decision.
 
-use crate::api::client::api_client;
+use crate::api::client::{api_client, json_body};
 use crate::types::consent::{ConsentGrant, ConsentResolveDecision, ConsentResolveRequest};
 use crate::utils::net::error::HttpError;
 
@@ -57,10 +57,5 @@ pub async fn resolve(
         urlencoding::encode(consent_id)
     );
     let body = ConsentResolveRequest { decision, note };
-    api_client(
-        &url,
-        "POST",
-        Some(serde_json::to_string(&body).unwrap_or_default()),
-    )
-    .await
+    api_client(&url, "POST", Some(json_body(&body)?)).await
 }

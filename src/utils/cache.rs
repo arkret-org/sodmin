@@ -46,3 +46,21 @@ where
     }
     Some(val)
 }
+
+pub async fn cached_result<T, E, F, Fut>(key: &str, ttl_ms: f64, fetch: F) -> Result<T, E>
+where
+    T: serde::Serialize + serde::de::DeserializeOwned,
+    F: FnOnce() -> Fut,
+    Fut: std::future::Future<Output = Result<T, E>>,
+{
+    if let Some(hit) = get_cached(key, ttl_ms)
+        && let Ok(v) = serde_json::from_str(&hit)
+    {
+        return Ok(v);
+    }
+    let val = fetch().await?;
+    if let Ok(json) = serde_json::to_string(&val) {
+        set_cached(key, &json);
+    }
+    Ok(val)
+}
