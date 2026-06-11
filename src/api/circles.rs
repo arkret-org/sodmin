@@ -1,16 +1,16 @@
 //! HTTP client for the soland CKP-0007 Circle admin surface
-//! (`/_cokret/self/circles/*`).
+//! (`/_soland/self/circles/*`).
 //!
 //! Routes consumed:
 //!
-//! - `GET    /_cokret/self/circles?realm_id=...`              list Circles in a Realm
-//! - `GET    /_cokret/self/circles/{circle_id}`               read Circle
-//! - `POST   /_cokret/self/circles`                           create Circle
-//! - `POST   /_cokret/self/circles/{circle_id}/members`       add / re-state member
-//! - `DELETE /_cokret/self/circles/{circle_id}/members/{actor_id}` remove member
-//! - `POST   /_cokret/self/circles/{circle_id}/scope-rotate`  rotate the MLS scope
-//! - `POST   /_cokret/self/circles/{circle_id}/archive`       archive
-//! - `POST   /_cokret/self/circles/{circle_id}/tombstone`     tombstone
+//! - `GET    /_soland/self/circles?realm_id=...`              list Circles in a Realm
+//! - `GET    /_soland/self/circles/{circle_id}`               read Circle
+//! - `POST   /_soland/self/circles`                           create Circle
+//! - `POST   /_soland/self/circles/{circle_id}/members`       add / re-state member
+//! - `DELETE /_soland/self/circles/{circle_id}/members/{actor_id}` remove member
+//! - `POST   /_soland/self/circles/{circle_id}/scope-rotate`  rotate the MLS scope
+//! - `POST   /_soland/self/circles/{circle_id}/archive`       archive
+//! - `POST   /_soland/self/circles/{circle_id}/tombstone`     tombstone
 //!
 //! The reducer surfaces canonical CKP-0007 reason codes (e.g.
 //! `circle_realm_mismatch`, `circle_member_must_be_realm_member`,
@@ -28,20 +28,20 @@ use crate::utils::net::error::HttpError;
 /// outside the caller's own membership; soland enforces the visibility
 /// filter server-side.
 pub async fn list_circles(realm_id: &str) -> Result<ListCirclesResponse, HttpError> {
-    let url = build_url("/_cokret/self/circles", &[("realm_id", realm_id)])?;
+    let url = build_url("/_soland/self/circles", &[("realm_id", realm_id)])?;
     api_client(&url, "GET", None).await
 }
 
 /// Read a single Circle by id.
 pub async fn get_circle(circle_id: &str) -> Result<Circle, HttpError> {
-    let url = format!("/_cokret/self/circles/{}", urlencoding::encode(circle_id));
+    let url = format!("/_soland/self/circles/{}", urlencoding::encode(circle_id));
     api_client(&url, "GET", None).await
 }
 
 /// Create a Circle inside the given Realm. Requires `ck.circle.create`.
 pub async fn create_circle(req: &CreateCircleRequest) -> Result<Circle, HttpError> {
     let body = serde_json::to_string(req).unwrap_or_default();
-    api_client("/_cokret/self/circles", "POST", Some(body)).await
+    api_client("/_soland/self/circles", "POST", Some(body)).await
 }
 
 /// Add a member (or transition member state) inside the Circle.
@@ -54,7 +54,7 @@ pub async fn add_circle_member(
     req: &CircleMemberRequest,
 ) -> Result<CircleMembershipResponse, HttpError> {
     let url = format!(
-        "/_cokret/self/circles/{}/members",
+        "/_soland/self/circles/{}/members",
         urlencoding::encode(circle_id),
     );
     let body = serde_json::to_string(req).unwrap_or_default();
@@ -67,7 +67,7 @@ pub async fn remove_circle_member(
     actor_id: &str,
 ) -> Result<CircleMembershipResponse, HttpError> {
     let url = format!(
-        "/_cokret/self/circles/{}/members/{}",
+        "/_soland/self/circles/{}/members/{}",
         urlencoding::encode(circle_id),
         urlencoding::encode(actor_id),
     );
@@ -79,7 +79,7 @@ pub async fn remove_circle_member(
 /// audit log even when no membership changes accompany the rotation.
 pub async fn rotate_circle_scope(circle_id: &str) -> Result<CircleScopeRotateResponse, HttpError> {
     let url = format!(
-        "/_cokret/self/circles/{}/scope-rotate",
+        "/_soland/self/circles/{}/scope-rotate",
         urlencoding::encode(circle_id),
     );
     api_client(&url, "POST", Some("{}".to_string())).await
@@ -89,7 +89,7 @@ pub async fn rotate_circle_scope(circle_id: &str) -> Result<CircleScopeRotateRes
 /// caller while the Circle is still inside the soft-delete window.
 pub async fn archive_circle(circle_id: &str) -> Result<Circle, HttpError> {
     let url = format!(
-        "/_cokret/self/circles/{}/archive",
+        "/_soland/self/circles/{}/archive",
         urlencoding::encode(circle_id),
     );
     api_client(&url, "POST", Some("{}".to_string())).await
@@ -99,7 +99,7 @@ pub async fn archive_circle(circle_id: &str) -> Result<Circle, HttpError> {
 /// further admin actions accepted.
 pub async fn tombstone_circle(circle_id: &str) -> Result<Circle, HttpError> {
     let url = format!(
-        "/_cokret/self/circles/{}/tombstone",
+        "/_soland/self/circles/{}/tombstone",
         urlencoding::encode(circle_id),
     );
     api_client(&url, "POST", Some("{}".to_string())).await

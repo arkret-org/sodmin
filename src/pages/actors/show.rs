@@ -1,18 +1,22 @@
 use dioxus::prelude::*;
 
 use crate::api::actors;
+use crate::components::dangerous_action_dialog::{DangerousActionDialog, device_revoke_phrase};
 use crate::components::ui::button::{Button, ButtonVariant};
 use crate::components::ui::card::*;
 use crate::components::ui::error_banner::ErrorBanner;
 use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::{BreadcrumbItem, Breadcrumbs, PageHeader};
+use crate::components::ui::toast::{ToastVariant, show_toast};
 use crate::router::Route;
 use crate::types::UpdateActorRequest;
 use crate::utils::i18n::t;
+use crate::utils::net::audit::{AdminAuditOutcome, emit_admin_audit_server};
 
 #[component]
 pub fn ActorShow(actor_id: String) -> Element {
     let mut suspending = use_signal(|| false);
+    let mut show_deactivate_dialog = use_signal(|| false);
     let actor_id_clone = actor_id.clone();
     let mut data = use_resource(move || {
         let id = actor_id_clone.clone();
@@ -107,7 +111,16 @@ pub fn ActorShow(actor_id: String) -> Element {
                                                     suspending.set(true);
                                                     spawn(async move {
                                                         let req = UpdateActorRequest { is_suspended: Some(true), ..Default::default() };
-                                                        let _ = actors::update_actor(&aid, &req).await;
+                                                        match actors::update_actor(&aid, &req).await {
+                                                            Ok(_) => {
+                                                                show_toast(&t("actors.suspended"), ToastVariant::Success);
+                                                                emit_admin_audit_server("actor", &aid, "suspend", AdminAuditOutcome::Accepted, None);
+                                                            }
+                                                            Err(e) => {
+                                                                show_toast(&e.message, ToastVariant::Error);
+                                                                emit_admin_audit_server("actor", &aid, "suspend", AdminAuditOutcome::Rejected, Some(&e.message));
+                                                            }
+                                                        }
                                                         suspending.set(false);
                                                         data.restart();
                                                     });
@@ -124,7 +137,16 @@ pub fn ActorShow(actor_id: String) -> Element {
                                                     suspending.set(true);
                                                     spawn(async move {
                                                         let req = UpdateActorRequest { is_suspended: Some(false), ..Default::default() };
-                                                        let _ = actors::update_actor(&aid, &req).await;
+                                                        match actors::update_actor(&aid, &req).await {
+                                                            Ok(_) => {
+                                                                show_toast(&t("actors.active"), ToastVariant::Success);
+                                                                emit_admin_audit_server("actor", &aid, "unsuspend", AdminAuditOutcome::Accepted, None);
+                                                            }
+                                                            Err(e) => {
+                                                                show_toast(&e.message, ToastVariant::Error);
+                                                                emit_admin_audit_server("actor", &aid, "unsuspend", AdminAuditOutcome::Rejected, Some(&e.message));
+                                                            }
+                                                        }
                                                         suspending.set(false);
                                                         data.restart();
                                                     });
@@ -136,13 +158,7 @@ pub fn ActorShow(actor_id: String) -> Element {
                                             Button {
                                                 variant: ButtonVariant::Destructive,
                                                 class: "w-full".to_string(),
-                                                onclick: move |_| {
-                                                    let aid = actor_id_for_deactivate.clone();
-                                                    spawn(async move {
-                                                        let _ = actors::deactivate_actor(&aid).await;
-                                                        data.restart();
-                                                    });
-                                                },
+                                                onclick: move |_| show_deactivate_dialog.set(true),
                                                 {t("actors.deactivate")}
                                             }
                                         }
@@ -154,6 +170,43 @@ pub fn ActorShow(actor_id: String) -> Element {
                 }
                 Some(Err(e)) => rsx! { ErrorBanner { message: e.message.clone(), on_retry: move |_| data.restart() } },
                 None => rsx! { PageSkeleton {} },
+            }
+
+            // Deactivation is an irreversible seven-domain fanout — gate it
+            // behind the same typed-phrase confirmation the rest of the
+            // destructive surface uses (type the last 4 chars of the
+            // actor id), then surface success/failure + audit breadcrumb.
+            {
+                let aid = actor_id_for_deactivate.clone();
+                let phrase = device_revoke_phrase(&aid, 4);
+                rsx! {
+                    DangerousActionDialog {
+                        open: show_deactivate_dialog(),
+                        title: t("actors.deactivate"),
+                        description: format!("{} ({})", t("actors.deactivate"), aid),
+                        confirmation_phrase: phrase,
+                        confirm_text: t("actors.deactivate"),
+                        cancel_text: t("common.cancel"),
+                        on_cancel: move |_| show_deactivate_dialog.set(false),
+                        on_confirm: move |_| {
+                            let aid = aid.clone();
+                            show_deactivate_dialog.set(false);
+                            spawn(async move {
+                                match actors::deactivate_actor(&aid).await {
+                                    Ok(_) => {
+                                        show_toast(&t("actors.deactivated"), ToastVariant::Success);
+                                        emit_admin_audit_server("actor", &aid, "deactivate", AdminAuditOutcome::Accepted, None);
+                                    }
+                                    Err(e) => {
+                                        show_toast(&e.message, ToastVariant::Error);
+                                        emit_admin_audit_server("actor", &aid, "deactivate", AdminAuditOutcome::Rejected, Some(&e.message));
+                                    }
+                                }
+                                data.restart();
+                            });
+                        },
+                    }
+                }
             }
         }
     }

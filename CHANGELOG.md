@@ -43,9 +43,9 @@ soland P2A + coauth P2B.
 
 - **Added** Circle management UI (P3A.3): `/circles`, `/circles/new`,
   `/circles/:id`, `/circles/:id/members`, `/circles/:id/scope` Dioxus
-  pages plus a `src/api/circles.rs` fetch wrapper. Eight `/api/v1/circles/*`
-  routes added to `build.rs` REQUIRED_SOLAND so a missing route fails
-  the wasm build at contract-check time.
+  pages plus a `src/api/circles.rs` fetch wrapper. Eight
+  `/_soland/self/circles/*` routes added to `build.rs` REQUIRED_SOLAND so a
+  missing route fails the wasm build at contract-check time.
 - **Added** Capability grant dialog (P3A.4) gains a quick-select for the
   six `ck.circle.*` actions and an `allowed_circle_ids` CSV input
   that emits the GrantConstraint server-side.

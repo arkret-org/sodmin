@@ -34,11 +34,6 @@ pub async fn create_realm(req: &CreateRealmRequest) -> Result<Realm, HttpError> 
     .await
 }
 
-pub async fn delete_realm(id: &str) -> Result<serde_json::Value, HttpError> {
-    let url = format!("/_soland/admin/realms/{}", urlencoding::encode(id));
-    api_client(&url, "DELETE", None).await
-}
-
 pub async fn list_realm_members(id: &str) -> Result<Vec<RealmMember>, HttpError> {
     let url = format!("/_soland/admin/realms/{}/members", urlencoding::encode(id));
     api_client(&url, "GET", None).await

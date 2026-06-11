@@ -44,6 +44,9 @@ write_proxy_location() {
         proxy_pass ${target_url};
         proxy_set_header Host \$host;
         proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+        proxy_set_header X-Forwarded-Host \$host;
 EOF
 
     if [ -n "$auth_header" ]; then
@@ -67,6 +70,9 @@ write_dynamic_proxy_location() {
         proxy_pass \$${variable_name};
         proxy_set_header Host \$host;
         proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+        proxy_set_header X-Forwarded-Host \$host;
 EOF
 
     if [ -n "$auth_header" ]; then
@@ -80,9 +86,16 @@ cat >> /etc/nginx/conf.d/default.conf <<EOF
 EOF
 }
 
-# Emit /config.json consumed by the Dioxus runtime.
+# Emit /config.json consumed by the Dioxus runtime. The value is
+# JSON-escaped (backslash + double-quote) so an operator-supplied URL with
+# a quote/backslash can't produce invalid JSON that wedges the SPA into the
+# config-error panel.
+json_escape() {
+    # Escape backslash first, then double-quote.
+    printf '%s' "$1" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g'
+}
 printf '{"coauth_public_url":"%s"}' \
-    "$COAUTH_PUBLIC_URL" \
+    "$(json_escape "$COAUTH_PUBLIC_URL")" \
     > /usr/share/nginx/html/config.json
 
 cat > /etc/nginx/conf.d/default.conf <<EOF
@@ -134,29 +147,20 @@ server {
 EOF
 
 if [ -n "$COAUTH_URL" ]; then
-    # coauth's admin surface now shares the deployment-local `/_soland/admin/*`
-    # namespace with soland. nginx prefix-matching is longest-match, so the
-    # coauth-specific admin resource roots below win over the generic
-    # `/_soland/admin/` → soland location declared further down. Auth /
-    # session endpoints moved under the `gate` trust circle
-    # (`/_cokret/gate/...`), per cokret-spec service-http-binding.md §2.2.
+    # coauth owns its own admin namespace `/_coauth/admin/*` (renamed from
+    # `/_cokret/local/admin` in coauth bc06024); a single `/_coauth/`
+    # location forwards the whole surface (proxy_pass passes the path
+    # through unchanged). OAuth endpoints are `/oauth/token`, `/oauth/revoke`
+    # (no `oauth2` prefix, no separate refresh route — refresh reuses the
+    # token endpoint with grant_type=refresh_token). Auth / session
+    # endpoints also live under the `gate` trust circle (`/_cokret/gate/...`),
+    # per cokret-spec service-http-binding.md §2.2.
     if can_resolve_url_host "$COAUTH_URL"; then
         write_proxy_location "/auth/" "$COAUTH_URL"
         write_proxy_location "/_cokret/gate/" "$COAUTH_URL"
-        write_proxy_location "/_soland/admin/accounts" "$COAUTH_URL" "\$http_authorization"
-        write_proxy_location "/_soland/admin/claims" "$COAUTH_URL" "\$http_authorization"
-        write_proxy_location "/_soland/admin/oauth2-sessions" "$COAUTH_URL" "\$http_authorization"
-        write_proxy_location "/_soland/admin/personal-sessions" "$COAUTH_URL" "\$http_authorization"
-        write_proxy_location "/_soland/admin/upstream-oauth-providers" "$COAUTH_URL" "\$http_authorization"
-        write_proxy_location "/_soland/admin/upstream-oauth-links" "$COAUTH_URL" "\$http_authorization"
-        write_proxy_location "/_soland/admin/user-registration-tokens" "$COAUTH_URL" "\$http_authorization"
-        write_proxy_location "/_soland/admin/connector-health" "$COAUTH_URL" "\$http_authorization"
-        write_proxy_location "/_soland/admin/notification-channels" "$COAUTH_URL" "\$http_authorization"
-        write_proxy_location "/_soland/admin/notification-templates" "$COAUTH_URL" "\$http_authorization"
-        write_proxy_location "/_soland/admin/audit-feed" "$COAUTH_URL" "\$http_authorization"
-        write_proxy_location "/_soland/admin/bridge/" "$COAUTH_URL" "\$http_authorization"
+        write_proxy_location "/_coauth/" "$COAUTH_URL" "\$http_authorization"
         write_proxy_location "/authorize" "$COAUTH_URL"
-        write_proxy_location "/oauth2/" "$COAUTH_URL"
+        write_proxy_location "/oauth/" "$COAUTH_URL"
         write_proxy_location "/.well-known/" "$COAUTH_URL"
     else
         [ -n "$RESOLVERS" ] || RESOLVERS="127.0.0.11"
@@ -166,20 +170,9 @@ if [ -n "$COAUTH_URL" ]; then
 EOF
         write_dynamic_proxy_location "/auth/" "coauth_backend"
         write_dynamic_proxy_location "/_cokret/gate/" "coauth_backend"
-        write_dynamic_proxy_location "/_soland/admin/accounts" "coauth_backend" "\$http_authorization"
-        write_dynamic_proxy_location "/_soland/admin/claims" "coauth_backend" "\$http_authorization"
-        write_dynamic_proxy_location "/_soland/admin/oauth2-sessions" "coauth_backend" "\$http_authorization"
-        write_dynamic_proxy_location "/_soland/admin/personal-sessions" "coauth_backend" "\$http_authorization"
-        write_dynamic_proxy_location "/_soland/admin/upstream-oauth-providers" "coauth_backend" "\$http_authorization"
-        write_dynamic_proxy_location "/_soland/admin/upstream-oauth-links" "coauth_backend" "\$http_authorization"
-        write_dynamic_proxy_location "/_soland/admin/user-registration-tokens" "coauth_backend" "\$http_authorization"
-        write_dynamic_proxy_location "/_soland/admin/connector-health" "coauth_backend" "\$http_authorization"
-        write_dynamic_proxy_location "/_soland/admin/notification-channels" "coauth_backend" "\$http_authorization"
-        write_dynamic_proxy_location "/_soland/admin/notification-templates" "coauth_backend" "\$http_authorization"
-        write_dynamic_proxy_location "/_soland/admin/audit-feed" "coauth_backend" "\$http_authorization"
-        write_dynamic_proxy_location "/_soland/admin/bridge/" "coauth_backend" "\$http_authorization"
+        write_dynamic_proxy_location "/_coauth/" "coauth_backend" "\$http_authorization"
         write_dynamic_proxy_location "/authorize" "coauth_backend"
-        write_dynamic_proxy_location "/oauth2/" "coauth_backend"
+        write_dynamic_proxy_location "/oauth/" "coauth_backend"
         write_dynamic_proxy_location "/.well-known/" "coauth_backend"
     fi
 fi
@@ -193,10 +186,12 @@ if can_resolve_url_host "$SOLAND_URL"; then
     # service-http-binding.md §2.2. The `/_cokret/gate/` coauth override
     # above is a longer prefix and therefore wins for auth endpoints.
     write_proxy_location "/_cokret/" "$SOLAND_URL"
-    # soland's deployment-local operator surface at `/_soland/admin/*`.
-    # The coauth-specific admin resource roots declared above are longer
-    # prefixes and win; everything else here lands on soland.
-    write_proxy_location "/_soland/admin/" "$SOLAND_URL"
+    # soland's deployment-local operator + product surface (`/_soland/*`):
+    # admin operator API plus the product-surface self/gate/root extensions
+    # (e.g. /_soland/self/circles, /_soland/gate/auth/logout,
+    # /_soland/root/identity/recovery-*). coauth keeps its own `/_coauth/`
+    # namespace declared above.
+    write_proxy_location "/_soland/" "$SOLAND_URL"
 else
     if ! grep -q "resolver " /etc/nginx/conf.d/default.conf; then
         [ -n "$RESOLVERS" ] || RESOLVERS="127.0.0.11"
@@ -213,14 +208,22 @@ EOF
     # All other `/_cokret/*` trust-circle traffic terminates on soland
     # (see the resolvable branch above for rationale).
     write_dynamic_proxy_location "/_cokret/" "soland_backend"
-    # soland operator surface at `/_soland/admin/*`.
-    write_dynamic_proxy_location "/_soland/admin/" "soland_backend"
+    # soland operator + product surface at `/_soland/*`.
+    write_dynamic_proxy_location "/_soland/" "soland_backend"
 fi
 
 cat >> /etc/nginx/conf.d/default.conf <<EOF
     location ~* \.(wasm|js|css|png|jpg|ico|svg)$ {
         expires 1y;
         add_header Cache-Control "public, immutable";
+        # nginx drops ALL inherited add_header directives once any
+        # add_header appears at this level, so the server-level security
+        # headers must be repeated here. nosniff in particular is per-
+        # response and is the relevant protection for script/wasm assets.
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header X-Frame-Options "DENY" always;
+        add_header Referrer-Policy "no-referrer" always;
+        add_header Permissions-Policy "geolocation=(), microphone=(), camera=(), payment=()" always;
     }
 
     location / {

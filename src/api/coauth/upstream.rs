@@ -55,7 +55,7 @@ pub async fn create_upstream_provider(
     provider: &serde_json::Value,
 ) -> Result<CoauthUpstreamProvider, HttpError> {
     api_client(
-        "/_soland/admin/upstream-oauth-providers",
+        "/_coauth/admin/upstream-oauth-providers",
         "POST",
         Some(provider.to_string()),
     )
@@ -64,7 +64,7 @@ pub async fn create_upstream_provider(
 
 pub async fn delete_upstream_provider(id: &str) -> Result<(), HttpError> {
     let url = format!(
-        "/_soland/admin/upstream-oauth-providers/{}",
+        "/_coauth/admin/upstream-oauth-providers/{}",
         urlencoding::encode(id)
     );
     api_client(&url, "DELETE", None).await
@@ -73,7 +73,7 @@ pub async fn delete_upstream_provider(id: &str) -> Result<(), HttpError> {
 pub async fn toggle_upstream_provider(id: &str, enable: bool) -> Result<(), HttpError> {
     let action = if enable { "enable" } else { "disable" };
     let url = format!(
-        "/_soland/admin/upstream-oauth-providers/{}/{}",
+        "/_coauth/admin/upstream-oauth-providers/{}/{}",
         urlencoding::encode(id),
         action
     );
@@ -96,7 +96,7 @@ pub async fn list_upstream_links(
 
 pub async fn delete_upstream_link(id: &str) -> Result<(), HttpError> {
     let url = format!(
-        "/_soland/admin/upstream-oauth-links/{}",
+        "/_coauth/admin/upstream-oauth-links/{}",
         urlencoding::encode(id)
     );
     api_client(&url, "DELETE", None).await

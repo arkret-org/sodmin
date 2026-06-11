@@ -4,12 +4,18 @@
 //! with an admin bearer token and prints a PASS/FAIL summary. Useful as
 //! a one-shot ops sanity check after a deploy:
 //!
+//! Pass the admin bearer via the environment, never on the command line
+//! (CLI args leak into shell history, CI logs, and `/proc/<pid>/cmdline`):
+//!
 //! ```ignore
+//! SODMIN_SMOKE_TOKEN=$SOLAND_ADMIN_TOKEN \
 //! cargo run --bin sodmin-smoke -- \
 //!     --base-url https://soland.example.com \
-//!     --token $SOLAND_ADMIN_TOKEN \
 //!     --realm-id ck:realm:demo
 //! ```
+//!
+//! A `--token` flag exists for ad-hoc local use only; prefer the env var
+//! in any automated / shared context.
 //!
 //! Exit code is non-zero when any check fails so this can be wired into
 //! a CI gate or deploy webhook. The binary intentionally does NOT import
@@ -109,8 +115,8 @@ impl Args {
 fn print_help() {
     println!(
         "sodmin-smoke — soland admin endpoint smoke test\n\n\
-USAGE:\n  sodmin-smoke --base-url <URL> --token <BEARER> --realm-id <REALM_ID>\n\n\
-OPTIONS:\n  -u, --base-url     soland base URL (e.g. https://soland.example.com)\n  -t, --token        admin bearer token (also: $SOLAND_ADMIN_TOKEN)\n  -r, --realm-id     Realm id to probe (Stream H' is per-Realm)\n      --strict       fail on 404 (default: skip — H' routes may not be wired)\n      --tolerate-404 treat 404 as SKIP (default)\n      --timeout      per-request timeout in seconds (default {DEFAULT_TIMEOUT_SECS})\n  -h, --help         print this message\n"
+USAGE:\n  SODMIN_SMOKE_TOKEN=<BEARER> sodmin-smoke --base-url <URL> --realm-id <REALM_ID>\n\n\
+OPTIONS:\n  -u, --base-url     soland base URL (e.g. https://soland.example.com)\n  -t, --token        admin bearer token. PREFER the env var $SODMIN_SMOKE_TOKEN /\n                     $SOLAND_ADMIN_TOKEN — CLI args leak into shell history, CI\n                     logs, and the process table (/proc/<pid>/cmdline)\n  -r, --realm-id     Realm id to probe (Stream H' is per-Realm)\n      --strict       fail on 404 (default: skip — H' routes may not be wired)\n      --tolerate-404 treat 404 as SKIP (default)\n      --timeout      per-request timeout in seconds (default {DEFAULT_TIMEOUT_SECS})\n  -h, --help         print this message\n"
     );
 }
 
@@ -285,9 +291,11 @@ fn run() -> ExitCode {
     // mutate state. Smoke checks reachability + auth only.
     let checks = vec![
         (
-            "admin/health",
+            "health",
             "GET",
-            format!("{base}/_soland/admin/health"),
+            // soland's health probe is at the root `/health`, not under
+            // the admin namespace (which has no `health` route).
+            format!("{base}/health"),
         ),
         (
             "realms/anchorer (H'1/H'2)",
@@ -309,11 +317,10 @@ fn run() -> ExitCode {
             "GET",
             build_realm_url(base, realm_id, "consent"),
         ),
-        (
-            "components (H'6)",
-            "GET",
-            format!("{base}/_soland/admin/components"),
-        ),
+        // NOTE: a former `components (H'6)` check hit
+        // `/_soland/admin/components`, which soland does not mount (the
+        // admin collection whitelist has no `components` resource). It was
+        // removed so the smoke signal is not a false negative.
         (
             "realms/covered-frontier (H'7)",
             "GET",

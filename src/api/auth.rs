@@ -1,7 +1,7 @@
 //! OAuth/OIDC + session lifecycle.
 //!
 //! The bearer credential lives in an httpOnly cookie that coauth's
-//! `/oauth2/token` endpoint sets via `Set-Cookie`. The cookie is
+//! `/oauth/token` endpoint sets via `Set-Cookie`. The cookie is
 //! `HttpOnly + Secure + SameSite=Strict + __Host-` prefixed so it
 //! cannot be read from JS, can only be sent to the issuing origin, and
 //! cannot be smuggled across navigations from third-party iframes.
@@ -18,9 +18,9 @@
 //!   "include"` so the cookie travels with the request automatically. There is no `Authorization:
 //!   Bearer` header from the SPA.
 //! - **Refresh** — when the cookie has expired the server returns 401, the client invokes
-//!   `handle_unauthorized` which calls `/oauth2/refresh` (also with `credentials: "include"`) and
+//!   `handle_unauthorized` which calls `/oauth/token` (grant_type=refresh_token) (also with `credentials: "include"`) and
 //!   the server sets a new cookie. No JS-visible refresh_token.
-//! - **Logout** — `logout` POSTs to `/oauth2/revoke` (same cookie credentials), then clears the
+//! - **Logout** — `logout` POSTs to `/oauth/revoke` (same cookie credentials), then clears the
 //!   JS-visible session marker + userinfo + the SPA-side cached config.
 
 use gloo_net::http::Request;
@@ -35,7 +35,7 @@ use crate::utils::storage;
 
 const OAUTH_CLIENT_ID: &str = "sodmin";
 const COAUTH_ADMIN_SCOPE: &str = "urn:coauth:admin";
-const CX_ADMIN_SCOPE: &str = "urn:cokret:admin:*";
+const CK_ADMIN_SCOPE: &str = "urn:cokret:admin:*";
 const OAUTH_DEVICE_ID_STORAGE_KEY: &str = "oauth_device_id";
 const PKCE_VERIFIER_KEY: &str = "pkce_code_verifier";
 const OAUTH_STATE_KEY: &str = "oauth_state";
@@ -53,7 +53,7 @@ struct TextResponse {
 }
 
 fn build_oauth_scope() -> String {
-    format!("{COAUTH_ADMIN_SCOPE} {CX_ADMIN_SCOPE}")
+    format!("{COAUTH_ADMIN_SCOPE} {CK_ADMIN_SCOPE}")
 }
 
 fn get_or_create_device_id() -> String {
@@ -252,7 +252,7 @@ pub async fn handle_oauth_callback(code: &str, state: Option<&str>) -> Result<()
         urlencoding::encode(&verifier),
     );
 
-    let response = send_oauth_form_request("/oauth2/token", &form_body).await?;
+    let response = send_oauth_form_request("/oauth/token", &form_body).await?;
     if response.status >= 400 {
         return Err(make_err(format!(
             "Token exchange failed ({}): {}",
@@ -342,12 +342,12 @@ pub async fn handle_unauthorized() -> bool {
 
 pub async fn refresh_oauth_token() -> bool {
     // S5: the refresh token is in the httpOnly cookie. Just hit
-    // /oauth2/refresh with credentials: "include" — coauth pulls the
+    // /oauth/token (refresh) with credentials: "include" — coauth pulls the
     // refresh token from the cookie, mints a new pair, and ships back
     // a new cookie. The JSON body carries no secrets.
     let form_body = format!("grant_type=refresh_token&client_id={OAUTH_CLIENT_ID}");
 
-    let response = match send_oauth_form_request("/oauth2/refresh", &form_body).await {
+    let response = match send_oauth_form_request("/oauth/token", &form_body).await {
         Ok(r) => r,
         Err(_) => return false,
     };
@@ -372,8 +372,11 @@ pub async fn verify_admin() -> Result<bool, HttpError> {
     }
 
     // S5: admin probe sends the cookie automatically via
-    // credentials: "include"; no Authorization header.
-    let response = Request::get("/_soland/admin/server/info")
+    // credentials: "include"; no Authorization header. `server/status` is
+    // the only mounted server-admin route (and is gated by the same
+    // `RequireAdmin` hook), so its 200/403 split is the admin discriminator;
+    // the previously-probed `server/info` is not mounted in soland (404).
+    let response = Request::get("/_soland/admin/server/status")
         .header("Accept", "application/json")
         .credentials(RequestCredentials::Include)
         .send()
@@ -443,13 +446,16 @@ pub async fn refresh_if_expiring_soon() {
 }
 
 pub async fn logout() -> Result<(), HttpError> {
-    // S5: the cookie carries the bearer; just hit /oauth2/revoke with
+    // S5: the cookie carries the bearer; just hit /oauth/revoke with
     // credentials: "include" so coauth can read it server-side and
     // clear it via Set-Cookie.
     let body = format!("client_id={OAUTH_CLIENT_ID}");
-    let _ = send_oauth_form_request("/oauth2/revoke", &body).await;
+    let _ = send_oauth_form_request("/oauth/revoke", &body).await;
 
-    let _ = Request::post("/_cokret/gate/auth/logout")
+    // soland product-surface session logout (mounted at `/_soland/gate/*`,
+    // not the `/_cokret` protocol surface — the latter routes to coauth and
+    // 404s, leaving the soland-side session uncleared).
+    let _ = Request::post("/_soland/gate/auth/logout")
         .header("Accept", "application/json")
         .credentials(RequestCredentials::Include)
         .send()
@@ -472,6 +478,11 @@ fn clear_session_marker() {
         "user_display_name",
         "user_avatar_url",
         OAUTH_DEVICE_ID_STORAGE_KEY,
+        // session scope / advertised bridges (utils::net::session). Cleared
+        // on logout so a prior admin's scope hint can't leak to the next
+        // user on a shared browser if/when these are ever written.
+        "session_admin_scope",
+        "session_active_bridges",
     ];
     for key in KEYS_TO_CLEAR {
         storage::remove_item(key);

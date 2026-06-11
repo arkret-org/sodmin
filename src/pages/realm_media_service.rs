@@ -23,7 +23,6 @@ use crate::components::ui::button::{Button, ButtonSize, ButtonVariant};
 use crate::components::ui::card::*;
 use crate::components::ui::input::{Input, Label};
 use crate::components::ui::page_header::{BreadcrumbItem, Breadcrumbs, PageHeader};
-use crate::components::ui::toast::{ToastVariant, show_toast};
 use crate::router::Route;
 use crate::utils::i18n::t;
 
@@ -85,6 +84,16 @@ pub fn RealmMediaService(realm_id: String) -> Element {
                 description: format!("{}: {}", t("delivery_binding.realm"), realm_id_label),
             }
 
+            // The soland GET/PUT pair for media_service is not yet wired,
+            // so this editor cannot persist. Surface that honestly (matching
+            // the other stub pages) rather than emitting a fake success
+            // toast on save.
+            div {
+                class: "rounded-md border-2 border-amber-600 bg-amber-600/10 px-3 py-2 text-sm",
+                role: "alert",
+                {t("media_service.stub_banner")}
+            }
+
             // R3 — migration banner. Rendered when the underlying cell
             // still carries `sfu_endpoint`. The toggle is wired off the
             // (placeholder) signal so the surface is testable until the
@@ -110,10 +119,10 @@ pub fn RealmMediaService(realm_id: String) -> Element {
                         "Dismiss banner"
                     }
                 }
-            } else {
-                // Dev affordance so the banner can be exercised without
-                // a stale realm cell. Removed in R3.1 when the GET endpoint
-                // surfaces the legacy bit canonically.
+            } else if cfg!(debug_assertions) {
+                // Dev-only affordance so the banner can be exercised without
+                // a stale realm cell. Gated behind debug_assertions so it
+                // never ships in a production (release) bundle.
                 div { class: "text-xs text-muted-foreground",
                     Button {
                         variant: ButtonVariant::Outline,
@@ -152,19 +161,15 @@ pub fn RealmMediaService(realm_id: String) -> Element {
                                     {t("media_service.add")}
                                 }
                                 div { class: "flex justify-end",
+                                    // Disabled until the soland PUT against
+                                    // `/_soland/admin/realms/{id}/media-service`
+                                    // is wired. A no-op success toast would
+                                    // mislead operators into believing the
+                                    // foci were persisted, so the button is
+                                    // inert and the stub banner above explains.
                                     Button {
                                         variant: ButtonVariant::Default,
-                                        onclick: move |_| {
-                                            // TODO(R3.1): real PUT against
-                                            // `/_soland/admin/realms/{id}/media-service`.
-                                            // The payload shape is:
-                                            //   { "foci": [
-                                            //       {"id":"…","type":"livekit",
-                                            //        "connect_url":"…","service_did":"…",
-                                            //        "regions":["us-east"]}
-                                            //   ] }
-                                            show_toast(&t("media_service.save_ok"), ToastVariant::Success);
-                                        },
+                                        disabled: true,
                                         {t("media_service.save")}
                                     }
                                 }

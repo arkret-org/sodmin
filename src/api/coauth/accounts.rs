@@ -249,19 +249,19 @@ pub async fn list_accounts_cursor(
 pub async fn get_account_detail(id: &str) -> Result<CoauthAccountDetail, HttpError> {
     let bridge_url = coauth_paths::BRIDGE_DESCRIBE;
     let integration_manifest_url = coauth_paths::INTEGRATION_DESCRIBE;
-    let summary_url = format!("/_soland/admin/accounts/{}", urlencoding::encode(id));
-    let dids_url = format!("/_soland/admin/accounts/{}/dids", urlencoding::encode(id));
-    let claims_url = format!("/_soland/admin/accounts/{}/claims", urlencoding::encode(id));
+    let summary_url = format!("/_coauth/admin/accounts/{}", urlencoding::encode(id));
+    let dids_url = format!("/_coauth/admin/accounts/{}/dids", urlencoding::encode(id));
+    let claims_url = format!("/_coauth/admin/accounts/{}/claims", urlencoding::encode(id));
     let grants_url = format!(
-        "/_soland/admin/accounts/{}/session-grants",
+        "/_coauth/admin/accounts/{}/session-grants",
         urlencoding::encode(id)
     );
     let current_url = format!(
-        "/_soland/admin/accounts/{}/risk-action/current",
+        "/_coauth/admin/accounts/{}/risk-action/current",
         urlencoding::encode(id)
     );
     let history_url = format!(
-        "/_soland/admin/accounts/{}/risk-action/history",
+        "/_coauth/admin/accounts/{}/risk-action/history",
         urlencoding::encode(id)
     );
     let summary: CoauthAdminSingleEnvelope<CoauthAdminAccountRecord> =
@@ -313,7 +313,7 @@ pub async fn add_account_did_binding(
     control_proof: &str,
 ) -> Result<(), HttpError> {
     let url = format!(
-        "/_soland/admin/accounts/{}/dids",
+        "/_coauth/admin/accounts/{}/dids",
         urlencoding::encode(account_id)
     );
     let body = serde_json::json!({
@@ -328,7 +328,7 @@ pub async fn add_account_did_binding(
 /// path so the request body is empty.
 pub async fn remove_account_did_binding(account_id: &str, did: &str) -> Result<(), HttpError> {
     let url = format!(
-        "/_soland/admin/accounts/{}/dids/{}",
+        "/_coauth/admin/accounts/{}/dids/{}",
         urlencoding::encode(account_id),
         urlencoding::encode(did),
     );
@@ -339,7 +339,7 @@ pub async fn remove_account_did_binding(account_id: &str, did: &str) -> Result<(
 /// Revoke a single claim by its record ULID.
 pub async fn revoke_account_claim(claim_id: &str) -> Result<(), HttpError> {
     let url = format!(
-        "/_soland/admin/claims/{}/revoke",
+        "/_coauth/admin/claims/{}/revoke",
         urlencoding::encode(claim_id),
     );
     let _: serde_json::Value = api_client(&url, "POST", None).await?;
@@ -351,7 +351,7 @@ pub async fn submit_account_risk_action(
     draft: &CoauthAccountRiskActionDraft,
 ) -> Result<CoauthAccountRiskActionProposal, HttpError> {
     let url = format!(
-        "/_soland/admin/accounts/{}/risk-action",
+        "/_coauth/admin/accounts/{}/risk-action",
         urlencoding::encode(id)
     );
     let body = serde_json::json!({
@@ -369,7 +369,7 @@ pub async fn approve_account_risk_action(
     draft: &CoauthAccountRiskActionApprovalDraft,
 ) -> Result<CoauthAccountRiskActionApproval, HttpError> {
     let url = format!(
-        "/_soland/admin/accounts/{}/risk-action/{}/approve",
+        "/_coauth/admin/accounts/{}/risk-action/{}/approve",
         urlencoding::encode(id),
         urlencoding::encode(proposal_id)
     );
@@ -389,7 +389,7 @@ pub async fn execute_account_risk_action(
     draft: &CoauthAccountRiskActionExecuteDraft,
 ) -> Result<CoauthAccountRiskActionExecute, HttpError> {
     let url = format!(
-        "/_soland/admin/accounts/{}/risk-action/{}/execute",
+        "/_coauth/admin/accounts/{}/risk-action/{}/execute",
         urlencoding::encode(id),
         urlencoding::encode(proposal_id)
     );
@@ -505,7 +505,7 @@ mod cursor_tests {
     #[test]
     fn extract_cursor_handles_plain_param() {
         assert_eq!(
-            extract_cursor_param("/_soland/admin/accounts?cursor=ABC123&limit=25"),
+            extract_cursor_param("/_coauth/admin/accounts?cursor=ABC123&limit=25"),
             Some("ABC123".to_string()),
         );
     }
@@ -513,14 +513,14 @@ mod cursor_tests {
     #[test]
     fn extract_cursor_handles_jsonapi_bracketed_param() {
         assert_eq!(
-            extract_cursor_param("/_soland/admin/accounts?page%5Bcursor%5D=DEF456"),
+            extract_cursor_param("/_coauth/admin/accounts?page%5Bcursor%5D=DEF456"),
             Some("DEF456".to_string()),
         );
     }
 
     #[test]
     fn extract_cursor_returns_none_when_absent() {
-        assert!(extract_cursor_param("/_soland/admin/accounts?limit=25").is_none());
+        assert!(extract_cursor_param("/_coauth/admin/accounts?limit=25").is_none());
         assert!(extract_cursor_param("").is_none());
     }
 

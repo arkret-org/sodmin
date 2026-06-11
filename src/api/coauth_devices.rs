@@ -2,9 +2,9 @@
 //!
 //! Endpoints:
 //!
-//! - `GET /_soland/admin/accounts/{account_id}/devices` — coauth list of devices registered to a
+//! - `GET /_coauth/admin/accounts/{account_id}/devices` — coauth list of devices registered to a
 //!   single account. Cursor-paginated.
-//! - `POST /_soland/admin/accounts/{account_id}/devices/{device_id}/revoke` — coauth revoke. The
+//! - `POST /_coauth/admin/accounts/{account_id}/devices/{device_id}/revoke` — coauth revoke. The
 //!   cascade revoke of session grants on the soland side is wired in coauth round 23; the admin UI
 //!   just calls the coauth route. 404-tolerant on the client side.
 
@@ -36,7 +36,7 @@ pub async fn list_account_devices(
 ) -> Result<CoauthDevicePage, HttpError> {
     let limit_str = limit.max(1).to_string();
     let path = format!(
-        "/_soland/admin/accounts/{}/devices",
+        "/_coauth/admin/accounts/{}/devices",
         urlencoding::encode(account_id)
     );
     let mut params: Vec<(&str, &str)> = vec![("limit", limit_str.as_str())];
@@ -54,7 +54,7 @@ pub async fn list_account_devices(
 
 pub async fn revoke_account_device(account_id: &str, device_id: &str) -> Result<(), HttpError> {
     let url = format!(
-        "/_soland/admin/accounts/{}/devices/{}/revoke",
+        "/_coauth/admin/accounts/{}/devices/{}/revoke",
         urlencoding::encode(account_id),
         urlencoding::encode(device_id),
     );

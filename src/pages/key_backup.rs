@@ -120,7 +120,7 @@ pub fn KeyBackupList() -> Element {
                                 }
                             }
                             TableBody {
-                                if resp.data.is_empty() {
+                                if resp.backups.is_empty() {
                                     TableRow {
                                         TableCell { colspan: 99,
                                             class: "text-center text-muted-foreground py-6".to_string(),
@@ -128,7 +128,7 @@ pub fn KeyBackupList() -> Element {
                                         }
                                     }
                                 } else {
-                                    for s in resp.data.iter() {
+                                    for s in resp.backups.iter() {
                                         {render_series_row(s)}
                                     }
                                 }

@@ -42,21 +42,27 @@ fn normalize_path(path: &str) -> String {
 }
 
 pub mod coauth {
-    pub const VIEWER: &str = "/_cokret/self/viewer";
-    pub const AUDIT_FEED: &str = "/_soland/admin/audit-feed";
-    pub const OAUTH2_SESSIONS: &str = "/_soland/admin/oauth2-sessions";
-    pub const PERSONAL_SESSIONS: &str = "/_soland/admin/personal-sessions";
-    pub const UPSTREAM_OAUTH_PROVIDERS: &str = "/_soland/admin/upstream-oauth-providers";
-    pub const UPSTREAM_OAUTH_LINKS: &str = "/_soland/admin/upstream-oauth-links";
-    pub const USER_REGISTRATION_TOKENS: &str = "/_soland/admin/user-registration-tokens";
-    pub const CONNECTOR_HEALTH: &str = "/_soland/admin/connector-health";
-    pub const NOTIFICATION_CHANNELS: &str = "/_soland/admin/notification-channels";
-    pub const NOTIFICATION_TEMPLATES: &str = "/_soland/admin/notification-templates";
-    pub const NOTIFICATION_TEMPLATES_PUBLISH: &str =
-        "/_soland/admin/notification-templates/publish";
-    pub const ACCOUNTS: &str = "/_soland/admin/accounts";
-    pub const BRIDGE_DESCRIBE: &str = "/_soland/admin/bridge/describe";
-    pub const INTEGRATION_DESCRIBE: &str = "/_cokret/self/integration/describe";
+    // coauth owns its own namespace `/_coauth/admin/*` (renamed from
+    // `/_cokret/local/admin` in coauth bc06024); the `_soland` prefix never
+    // mounted these resources. The viewer lives on soland's protocol surface
+    // at `/_cokret/self/account/viewer`.
+    pub const VIEWER: &str = "/_cokret/self/account/viewer";
+    pub const AUDIT_FEED: &str = "/_coauth/admin/audit-feed";
+    // coauth mounts the OAuth session collection at `oauth-sessions`
+    // (not `oauth2-sessions`).
+    pub const OAUTH2_SESSIONS: &str = "/_coauth/admin/oauth-sessions";
+    pub const PERSONAL_SESSIONS: &str = "/_coauth/admin/personal-sessions";
+    pub const UPSTREAM_OAUTH_PROVIDERS: &str = "/_coauth/admin/upstream-oauth-providers";
+    pub const UPSTREAM_OAUTH_LINKS: &str = "/_coauth/admin/upstream-oauth-links";
+    pub const USER_REGISTRATION_TOKENS: &str = "/_coauth/admin/user-registration-tokens";
+    pub const CONNECTOR_HEALTH: &str = "/_coauth/admin/connector-health";
+    pub const NOTIFICATION_CHANNELS: &str = "/_coauth/admin/notification-channels";
+    pub const NOTIFICATION_TEMPLATES: &str = "/_coauth/admin/notification-templates";
+    pub const NOTIFICATION_TEMPLATES_PUBLISH: &str = "/_coauth/admin/notification-templates/publish";
+    pub const ACCOUNTS: &str = "/_coauth/admin/accounts";
+    pub const BRIDGE_DESCRIBE: &str = "/_coauth/admin/bridge/describe";
+    // soland product-surface integration describe (not a `/_cokret` protocol op).
+    pub const INTEGRATION_DESCRIBE: &str = "/_soland/self/integration/describe";
 }
 
 pub mod soland {
@@ -82,11 +88,11 @@ mod tests {
         assert!(coauth_has_operation("GET", coauth::ACCOUNTS));
         assert!(coauth_has_operation(
             "POST",
-            "/_soland/admin/accounts/{id}/risk-action"
+            "/_coauth/admin/accounts/{id}/risk-action"
         ));
         assert!(coauth_has_operation(
             "POST",
-            "/_soland/admin/accounts/{account_id}/risk-action/{proposal_id}/execute"
+            "/_coauth/admin/accounts/{account_id}/risk-action/{proposal_id}/execute"
         ));
     }
 

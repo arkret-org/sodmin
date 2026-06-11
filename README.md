@@ -22,7 +22,7 @@ adapt to your local toolchain.
 
 - **Dashboard**: server profile, health, storage and conformance status.
 - **Actors**: search, detail, devices, sessions, DID/handle and lifecycle status.
-- **Spaces**: membership, invites, visibility, policy and destructive actions with audit context.
+- **Realms**: membership, invites, visibility, policy and destructive actions with audit context (a Realm is the security boundary; Spaces are navigation containers within it).
 - **Devices and capabilities**: trust state, key status, grants, delegations and effective permission review.
 - **Federation**: peers, service DIDs, transactions, replay/fork quarantine and verification status.
 - **Blob/media**: quota, metadata, retention and anti-enumeration diagnostics.

@@ -2,7 +2,7 @@
 //! token hardening).
 //!
 //!
-//! issued by coauth's `/oauth2/token` endpoint. The bearer token is
+//! issued by coauth's `/oauth/token` endpoint. The bearer token is
 //! not readable from JS (cookie has `HttpOnly` + `Secure` +
 //! `SameSite=Strict`), so this module no longer exposes an
 //! `access_token()` accessor — the API client sends the cookie

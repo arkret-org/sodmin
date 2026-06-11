@@ -47,7 +47,7 @@ pub async fn create_registration_token(
 ) -> Result<CoauthRegistrationToken, HttpError> {
     let body = serde_json::json!({ "uses_allowed": uses_allowed });
     api_client(
-        "/_soland/admin/user-registration-tokens",
+        "/_coauth/admin/user-registration-tokens",
         "POST",
         Some(body.to_string()),
     )
@@ -56,7 +56,7 @@ pub async fn create_registration_token(
 
 pub async fn revoke_registration_token(id: &str) -> Result<(), HttpError> {
     let url = format!(
-        "/_soland/admin/user-registration-tokens/{}/revoke",
+        "/_coauth/admin/user-registration-tokens/{}/revoke",
         urlencoding::encode(id)
     );
     api_client(&url, "POST", None).await

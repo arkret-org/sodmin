@@ -11,7 +11,7 @@
 //!
 //! Backend RBAC is canonical — the UI "hiding" of a button is cosmetic
 //! only and the server MUST reject any disallowed action by `errcode =
-//! ck.error.capability_denied`. This view is a UX-affordance, not a
+//! capability_denied`. This view is a UX-affordance, not a
 //! permission gate.
 //!
 //! TODO(P5-impl): once coauth ships a typed `/_soland/admin/me/grants`
@@ -94,7 +94,7 @@ pub fn GrantedCapabilitiesView(props: GrantedCapabilitiesViewProps) -> Element {
                                 p { class: "text-xs text-destructive font-medium",
                                     "Required scope "
                                     code { class: "font-mono", "{cap}" }
-                                    " is NOT in your current grant list. Backend RBAC will reject this action with ck.error.capability_denied."
+                                    " is NOT in your current grant list. Backend RBAC will reject this action with capability_denied."
                                 }
                             }
                         }

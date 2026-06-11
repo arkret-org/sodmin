@@ -23,6 +23,10 @@ pub fn PersonalSessionsPage() -> Element {
     let mut show_regenerate = use_signal(|| None::<String>);
     let mut new_name = use_signal(String::new);
     let mut create_loading = use_signal(|| false);
+    // One-shot access token captured from create/regenerate. The token is
+    // only returned once by coauth; surface it in a copy-once modal and
+    // drop it from memory when the modal closes (never persisted).
+    let mut revealed_token = use_signal(|| None::<String>);
 
     let page_val = *page.read();
 
@@ -150,10 +154,15 @@ pub fn PersonalSessionsPage() -> Element {
                     let name = new_name.read().clone();
                     spawn(async move {
                         match coauth::create_personal_session(&name).await {
-                            Ok(_) => {
-                                show_toast("Session created", ToastVariant::Success);
+                            Ok(oneshot) => {
                                 show_create.set(false);
                                 new_name.set(String::new());
+                                match oneshot.access_token {
+                                    Some(tok) if !tok.is_empty() => {
+                                        revealed_token.set(Some(tok));
+                                    }
+                                    _ => show_toast("Session created", ToastVariant::Success),
+                                }
                                 data.restart();
                             }
                             Err(e) => show_toast(&format!("Failed: {}", e.message), ToastVariant::Error),
@@ -199,8 +208,13 @@ pub fn PersonalSessionsPage() -> Element {
                     let id = id.clone();
                     spawn(async move {
                         match coauth::regenerate_personal_session(&id).await {
-                            Ok(_) => {
-                                show_toast("Session regenerated", ToastVariant::Success);
+                            Ok(oneshot) => {
+                                match oneshot.access_token {
+                                    Some(tok) if !tok.is_empty() => {
+                                        revealed_token.set(Some(tok));
+                                    }
+                                    _ => show_toast("Session regenerated", ToastVariant::Success),
+                                }
                                 data.restart();
                             }
                             Err(e) => show_toast(&format!("Failed: {}", e.message), ToastVariant::Error),
@@ -210,6 +224,49 @@ pub fn PersonalSessionsPage() -> Element {
                 show_regenerate.set(None);
             },
             on_cancel: move |_| show_regenerate.set(None),
+        }
+
+        // One-shot token reveal. coauth returns the access token exactly
+        // once on create/regenerate; show it with a copy button and a
+        // "won't be shown again" warning, then drop it on close.
+        {
+            let token = revealed_token.read().clone();
+            rsx! {
+                Modal {
+                    open: token.is_some(),
+                    title: t("coauth.personal_sessions.token_reveal_title"),
+                    on_close: move |_| revealed_token.set(None),
+                    div { class: "space-y-3",
+                        p { class: "text-sm text-amber-700 dark:text-amber-300",
+                            {t("coauth.personal_sessions.token_reveal_warning")}
+                        }
+                        if let Some(tok) = token.clone() {
+                            div { class: "rounded-md border bg-muted/40 px-3 py-2 font-mono text-xs break-all",
+                                "{tok}"
+                            }
+                            Button {
+                                variant: ButtonVariant::Default,
+                                onclick: move |_| {
+                                    let tok = tok.clone();
+                                    spawn(async move {
+                                        if let Some(clipboard) = web_sys::window().map(|w| w.navigator().clipboard()) {
+                                            let _ = wasm_bindgen_futures::JsFuture::from(clipboard.write_text(&tok)).await;
+                                            show_toast(&t("coauth.personal_sessions.token_copied"), ToastVariant::Success);
+                                        }
+                                    });
+                                },
+                                {t("common.copy")}
+                            }
+                        }
+                    }
+                    DialogActions {
+                        confirm_text: t("common.close"),
+                        cancel_text: t("common.close"),
+                        on_cancel: move |_| revealed_token.set(None),
+                        on_confirm: move |_| revealed_token.set(None),
+                    }
+                }
+            }
         }
     }
 }

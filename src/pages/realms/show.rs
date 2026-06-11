@@ -83,15 +83,14 @@ pub fn RealmShow(realm_id: String) -> Element {
                                 CardHeader { CardTitle { {t("realms.actions")} } }
                                 CardContent {
                                     div { class: "space-y-2",
-                                        Button {
-                                            variant: ButtonVariant::Destructive,
-                                            class: "w-full".to_string(),
-                                            onclick: move |_| {
-                                                let rid = realm_id_for_delete.clone();
-                                                spawn(async move {
-                                                    let _ = realms::delete_realm(&rid).await;
-                                                });
-                                            },
+                                        // `ck.realm.destroy` is irreversible at the principal
+                                        // server. Route through the dedicated destroy page
+                                        // (five normative-bullet checkboxes + typed `DESTROY`)
+                                        // instead of a one-click delete — the bare button
+                                        // previously fired DELETE with zero confirmation.
+                                        Link {
+                                            to: Route::RealmDestroy { realm_id: realm_id_for_delete.clone() },
+                                            class: "inline-flex w-full items-center justify-center rounded-md bg-destructive px-4 py-2 text-sm font-medium text-destructive-foreground hover:bg-destructive/90",
                                             {t("realms.delete")}
                                         }
                                     }

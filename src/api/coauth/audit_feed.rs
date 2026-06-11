@@ -28,7 +28,7 @@ pub struct CoauthAuditEntry {
     pub source_ip: Option<String>,
 }
 
-/// Multi-dimensional filter for `/_soland/admin/audit-feed` queries. Empty
+/// Multi-dimensional filter for `/_coauth/admin/audit-feed` queries. Empty
 /// fields are dropped before encoding so the wire form only carries
 /// what the operator actually filtered on.
 #[derive(Debug, Clone, Default)]

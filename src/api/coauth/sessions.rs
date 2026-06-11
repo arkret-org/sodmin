@@ -68,7 +68,7 @@ pub async fn list_oauth2_sessions(
 
 pub async fn finish_oauth2_session(id: &str) -> Result<(), HttpError> {
     let url = format!(
-        "/_soland/admin/oauth2-sessions/{}/finish",
+        "/_coauth/admin/oauth-sessions/{}/finish",
         urlencoding::encode(id)
     );
     api_client(&url, "POST", None).await
@@ -93,7 +93,7 @@ pub async fn create_personal_session(
 ) -> Result<CoauthPersonalSessionOneShot, HttpError> {
     let body = serde_json::json!({ "name": name });
     api_client(
-        "/_soland/admin/personal-sessions",
+        "/_coauth/admin/personal-sessions",
         "POST",
         Some(body.to_string()),
     )
@@ -102,7 +102,7 @@ pub async fn create_personal_session(
 
 pub async fn revoke_personal_session(id: &str) -> Result<(), HttpError> {
     let url = format!(
-        "/_soland/admin/personal-sessions/{}/revoke",
+        "/_coauth/admin/personal-sessions/{}/revoke",
         urlencoding::encode(id)
     );
     api_client(&url, "POST", None).await
@@ -112,7 +112,7 @@ pub async fn regenerate_personal_session(
     id: &str,
 ) -> Result<CoauthPersonalSessionOneShot, HttpError> {
     let url = format!(
-        "/_soland/admin/personal-sessions/{}/regenerate",
+        "/_coauth/admin/personal-sessions/{}/regenerate",
         urlencoding::encode(id)
     );
     api_client(&url, "POST", None).await

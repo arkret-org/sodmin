@@ -106,14 +106,19 @@ pub async fn attach_personal_agent_grant(
     api_client(&url, "POST", Some(body.to_string())).await
 }
 
-/// `POST /_cokret/self/agents/{id}/sidecar-thread/ensure` —
-/// `ck.self.agent.sidecar_thread.ensure`.
+/// `POST /_cokret/self/agent-sidecar-threads` (CKP-0009) —
+/// `ck.self.agent.sidecar_thread.ensure`. The spec collection operation
+/// carries the agent id in the body rather than the path; the legacy
+/// `agents/{id}/sidecar-thread/ensure` form only exists on the `/_soland`
+/// legacy surface.
 pub async fn ensure_sidecar_thread(id: &str) -> Result<serde_json::Value, HttpError> {
-    let url = format!(
-        "/_cokret/self/agents/{}/sidecar-thread/ensure",
-        urlencoding::encode(id)
-    );
-    api_client(&url, "POST", None).await
+    let body = serde_json::json!({ "agent_id": id });
+    api_client(
+        "/_cokret/self/agent-sidecar-threads",
+        "POST",
+        Some(body.to_string()),
+    )
+    .await
 }
 
 /// coauth `POST /_cokret/self/agents/{id}/accountability-grant` — step 3 of

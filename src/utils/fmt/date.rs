@@ -1,10 +1,17 @@
+/// Format an epoch-millisecond timestamp for display. Rendered in the
+/// browser's **local** timezone (matching [`format_iso_datetime`]) so two
+/// time columns on the same page can't silently differ by the UTC offset.
 pub fn format_timestamp(ts_ms: u64) -> String {
     if ts_ms == 0 {
         return "-".to_string();
     }
     let secs = (ts_ms / 1000) as i64;
     chrono::DateTime::from_timestamp(secs, 0)
-        .map(|dt| dt.format("%Y-%m-%d %H:%M:%S").to_string())
+        .map(|dt| {
+            dt.with_timezone(&chrono::Local)
+                .format("%Y-%m-%d %H:%M:%S")
+                .to_string()
+        })
         .unwrap_or_else(|| "-".to_string())
 }
 

@@ -161,10 +161,11 @@ fn project_appeal_row(dto: moderation::AppealRowDto) -> AppealRow {
         reason_text_ref: dto.reason_text_ref.unwrap_or_default(),
         evidence_refs: dto.evidence_refs,
         submitted_at: dto.created_at.unwrap_or_default(),
-        // The 30-day countdown is server-derived. Until soland exposes
-        // it on the latest event, show 0 (rendered as "auto-closing
-        // soon") for under_review / submitted rows.
-        days_until_auto_close: 0,
+        // The 30-day countdown is server-derived. soland does not yet
+        // expose it, so use the `UNKNOWN` sentinel (rendered as "-") rather
+        // than 0 — 0 would paint every fresh appeal as "auto-close imminent"
+        // and bury the genuinely near-deadline rows.
+        days_until_auto_close: AUTO_CLOSE_UNKNOWN,
         lifecycle,
         reviews: Vec::new(),
         decisions: Vec::new(),
@@ -410,7 +411,14 @@ fn appeal_detail_card(
 ) -> Element {
     // Separation-of-duties: an admin cannot review an appeal of a
     // moderation decision they themselves issued.
-    let admin_is_issuer = !current_admin_did.is_empty()
+    //
+    // This must fail CLOSED on BOTH unknown sides: when the original issuer
+    // DID is missing (handled below via `issuer_known`) AND when the current
+    // admin's own DID is missing (viewer fetch failed / localStorage cleared).
+    // A missing self-identity previously left `admin_is_issuer = false`,
+    // which would let an issuer review their own appeal — fail open.
+    let admin_identity_known = !current_admin_did.trim().is_empty();
+    let admin_is_issuer = admin_identity_known
         && row
             .original_issuer_did
             .eq_ignore_ascii_case(current_admin_did);
@@ -531,7 +539,11 @@ fn appeal_detail_card(
 
                 div { class: "border-t pt-3 space-y-2",
                     h3 { class: "text-sm font-semibold", "Review this appeal" }
-                    if !issuer_known {
+                    if !admin_identity_known {
+                        p { class: "rounded-md border border-amber-600/40 bg-amber-600/10 p-2 text-xs text-amber-700 dark:text-amber-300",
+                            "Review disabled: the current administrator's identity could not be confirmed (viewer info missing). The separation-of-duties check cannot run, so sodmin fails closed. Reload after re-authenticating."
+                        }
+                    } else if !issuer_known {
                         p { class: "rounded-md border border-amber-600/40 bg-amber-600/10 p-2 text-xs text-amber-700 dark:text-amber-300",
                             "Review disabled: soland did not return the original decision issuer DID for this appeal. The separation-of-duties check is therefore indeterminate, so sodmin fails closed until the describe contract includes the issuer."
                         }
@@ -581,8 +593,14 @@ fn appeal_detail_card(
 
 /// Human-readable label for the 30-day auto-close countdown chip in
 /// the list view.
+/// Sentinel meaning "soland has not exposed the auto-close countdown for
+/// this appeal yet". Rendered as "-" / neutral rather than a fake urgency.
+pub(crate) const AUTO_CLOSE_UNKNOWN: i64 = i64::MIN;
+
 fn countdown_chip_label(days: i64) -> String {
-    if days <= 0 {
+    if days == AUTO_CLOSE_UNKNOWN {
+        "-".to_string()
+    } else if days <= 0 {
         "auto-close imminent".to_string()
     } else if days == 1 {
         "1 day to auto-close".to_string()
@@ -592,9 +610,12 @@ fn countdown_chip_label(days: i64) -> String {
 }
 
 /// Red when the appeal is within 5 days of auto-close (the reducer
-/// will close it without admin intervention), otherwise neutral.
+/// will close it without admin intervention), otherwise neutral. The
+/// unknown sentinel is neutral (no countdown data ⇒ no urgency claim).
 fn countdown_chip_variant(days: i64) -> BadgeVariant {
-    if days <= 5 {
+    if days == AUTO_CLOSE_UNKNOWN {
+        BadgeVariant::Secondary
+    } else if days <= 5 {
         BadgeVariant::Destructive
     } else {
         BadgeVariant::Secondary

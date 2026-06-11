@@ -84,8 +84,8 @@ impl FanoutDomain {
 pub struct FanoutDomainResult {
     pub domain: FanoutDomain,
     pub state: FanoutState,
-    /// Last error code (if state == Failed) — typically one of the new
-    /// round 2+3 errors (e.g. `ck.error.fanout_partial`).
+    /// Last error code (if state == Failed) — a bare registry code
+    /// (e.g. `fanout_partial`).
     pub error_code: Option<String>,
     pub attempt_count: u32,
 }
@@ -176,8 +176,8 @@ pub fn placeholder_snapshot(subject_id: impl Into<String>) -> FanoutSnapshot {
                 _ => FanoutState::Succeeded,
             },
             error_code: match *d {
-                FanoutDomain::Push => Some("ck.error.fanout_partial".to_string()),
-                FanoutDomain::ToDevice => Some("ck.error.fanout_partial".to_string()),
+                FanoutDomain::Push => Some("fanout_partial".to_string()),
+                FanoutDomain::ToDevice => Some("fanout_partial".to_string()),
                 _ => None,
             },
             attempt_count: (i as u32) + 1,

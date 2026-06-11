@@ -38,7 +38,7 @@ pub fn CapabilityList() -> Element {
     // ids). For actions whose `required_constraints` include
     // `allowed_circle_ids` (manage / member.manage / member.add.others)
     // the CSV is non-optional — soland's reducer rejects unconstrained
-    // grants for those actions with `ck.error.validation`.
+    // grants for those actions with `validation`.
     let mut circle_allowed_ids = use_signal(String::new);
 
     // T6.2 §5 — constraint editor signals.
@@ -223,18 +223,18 @@ pub fn CapabilityList() -> Element {
                 // populates the capability_name field.
                 div { class: "space-y-1",
                     Label { r#for: "cap-circle-quick".to_string(),
-                        {t("capability.cx_circle_section")}
+                        {t("capability.ck_circle_section")}
                     }
                     select {
                         id: "cap-circle-quick",
-                        name: "cx_circle_action",
+                        name: "ck_circle_action",
                         class: "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm",
                         onchange: move |e| {
                             if !e.value().is_empty() {
                                 capability_name.set(e.value());
                             }
                         },
-                        option { value: "", "— {t(\"capability.cx_circle_section\")} —" }
+                        option { value: "", "— {t(\"capability.ck_circle_section\")} —" }
                         option { value: "ck.circle.create", "ck.circle.create" }
                         option { value: "ck.circle.manage", "ck.circle.manage" }
                         option { value: "ck.circle.member.add", "ck.circle.member.add" }

@@ -11,7 +11,6 @@ pub mod info_row;
 pub mod input;
 pub mod loading;
 pub mod modal;
-pub mod notifications;
 pub mod page_header;
 pub mod pagination;
 pub mod table;

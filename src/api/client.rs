@@ -161,7 +161,7 @@ pub fn format_admin_error(
     text: &str,
     retry_after_ms: Option<u64>,
 ) -> (String, Option<AdminErrorEnvelope>) {
-    let mut error_body: Option<AdminErrorEnvelope> = serde_json::from_str(text).ok();
+    let mut error_body: Option<AdminErrorEnvelope> = AdminErrorEnvelope::from_wire(text);
     if let Some(ref mut body) = error_body
         && body.retry_after_ms.is_none()
     {
@@ -170,7 +170,9 @@ pub fn format_admin_error(
     let mut message = if let Some(ref eb) = error_body {
         display_error(&eb.errcode, status, eb.error.as_deref().unwrap_or(""))
     } else {
-        display_error("ck.error.http_status", status, text)
+        // Non-envelope body (opaque proxy error, HTML 5xx, etc.) — synthesize
+        // a local, non-wire code so it is never mistaken for a registry code.
+        display_error("sodmin.http_status", status, text)
     };
     let retry_after_ms = error_body
         .as_ref()
@@ -333,12 +335,24 @@ mod tests {
 
     #[test]
     fn admin_error_preserves_retry_after() {
+        // Canonical envelope; retry_after falls back to the Retry-After
+        // header when absent in the body.
         let (_, body) = format_admin_error(
             429,
-            r#"{"errcode":"ck.error.rate_limited","error":"slow down"}"#,
+            r#"{"ok":false,"error":{"code":"rate_limited","message":"slow down"},"request_id":"r"}"#,
             Some(2000),
         );
 
         assert_eq!(body.unwrap().retry_after_ms, Some(2000));
+    }
+
+    #[test]
+    fn admin_error_reads_canonical_code() {
+        let (_, body) = format_admin_error(
+            403,
+            r#"{"ok":false,"error":{"code":"capability_denied","message":"no"},"request_id":"r"}"#,
+            None,
+        );
+        assert_eq!(body.unwrap().errcode, "capability_denied");
     }
 }

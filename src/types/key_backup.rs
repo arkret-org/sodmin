@@ -21,6 +21,20 @@ pub struct RecoveryPolicy {
     pub created_at: Option<String>,
 }
 
+/// `GET /_cokret/self/keys/backups` response. Matches the spec
+/// `keys_backups_list` schema (`{backups, has_more, next_cursor?}`) rather
+/// than the generic `{data, total, next_cursor}` envelope — the latter
+/// deserialized `backups` into nothing and rendered a silently-empty list.
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct KeyBackupListResponse {
+    #[serde(default)]
+    pub backups: Vec<KeyBackupSeries>,
+    #[serde(default)]
+    pub has_more: bool,
+    #[serde(default)]
+    pub next_cursor: Option<String>,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct KeyBackupSeries {
     #[serde(default)]

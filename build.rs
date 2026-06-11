@@ -5,62 +5,57 @@ use std::{env, fs};
 const HTTP_METHODS: &[&str] = &["get", "post", "put", "patch", "delete"];
 
 const REQUIRED_COAUTH: &[(&str, &str)] = &[
-    ("GET", "/_cokret/self/viewer"),
-    ("GET", "/_soland/admin/audit-feed"),
-    ("GET", "/_soland/admin/oauth2-sessions"),
-    ("POST", "/_soland/admin/oauth2-sessions/{id}/finish"),
-    ("GET", "/_soland/admin/personal-sessions"),
-    ("POST", "/_soland/admin/personal-sessions"),
-    ("POST", "/_soland/admin/personal-sessions/{id}/revoke"),
-    ("POST", "/_soland/admin/personal-sessions/{id}/regenerate"),
-    ("GET", "/_soland/admin/upstream-oauth-providers"),
-    ("POST", "/_soland/admin/upstream-oauth-providers"),
-    ("DELETE", "/_soland/admin/upstream-oauth-providers/{id}"),
+    // viewer is served by soland on its protocol surface.
+    ("GET", "/_cokret/self/account/viewer"),
+    // coauth admin resources live under coauth's own `/_coauth/admin/*`
+    // namespace (renamed from `/_cokret/local/admin` in coauth bc06024).
+    ("GET", "/_coauth/admin/audit-feed"),
+    ("GET", "/_coauth/admin/oauth-sessions"),
+    ("POST", "/_coauth/admin/oauth-sessions/{id}/finish"),
+    ("GET", "/_coauth/admin/personal-sessions"),
+    ("POST", "/_coauth/admin/personal-sessions"),
+    ("POST", "/_coauth/admin/personal-sessions/{id}/revoke"),
+    ("POST", "/_coauth/admin/personal-sessions/{id}/regenerate"),
+    ("GET", "/_coauth/admin/upstream-oauth-providers"),
+    ("POST", "/_coauth/admin/upstream-oauth-providers"),
+    ("DELETE", "/_coauth/admin/upstream-oauth-providers/{id}"),
+    ("POST", "/_coauth/admin/upstream-oauth-providers/{id}/enable"),
+    ("POST", "/_coauth/admin/upstream-oauth-providers/{id}/disable"),
+    ("GET", "/_coauth/admin/upstream-oauth-links"),
+    ("DELETE", "/_coauth/admin/upstream-oauth-links/{id}"),
+    ("GET", "/_coauth/admin/user-registration-tokens"),
+    ("POST", "/_coauth/admin/user-registration-tokens"),
+    ("POST", "/_coauth/admin/user-registration-tokens/{id}/revoke"),
+    ("GET", "/_coauth/admin/connector-health"),
+    ("GET", "/_coauth/admin/notification-channels"),
+    ("GET", "/_coauth/admin/notification-templates"),
+    ("POST", "/_coauth/admin/notification-templates/publish"),
+    ("GET", "/_coauth/admin/accounts"),
+    ("GET", "/_coauth/admin/accounts/{id}"),
+    ("GET", "/_coauth/admin/accounts/{id}/dids"),
+    ("POST", "/_coauth/admin/accounts/{id}/dids"),
+    ("DELETE", "/_coauth/admin/accounts/{id}/dids/{did}"),
+    ("GET", "/_coauth/admin/accounts/{id}/claims"),
+    ("POST", "/_coauth/admin/claims/{id}/revoke"),
+    ("GET", "/_coauth/admin/accounts/{id}/session-grants"),
+    ("GET", "/_coauth/admin/accounts/{id}/risk-action/current"),
+    ("GET", "/_coauth/admin/accounts/{id}/risk-action/history"),
+    ("POST", "/_coauth/admin/accounts/{id}/risk-action"),
     (
         "POST",
-        "/_soland/admin/upstream-oauth-providers/{id}/enable",
+        "/_coauth/admin/accounts/{id}/risk-action/{proposal_id}/approve",
     ),
     (
         "POST",
-        "/_soland/admin/upstream-oauth-providers/{id}/disable",
+        "/_coauth/admin/accounts/{id}/risk-action/{proposal_id}/execute",
     ),
-    ("GET", "/_soland/admin/upstream-oauth-links"),
-    ("DELETE", "/_soland/admin/upstream-oauth-links/{id}"),
-    ("GET", "/_soland/admin/user-registration-tokens"),
-    ("POST", "/_soland/admin/user-registration-tokens"),
-    (
-        "POST",
-        "/_soland/admin/user-registration-tokens/{id}/revoke",
-    ),
-    ("GET", "/_soland/admin/connector-health"),
-    ("GET", "/_soland/admin/notification-channels"),
-    ("GET", "/_soland/admin/notification-templates"),
-    ("POST", "/_soland/admin/notification-templates/publish"),
-    ("GET", "/_soland/admin/accounts"),
-    ("GET", "/_soland/admin/accounts/{id}"),
-    ("GET", "/_soland/admin/accounts/{id}/dids"),
-    ("POST", "/_soland/admin/accounts/{id}/dids"),
-    ("DELETE", "/_soland/admin/accounts/{id}/dids/{did}"),
-    ("GET", "/_soland/admin/accounts/{id}/claims"),
-    ("POST", "/_soland/admin/claims/{id}/revoke"),
-    ("GET", "/_soland/admin/accounts/{id}/session-grants"),
-    ("GET", "/_soland/admin/accounts/{id}/risk-action/current"),
-    ("GET", "/_soland/admin/accounts/{id}/risk-action/history"),
-    ("POST", "/_soland/admin/accounts/{id}/risk-action"),
-    (
-        "POST",
-        "/_soland/admin/accounts/{id}/risk-action/{proposal_id}/approve",
-    ),
-    (
-        "POST",
-        "/_soland/admin/accounts/{id}/risk-action/{proposal_id}/execute",
-    ),
-    ("POST", "/_soland/admin/accounts/{id}/lock"),
-    ("POST", "/_soland/admin/accounts/{id}/disable"),
-    ("POST", "/_soland/admin/accounts/{id}/erase"),
-    ("POST", "/_soland/admin/accounts/{id}/reset-recovery"),
-    ("GET", "/_soland/admin/bridge/describe"),
-    ("GET", "/_cokret/self/integration/describe"),
+    ("POST", "/_coauth/admin/accounts/{id}/lock"),
+    ("POST", "/_coauth/admin/accounts/{id}/disable"),
+    ("POST", "/_coauth/admin/accounts/{id}/erase"),
+    ("POST", "/_coauth/admin/accounts/{id}/reset-recovery"),
+    ("GET", "/_coauth/admin/bridge/describe"),
+    // soland product-surface integration describe.
+    ("GET", "/_soland/self/integration/describe"),
 ];
 
 const REQUIRED_SOLAND: &[(&str, &str)] = &[
@@ -83,11 +78,17 @@ const REQUIRED_SOLAND: &[(&str, &str)] = &[
     ("GET", "/_soland/admin/spaces/{id}"),
     ("PUT", "/_soland/admin/spaces/{id}"),
     ("GET", "/_soland/admin/spaces/{id}/hierarchy"),
-    ("GET", "/_soland/admin/spaces/{id}/anchorer"),
-    ("POST", "/_soland/admin/spaces/{id}/anchorer/reconfigure"),
-    ("GET", "/_soland/admin/spaces/{id}/bottom"),
-    ("GET", "/_soland/admin/spaces/{id}/anchor-dag"),
-    ("POST", "/_soland/admin/spaces/{id}/anchor-dag/compact"),
+    // anchorer / anchor-DAG surface completed the space→realm rename; the
+    // runtime client (src/api/anchor.rs, signing_key.rs) and soland both
+    // mount the `realms/{realm_id}` form. The contract manifest must match.
+    ("GET", "/_soland/admin/realms/{realm_id}/anchorer"),
+    (
+        "POST",
+        "/_soland/admin/realms/{realm_id}/anchorer/reconfigure",
+    ),
+    ("GET", "/_soland/admin/realms/{realm_id}/bottom"),
+    ("GET", "/_soland/admin/realms/{realm_id}/anchor-dag"),
+    ("POST", "/_soland/admin/realms/{realm_id}/anchor-dag/compact"),
     ("GET", "/_soland/admin/moderation/reports"),
     ("POST", "/_soland/admin/moderation/reports/{id}/resolve"),
     ("GET", "/_soland/admin/moderation/appeals"),
@@ -108,20 +109,21 @@ const REQUIRED_SOLAND: &[(&str, &str)] = &[
     ),
     ("POST", "/_soland/admin/realms/{id}/destroy"),
     ("POST", "/_soland/admin/realms/{id}/destroy/retry"),
-    // CKP-0007 Circle admin (P3A.3) — sodmin consumes the full
-    // `/_cokret/self/circles/*` surface. Missing any route here is treated
-    // as a contract break and fails the wasm build at build.rs time.
-    ("GET", "/_cokret/self/circles"),
-    ("POST", "/_cokret/self/circles"),
-    ("GET", "/_cokret/self/circles/{circle_id}"),
-    ("POST", "/_cokret/self/circles/{circle_id}/members"),
+    // CKP-0007 Circle admin (P3A.3) — circle is a candidate operation
+    // (CKP-0014 §5), so per soland it MUST live on the product surface
+    // `/_soland/self/circles/*` and MUST NOT be on `/_cokret` until it
+    // enters the formal catalog. Match the runtime client (src/api/circles.rs).
+    ("GET", "/_soland/self/circles"),
+    ("POST", "/_soland/self/circles"),
+    ("GET", "/_soland/self/circles/{circle_id}"),
+    ("POST", "/_soland/self/circles/{circle_id}/members"),
     (
         "DELETE",
-        "/_cokret/self/circles/{circle_id}/members/{actor_id}",
+        "/_soland/self/circles/{circle_id}/members/{actor_id}",
     ),
-    ("POST", "/_cokret/self/circles/{circle_id}/scope-rotate"),
-    ("POST", "/_cokret/self/circles/{circle_id}/archive"),
-    ("POST", "/_cokret/self/circles/{circle_id}/tombstone"),
+    ("POST", "/_soland/self/circles/{circle_id}/scope-rotate"),
+    ("POST", "/_soland/self/circles/{circle_id}/archive"),
+    ("POST", "/_soland/self/circles/{circle_id}/tombstone"),
 ];
 
 fn main() {

@@ -5,8 +5,18 @@ use std::sync::OnceLock;
 use regex_lite::Regex;
 use serde::{Deserialize, Serialize};
 
+/// Admin-side projection of the spec/SDK canonical error envelope
+/// (`{ok, error:{code, message, retry_after_ms?, details?}, request_id}`,
+/// see `cokret_core::model::api::ErrorEnvelope`). We keep a flattened local
+/// shape — the wire envelope is parsed in [`from_wire`] — so the existing
+/// call sites (`body.errcode`, `required_scope`) keep working while the
+/// parse path reads the authoritative `error.code` rather than the legacy
+/// Matrix-style top-level `errcode`.
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AdminErrorEnvelope {
+    /// The registry error code — sourced from `error.code` on the wire.
+    /// Field name is kept as `errcode` for the local consumers; it is
+    /// NOT a wire field name.
     pub errcode: String,
     #[serde(default)]
     pub error: Option<String>,
@@ -14,13 +24,37 @@ pub struct AdminErrorEnvelope {
     pub retry_after_ms: Option<u64>,
     /// D.1 — soland may attach the capability scope required for the
     /// failing action on 401/403 envelopes (e.g.
-    /// `ck:scope:realm:01HXY/admin.write`). When present, surfacing
-    /// it lets the admin grep their bound scopes / coauth role
-    /// without round-tripping the support team.
+    /// `ck:scope:realm:01HXY/admin.write`). The canonical envelope nests
+    /// this under `error.details.required_scope`; [`from_wire`] lifts it
+    /// to this field for the UI.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub required_scope: Option<String>,
     #[serde(flatten)]
     pub extra: BTreeMap<String, serde_json::Value>,
+}
+
+impl AdminErrorEnvelope {
+    /// Parse the canonical spec/SDK error envelope shape
+    /// `{ok, error:{code, message, retry_after_ms?, details?}, request_id}`
+    /// from an upstream (soland/coauth) error body. Returns `None` when the
+    /// body is not a canonical envelope (e.g. an opaque HTML 502 from the
+    /// proxy), so callers fall back to a status-only message.
+    pub fn from_wire(text: &str) -> Option<Self> {
+        let env: cokret_core::model::ErrorEnvelope = serde_json::from_str(text).ok()?;
+        let required_scope = env
+            .error
+            .details
+            .get("required_scope")
+            .and_then(|v| v.as_str())
+            .map(str::to_owned);
+        Some(AdminErrorEnvelope {
+            errcode: env.error.code,
+            error: Some(env.error.message).filter(|m| !m.is_empty()),
+            retry_after_ms: env.error.retry_after_ms,
+            required_scope,
+            extra: BTreeMap::new(),
+        })
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -213,10 +247,12 @@ pub fn should_reset_cursor_pagination(error: &HttpError, cursor: Option<&str>) -
     }
 
     let errcode = error.body.as_ref().map(|body| body.errcode.as_str());
+    // Registry codes are bare snake_case (no `ck.error.*` prefix exists in
+    // the error-code-registry).
     match (error.status, errcode) {
-        (410, Some("cursor_expired" | "ck.error.cursor_expired")) => true,
+        (410, Some("cursor_expired")) => true,
         (410, None) => true,
-        (400, Some("invalid_param" | "ck.error.invalid_param")) => true,
+        (400, Some("invalid_param")) => true,
         _ => false,
     }
 }
@@ -328,26 +364,32 @@ mod tests {
     }
 
     #[test]
-    fn admin_error_envelope_round_trips_required_scope() {
+    fn from_wire_reads_canonical_envelope_and_lifts_required_scope() {
         use super::AdminErrorEnvelope;
-        let raw = r#"{"errcode":"ck.error.capability_denied","required_scope":"ck:scope:realm:01HXY/admin.write"}"#;
-        let env: AdminErrorEnvelope = serde_json::from_str(raw).expect("parse");
+        // Canonical spec/SDK envelope: bare registry code under
+        // `error.code`, required_scope nested in `error.details`.
+        let raw = r#"{"ok":false,"error":{"code":"capability_denied","message":"denied","details":{"required_scope":"ck:scope:realm:01HXY/admin.write"}},"request_id":"req_1"}"#;
+        let env = AdminErrorEnvelope::from_wire(raw).expect("parse");
+        assert_eq!(env.errcode, "capability_denied");
         assert_eq!(
             env.required_scope.as_deref(),
             Some("ck:scope:realm:01HXY/admin.write")
         );
-
-        let serialized = serde_json::to_string(&env).expect("serialize");
-        assert!(serialized.contains("required_scope"));
     }
 
     #[test]
-    fn admin_error_envelope_omits_missing_required_scope() {
+    fn from_wire_reads_retry_after_and_omits_absent_scope() {
         use super::AdminErrorEnvelope;
-        let raw = r#"{"errcode":"ck.error.validation"}"#;
-        let env: AdminErrorEnvelope = serde_json::from_str(raw).expect("parse");
+        let raw = r#"{"ok":false,"error":{"code":"rate_limited","message":"slow down","retry_after_ms":2000},"request_id":"req_2"}"#;
+        let env = AdminErrorEnvelope::from_wire(raw).expect("parse");
+        assert_eq!(env.errcode, "rate_limited");
+        assert_eq!(env.retry_after_ms, Some(2000));
         assert!(env.required_scope.is_none());
-        let out = serde_json::to_string(&env).expect("serialize");
-        assert!(!out.contains("required_scope"));
+    }
+
+    #[test]
+    fn from_wire_returns_none_for_non_envelope_body() {
+        use super::AdminErrorEnvelope;
+        assert!(AdminErrorEnvelope::from_wire("<html>502</html>").is_none());
     }
 }

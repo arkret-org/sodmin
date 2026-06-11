@@ -193,7 +193,7 @@ pub fn emit_admin_audit_server(
 
     dioxus::prelude::spawn(async move {
         let res: Result<serde_json::Value, _> =
-            crate::api::client::api_client("/_soland/admin/audit/client-event", "POST", Some(body))
+            crate::api::client::api_client("/_soland/admin/audit/user-action", "POST", Some(body))
                 .await;
         if let Err(e) = res {
             // Don't toast — this is a fire-and-forget breadcrumb. Just
