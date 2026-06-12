@@ -157,7 +157,7 @@ pub fn RegistrationTokensPage() -> Element {
                     spawn(async move {
                         match coauth::create_registration_token(ua).await {
                             Ok(_) => {
-                                show_toast("Token created", ToastVariant::Success);
+                                show_toast(&t("coauth.registration_tokens.toast_created"), ToastVariant::Success);
                                 show_create.set(false);
                                 data.restart();
                             }
@@ -172,7 +172,7 @@ pub fn RegistrationTokensPage() -> Element {
         ConfirmDialog {
             open: show_revoke.read().is_some(),
             title: t("coauth.registration_tokens.revoke"),
-            description: "Are you sure you want to revoke this token?".to_string(),
+            description: t("coauth.registration_tokens.revoke_confirm"),
             confirm_text: t("coauth.registration_tokens.revoke"),
             destructive: true,
             on_confirm: move |_| {
@@ -181,7 +181,7 @@ pub fn RegistrationTokensPage() -> Element {
                     spawn(async move {
                         match coauth::revoke_registration_token(&id).await {
                             Ok(_) => {
-                                show_toast("Token revoked", ToastVariant::Success);
+                                show_toast(&t("coauth.registration_tokens.toast_revoked"), ToastVariant::Success);
                                 data.restart();
                             }
                             Err(e) => show_toast(&format!("Failed: {}", e.message), ToastVariant::Error),

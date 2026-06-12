@@ -70,7 +70,7 @@ pub fn RealmList() -> Element {
                                 &rows,
                             );
                             export_to_csv("realms.csv", &csv);
-                            show_toast("Realms CSV downloaded", ToastVariant::Success);
+                            show_toast(&t("realms.toast_csv_downloaded"), ToastVariant::Success);
                         }
                     },
                     {t("common.export_csv")}

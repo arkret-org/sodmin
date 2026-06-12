@@ -83,7 +83,7 @@ pub fn OAuth2SessionsPage() -> Element {
                                                                     spawn(async move {
                                                                         match coauth::finish_oauth2_session(&id).await {
                                                                             Ok(_) => {
-                                                                                show_toast("Session finished", ToastVariant::Success);
+                                                                                show_toast(&t("coauth.oauth2_sessions.toast_finished"), ToastVariant::Success);
                                                                                 data.restart();
                                                                             }
                                                                             Err(e) => show_toast(&format!("Failed: {}", e.message), ToastVariant::Error),

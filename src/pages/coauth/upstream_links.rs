@@ -118,7 +118,7 @@ pub fn UpstreamLinksPage() -> Element {
                     spawn(async move {
                         match coauth::delete_upstream_link(&id).await {
                             Ok(_) => {
-                                show_toast("Link deleted", ToastVariant::Success);
+                                show_toast(&t("coauth.upstream_links.toast_deleted"), ToastVariant::Success);
                                 data.restart();
                             }
                             Err(e) => show_toast(&format!("Failed: {}", e.message), ToastVariant::Error),

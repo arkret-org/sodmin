@@ -146,7 +146,7 @@ pub fn ModerationReportsPage() -> Element {
                                                 let realm = r.realm_id.clone().unwrap_or_else(|| "-".to_string());
                                                 let reason = r.reason.clone();
                                                 let typed = r.status_typed();
-                                                let label = typed.label().to_string();
+                                                let label = t(typed.label());
                                                 let variant = report_status_variant(&typed);
                                                 let created = r.created_at.clone().unwrap_or_else(|| "-".to_string());
                                                 let resolvable = r.is_resolvable();

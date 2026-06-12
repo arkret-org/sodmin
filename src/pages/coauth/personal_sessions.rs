@@ -161,7 +161,7 @@ pub fn PersonalSessionsPage() -> Element {
                                     Some(tok) if !tok.is_empty() => {
                                         revealed_token.set(Some(tok));
                                     }
-                                    _ => show_toast("Session created", ToastVariant::Success),
+                                    _ => show_toast(&t("coauth.personal_sessions.toast_created"), ToastVariant::Success),
                                 }
                                 data.restart();
                             }
@@ -176,7 +176,7 @@ pub fn PersonalSessionsPage() -> Element {
         ConfirmDialog {
             open: show_revoke.read().is_some(),
             title: t("coauth.personal_sessions.revoke"),
-            description: "Are you sure you want to revoke this token?".to_string(),
+            description: t("coauth.personal_sessions.revoke_confirm"),
             confirm_text: t("coauth.personal_sessions.revoke"),
             destructive: true,
             on_confirm: move |_| {
@@ -185,7 +185,7 @@ pub fn PersonalSessionsPage() -> Element {
                     spawn(async move {
                         match coauth::revoke_personal_session(&id).await {
                             Ok(_) => {
-                                show_toast("Session revoked", ToastVariant::Success);
+                                show_toast(&t("coauth.personal_sessions.toast_revoked"), ToastVariant::Success);
                                 data.restart();
                             }
                             Err(e) => show_toast(&format!("Failed: {}", e.message), ToastVariant::Error),
@@ -200,7 +200,7 @@ pub fn PersonalSessionsPage() -> Element {
         ConfirmDialog {
             open: show_regenerate.read().is_some(),
             title: t("coauth.personal_sessions.regenerate"),
-            description: "This will invalidate the current token and generate a new one.".to_string(),
+            description: t("coauth.personal_sessions.regenerate_confirm"),
             confirm_text: t("coauth.personal_sessions.regenerate"),
             destructive: true,
             on_confirm: move |_| {
@@ -213,7 +213,7 @@ pub fn PersonalSessionsPage() -> Element {
                                     Some(tok) if !tok.is_empty() => {
                                         revealed_token.set(Some(tok));
                                     }
-                                    _ => show_toast("Session regenerated", ToastVariant::Success),
+                                    _ => show_toast(&t("coauth.personal_sessions.toast_regenerated"), ToastVariant::Success),
                                 }
                                 data.restart();
                             }

@@ -25,6 +25,7 @@ use crate::components::ui::badge::{Badge, BadgeVariant};
 use crate::components::ui::button::{Button, ButtonSize, ButtonVariant};
 use crate::components::ui::card::*;
 use crate::utils::fmt::date::format_optional_iso_datetime;
+use crate::utils::i18n::t;
 
 /// Stable identifier for each of the seven local fanout domains.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -327,7 +328,7 @@ fn erasure_receipt_block(receipt: &ErasureReceiptStatus) -> Element {
                     aria_valuemin: "0",
                     aria_valuemax: "100",
                     aria_valuenow: "{progress}",
-                    aria_label: "Cross-principal-server deactivation fanout progress",
+                    aria_label: t("deactivation.fanout_progress_aria"),
                     div {
                         class: "h-full rounded-full bg-primary transition-all",
                         style: "width: {progress}%;"

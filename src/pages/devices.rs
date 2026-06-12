@@ -107,7 +107,7 @@ pub fn DeviceList() -> Element {
                                 &rows,
                             );
                             export_to_csv("devices.csv", &csv);
-                            show_toast("Devices CSV downloaded", ToastVariant::Success);
+                            show_toast(&t("devices.toast_csv_downloaded"), ToastVariant::Success);
                         }
                     },
                     {t("common.export_csv")}
@@ -169,7 +169,7 @@ pub fn DeviceList() -> Element {
                                             class: "w-10".to_string(),
                                             Checkbox {
                                                 id: "devices-select-all".to_string(),
-                                                aria_label: "Select all rows on this page".to_string(),
+                                                aria_label: t("common.select_all_rows"),
                                                 checked: header_checked,
                                                 indeterminate: header_indeterminate,
                                                 onchange: move |_| {
@@ -335,7 +335,7 @@ pub fn DeviceList() -> Element {
                             spawn(async move {
                                 match devices::revoke_device(&id).await {
                                     Ok(_) => {
-                                        show_toast("Device revoked", ToastVariant::Success);
+                                        show_toast(&t("devices.toast_revoked"), ToastVariant::Success);
                                         data.restart();
                                     }
                                     Err(e) => show_toast(&format!("Failed: {}", e.message), ToastVariant::Error),

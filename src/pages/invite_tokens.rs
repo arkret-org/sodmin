@@ -73,7 +73,7 @@ pub fn InviteTokenList() -> Element {
                                         {
                                             let id = token.id.clone();
                                             let tok = token.token.clone();
-                                            let ua = token.uses_allowed.map(|v| v.to_string()).unwrap_or_else(|| "Unlimited".to_string());
+                                            let ua = token.uses_allowed.map(|v| v.to_string()).unwrap_or_else(|| t("invite_tokens.unlimited"));
                                             let uc = token.uses_completed.to_string();
                                             let up = token.uses_pending.to_string();
                                             let exp = token.expires_at.clone().unwrap_or_else(|| "-".to_string());
@@ -105,16 +105,16 @@ pub fn InviteTokenList() -> Element {
                                                                             match clipboard {
                                                                                 Some(clipboard) => {
                                                                                     match wasm_bindgen_futures::JsFuture::from(clipboard.write_text(&tok)).await {
-                                                                                        Ok(_) => show_toast("Token copied", ToastVariant::Success),
-                                                                                        Err(_) => show_toast("Copy failed", ToastVariant::Error),
+                                                                                        Ok(_) => show_toast(&t("invite_tokens.toast_copied"), ToastVariant::Success),
+                                                                                        Err(_) => show_toast(&t("invite_tokens.toast_copy_failed"), ToastVariant::Error),
                                                                                     }
                                                                                 }
-                                                                                None => show_toast("Copy failed", ToastVariant::Error),
+                                                                                None => show_toast(&t("invite_tokens.toast_copy_failed"), ToastVariant::Error),
                                                                             }
                                                                         });
                                                                     }
                                                                 },
-                                                                "Copy"
+                                                                {t("common.copy")}
                                                             }
                                                         }
                                                     }
@@ -205,11 +205,11 @@ pub fn InviteTokenList() -> Element {
                     spawn(async move {
                         match invite_tokens::create_invite_token(&req).await {
                             Ok(_) => {
-                                show_toast("Token created", ToastVariant::Success);
+                                show_toast(&t("invite_tokens.toast_created"), ToastVariant::Success);
                                 show_create_dialog.set(false);
                                 data.restart();
                             }
-                            Err(e) => show_toast(&format!("Failed: {}", e.message), ToastVariant::Error),
+                            Err(e) => show_toast(&format!("{}: {}", t("common.failed"), e.message), ToastVariant::Error),
                         }
                         create_loading.set(false);
                     });
@@ -220,7 +220,7 @@ pub fn InviteTokenList() -> Element {
         ConfirmDialog {
             open: show_delete_dialog.read().is_some(),
             title: t("common.delete"),
-            description: "Are you sure you want to delete this invite token?".to_string(),
+            description: t("invite_tokens.delete_confirm"),
             confirm_text: t("common.delete"),
             destructive: true,
             on_confirm: move |_| {
@@ -229,10 +229,10 @@ pub fn InviteTokenList() -> Element {
                     spawn(async move {
                         match invite_tokens::delete_invite_token(&id).await {
                             Ok(_) => {
-                                show_toast("Token deleted", ToastVariant::Success);
+                                show_toast(&t("invite_tokens.toast_deleted"), ToastVariant::Success);
                                 data.restart();
                             }
-                            Err(e) => show_toast(&format!("Failed: {}", e.message), ToastVariant::Error),
+                            Err(e) => show_toast(&format!("{}: {}", t("common.failed"), e.message), ToastVariant::Error),
                         }
                     });
                 }

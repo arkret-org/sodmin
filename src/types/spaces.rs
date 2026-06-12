@@ -15,11 +15,13 @@ pub enum SpaceHealth {
 }
 
 impl SpaceHealth {
+    /// Returns the i18n key for the lifecycle label. Render via
+    /// `crate::utils::i18n::t(health.label())` at the call site.
     pub fn label(&self) -> &'static str {
         match self {
-            SpaceHealth::Active => "Active",
-            SpaceHealth::Archived => "Archived",
-            SpaceHealth::Tombstoned => "Tombstoned",
+            SpaceHealth::Active => "spaces.health_active",
+            SpaceHealth::Archived => "spaces.health_archived",
+            SpaceHealth::Tombstoned => "spaces.health_tombstoned",
         }
     }
 
@@ -95,13 +97,13 @@ mod tests {
 
     #[test]
     fn space_health_wire_round_trip() {
-        for (wire, label) in [
-            ("active", "Active"),
-            ("archived", "Archived"),
-            ("tombstoned", "Tombstoned"),
+        for (wire, label_key) in [
+            ("active", "spaces.health_active"),
+            ("archived", "spaces.health_archived"),
+            ("tombstoned", "spaces.health_tombstoned"),
         ] {
             let h = SpaceHealth::from_wire(wire).expect("variant");
-            assert_eq!(h.label(), label);
+            assert_eq!(h.label(), label_key);
         }
         assert!(SpaceHealth::from_wire("nope").is_none());
     }

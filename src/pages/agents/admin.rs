@@ -169,7 +169,7 @@ pub fn AgentAdminPage() -> Element {
                                                 class: "w-10".to_string(),
                                                 Checkbox {
                                                     id: "agents-select-all".to_string(),
-                                                    aria_label: "Select all revocable rows".to_string(),
+                                                    aria_label: t("common.select_all_revocable_rows"),
                                                     checked: header_checked,
                                                     indeterminate: header_indeterminate,
                                                     onchange: move |_| {

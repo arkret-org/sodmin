@@ -290,7 +290,7 @@ pub fn PolicyList() -> Element {
                     spawn(async move {
                         match policy::delete_policy(&id).await {
                             Ok(_) => {
-                                show_toast("Policy deleted", ToastVariant::Success);
+                                show_toast(&t("policy.toast_deleted"), ToastVariant::Success);
                                 data.restart();
                             }
                             Err(e) => show_toast(&format!("Failed: {}", e.message), ToastVariant::Error),

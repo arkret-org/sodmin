@@ -148,7 +148,7 @@ pub fn ActorShow(actor_id: String) -> Element {
                                     }
                                 };
                                 if account_id.is_empty() {
-                                    show_toast("Actor snapshot has no account_id.", ToastVariant::Error);
+                                    show_toast(&t("actors.toast_no_account_id"), ToastVariant::Error);
                                     return;
                                 }
                                 match actors::deactivate_account(&account_id).await {

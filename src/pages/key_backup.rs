@@ -18,6 +18,7 @@ use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::table::*;
 use crate::types::RecoveryPolicySummary;
+use crate::utils::i18n::t;
 
 #[component]
 pub fn KeyBackupList() -> Element {
@@ -88,8 +89,8 @@ pub fn KeyBackupList() -> Element {
     rsx! {
         div { class: "space-y-6",
             PageHeader {
-                title: "Key backup".to_string(),
-                description: "Self key backups plus recovery policies and receipts filtered by principal_id when authorized.".to_string(),
+                title: t("key_backup.title"),
+                description: t("key_backup.subtitle"),
             }
 
             // ── Series filter ──
@@ -116,7 +117,7 @@ pub fn KeyBackupList() -> Element {
                     Button {
                         size: ButtonSize::Sm,
                         onclick: move |_| series_data.restart(),
-                        "Apply filter"
+                        {t("key_backup.apply_filter")}
                     }
                 }
             }
@@ -125,7 +126,7 @@ pub fn KeyBackupList() -> Element {
                 div { class: "space-y-1",
                     Label { class: "text-xs text-muted-foreground".to_string(), "principal_id" }
                     Input {
-                        placeholder: "current principal when empty".to_string(),
+                        placeholder: t("key_backup.current_principal_when_empty"),
                         value: principal_filter.read().clone(),
                         oninput: move |evt: FormEvent| principal_filter.set(evt.value()),
                     }
@@ -137,14 +138,14 @@ pub fn KeyBackupList() -> Element {
                             policies_data.restart();
                             receipts_data.restart();
                         },
-                        "Apply recovery filter"
+                        {t("key_backup.apply_recovery_filter")}
                     }
                 }
             }
 
             // ── Series table ──
             div { class: "rounded-md border",
-                div { class: "p-3 border-b font-medium text-sm", "Backup series" }
+                div { class: "p-3 border-b font-medium text-sm", {t("key_backup.backup_series")} }
                 match &*series_data.read() {
                     Some(Ok(resp)) => rsx! {
                         Table {
@@ -165,7 +166,7 @@ pub fn KeyBackupList() -> Element {
                                     TableRow {
                                         TableCell { colspan: 99,
                                             class: "text-center text-muted-foreground py-6".to_string(),
-                                            "No backup series found."
+                                            {t("key_backup.no_series")}
                                         }
                                     }
                                 } else {
@@ -189,7 +190,7 @@ pub fn KeyBackupList() -> Element {
             // ── Recovery policy history (read-only) ──
             div { class: "rounded-md border",
                 div { class: "p-3 border-b font-medium text-sm",
-                    "Recovery policies"
+                    {t("key_backup.recovery_policies")}
                 }
                 match &*policies_data.read() {
                     Some(Ok(resp)) => rsx! {
@@ -209,7 +210,7 @@ pub fn KeyBackupList() -> Element {
                                     TableRow {
                                         TableCell { colspan: 99,
                                             class: "text-center text-muted-foreground py-6".to_string(),
-                                            "No recovery policies."
+                                            {t("key_backup.no_policies")}
                                         }
                                     }
                                 } else {
@@ -232,7 +233,7 @@ pub fn KeyBackupList() -> Element {
 
             // ── Recovery receipt history ──
             div { class: "rounded-md border",
-                div { class: "p-3 border-b font-medium text-sm", "Recovery receipts" }
+                div { class: "p-3 border-b font-medium text-sm", {t("key_backup.recovery_receipts")} }
                 match &*receipts_data.read() {
                     Some(Ok(resp)) => rsx! {
                         Table {
@@ -250,7 +251,7 @@ pub fn KeyBackupList() -> Element {
                                     TableRow {
                                         TableCell { colspan: 99,
                                             class: "text-center text-muted-foreground py-6".to_string(),
-                                            "No receipts yet."
+                                            {t("key_backup.no_receipts")}
                                         }
                                     }
                                 } else {

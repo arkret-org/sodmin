@@ -24,6 +24,7 @@ use crate::components::ui::table::*;
 use crate::components::ui::toast::{ToastVariant, show_toast};
 use crate::components::validated_input::{ValidatedInput, ValidationKind};
 use crate::types::{AccountabilityGrantRequest, Agent, AgentProvisionRequestBody};
+use crate::utils::i18n::t;
 
 const PAGE_SIZE: u64 = 25;
 
@@ -53,12 +54,13 @@ enum AgentConfirmAction {
 }
 
 impl AgentConfirmAction {
-    fn label(self) -> &'static str {
+    /// i18n key for the action label.
+    fn label_key(self) -> &'static str {
         match self {
-            Self::Pause => "Pause",
-            Self::Resume => "Resume",
-            Self::RotateKey => "Rotate key",
-            Self::EnsureSidecar => "Ensure sidecar thread",
+            Self::Pause => "agents.personal.pause",
+            Self::Resume => "agents.personal.resume",
+            Self::RotateKey => "agents.personal.rotate_key",
+            Self::EnsureSidecar => "agents.personal.ensure_sidecar",
         }
     }
 
@@ -71,20 +73,13 @@ impl AgentConfirmAction {
         }
     }
 
-    fn description(self) -> &'static str {
+    /// i18n key for the confirmation-dialog description.
+    fn description_key(self) -> &'static str {
         match self {
-            Self::Pause => {
-                "Pausing rejects new agent sessions and marks pending action requests as waiting for resume."
-            }
-            Self::Resume => {
-                "Resuming re-enables the runtime after the backend re-checks controller, key, grant, and Realm policy state."
-            }
-            Self::RotateKey => {
-                "Rotating the key replaces the current agent runtime signing key and can invalidate in-flight sessions."
-            }
-            Self::EnsureSidecar => {
-                "Ensuring a sidecar thread can expose eligible controller context to this agent."
-            }
+            Self::Pause => "agents.personal.confirm_pause_body",
+            Self::Resume => "agents.personal.confirm_resume_body",
+            Self::RotateKey => "agents.personal.confirm_rotate_body",
+            Self::EnsureSidecar => "agents.personal.confirm_ensure_sidecar_body",
         }
     }
 }
@@ -105,12 +100,12 @@ pub fn PersonalAgentList() -> Element {
     rsx! {
         div { class: "space-y-6",
             PageHeader {
-                title: "Personal agents".to_string(),
-                description: "Controller-self native personal agents (CKP-0008)".to_string(),
+                title: t("agents.personal.title"),
+                description: t("agents.personal.subtitle"),
                 Button {
                     size: ButtonSize::Sm,
                     onclick: move |_| wizard_open.set(true),
-                    "Provision new agent"
+                    {t("agents.personal.provision")}
                 }
             }
 
@@ -120,14 +115,14 @@ pub fn PersonalAgentList() -> Element {
                         Table {
                             TableHeader {
                                 TableRow {
-                                    TableHead { "Agent id" }
-                                    TableHead { "Name" }
-                                    TableHead { "Controller DID" }
+                                    TableHead { {t("agents.personal.agent_id")} }
+                                    TableHead { {t("common.name")} }
+                                    TableHead { {t("agents.personal.controller_did")} }
                                     TableHead { "actor_kind" }
-                                    TableHead { "Pairing" }
-                                    TableHead { "Grant freshness" }
-                                    TableHead { "Status" }
-                                    TableHead { "Actions" }
+                                    TableHead { {t("agents.personal.pairing")} }
+                                    TableHead { {t("agents.personal.grant_freshness")} }
+                                    TableHead { {t("common.status")} }
+                                    TableHead { {t("common.actions")} }
                                 }
                             }
                             TableBody {
@@ -135,7 +130,7 @@ pub fn PersonalAgentList() -> Element {
                                     TableRow {
                                         TableCell { colspan: 99,
                                             class: "text-center text-muted-foreground py-8".to_string(),
-                                            "No personal agents provisioned yet."
+                                            {t("agents.personal.no_agents")}
                                         }
                                     }
                                 } else {
@@ -201,7 +196,7 @@ fn render_list_row(agent: &Agent) -> Element {
                 Link {
                     to: crate::router::Route::PersonalAgentShow { agent_id: detail_route_id },
                     class: "text-primary hover:underline text-sm",
-                    "Open"
+                    {t("common.open")}
                 }
             }
         }
@@ -232,8 +227,8 @@ pub fn PersonalAgentShow(props: PersonalAgentShowProps) -> Element {
     rsx! {
         div { class: "space-y-6",
             PageHeader {
-                title: format!("Agent {}", props.agent_id),
-                description: "Personal agent detail (CKP-0008)".to_string(),
+                title: format!("{} {}", t("agents.personal.agent"), props.agent_id),
+                description: t("agents.personal.detail_subtitle"),
             }
 
             match &*data.read() {
@@ -257,15 +252,15 @@ pub fn PersonalAgentShow(props: PersonalAgentShowProps) -> Element {
                     rsx! {
                         div { class: "grid gap-4 md:grid-cols-2",
                             div { class: "rounded-md border p-4 space-y-2",
-                                h3 { class: "font-medium", "Identity" }
+                                h3 { class: "font-medium", {t("agents.personal.identity")} }
                                 p { class: "text-sm", "actor_kind: " span { class: "font-mono", "{actor_kind}" } }
-                                p { class: "text-sm", "Pairing: {pairing}" }
-                                p { class: "text-sm", "Accountability grant refreshed at: {freshness}" }
+                                p { class: "text-sm", {t("agents.personal.pairing")} ": {pairing}" }
+                                p { class: "text-sm", {t("agents.personal.grant_refreshed_at")} ": {freshness}" }
                             }
                             div { class: "rounded-md border p-4 space-y-2",
-                                h3 { class: "font-medium", "Agent keys" }
+                                h3 { class: "font-medium", {t("agents.personal.agent_keys")} }
                                 if agent_keys.is_empty() {
-                                    p { class: "text-sm text-muted-foreground", "No agent keys on record." }
+                                    p { class: "text-sm text-muted-foreground", {t("agents.personal.no_agent_keys")} }
                                 } else {
                                     ul { class: "text-xs font-mono space-y-1",
                                         for key in agent_keys.iter() {
@@ -275,9 +270,9 @@ pub fn PersonalAgentShow(props: PersonalAgentShowProps) -> Element {
                                 }
                             }
                             div { class: "rounded-md border p-4 space-y-2 md:col-span-2",
-                                h3 { class: "font-medium", "Capability grants" }
+                                h3 { class: "font-medium", {t("agents.personal.capability_grants")} }
                                 if capabilities.is_empty() {
-                                    p { class: "text-sm text-muted-foreground", "No active grants." }
+                                    p { class: "text-sm text-muted-foreground", {t("agents.personal.no_active_grants")} }
                                 } else {
                                     ul { class: "text-xs space-y-1",
                                         for cap in capabilities.iter() {
@@ -288,7 +283,7 @@ pub fn PersonalAgentShow(props: PersonalAgentShowProps) -> Element {
 
                                 div { class: "mt-4 grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]",
                                     div { class: "space-y-1",
-                                        Label { r#for: "agent-grant-action".to_string(), "Grant action" }
+                                        Label { r#for: "agent-grant-action".to_string(), {t("agents.personal.grant_action")} }
                                         select {
                                             id: "agent-grant-action",
                                             class: "h-10 w-full rounded-md border bg-background px-3 py-2 text-sm",
@@ -307,7 +302,7 @@ pub fn PersonalAgentShow(props: PersonalAgentShowProps) -> Element {
                                         }
                                     }
                                     div { class: "space-y-1",
-                                        Label { r#for: "agent-grant-scope".to_string(), "Scope (optional)" }
+                                        Label { r#for: "agent-grant-scope".to_string(), {t("agents.personal.scope_optional")} }
                                         ValidatedInput {
                                             kind: ValidationKind::MaxLength(256),
                                             value: grant_scope.read().clone(),
@@ -327,7 +322,7 @@ pub fn PersonalAgentShow(props: PersonalAgentShowProps) -> Element {
                                                 let action = grant_action.read().trim().to_string();
                                                 let scope = grant_scope.read().trim().to_string();
                                                 if action.is_empty() {
-                                                    grant_error.set(Some("Select a capability action before attaching a grant.".to_string()));
+                                                    grant_error.set(Some(t("agents.personal.select_action_first")));
                                                     return;
                                                 }
                                                 spawn(async move {
@@ -337,12 +332,12 @@ pub fn PersonalAgentShow(props: PersonalAgentShowProps) -> Element {
                                                         &action,
                                                         scope_opt.as_deref(),
                                                     ).await {
-                                                        Ok(_) => show_toast("Grant attached", ToastVariant::Success),
+                                                        Ok(_) => show_toast(&t("agents.personal.toast_grant_attached"), ToastVariant::Success),
                                                         Err(e) => show_toast(&e.message, ToastVariant::Error),
                                                     }
                                                 });
                                             },
-                                            "Attach grant"
+                                            {t("agents.personal.attach_grant")}
                                         }
                                     }
                                 }
@@ -360,7 +355,7 @@ pub fn PersonalAgentShow(props: PersonalAgentShowProps) -> Element {
                                     let _ = agent_id_pause.clone();
                                     pending_confirm_action.set(Some(AgentConfirmAction::Pause));
                                 },
-                                "Pause"
+                                {t("agents.personal.pause")}
                             }
                             Button {
                                 size: ButtonSize::Sm,
@@ -369,7 +364,7 @@ pub fn PersonalAgentShow(props: PersonalAgentShowProps) -> Element {
                                     let _ = agent_id_resume.clone();
                                     pending_confirm_action.set(Some(AgentConfirmAction::Resume));
                                 },
-                                "Resume"
+                                {t("agents.personal.resume")}
                             }
                             Button {
                                 size: ButtonSize::Sm,
@@ -378,7 +373,7 @@ pub fn PersonalAgentShow(props: PersonalAgentShowProps) -> Element {
                                     let _ = agent_id_rotate.clone();
                                     pending_confirm_action.set(Some(AgentConfirmAction::RotateKey));
                                 },
-                                "Rotate key"
+                                {t("agents.personal.rotate_key")}
                             }
                             Button {
                                 size: ButtonSize::Sm,
@@ -387,23 +382,23 @@ pub fn PersonalAgentShow(props: PersonalAgentShowProps) -> Element {
                                     let _ = agent_id_sidecar.clone();
                                     pending_confirm_action.set(Some(AgentConfirmAction::EnsureSidecar));
                                 },
-                                "Ensure sidecar thread"
+                                {t("agents.personal.ensure_sidecar")}
                             }
                             Button {
                                 size: ButtonSize::Sm,
                                 variant: ButtonVariant::Destructive,
                                 onclick: move |_| deactivate_open.set(true),
-                                "Deactivate"
+                                {t("agents.personal.deactivate")}
                             }
                         }
 
                         if let Some(action) = pending_confirm_action() {
                             DangerousActionDialog {
                                 open: true,
-                                title: format!("{} personal agent", action.label()),
-                                description: action.description().to_string(),
+                                title: format!("{} {}", t(action.label_key()), t("agents.personal.personal_agent")),
+                                description: t(action.description_key()),
                                 confirmation_phrase: action.phrase().to_string(),
-                                confirm_text: action.label().to_string(),
+                                confirm_text: t(action.label_key()),
                                 on_cancel: move |_| pending_confirm_action.set(None),
                                 on_confirm: move |_| {
                                     let id = agent_id_for_actions.clone();
@@ -411,19 +406,19 @@ pub fn PersonalAgentShow(props: PersonalAgentShowProps) -> Element {
                                     spawn(async move {
                                         match action {
                                             AgentConfirmAction::Pause => match agents::pause_personal_agent(&id).await {
-                                                Ok(_) => show_toast("Paused", ToastVariant::Success),
+                                                Ok(_) => show_toast(&t("agents.personal.toast_paused"), ToastVariant::Success),
                                                 Err(e) => show_toast(&e.message, ToastVariant::Error),
                                             },
                                             AgentConfirmAction::Resume => match agents::resume_personal_agent(&id).await {
-                                                Ok(_) => show_toast("Resumed", ToastVariant::Success),
+                                                Ok(_) => show_toast(&t("agents.personal.toast_resumed"), ToastVariant::Success),
                                                 Err(e) => show_toast(&e.message, ToastVariant::Error),
                                             },
                                             AgentConfirmAction::RotateKey => match agents::rotate_personal_agent_key(&id).await {
-                                                Ok(_) => show_toast("Key rotated", ToastVariant::Success),
+                                                Ok(_) => show_toast(&t("agents.personal.toast_key_rotated"), ToastVariant::Success),
                                                 Err(e) => show_toast(&e.message, ToastVariant::Error),
                                             },
                                             AgentConfirmAction::EnsureSidecar => match agents::ensure_sidecar_thread(&id).await {
-                                                Ok(_) => show_toast("Sidecar thread ensured", ToastVariant::Success),
+                                                Ok(_) => show_toast(&t("agents.personal.toast_sidecar_ensured"), ToastVariant::Success),
                                                 Err(e) => show_toast(&e.message, ToastVariant::Error),
                                             },
                                         }
@@ -434,17 +429,17 @@ pub fn PersonalAgentShow(props: PersonalAgentShowProps) -> Element {
 
                         DangerousActionDialog {
                             open: *deactivate_open.read(),
-                            title: "Deactivate personal agent".to_string(),
-                            description: "Type DEACTIVATE to confirm. This revokes all agent keys, capabilities, and runtime endpoints.".to_string(),
+                            title: t("agents.personal.deactivate_title"),
+                            description: t("agents.personal.deactivate_body"),
                             confirmation_phrase: "DEACTIVATE".to_string(),
-                            confirm_text: "Deactivate agent".to_string(),
+                            confirm_text: t("agents.personal.deactivate_confirm"),
                             on_cancel: move |_| deactivate_open.set(false),
                             on_confirm: move |_| {
                                 let id = agent_id_deactivate.clone();
                                 deactivate_open.set(false);
                                 spawn(async move {
                                     match agents::deactivate_personal_agent(&id).await {
-                                        Ok(_) => show_toast("Agent deactivated", ToastVariant::Success),
+                                        Ok(_) => show_toast(&t("agents.personal.toast_deactivated"), ToastVariant::Success),
                                         Err(e) => show_toast(&e.message, ToastVariant::Error),
                                     }
                                 });
@@ -487,7 +482,7 @@ fn ProvisionWizard(props: ProvisionWizardProps) -> Element {
     rsx! {
         div { class: "fixed inset-0 z-50 flex items-center justify-center bg-black/50",
             div { class: "bg-background rounded-md border shadow-lg p-6 w-full max-w-lg space-y-4",
-                h2 { class: "text-lg font-semibold", "Provision personal agent (step {step})" }
+                h2 { class: "text-lg font-semibold", {format!("{} ({} {step}/3)", t("agents.personal.provision"), t("agents.personal.step"))} }
 
                 if !error_msg.read().is_empty() {
                     div { class: "rounded border border-destructive bg-destructive/10 px-3 py-2 text-sm text-destructive",
@@ -503,9 +498,9 @@ fn ProvisionWizard(props: ProvisionWizardProps) -> Element {
                         // backend RBAC is canonical.
                         GrantedCapabilitiesView {
                             required_capability: Some("ck.self.agent.provision".to_string()),
-                            title: Some("Required capability".to_string()),
+                            title: Some(t("agents.personal.required_capability")),
                         }
-                        Label { class: "text-sm".to_string(), "Controller DID" }
+                        Label { class: "text-sm".to_string(), {t("agents.personal.controller_did")} }
                         // P5 — ValidatedInput enforces the round-4
                         // did:<method>:<id> grammar inline so the operator
                         // sees the error immediately, not on submit.
@@ -515,31 +510,30 @@ fn ProvisionWizard(props: ProvisionWizardProps) -> Element {
                             placeholder: "did:web:alice.example".to_string(),
                             oninput: move |evt: FormEvent| controller_did.set(evt.value()),
                         }
-                        Label { class: "text-sm".to_string(), "Display name (optional)" }
+                        Label { class: "text-sm".to_string(), {t("agents.personal.display_name")} }
                         ValidatedInput {
                             kind: ValidationKind::MaxLength(128),
                             value: display_name.read().clone(),
                             oninput: move |evt: FormEvent| display_name.set(evt.value()),
                         }
                         p { class: "text-xs text-muted-foreground",
-                            "Step 1/3 — DID request. The DID format MUST match the SDK normalize regex "
+                            {t("agents.personal.wizard_step1")} " "
                             code { "^did:[a-z0-9]+:[^\\s]+$" } "."
                         }
                     }
                 } else if *step.read() == 2 {
                     div { class: "space-y-3",
                         p { class: "text-sm",
-                            "Step 2/3 — Provision the agent principal. soland issues the agent DID plus a pairing request; the agent runtime later redeems the pairing code via `ck.gate.account.agent_key_pair` to bind its first key."
+                            {t("agents.personal.wizard_step2")}
                         }
                         p { class: "text-xs text-muted-foreground",
-                            "The controller is always the authenticated principal — the provision body carries display_name / requested_scope / pairing_ttl_ms only (spec `agent_provision_request_body`)."
+                            {t("agents.personal.wizard_step2_hint")}
                         }
                     }
                 } else {
                     div { class: "space-y-3",
                         p { class: "text-sm",
-                            "Step 3/3 — Controller approval via coauth accountability_grant. "
-                            "This issues a `ck:accountability_grant:<uuid7>` ledger row."
+                            {t("agents.personal.wizard_step3")}
                         }
                         if let Some((request_id, code, expires_at)) = pairing_info.read().clone() {
                             div { class: "rounded-md border bg-muted/30 p-3 space-y-1 text-xs font-mono",
@@ -550,7 +544,7 @@ fn ProvisionWizard(props: ProvisionWizardProps) -> Element {
                                 div { "expires_at: {expires_at}" }
                             }
                             p { class: "text-xs text-muted-foreground",
-                                "Relay the pairing code to the agent runtime before it expires."
+                                {t("agents.personal.relay_pairing_code")}
                             }
                         }
                     }
@@ -560,20 +554,20 @@ fn ProvisionWizard(props: ProvisionWizardProps) -> Element {
                     Button {
                         variant: ButtonVariant::Outline,
                         onclick: move |_| close.call(()),
-                        "Cancel"
+                        {t("common.cancel")}
                     }
                     if *step.read() == 1 {
                         Button {
                             onclick: move |_| {
                                 let did = controller_did.read().clone();
                                 if !is_valid_did(&did) {
-                                    error_msg.set("controller_did must match did:<method>:<id>".into());
+                                    error_msg.set(t("agents.personal.invalid_controller_did"));
                                     return;
                                 }
                                 error_msg.set(String::new());
                                 step.set(2);
                             },
-                            "Continue"
+                            {t("agents.personal.continue")}
                         }
                     } else if *step.read() == 2 {
                         Button {
@@ -606,7 +600,7 @@ fn ProvisionWizard(props: ProvisionWizardProps) -> Element {
                                     }
                                 });
                             },
-                            "Provision agent"
+                            {t("agents.personal.provision_agent")}
                         }
                     } else {
                         Button {
@@ -620,14 +614,14 @@ fn ProvisionWizard(props: ProvisionWizardProps) -> Element {
                                     };
                                     match agents::issue_accountability_grant(&id, &req).await {
                                         Ok(_) => {
-                                            show_toast("Personal agent provisioned", ToastVariant::Success);
+                                            show_toast(&t("agents.personal.toast_provisioned"), ToastVariant::Success);
                                             close.call(());
                                         }
                                         Err(e) => error_msg.set(e.message),
                                     }
                                 });
                             },
-                            "Finish"
+                            {t("agents.personal.finish")}
                         }
                     }
                 }

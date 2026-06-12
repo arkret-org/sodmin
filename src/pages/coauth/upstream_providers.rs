@@ -184,7 +184,7 @@ pub fn UpstreamProvidersPage() -> Element {
                     spawn(async move {
                         match coauth::create_upstream_provider(&body).await {
                             Ok(_) => {
-                                show_toast("Provider created", ToastVariant::Success);
+                                show_toast(&t("coauth.upstream_providers.toast_created"), ToastVariant::Success);
                                 show_create.set(false);
                                 data.restart();
                             }
@@ -199,7 +199,7 @@ pub fn UpstreamProvidersPage() -> Element {
         ConfirmDialog {
             open: show_delete.read().is_some(),
             title: t("common.delete"),
-            description: "Are you sure you want to delete this provider?".to_string(),
+            description: t("coauth.upstream_providers.delete_confirm"),
             confirm_text: t("common.delete"),
             destructive: true,
             on_confirm: move |_| {
@@ -208,7 +208,7 @@ pub fn UpstreamProvidersPage() -> Element {
                     spawn(async move {
                         match coauth::delete_upstream_provider(&id).await {
                             Ok(_) => {
-                                show_toast("Provider deleted", ToastVariant::Success);
+                                show_toast(&t("coauth.upstream_providers.toast_deleted"), ToastVariant::Success);
                                 data.restart();
                             }
                             Err(e) => show_toast(&format!("Failed: {}", e.message), ToastVariant::Error),

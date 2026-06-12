@@ -20,6 +20,7 @@ use crate::components::ui::button::{Button, ButtonVariant};
 use crate::components::ui::card::*;
 use crate::components::ui::page_header::PageHeader;
 use crate::types::api::HardeningStatus;
+use crate::utils::i18n::t;
 use crate::utils::net::error::HttpError;
 
 /// Build a sentinel `HttpError` for the "service not configured"
@@ -37,10 +38,10 @@ struct ServiceHardening {
     /// Service slug used in URLs / DIDs (`soland`, `coauth`, `starid`,
     /// `floria`, `teabay`).
     slug: &'static str,
-    /// User-facing label.
-    label: &'static str,
-    /// Short paragraph describing the service's role.
-    description: &'static str,
+    /// i18n key for the user-facing label.
+    label_key: &'static str,
+    /// i18n key for the short paragraph describing the service's role.
+    description_key: &'static str,
     hardening: Option<HardeningStatus>,
     /// When `Some`, the operator has not wired this service.
     not_configured_label: Option<String>,
@@ -71,31 +72,31 @@ pub fn HardeningDashboard() -> Element {
         vec![
             service_from_health(
                 "soland",
-                "Principal server (soland)",
-                "Control-plane Seal surface, admin auth, push bridge.",
+                "hardening.svc_soland",
+                "hardening.svc_soland_desc",
                 soland.as_ref(),
                 None,
             ),
             service_from_health(
                 "coauth",
-                "Auth (coauth)",
-                "OAuth/session issuer + admin identity provider.",
+                "hardening.svc_coauth",
+                "hardening.svc_coauth_desc",
                 coauth.as_ref(),
                 if crate::utils::net::session::has_coauth() {
                     None
                 } else {
-                    Some("coauth public URL is not configured.".to_owned())
+                    Some(t("hardening.coauth_not_configured"))
                 },
             ),
             service_from_health(
                 "starid",
-                "Identity (starid)",
-                "did:webvh writer + resolver.",
+                "hardening.svc_starid",
+                "hardening.svc_starid_desc",
                 starid.as_ref(),
                 if crate::utils::net::session::has_starid() {
                     None
                 } else {
-                    Some("starid public URL is not configured.".to_owned())
+                    Some(t("hardening.starid_not_configured"))
                 },
             ),
             // floria / teabay /health are not currently proxied through
@@ -104,24 +105,18 @@ pub fn HardeningDashboard() -> Element {
             // the next round of work is.
             ServiceHardening {
                 slug: "floria",
-                label: "Push gateway (floria)",
-                description: "WebPush / APNs / FCM delivery worker.",
+                label_key: "hardening.svc_floria",
+                description_key: "hardening.svc_floria_desc",
                 hardening: None,
-                not_configured_label: Some(
-                    "floria `/health` not yet wired into sodmin; run the per-service checklist manually."
-                        .to_owned(),
-                ),
+                not_configured_label: Some(t("hardening.floria_not_wired")),
                 unreachable: false,
             },
             ServiceHardening {
                 slug: "teabay",
-                label: "Directory (teabay)",
-                description: "Applet / agent directory.",
+                label_key: "hardening.svc_teabay",
+                description_key: "hardening.svc_teabay_desc",
                 hardening: None,
-                not_configured_label: Some(
-                    "teabay `/health` not yet wired into sodmin; run the per-service checklist manually."
-                        .to_owned(),
-                ),
+                not_configured_label: Some(t("hardening.teabay_not_wired")),
                 unreachable: false,
             },
         ]
@@ -135,8 +130,8 @@ pub fn HardeningDashboard() -> Element {
     rsx! {
         div { class: "space-y-6",
             PageHeader {
-                title: "Hardening".to_string(),
-                description: "Production deployment checklist aggregated across every Cokret service.".to_string(),
+                title: t("hardening.title"),
+                description: t("hardening.subtitle"),
                 Button {
                     variant: ButtonVariant::Outline,
                     onclick: move |_| {
@@ -144,7 +139,7 @@ pub fn HardeningDashboard() -> Element {
                         coauth_health.restart();
                         starid_health.restart();
                     },
-                    "Refresh"
+                    {t("common.refresh")}
                 }
             }
 
@@ -155,13 +150,13 @@ pub fn HardeningDashboard() -> Element {
                     div { class: "flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between",
                         div { class: "space-y-1",
                             p { class: "text-xs font-semibold uppercase tracking-wider text-muted-foreground",
-                                "Aggregate score"
+                                {t("hardening.aggregate_score")}
                             }
                             p { class: "text-2xl font-bold",
                                 "{total_score} / {total_max}"
                             }
                             p { class: "text-xs text-muted-foreground",
-                                "Sum of checklist scores across configured services. A clean production deployment scores at maximum."
+                                {t("hardening.aggregate_score_hint")}
                             }
                         }
                         {aggregate_badge(total_score, total_max, any_warnings)}
@@ -181,8 +176,8 @@ pub fn HardeningDashboard() -> Element {
 
 fn service_from_health(
     slug: &'static str,
-    label: &'static str,
-    description: &'static str,
+    label_key: &'static str,
+    description_key: &'static str,
     fetched: Option<&Result<server::HealthEnvelope, crate::utils::net::error::HttpError>>,
     not_configured_label: Option<String>,
 ) -> ServiceHardening {
@@ -194,8 +189,8 @@ fn service_from_health(
     };
     ServiceHardening {
         slug,
-        label,
-        description,
+        label_key,
+        description_key,
         hardening,
         not_configured_label,
         unreachable,
@@ -215,31 +210,32 @@ fn aggregate_score(services: &[ServiceHardening]) -> (u32, u32) {
 fn aggregate_badge(score: u32, max: u32, any_warnings: bool) -> Element {
     if max == 0 {
         return rsx! {
-            Badge { variant: BadgeVariant::Secondary, "No services reporting" }
+            Badge { variant: BadgeVariant::Secondary, {t("hardening.no_services_reporting")} }
         };
     }
     if score == max && !any_warnings {
-        rsx! { Badge { variant: BadgeVariant::Success, "All checks passing" } }
+        rsx! { Badge { variant: BadgeVariant::Success, {t("hardening.all_passing")} } }
     } else if score == 0 {
-        rsx! { Badge { variant: BadgeVariant::Destructive, "All checks failing" } }
+        rsx! { Badge { variant: BadgeVariant::Destructive, {t("hardening.all_failing")} } }
     } else {
-        rsx! { Badge { variant: BadgeVariant::Destructive, "Some checks failing" } }
+        rsx! { Badge { variant: BadgeVariant::Destructive, {t("hardening.some_failing")} } }
     }
 }
 
 fn service_card(service: &ServiceHardening) -> Element {
     let header_badge = if service.not_configured_label.is_some() {
-        rsx! { Badge { variant: BadgeVariant::Secondary, "Not configured" } }
+        rsx! { Badge { variant: BadgeVariant::Secondary, {t("hardening.not_configured")} } }
     } else if service.unreachable {
-        rsx! { Badge { variant: BadgeVariant::Destructive, "Unreachable" } }
+        rsx! { Badge { variant: BadgeVariant::Destructive, {t("hardening.unreachable")} } }
     } else if let Some(h) = service.hardening.as_ref() {
         if h.warnings.is_empty() {
-            rsx! { Badge { variant: BadgeVariant::Success, "OK" } }
+            rsx! { Badge { variant: BadgeVariant::Success, {t("hardening.ok")} } }
         } else {
-            rsx! { Badge { variant: BadgeVariant::Destructive, "{h.warnings.len()} warning(s)" } }
+            let warn_text = format!("{} {}", h.warnings.len(), t("hardening.warnings_suffix"));
+            rsx! { Badge { variant: BadgeVariant::Destructive, "{warn_text}" } }
         }
     } else {
-        rsx! { Badge { variant: BadgeVariant::Secondary, "No data" } }
+        rsx! { Badge { variant: BadgeVariant::Secondary, {t("hardening.no_data")} } }
     };
 
     let body = if let Some(label) = service.not_configured_label.as_ref() {
@@ -247,7 +243,7 @@ fn service_card(service: &ServiceHardening) -> Element {
     } else if service.unreachable {
         rsx! {
             p { class: "text-sm text-destructive",
-                "Failed to fetch /health for this service. Check the upstream URL and that the service is reachable."
+                {t("hardening.fetch_failed")}
             }
         }
     } else if let Some(h) = service.hardening.as_ref() {
@@ -255,18 +251,21 @@ fn service_card(service: &ServiceHardening) -> Element {
     } else {
         rsx! {
             p { class: "text-sm text-muted-foreground",
-                "This service returned /health but did not include a hardening block. Upgrade the service to surface T8.3 status."
+                {t("hardening.no_hardening_block")}
             }
         }
     };
+
+    let service_label = t(service.label_key);
+    let service_description = t(service.description_key);
 
     rsx! {
         Card {
             CardHeader {
                 div { class: "flex items-start justify-between gap-2",
                     div { class: "space-y-1",
-                        CardTitle { class: "text-lg".to_string(), "{service.label}" }
-                        CardDescription { "{service.description}" }
+                        CardTitle { class: "text-lg".to_string(), "{service_label}" }
+                        CardDescription { "{service_description}" }
                         p { class: "text-[10px] font-mono text-muted-foreground", "{service.slug}" }
                     }
                     {header_badge}
@@ -286,19 +285,19 @@ fn render_checklist(h: &HardeningStatus) -> Element {
     // true / admin_auth is `"development"` / `"closed"` / rotation is
     // `"none"`).
     let rows: Vec<(&str, bool)> = vec![
-        ("development_mode disabled", !h.development_mode),
-        ("TLS enabled", h.tls_enabled),
-        ("CSP header configured", h.csp_header_configured),
-        ("CORS strict", h.cors_strict),
-        ("Secret manager in use", h.secret_manager_in_use),
-        ("Log redaction enabled", h.log_redaction_enabled),
+        ("hardening.check_dev_mode_disabled", !h.development_mode),
+        ("hardening.check_tls_enabled", h.tls_enabled),
+        ("hardening.check_csp_configured", h.csp_header_configured),
+        ("hardening.check_cors_strict", h.cors_strict),
+        ("hardening.check_secret_manager", h.secret_manager_in_use),
+        ("hardening.check_log_redaction", h.log_redaction_enabled),
         (
-            "Admin auth in production mode",
+            "hardening.check_admin_auth_prod",
             !matches!(admin_auth.as_str(), "development" | "closed" | "-"),
         ),
-        ("Rate limit enabled", h.rate_limit_enabled),
+        ("hardening.check_rate_limit", h.rate_limit_enabled),
         (
-            "Provider credential rotation",
+            "hardening.check_credential_rotation",
             !matches!(rotation.as_str(), "none" | "-"),
         ),
     ];
@@ -308,7 +307,7 @@ fn render_checklist(h: &HardeningStatus) -> Element {
             // Header score line.
             div { class: "flex items-center justify-between",
                 p { class: "text-xs font-semibold uppercase tracking-wider text-muted-foreground",
-                    "Score"
+                    {t("hardening.score")}
                 }
                 p { class: "text-sm font-mono",
                     "{h.checklist_score} / {h.checklist_max}"
@@ -327,7 +326,7 @@ fn render_checklist(h: &HardeningStatus) -> Element {
                         span { class: "font-mono",
                             if *ok { "\u{2713}" } else { "\u{2717}" }
                         }
-                        span { "{label}" }
+                        span { {t(label)} }
                     }
                 }
             }
@@ -350,7 +349,7 @@ fn render_checklist(h: &HardeningStatus) -> Element {
                 div { class: "rounded-md border border-red-600 bg-red-600/10 px-3 py-2 text-xs space-y-1",
                     role: "alert",
                     p { class: "font-semibold text-red-700 dark:text-red-300",
-                        "Failing checks"
+                        {t("hardening.failing_checks")}
                     }
                     ul { class: "list-disc pl-5 text-red-700 dark:text-red-200",
                         for warning in h.warnings.iter() {

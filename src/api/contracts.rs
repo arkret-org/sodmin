@@ -26,11 +26,13 @@ pub mod soland_admin {
     }
 
     impl AuthzGrantStatus {
+        /// Returns the i18n key for the display label. Render via
+        /// `crate::utils::i18n::t(status.label())` at the call site.
         pub fn label(&self) -> &'static str {
             match self {
-                AuthzGrantStatus::Active => "Active",
-                AuthzGrantStatus::Revoked => "Revoked",
-                AuthzGrantStatus::Expired => "Expired",
+                AuthzGrantStatus::Active => "authz.grant_status_active",
+                AuthzGrantStatus::Revoked => "authz.grant_status_revoked",
+                AuthzGrantStatus::Expired => "authz.grant_status_expired",
             }
         }
 
@@ -116,11 +118,13 @@ pub mod soland_admin {
     }
 
     impl ReportStatus {
+        /// Returns the i18n key for the display label. Render via
+        /// `crate::utils::i18n::t(status.label())` at the call site.
         pub fn label(&self) -> &'static str {
             match self {
-                ReportStatus::Open => "Open",
-                ReportStatus::Resolved => "Resolved",
-                ReportStatus::Dismissed => "Dismissed",
+                ReportStatus::Open => "reports.status_open",
+                ReportStatus::Resolved => "reports.status_resolved",
+                ReportStatus::Dismissed => "reports.status_dismissed",
             }
         }
 

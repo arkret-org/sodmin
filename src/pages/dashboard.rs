@@ -85,7 +85,7 @@ pub fn Dashboard() -> Element {
     let version_str = info_data
         .as_ref()
         .map(|i| i.server_version.clone())
-        .unwrap_or_else(|| "Unknown".to_string());
+        .unwrap_or_else(|| t("common.unknown"));
 
     let protocol_str = describe_data
         .as_ref()
@@ -128,7 +128,7 @@ pub fn Dashboard() -> Element {
     let conformance = describe_data
         .as_ref()
         .and_then(conformance_level)
-        .unwrap_or_else(|| "Unknown".to_string());
+        .unwrap_or_else(|| t("common.unknown"));
     let health_state = health_summary(status_data.as_ref());
     let conformance_rows = conformance_rows(describe_data.as_ref());
 
@@ -209,19 +209,19 @@ pub fn Dashboard() -> Element {
                         {t("server.features")}
                     }
                     CardDescription {
-                        "Cokret discovery from /_cokret/describe."
+                        {t("dashboard.discovery_source")}
                     }
                 }
                 CardContent {
                     div { class: "grid gap-4 md:grid-cols-2 xl:grid-cols-4",
-                        {metadata_cell("Principal Server DID", service_did)}
-                        {metadata_cell("coauth issuer DID", coauth_issuer_did)}
-                        {metadata_cell("delegated/public DID resolver", delegated_resolver_endpoint)}
-                        {metadata_cell("Supported profiles", supported_profiles)}
-                        {metadata_cell("Reducer profile", reducer_profile)}
-                        {metadata_cell("Schema registry", schema_registry)}
-                        {metadata_cell("Event-kind registry", event_kind_registry)}
-                        {metadata_cell("OpenAPI version", openapi_version)}
+                        {metadata_cell(t("dashboard.principal_server_did"), service_did)}
+                        {metadata_cell(t("dashboard.coauth_issuer_did"), coauth_issuer_did)}
+                        {metadata_cell(t("dashboard.delegated_resolver"), delegated_resolver_endpoint)}
+                        {metadata_cell(t("dashboard.supported_profiles"), supported_profiles)}
+                        {metadata_cell(t("dashboard.reducer_profile"), reducer_profile)}
+                        {metadata_cell(t("dashboard.schema_registry"), schema_registry)}
+                        {metadata_cell(t("dashboard.event_kind_registry"), event_kind_registry)}
+                        {metadata_cell(t("dashboard.openapi_version"), openapi_version)}
                     }
                 }
             }
@@ -230,16 +230,16 @@ pub fn Dashboard() -> Element {
                 CardHeader {
                     CardTitle { class: "flex items-center gap-2".to_string(),
                         Icon { name: "activity".to_string(), class: "h-5 w-5".to_string() }
-                        "Conformance Status"
+                        {t("dashboard.conformance_status")}
                     }
                     CardDescription {
-                        "Declared surfaces are shown from service discovery; missing entries remain unavailable until the server advertises them."
+                        {t("dashboard.conformance_desc")}
                     }
                 }
                 CardContent {
                     div { class: "mb-4 grid gap-4 md:grid-cols-2",
-                        {metadata_cell("Overall conformance", conformance)}
-                        {metadata_cell("Health", health_state)}
+                        {metadata_cell(t("dashboard.overall_conformance"), conformance)}
+                        {metadata_cell(t("dashboard.health"), health_state)}
                     }
                     div { class: "grid gap-3 md:grid-cols-2 xl:grid-cols-3",
                         for row in conformance_rows.iter() {
@@ -305,7 +305,7 @@ struct ConformanceRow {
     detail: String,
 }
 
-fn metadata_cell(label: &'static str, value: String) -> Element {
+fn metadata_cell(label: String, value: String) -> Element {
     rsx! {
         div { class: "min-w-0 rounded-md border border-border/50 p-3",
             p { class: "text-xs font-medium uppercase text-muted-foreground", "{label}" }
@@ -338,10 +338,15 @@ fn status_pill(state: &str) -> Element {
         "Not declared" => "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300",
         _ => "border-border bg-muted text-muted-foreground",
     };
+    let display = match state {
+        "Declared" => t("dashboard.declared"),
+        "Not declared" => t("dashboard.not_declared"),
+        _ => t("common.unknown"),
+    };
 
     rsx! {
         span { class: "shrink-0 rounded-full border px-2 py-0.5 text-[11px] font-semibold {class}",
-            "{state}"
+            "{display}"
         }
     }
 }
@@ -397,7 +402,7 @@ fn conformance_level(describe: &ServerDescribeDocument) -> Option<String> {
 
 fn health_summary(status: Option<&ServerStatusOutcome>) -> String {
     match status {
-        Some(status) if status.ok => "Healthy".to_string(),
+        Some(status) if status.ok => t("dashboard.health_healthy"),
         Some(status) => {
             let failing = status
                 .results
@@ -405,12 +410,12 @@ fn health_summary(status: Option<&ServerStatusOutcome>) -> String {
                 .filter(|component| !component.ok)
                 .count();
             if failing == 0 {
-                "Issues detected".to_string()
+                t("dashboard.health_issues_detected")
             } else {
-                format!("{failing} issue(s)")
+                format!("{failing} {}", t("dashboard.health_issues_suffix"))
             }
         }
-        None => "Unknown".to_string(),
+        None => t("common.unknown"),
     }
 }
 

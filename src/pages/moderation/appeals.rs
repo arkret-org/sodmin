@@ -34,6 +34,7 @@ use crate::components::ui::empty_state::EmptyState;
 use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::table::*;
 use crate::components::ui::toast::{ToastVariant, show_toast};
+use crate::utils::i18n::t;
 use crate::utils::net::session;
 
 /// Wall-clock window after which an appeal auto-closes
@@ -56,12 +57,13 @@ enum AppealLifecycle {
 }
 
 impl AppealLifecycle {
-    fn label(&self) -> &'static str {
+    /// i18n key for the lifecycle badge display label.
+    fn label_key(&self) -> &'static str {
         match self {
-            AppealLifecycle::Submitted => "submitted",
-            AppealLifecycle::UnderReview => "under_review",
-            AppealLifecycle::Decided => "decided",
-            AppealLifecycle::Closed => "closed",
+            AppealLifecycle::Submitted => "appeals.state_submitted",
+            AppealLifecycle::UnderReview => "appeals.state_under_review",
+            AppealLifecycle::Decided => "appeals.state_decided",
+            AppealLifecycle::Closed => "appeals.state_closed",
         }
     }
 
@@ -95,10 +97,11 @@ enum Verdict {
 }
 
 impl Verdict {
-    fn label(&self) -> &'static str {
+    /// i18n key for the verdict display label.
+    fn label_key(&self) -> &'static str {
         match self {
-            Verdict::Uphold => "Uphold",
-            Verdict::Overturn => "Overturn",
+            Verdict::Uphold => "appeals.verdict_uphold",
+            Verdict::Overturn => "appeals.verdict_overturn",
         }
     }
 }
@@ -196,7 +199,7 @@ pub fn ModerationAppealsPage() -> Element {
                     load_error.set(None);
                 }
                 Err(err) => {
-                    load_error.set(Some(format!("Failed to load appeals: {err}")));
+                    load_error.set(Some(format!("{}: {err}", t("appeals.load_failed"))));
                 }
             }
         });
@@ -217,34 +220,36 @@ pub fn ModerationAppealsPage() -> Element {
     rsx! {
         div { class: "space-y-6",
             PageHeader {
-                title: "Moderation appeals".to_string(),
+                title: t("appeals.title"),
                 description: format!(
-                    "Pending appeals (state=submitted/under_review). Auto-closes after {APPEAL_AUTO_CLOSE_DAYS} days. Round R2/R3 T06."
+                    "{} {APPEAL_AUTO_CLOSE_DAYS} {}",
+                    t("appeals.subtitle_prefix"),
+                    t("appeals.subtitle_suffix"),
                 ),
                 Button {
                     variant: ButtonVariant::Outline,
                     onclick: move |_| selected.set(None),
-                    "Clear selection"
+                    {t("common.clear_selection")}
                 }
             }
 
             if pending_only.is_empty() {
                 EmptyState {
                     icon: "flag".to_string(),
-                    title: "No pending appeals".to_string(),
-                    description: "All `ck.moderation.appeal.submit` rows are decided or auto-closed.".to_string(),
+                    title: t("appeals.empty_title"),
+                    description: t("appeals.empty_subtitle"),
                 }
             } else {
                 div { class: "rounded-md border",
                     Table {
                         TableHeader {
                             TableRow {
-                                TableHead { "Appeal" }
-                                TableHead { "Decision ref" }
-                                TableHead { "Appellant" }
-                                TableHead { "State" }
-                                TableHead { "Auto-close" }
-                                TableHead { class: "text-right".to_string(), "Open" }
+                                TableHead { {t("appeals.col_appeal")} }
+                                TableHead { {t("appeals.col_decision_ref")} }
+                                TableHead { {t("appeals.col_appellant")} }
+                                TableHead { {t("appeals.col_state")} }
+                                TableHead { {t("appeals.col_auto_close")} }
+                                TableHead { class: "text-right".to_string(), {t("common.open")} }
                             }
                         }
                         TableBody {
@@ -254,7 +259,7 @@ pub fn ModerationAppealsPage() -> Element {
                                     let row_id = row.appeal_id.clone();
                                     let countdown_label = countdown_chip_label(row.days_until_auto_close);
                                     let countdown_variant = countdown_chip_variant(row.days_until_auto_close);
-                                    let lifecycle_label = row.lifecycle.label();
+                                    let lifecycle_label = t(row.lifecycle.label_key());
                                     let lifecycle_variant = row.lifecycle.badge_variant();
                                     rsx! {
                                         TableRow {
@@ -272,7 +277,7 @@ pub fn ModerationAppealsPage() -> Element {
                                                     variant: ButtonVariant::Outline,
                                                     size: ButtonSize::Sm,
                                                     onclick: move |_| selected.set(Some(row_id.clone())),
-                                                    "Open"
+                                                    {t("common.open")}
                                                 }
                                             }
                                         }
@@ -296,18 +301,18 @@ pub fn ModerationAppealsPage() -> Element {
             {
                 let pending = *verdict_picker.read();
                 let open = *confirm_open.read();
-                let verdict_label = pending.map(|v| v.label()).unwrap_or("");
+                let verdict_label = pending.map(|v| t(v.label_key())).unwrap_or_default();
                 let description = match pending {
-                    Some(Verdict::Overturn) => "Overturn auto-pairs `ck.moderation.decision.lift` in the same Seal batch.".to_string(),
-                    _ => "Recording an appeal decision is final.".to_string(),
+                    Some(Verdict::Overturn) => t("appeals.confirm_overturn_body"),
+                    _ => t("appeals.confirm_decision_body"),
                 };
                 rsx! {
                     ConfirmDialog {
                         open,
-                        title: format!("Record verdict: {verdict_label}"),
+                        title: format!("{}: {verdict_label}", t("appeals.record_verdict")),
                         description,
-                        confirm_text: format!("Submit {verdict_label}"),
-                        cancel_text: "Cancel".to_string(),
+                        confirm_text: format!("{} {verdict_label}", t("appeals.submit")),
+                        cancel_text: t("common.cancel"),
                         destructive: matches!(pending, Some(Verdict::Overturn)),
                         on_cancel: move |_| {
                             confirm_open.set(false);
@@ -353,7 +358,7 @@ pub fn ModerationAppealsPage() -> Element {
                                             Err(err) => {
                                                 show_toast(
                                                     &format!(
-                                                        "Decision lift failed: {err}"
+                                                        "{}: {err}", t("appeals.toast_lift_failed")
                                                     ),
                                                     ToastVariant::Error,
                                                 );
@@ -375,7 +380,8 @@ pub fn ModerationAppealsPage() -> Element {
                                         Ok(_) => {
                                             show_toast(
                                                 &format!(
-                                                    "Appeal {} recorded (verdict={verdict_str}).",
+                                                    "{} {} (verdict={verdict_str}).",
+                                                    t("appeals.toast_recorded_prefix"),
                                                     appeal_id,
                                                 ),
                                                 ToastVariant::Success,
@@ -385,7 +391,7 @@ pub fn ModerationAppealsPage() -> Element {
                                         }
                                         Err(err) => {
                                             show_toast(
-                                                &format!("Appeal decision failed: {err}"),
+                                                &format!("{}: {err}", t("appeals.toast_decision_failed")),
                                                 ToastVariant::Error,
                                             );
                                         }
@@ -426,7 +432,7 @@ fn appeal_detail_card(
 
     let evidence_block: Element = if row.evidence_refs.is_empty() {
         rsx! {
-            p { class: "text-sm text-muted-foreground", "No evidence_refs supplied." }
+            p { class: "text-sm text-muted-foreground", {t("appeals.no_evidence")} }
         }
     } else {
         rsx! {
@@ -440,7 +446,7 @@ fn appeal_detail_card(
 
     let reviews_block: Element = if row.reviews.is_empty() {
         rsx! {
-            p { class: "text-sm text-muted-foreground", "No reviewer has claimed this appeal yet." }
+            p { class: "text-sm text-muted-foreground", {t("appeals.no_reviewer")} }
         }
     } else {
         rsx! {
@@ -460,14 +466,14 @@ fn appeal_detail_card(
 
     let decisions_block: Element = if row.decisions.is_empty() {
         rsx! {
-            p { class: "text-sm text-muted-foreground", "No decision recorded yet." }
+            p { class: "text-sm text-muted-foreground", {t("appeals.no_decision")} }
         }
     } else {
         rsx! {
             ul { class: "space-y-2",
                 for entry in row.decisions.iter() {
                     {
-                        let label = entry.verdict.label();
+                        let label = t(entry.verdict.label_key());
                         rsx! {
                             li { class: "rounded border p-2 text-xs space-y-1",
                                 div { class: "font-mono", "verdict: {label}" }
@@ -490,7 +496,7 @@ fn appeal_detail_card(
             CardHeader {
                 div { class: "flex items-start justify-between gap-2",
                     div { class: "space-y-1",
-                        CardTitle { class: "text-lg".to_string(), "Appeal detail" }
+                        CardTitle { class: "text-lg".to_string(), {t("appeals.detail_title")} }
                         CardDescription { "{row.appeal_id}" }
                     }
                     Badge { variant: countdown_variant, "{countdown_label}" }
@@ -499,23 +505,23 @@ fn appeal_detail_card(
             CardContent { class: "space-y-4".to_string(),
                 div { class: "grid gap-3 sm:grid-cols-2",
                     div {
-                        p { class: "text-[10px] uppercase tracking-wider text-muted-foreground", "Original decision" }
+                        p { class: "text-[10px] uppercase tracking-wider text-muted-foreground", {t("appeals.original_decision")} }
                         p { class: "text-xs font-mono break-all", "{row.decision_ref}" }
                     }
                     div {
-                        p { class: "text-[10px] uppercase tracking-wider text-muted-foreground", "Target" }
+                        p { class: "text-[10px] uppercase tracking-wider text-muted-foreground", {t("appeals.target")} }
                         p { class: "text-xs font-mono break-all", "{row.target_ref}" }
                     }
                     div {
-                        p { class: "text-[10px] uppercase tracking-wider text-muted-foreground", "Original issuer" }
+                        p { class: "text-[10px] uppercase tracking-wider text-muted-foreground", {t("appeals.original_issuer")} }
                         p { class: "text-xs font-mono break-all", "{row.original_issuer_did}" }
                     }
                     div {
-                        p { class: "text-[10px] uppercase tracking-wider text-muted-foreground", "Appellant" }
+                        p { class: "text-[10px] uppercase tracking-wider text-muted-foreground", {t("appeals.appellant")} }
                         p { class: "text-xs font-mono break-all", "{row.appellant_did}" }
                     }
                     div {
-                        p { class: "text-[10px] uppercase tracking-wider text-muted-foreground", "Submitted at" }
+                        p { class: "text-[10px] uppercase tracking-wider text-muted-foreground", {t("appeals.submitted_at")} }
                         p { class: "text-xs font-mono", "{row.submitted_at}" }
                     }
                     div {
@@ -525,34 +531,34 @@ fn appeal_detail_card(
                 }
 
                 div {
-                    h3 { class: "text-sm font-semibold mb-1", "Evidence" }
+                    h3 { class: "text-sm font-semibold mb-1", {t("appeals.evidence")} }
                     {evidence_block}
                 }
                 div {
-                    h3 { class: "text-sm font-semibold mb-1", "Reviewer assignment trail" }
+                    h3 { class: "text-sm font-semibold mb-1", {t("appeals.reviewer_trail")} }
                     {reviews_block}
                 }
                 div {
-                    h3 { class: "text-sm font-semibold mb-1", "Decision history" }
+                    h3 { class: "text-sm font-semibold mb-1", {t("appeals.decision_history")} }
                     {decisions_block}
                 }
 
                 div { class: "border-t pt-3 space-y-2",
-                    h3 { class: "text-sm font-semibold", "Review this appeal" }
+                    h3 { class: "text-sm font-semibold", {t("appeals.review_this")} }
                     if !admin_identity_known {
                         p { class: "rounded-md border border-amber-600/40 bg-amber-600/10 p-2 text-xs text-amber-700 dark:text-amber-300",
-                            "Review disabled: the current administrator's identity could not be confirmed (viewer info missing). The separation-of-duties check cannot run, so sodmin fails closed. Reload after re-authenticating."
+                            {t("appeals.review_disabled_self_unknown")}
                         }
                     } else if !issuer_known {
                         p { class: "rounded-md border border-amber-600/40 bg-amber-600/10 p-2 text-xs text-amber-700 dark:text-amber-300",
-                            "Review disabled: soland did not return the original decision issuer DID for this appeal. The separation-of-duties check is therefore indeterminate, so sodmin fails closed until the describe contract includes the issuer."
+                            {t("appeals.review_disabled_issuer_unknown")}
                         }
                     } else if admin_is_issuer {
                         // Separation-of-duties — hide the picker entirely.
                         p { class: "rounded-md border border-amber-600/40 bg-amber-600/10 p-2 text-xs text-amber-700 dark:text-amber-300",
-                            "Separation of duties: you issued the original decision (",
+                            {t("appeals.sod_self_issuer_prefix")} " (",
                             span { class: "font-mono", "{row.original_issuer_did}" },
-                            "). The reducer rejects `ck.moderation.appeal.review` events where reviewer.did matches the original issuer."
+                            {t("appeals.sod_self_issuer_suffix")}
                         }
                     } else {
                         div { class: "flex flex-wrap items-center gap-2",
@@ -563,7 +569,7 @@ fn appeal_detail_card(
                                     verdict_picker.set(Some(Verdict::Uphold));
                                     confirm_open.set(true);
                                 },
-                                "Uphold"
+                                {t("appeals.verdict_uphold")}
                             }
                             Button {
                                 variant: ButtonVariant::Destructive,
@@ -572,17 +578,17 @@ fn appeal_detail_card(
                                     verdict_picker.set(Some(Verdict::Overturn));
                                     confirm_open.set(true);
                                 },
-                                "Overturn (auto-pairs lift)"
+                                {t("appeals.overturn_auto_pairs")}
                             }
                             Button {
                                 variant: ButtonVariant::Outline,
                                 size: ButtonSize::Sm,
                                 disabled: true,
-                                "Modify (requires fresh decision — pending)"
+                                {t("appeals.modify_pending")}
                             }
                         }
                         p { class: "text-xs text-muted-foreground",
-                            "Overturn writes `ck.moderation.appeal.decision` with verdict=overturn; the reducer auto-pairs `ck.moderation.decision.lift` in the same Seal batch."
+                            {t("appeals.overturn_hint")}
                         }
                     }
                 }

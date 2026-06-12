@@ -111,7 +111,7 @@ pub fn AppletList() -> Element {
                                                                         spawn(async move {
                                                                             match applets::enable_applet(&id).await {
                                                                                 Ok(_) => {
-                                                                                    show_toast("Applet enabled", ToastVariant::Success);
+                                                                                    show_toast(&t("applets.toast_enabled"), ToastVariant::Success);
                                                                                     data.restart();
                                                                                 }
                                                                                 Err(e) => show_toast(&format!("Failed: {}", e.message), ToastVariant::Error),
@@ -132,7 +132,7 @@ pub fn AppletList() -> Element {
                                                                         spawn(async move {
                                                                             match applets::disable_applet(&id).await {
                                                                                 Ok(_) => {
-                                                                                    show_toast("Applet disabled", ToastVariant::Success);
+                                                                                    show_toast(&t("applets.toast_disabled"), ToastVariant::Success);
                                                                                     data.restart();
                                                                                 }
                                                                                 Err(e) => show_toast(&format!("Failed: {}", e.message), ToastVariant::Error),
@@ -225,7 +225,7 @@ pub fn AppletList() -> Element {
                     spawn(async move {
                         match applets::register_applet(&req).await {
                             Ok(_) => {
-                                show_toast("Applet registered", ToastVariant::Success);
+                                show_toast(&t("applets.toast_registered"), ToastVariant::Success);
                                 show_register_dialog.set(false);
                                 data.restart();
                             }
@@ -240,7 +240,7 @@ pub fn AppletList() -> Element {
         ConfirmDialog {
             open: show_delete_dialog.read().is_some(),
             title: t("common.delete"),
-            description: "Are you sure you want to delete this applet?".to_string(),
+            description: t("applets.delete_confirm"),
             confirm_text: t("common.delete"),
             destructive: true,
             on_confirm: move |_| {
@@ -249,7 +249,7 @@ pub fn AppletList() -> Element {
                     spawn(async move {
                         match applets::delete_applet(&id).await {
                             Ok(_) => {
-                                show_toast("Applet deleted", ToastVariant::Success);
+                                show_toast(&t("applets.toast_deleted"), ToastVariant::Success);
                                 data.restart();
                             }
                             Err(e) => show_toast(&format!("Failed: {}", e.message), ToastVariant::Error),

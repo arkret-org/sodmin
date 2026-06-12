@@ -62,7 +62,7 @@ pub fn AgentList() -> Element {
                                 &rows,
                             );
                             export_to_csv("agents.csv", &csv);
-                            show_toast("Agents CSV downloaded", ToastVariant::Success);
+                            show_toast(&t("agents.toast_csv_downloaded"), ToastVariant::Success);
                         }
                     },
                     {t("common.export_csv")}
@@ -142,7 +142,7 @@ pub fn AgentList() -> Element {
                                                                         spawn(async move {
                                                                             match agents::pause_personal_agent(&id).await {
                                                                                 Ok(_) => {
-                                                                                    show_toast("Agent paused", ToastVariant::Success);
+                                                                                    show_toast(&t("agents.toast_paused"), ToastVariant::Success);
                                                                                     data.restart();
                                                                                 }
                                                                                 Err(e) => show_toast(&format!("Failed: {}", e.message), ToastVariant::Error),
@@ -163,7 +163,7 @@ pub fn AgentList() -> Element {
                                                                         spawn(async move {
                                                                             match agents::resume_personal_agent(&id).await {
                                                                                 Ok(_) => {
-                                                                                    show_toast("Agent resumed", ToastVariant::Success);
+                                                                                    show_toast(&t("agents.toast_resumed"), ToastVariant::Success);
                                                                                     data.restart();
                                                                                 }
                                                                                 Err(e) => show_toast(&format!("Failed: {}", e.message), ToastVariant::Error),
@@ -184,7 +184,7 @@ pub fn AgentList() -> Element {
                                                                         spawn(async move {
                                                                             match agents::rotate_personal_agent_key(&id).await {
                                                                                 Ok(_) => {
-                                                                                    show_toast("Agent key rotated", ToastVariant::Success);
+                                                                                    show_toast(&t("agents.toast_key_rotated"), ToastVariant::Success);
                                                                                     data.restart();
                                                                                 }
                                                                                 Err(e) => show_toast(&format!("Failed: {}", e.message), ToastVariant::Error),
@@ -260,7 +260,7 @@ pub fn AgentList() -> Element {
                             // legacy /revoke shape is gone.
                             match agents::deactivate_personal_agent(&id).await {
                                 Ok(_) => {
-                                    show_toast("Agent deactivated", ToastVariant::Success);
+                                    show_toast(&t("agents.toast_deactivated"), ToastVariant::Success);
                                     data.restart();
                                 }
                                 Err(e) => show_toast(&format!("Failed: {}", e.message), ToastVariant::Error),

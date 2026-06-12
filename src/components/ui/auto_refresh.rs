@@ -13,6 +13,7 @@
 
 use dioxus::prelude::*;
 
+use crate::utils::i18n::t;
 use crate::utils::storage;
 
 /// Discrete interval choices in milliseconds. The `Off` variant means
@@ -105,10 +106,10 @@ pub fn AutoRefreshPicker(
     let key_for_change = storage_key.clone();
     rsx! {
         label { class: "flex items-center gap-2 text-sm text-muted-foreground",
-            span { "Auto-refresh" }
+            span { {t("common.auto_refresh")} }
             select {
                 class: "h-9 rounded-md border border-input bg-background px-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                aria_label: "Auto-refresh interval",
+                aria_label: t("common.auto_refresh_interval"),
                 value: value.wire(),
                 onchange: move |evt| {
                     let next = RefreshInterval::from_wire(&evt.value());
