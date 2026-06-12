@@ -4,7 +4,7 @@
 use crate::api::client::{api_client, build_url, json_body};
 use crate::types::seal::{
     BottomEntry, BottomRepairRequest, BottomRepairStrategy, CompactionOutcome, CompactionRequest,
-    NotaryReconfigRequest, NotaryValue, SealDagSnapshot, SubmitControlMoveResponse,
+    NotaryReconfigRequest, NotaryValue, SealDagSnapshot, SubmitControlMoveOutcome,
 };
 use crate::utils::net::error::HttpError;
 
@@ -18,7 +18,7 @@ pub async fn get_notary_value(realm_id: &str) -> Result<NotaryValue, HttpError> 
 
 pub async fn submit_notary_reconfig(
     req: &NotaryReconfigRequest,
-) -> Result<SubmitControlMoveResponse, HttpError> {
+) -> Result<SubmitControlMoveOutcome, HttpError> {
     let url = format!(
         "/_soland/admin/realms/{}/notary/reconfigure",
         urlencoding::encode(&req.realm_id)
@@ -36,7 +36,7 @@ pub async fn submit_bottom_repair(
     realm_id: &str,
     cell_id: &str,
     strategy: BottomRepairStrategy,
-) -> Result<SubmitControlMoveResponse, HttpError> {
+) -> Result<SubmitControlMoveOutcome, HttpError> {
     let url = format!(
         "/_soland/admin/realms/{}/bottom/{}/repair",
         urlencoding::encode(realm_id),

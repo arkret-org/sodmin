@@ -6,7 +6,7 @@ pub use coauth_admin_types::{
 };
 
 use crate::api::client::api_client;
-use crate::api::openapi_contract::coauth as coauth_paths;
+use crate::api::paths::coauth as coauth_paths;
 use crate::utils::net::error::HttpError;
 
 pub async fn list_notification_channels() -> Result<Vec<CoauthNotificationChannel>, HttpError> {

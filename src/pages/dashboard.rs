@@ -6,7 +6,7 @@ use crate::components::ui::card::*;
 use crate::components::ui::error_banner::ErrorBanner;
 use crate::components::ui::icons::Icon;
 use crate::components::ui::loading::StatsSkeleton;
-use crate::types::{ServerDescribeDocument, ServerStatusResponse};
+use crate::types::{ServerDescribeDocument, ServerStatusOutcome};
 use crate::utils::cache::cached_result;
 use crate::utils::i18n::t;
 use crate::utils::net::error::HttpError;
@@ -395,7 +395,7 @@ fn conformance_level(describe: &ServerDescribeDocument) -> Option<String> {
     json_string(&describe.limits, &["profile_status", "conformance"])
 }
 
-fn health_summary(status: Option<&ServerStatusResponse>) -> String {
+fn health_summary(status: Option<&ServerStatusOutcome>) -> String {
     match status {
         Some(status) if status.ok => "Healthy".to_string(),
         Some(status) => {

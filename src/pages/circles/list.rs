@@ -33,7 +33,7 @@ pub fn CircleList() -> Element {
         async move {
             if realm.trim().is_empty() {
                 Ok::<_, crate::utils::net::error::HttpError>(
-                    crate::types::circles::ListCirclesResponse::default(),
+                    crate::types::circles::ListCirclesOutcome::default(),
                 )
             } else {
                 circles::list_circles(&realm).await

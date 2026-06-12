@@ -19,15 +19,15 @@
 
 use crate::api::client::{api_client, build_url, json_body};
 use crate::types::circles::{
-    Circle, CircleMemberRequest, CircleMembershipResponse, CircleScopeRotateResponse,
-    CreateCircleRequest, ListCirclesResponse,
+    Circle, CircleMemberRequest, CircleMembershipOutcome, CircleScopeRotateOutcome,
+    CreateCircleRequest, ListCirclesOutcome,
 };
 use crate::utils::net::error::HttpError;
 
 /// List Circles inside a Realm. Requires `ck.circle.audit` to enumerate
 /// outside the caller's own membership; soland enforces the visibility
 /// filter server-side.
-pub async fn list_circles(realm_id: &str) -> Result<ListCirclesResponse, HttpError> {
+pub async fn list_circles(realm_id: &str) -> Result<ListCirclesOutcome, HttpError> {
     let url = build_url("/_soland/self/circles", &[("realm_id", realm_id)])?;
     api_client(&url, "GET", None).await
 }
@@ -52,7 +52,7 @@ pub async fn create_circle(req: &CreateCircleRequest) -> Result<Circle, HttpErro
 pub async fn add_circle_member(
     circle_id: &str,
     req: &CircleMemberRequest,
-) -> Result<CircleMembershipResponse, HttpError> {
+) -> Result<CircleMembershipOutcome, HttpError> {
     let url = format!(
         "/_soland/self/circles/{}/members",
         urlencoding::encode(circle_id),
@@ -65,7 +65,7 @@ pub async fn add_circle_member(
 pub async fn remove_circle_member(
     circle_id: &str,
     actor_id: &str,
-) -> Result<CircleMembershipResponse, HttpError> {
+) -> Result<CircleMembershipOutcome, HttpError> {
     let url = format!(
         "/_soland/self/circles/{}/members/{}",
         urlencoding::encode(circle_id),
@@ -77,7 +77,7 @@ pub async fn remove_circle_member(
 /// Rotate the Circle's bound MLS group. CKP-0007 mandates this be a
 /// separate explicit admin action so the receipt fans out into the
 /// audit log even when no membership changes accompany the rotation.
-pub async fn rotate_circle_scope(circle_id: &str) -> Result<CircleScopeRotateResponse, HttpError> {
+pub async fn rotate_circle_scope(circle_id: &str) -> Result<CircleScopeRotateOutcome, HttpError> {
     let url = format!(
         "/_soland/self/circles/{}/scope-rotate",
         urlencoding::encode(circle_id),

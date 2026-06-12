@@ -128,7 +128,7 @@ pub async fn ensure_sidecar_thread(id: &str) -> Result<serde_json::Value, HttpEr
 pub async fn issue_accountability_grant(
     agent_id: &str,
     req: &AccountabilityGrantRequest,
-) -> Result<AccountabilityGrantResponse, HttpError> {
+) -> Result<AccountabilityGrantOutcome, HttpError> {
     // coauth lives on a separate origin; resolved through the same
     // `build_url` helper but using the coauth base prefix.
     let url = format!(

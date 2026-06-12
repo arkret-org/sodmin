@@ -1,6 +1,6 @@
 //! DTO adapters for the multi-sig partial-signature admin surface.
 //!
-//! Pending rows come from `soland-core`. The partial-submit request/response
+//! Pending rows come from `soland-core`. The partial-submit request/outcome
 //! stays local because the current UI posts an admin-scoped note while the
 //! soland server's lower-level endpoint accepts raw partial signature material.
 
@@ -16,7 +16,7 @@ pub struct SubmitPartialSignatureRequest {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct SubmitPartialSignatureResponse {
+pub struct SubmitPartialSignatureOutcome {
     #[serde(default)]
     pub seal_id: String,
     #[serde(default)]
@@ -29,7 +29,7 @@ pub struct SubmitPartialSignatureResponse {
     pub status: String,
 }
 
-impl SubmitPartialSignatureResponse {
+impl SubmitPartialSignatureOutcome {
     pub fn threshold_met(&self) -> bool {
         self.threshold_met || self.status == "aggregated"
     }
@@ -56,8 +56,8 @@ mod tests {
     }
 
     #[test]
-    fn partial_submit_response_accepts_server_field_names() {
-        let response: SubmitPartialSignatureResponse = serde_json::from_value(serde_json::json!({
+    fn partial_submit_outcome_accepts_server_field_names() {
+        let response: SubmitPartialSignatureOutcome = serde_json::from_value(serde_json::json!({
             "seal_id": "ck:seal:1",
             "collected_partials": 2,
             "threshold_k": 2,

@@ -191,7 +191,7 @@ pub mod soland_admin {
 
     pub type Policy = crate::types::policy::Policy;
     pub type CreatePolicyRequest = crate::types::policy::CreatePolicyRequest;
-    pub type PolicyListResponse = crate::types::api::ListResponse<Policy>;
+    pub type PolicyListOutcome = crate::types::api::ListResponse<Policy>;
 }
 
 pub mod starid {

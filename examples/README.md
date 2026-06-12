@@ -40,8 +40,6 @@ cokret/
       docker-compose.example-stack.yaml   <-- run from here
       up.sh / down.sh / smoke.sh
       coauth-config.yaml                  <-- generated, gitignored
-    scripts/
-      preflight-check.sh                  <-- run before up.sh on a new machine
 ```
 
 If your checkout differs, override every `*_IMAGE` env var with a
@@ -58,10 +56,9 @@ The compose stack expects:
 - `curl` on PATH (`smoke.sh` probes each `/health` endpoint).
 - All four sibling repos checked out at `../{cokret-rust-sdk,coauth,soland,floria}`.
 
-Run `./scripts/preflight-check.sh` before the first `up.sh` invocation
-on a new machine — it surfaces every misconfig class that has burnt
-15+ minutes of cold Rust build in earlier rounds (port collisions,
-distroless-incompatible probes, missing siblings, missing host tools).
+Before the first `up.sh` invocation on a new machine, confirm Docker is
+reachable and the sibling repos exist. `up.sh` and `smoke.sh` perform the
+live stack checks directly.
 
 ### Manual binary builds (advanced operators)
 
@@ -160,5 +157,5 @@ regression doesn't require local docker reproduction.
 | `sodmin: never returned 200`            | The Dioxus build inside the image is large. Re-run `smoke.sh` with `SMOKE_ATTEMPT_BUDGET=120`. |
 | Build context error: `../../coauth` not found | Sibling repos aren't checked out. Either clone them next to `sodmin/` or override every `*_IMAGE` env var. |
 | `502 Bad Gateway` during apt-get      | Docker Desktop proxy or upstream Debian mirror flake. Floria/coauth wrap apt in a 5-attempt retry loop (added C37.3); just re-run `up.sh` if it surfaces. |
-| `cargo chef cook: failed to read /cokret-rust-sdk/...` | Sibling `cokret-rust-sdk` missing from umbrella checkout. Run `./scripts/preflight-check.sh` to confirm. |
+| `cargo chef cook: failed to read /cokret-rust-sdk/...` | Sibling `cokret-rust-sdk` missing from umbrella checkout. Confirm the sibling checkout exists before rerunning. |
 | `cargo fetch --locked: ../cokret-rust-sdk not found` | Same as above. The sodmin/coauth Dockerfiles need cokret-rust-sdk side-by-side at the umbrella context root. |

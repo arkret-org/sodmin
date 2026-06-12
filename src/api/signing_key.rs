@@ -15,7 +15,7 @@
 
 use crate::api::client::api_client;
 use crate::api::seal;
-use crate::types::signing_key::{RotateSigningKeyResponse, SigningKeyDescribe};
+use crate::types::signing_key::{RotateSigningKeyOutcome, SigningKeyDescribe};
 use crate::utils::net::error::HttpError;
 
 /// Fetch the current NotaryWorker signing-key describe view.
@@ -46,7 +46,7 @@ pub async fn get_signing_key(realm_id: &str) -> Result<SigningKeyDescribe, HttpE
 /// soland resolves the admin DID from the bearer token and uses its
 /// existing rotation routine. Returns the new verification method id
 /// so the UI can update without a re-fetch round-trip.
-pub async fn rotate_signing_key(realm_id: &str) -> Result<RotateSigningKeyResponse, HttpError> {
+pub async fn rotate_signing_key(realm_id: &str) -> Result<RotateSigningKeyOutcome, HttpError> {
     let url = format!(
         "/_soland/admin/realms/{}/notary/rotate-signing-key",
         urlencoding::encode(realm_id)

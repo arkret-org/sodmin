@@ -1,7 +1,7 @@
 //! CKP-0007 Circle admin envelopes.
 //!
 //! The Circle object itself is the canonical `cokret_core::model::Circle`.
-//! sodmin only owns the admin request/response envelopes around that spec
+//! sodmin only owns the admin request/outcome envelopes around that spec
 //! object.
 
 pub use cokret_core::model::Circle;
@@ -12,9 +12,9 @@ use cokret_core::model::{
 use cokret_core::{CircleId, Did, RealmId};
 use serde::{Deserialize, Serialize};
 
-/// `GET /_soland/self/circles?realm_id=...` response.
+/// `GET /_soland/self/circles?realm_id=...` outcome.
 #[derive(Debug, Clone, Deserialize, Default)]
-pub struct ListCirclesResponse {
+pub struct ListCirclesOutcome {
     #[serde(default)]
     pub realm_id: Option<RealmId>,
     #[serde(default)]
@@ -48,17 +48,17 @@ pub struct CircleMemberRequest {
     pub state: Option<CircleMemberState>,
 }
 
-/// `POST /_soland/self/circles/{id}/members` response.
+/// `POST /_soland/self/circles/{id}/members` outcome.
 #[derive(Debug, Clone, Deserialize)]
-pub struct CircleMembershipResponse {
+pub struct CircleMembershipOutcome {
     pub circle_id: CircleId,
     pub actor_id: Did,
     pub state: CircleMemberState,
 }
 
-/// `POST /_soland/self/circles/{id}/scope-rotate` response.
+/// `POST /_soland/self/circles/{id}/scope-rotate` outcome.
 #[derive(Debug, Clone, Deserialize)]
-pub struct CircleScopeRotateResponse {
+pub struct CircleScopeRotateOutcome {
     pub circle_id: CircleId,
     #[serde(default)]
     pub mls_group_ref: Option<String>,
@@ -176,7 +176,7 @@ mod tests {
     }
 
     #[test]
-    fn list_response_uses_core_circle_shape() {
+    fn list_outcome_uses_core_circle_shape() {
         let raw = serde_json::json!({
             "realm_id": REALM_ID,
             "circles": [{
@@ -199,7 +199,7 @@ mod tests {
                 "created_at": "2026-05-01T00:00:00Z"
             }]
         });
-        let resp: ListCirclesResponse = serde_json::from_value(raw).expect("deserialise");
+        let resp: ListCirclesOutcome = serde_json::from_value(raw).expect("deserialise");
         assert_eq!(resp.circles.len(), 1);
         assert!(circle_is_active(&resp.circles[0]));
     }

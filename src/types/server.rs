@@ -131,7 +131,7 @@ pub struct ServerStatusComponent {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct ServerStatusResponse {
+pub struct ServerStatusOutcome {
     #[serde(default)]
     pub ok: bool,
     #[serde(default)]

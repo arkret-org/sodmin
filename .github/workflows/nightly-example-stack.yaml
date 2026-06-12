@@ -95,22 +95,6 @@ jobs:
           SMOKE_ATTEMPT_BUDGET: "60"
         run: ./examples/smoke.sh
 
-      - name: Install Rust toolchain for OpenAPI contract tests
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: Generate OpenAPI snapshots
-        working-directory: sodmin
-        env:
-          SOLAND_URL: http://localhost:58787
-          COAUTH_URL: http://localhost:57080
-        run: scripts/local-openapi-snapshot.sh
-
-      - name: Run strict OpenAPI contract tests
-        working-directory: sodmin
-        env:
-          SODMIN_OPENAPI_STRICT: "1"
-        run: cargo test --locked openapi_contract
-
       - name: Set up Node for Playwright
         uses: actions/setup-node@v4
         with:

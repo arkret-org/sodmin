@@ -6,7 +6,7 @@
 pub use soland_core::admin::seal::{
     BottomCandidateHead, BottomEntry, BottomKind, BottomKindExt, BottomRepairRequest,
     BottomRepairStrategy, CompactionOutcome, CompactionRequest, NotaryKind, NotaryReconfigRequest,
-    NotaryValue, SealDagSnapshot, SealLeaf, SelfSignViolation, SubmitControlMoveResponse,
+    NotaryValue, SealDagSnapshot, SealLeaf, SelfSignViolation, SubmitControlMoveOutcome,
     bottom_kind_from_wire,
 };
 

@@ -36,12 +36,12 @@ pub struct RecoveryPolicySummary {
     pub policy: Option<serde_json::Value>,
 }
 
-/// `GET /_cokret/self/keys/backups` response. Matches the spec
+/// `GET /_cokret/self/keys/backups` outcome. Matches the spec
 /// `keys_backups_list` schema (`{backups, has_more, next_cursor?}`) rather
 /// than the generic `{data, total, next_cursor}` envelope — the latter
 /// deserialized `backups` into nothing and rendered a silently-empty list.
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct KeyBackupListResponse {
+pub struct KeyBackupListOutcome {
     #[serde(default)]
     pub backups: Vec<KeyBackupSeries>,
     #[serde(default)]

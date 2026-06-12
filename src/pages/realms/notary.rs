@@ -24,7 +24,7 @@ use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::toast::{ToastVariant, show_toast};
 use crate::types::seal::{
-    NotaryKind, NotaryReconfigRequest, NotaryValue, SubmitControlMoveResponse,
+    NotaryKind, NotaryReconfigRequest, NotaryValue, SubmitControlMoveOutcome,
 };
 use crate::utils::net::session;
 
@@ -58,7 +58,7 @@ pub fn NotaryPage(realm_id: String) -> Element {
     // "Signed Control Move body" readonly JSON viewer below the form so the
     // admin can verify byte-for-byte what was signed before walking
     // away from the page.
-    let mut last_response = use_signal::<Option<SubmitControlMoveResponse>>(|| None);
+    let mut last_response = use_signal::<Option<SubmitControlMoveOutcome>>(|| None);
 
     // Best-effort admin DID. Used both for the spec-rule pre-check
     // ("new notary cannot self-sign itself in") and for the warning

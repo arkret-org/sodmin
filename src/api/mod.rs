@@ -26,7 +26,7 @@ pub mod key_backup;
 pub mod media;
 pub mod moderation;
 pub mod multisig;
-pub mod openapi_contract;
+pub mod paths;
 pub mod policy;
 pub mod realm_links;
 pub mod realm_policy;

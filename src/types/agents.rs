@@ -91,7 +91,7 @@ pub struct AccountabilityGrantRequest {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct AccountabilityGrantResponse {
+pub struct AccountabilityGrantOutcome {
     #[serde(default)]
     pub accountability_grant_id: String,
     #[serde(default)]

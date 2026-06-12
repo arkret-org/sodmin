@@ -3,7 +3,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::api::client::api_client;
-use crate::api::openapi_contract::coauth as coauth_paths;
+use crate::api::paths::coauth as coauth_paths;
 use crate::utils::net::error::HttpError;
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]

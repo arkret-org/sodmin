@@ -77,11 +77,11 @@ impl SigningKeyDescribe {
     }
 }
 
-/// Response shape returned by the rotate endpoint. soland generates a
+/// Outcome shape returned by the rotate endpoint. soland generates a
 /// fresh key, swaps the worker's signer atomically, and reports the new
 /// verification method id.
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct RotateSigningKeyResponse {
+pub struct RotateSigningKeyOutcome {
     pub verification_method_id: String,
     #[serde(default)]
     pub rotated_at: Option<String>,

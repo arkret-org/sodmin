@@ -1,5 +1,5 @@
 use crate::api::client::api_client;
-use crate::api::openapi_contract::soland as soland_paths;
+use crate::api::paths::soland as soland_paths;
 use crate::types::*;
 use crate::utils::net::error::HttpError;
 
@@ -22,7 +22,7 @@ pub async fn get_server_stats() -> Result<ServerStats, HttpError> {
     api_client(soland_paths::SERVER_STATS, "GET", None).await
 }
 
-pub async fn get_server_status() -> Result<ServerStatusResponse, HttpError> {
+pub async fn get_server_status() -> Result<ServerStatusOutcome, HttpError> {
     api_client(soland_paths::SERVER_STATUS, "GET", None).await
 }
 

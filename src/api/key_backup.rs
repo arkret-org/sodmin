@@ -4,7 +4,7 @@
 
 use crate::api::client::{api_client, build_url};
 use crate::types::{
-    KeyBackupListResponse, ListResponse, RecoveryPolicySummary, RecoveryReceiptSummary,
+    KeyBackupListOutcome, ListResponse, RecoveryPolicySummary, RecoveryReceiptSummary,
 };
 use crate::utils::net::error::HttpError;
 
@@ -41,7 +41,7 @@ struct RecoveryReceiptsEnvelope {
 pub async fn list_backups(
     series_id: Option<&str>,
     backup_class: Option<&str>,
-) -> Result<KeyBackupListResponse, HttpError> {
+) -> Result<KeyBackupListOutcome, HttpError> {
     let mut params: Vec<(&str, &str)> = Vec::with_capacity(2);
     if let Some(s) = series_id {
         params.push(("series_id", s));

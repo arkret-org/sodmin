@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 
 use crate::api::client::{api_client, build_url, json_body};
-use crate::api::contracts::soland_admin::{CreatePolicyRequest, Policy, PolicyListResponse};
+use crate::api::contracts::soland_admin::{CreatePolicyRequest, Policy, PolicyListOutcome};
 use crate::utils::net::error::HttpError;
 
 #[derive(Debug, Clone, Deserialize, Default)]
@@ -51,7 +51,7 @@ struct PatchPolicyDocumentRequest {
 pub async fn list_policies(
     cursor: Option<&str>,
     limit: u64,
-) -> Result<PolicyListResponse, HttpError> {
+) -> Result<PolicyListOutcome, HttpError> {
     let limit_str = limit.max(1).to_string();
     let mut params: Vec<(&str, &str)> = vec![("limit", limit_str.as_str())];
     if let Some(cursor) = cursor.filter(|c| !c.is_empty()) {
@@ -59,7 +59,7 @@ pub async fn list_policies(
     }
     let url = build_url("/_soland/self/policies", &params)?;
     let resp: PolicyDocumentsEnvelope = api_client(&url, "GET", None).await?;
-    Ok(PolicyListResponse {
+    Ok(PolicyListOutcome {
         data: resp
             .policies
             .into_iter()

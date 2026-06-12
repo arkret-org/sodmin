@@ -4,7 +4,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::api::client::{api_client, build_url};
-use crate::api::openapi_contract::coauth as coauth_paths;
+use crate::api::paths::coauth as coauth_paths;
 use crate::types::CursorPage;
 use crate::utils::net::error::HttpError;
 
