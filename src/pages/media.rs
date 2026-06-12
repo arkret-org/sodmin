@@ -18,6 +18,9 @@ pub fn MediaList() -> Element {
     let page_val = *page.read();
     let needle = search.read().to_ascii_lowercase();
 
+    let mut stats_data = use_resource(move || async move { media::get_media_statistics().await });
+    let mut actor_media_data =
+        use_resource(move || async move { media::list_media_by_actor().await });
     let mut media_data =
         use_resource(move || async move { media::list_media(page_val, PAGE_SIZE).await });
 
@@ -26,6 +29,47 @@ pub fn MediaList() -> Element {
             PageHeader {
                 title: t("media.title"),
                 description: t("media.subtitle"),
+            }
+
+            match &*stats_data.read() {
+                Some(Ok(stats)) => rsx! {
+                    div { class: "grid gap-3 md:grid-cols-4",
+                        {metric_tile("Blobs", stats.total_blobs.to_string())}
+                        {metric_tile("Stored", format_bytes(stats.total_size))}
+                        {metric_tile("Encrypted", stats.encrypted_count.to_string())}
+                        {metric_tile("Quarantined", stats.quarantined_count.to_string())}
+                    }
+                },
+                Some(Err(e)) => rsx! {
+                    ErrorBanner {
+                        message: e.message.clone(),
+                        errcode: e.body.as_ref().map(|body| body.errcode.clone()),
+                        request_id: e.request_id.clone(),
+                        retry_after_ms: e.retry_after_ms,
+                        on_retry: move |_| stats_data.restart(),
+                    }
+                },
+                None => rsx! {
+                    div { class: "grid gap-3 md:grid-cols-4",
+                        for _ in 0..4 {
+                            div { class: "h-20 rounded-md border bg-muted/30" }
+                        }
+                    }
+                },
+            }
+
+            match &*actor_media_data.read() {
+                Some(Ok(resp)) => actor_media_section(resp),
+                Some(Err(e)) => rsx! {
+                    ErrorBanner {
+                        message: e.message.clone(),
+                        errcode: e.body.as_ref().map(|body| body.errcode.clone()),
+                        request_id: e.request_id.clone(),
+                        retry_after_ms: e.retry_after_ms,
+                        on_retry: move |_| actor_media_data.restart(),
+                    }
+                },
+                None => rsx! { div { class: "h-24 rounded-md border bg-muted/30" } },
             }
 
             SearchInput {
@@ -112,6 +156,60 @@ pub fn MediaList() -> Element {
                     }
                 },
                 None => rsx! { PageSkeleton {} },
+            }
+        }
+    }
+}
+
+fn metric_tile(label: &str, value: String) -> Element {
+    rsx! {
+        div { class: "rounded-md border p-3",
+            div { class: "text-xs uppercase text-muted-foreground", "{label}" }
+            div { class: "mt-1 text-lg font-semibold", "{value}" }
+        }
+    }
+}
+
+fn actor_media_section(
+    resp: &crate::types::ListResponse<crate::types::ActorMediaStatistics>,
+) -> Element {
+    rsx! {
+        div { class: "rounded-md border",
+            Table {
+                TableHeader {
+                    TableRow {
+                        TableHead { "Actor" }
+                        TableHead { "Display name" }
+                        TableHead { "Blobs" }
+                        TableHead { "Stored" }
+                    }
+                }
+                TableBody {
+                    if resp.data.is_empty() {
+                        TableRow {
+                            TableCell { class: "text-center text-muted-foreground py-6".to_string(), colspan: 99,
+                                {t("media.no_media")}
+                            }
+                        }
+                    } else {
+                        for row in resp.data.iter() {
+                            {
+                                let actor_id = row.actor_id.clone();
+                                let display_name = row.display_name.clone().unwrap_or_else(|| "-".to_string());
+                                let blob_count = row.blob_count.to_string();
+                                let total_size = format_bytes(row.total_size);
+                                rsx! {
+                                    TableRow {
+                                        TableCell { class: "font-mono text-xs max-w-[260px] truncate".to_string(), "{actor_id}" }
+                                        TableCell { "{display_name}" }
+                                        TableCell { "{blob_count}" }
+                                        TableCell { "{total_size}" }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
     }
