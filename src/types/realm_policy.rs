@@ -1,9 +1,9 @@
 //! Admin DTOs for the soland Realm policy editor.
 //!
 //! Mirrors the `ck.component.realm.policy.v1` component body. Submit
-//! constructs a cas-register Move via
+//! constructs a cas-register Control Move via
 //! `POST /_soland/admin/realms/{realm_id}/policy` with a typed body the
-//! backend wraps into a Move + signature.
+//! backend wraps into a Control Move + signature.
 
 use serde::{Deserialize, Serialize};
 
@@ -77,7 +77,7 @@ pub struct RealmSearchPolicy {
 impl RealmPolicy {
     /// Validate that the policy is internally consistent. Returns the
     /// first invariant violation as a human-readable string. Used by the
-    /// editor before posting the cas-register Move.
+    /// editor before posting the cas-register Control Move.
     pub fn validate(&self) -> Result<(), String> {
         if self.history_visibility.is_empty() {
             return Err("history_visibility is required".into());

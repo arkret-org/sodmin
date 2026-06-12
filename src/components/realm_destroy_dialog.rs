@@ -1,7 +1,7 @@
 //! Round R2/R3 — Realm destroy confirmation dialog (T07).
 //!
 //! `ck.realm.destroy` is irreversible at the principal server: once
-//! anchored, no further ordinary writes are accepted, all snapshots /
+//! sealed, no further ordinary writes are accepted, all snapshots /
 //! backfill / GC schedules collapse, federation fanout fires on a
 //! 30-day window, and erasure receipts / legal holds take precedence
 //! over backfill. The five normative bullets below MUST be explicitly
@@ -25,7 +25,7 @@ pub const CONFIRMATION_PHRASE: &str = "DESTROY";
 /// Five normative bullets the admin must explicitly tick. Phrasing
 /// taken verbatim from the round 2+3 spec.
 const NORMATIVE_RULES: [&str; 5] = [
-    "No further ordinary writes accepted after destroy is anchored.",
+    "No further ordinary writes accepted after destroy is sealed.",
     "Snapshots, backfill, and GC schedules will run to finalize the destroy.",
     "No successor Realm — use a tombstone if continuity is required.",
     "Erasure receipts and legal holds take precedence over backfill.",
@@ -60,7 +60,7 @@ pub fn RealmDestroyDialog(props: RealmDestroyDialogProps) -> Element {
                 div { class: "space-y-1",
                     h2 { class: "text-lg font-semibold text-destructive", "Destroy Realm" }
                     p { class: "text-sm text-muted-foreground",
-                        "You are about to anchor a `ck.realm.destroy` event on "
+                        "You are about to seal a `ck.realm.destroy` event on "
                         span { class: "font-mono", "{realm_id}" }
                         ". This is irreversible."
                     }
@@ -119,7 +119,7 @@ pub fn RealmDestroyDialog(props: RealmDestroyDialogProps) -> Element {
                                 props.on_confirm.call(());
                             }
                         },
-                        "Anchor ck.realm.destroy"
+                        "Seal ck.realm.destroy"
                     }
                 }
             }

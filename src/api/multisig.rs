@@ -3,41 +3,43 @@
 //!
 //! Endpoints:
 //!
-//! - `GET  /_soland/admin/realms/{realm_id}/multisig/pending` — list pending Anchors awaiting
-//!   threshold (`k of n`). Each row includes the anchor_id, threshold, collected partials count,
-//!   and missing signers DIDs.
-//! - `POST /_soland/admin/realms/{realm_id}/multisig/{anchor_id}/partial` — submit the current
-//!   admin's partial signature toward the pending Anchor. soland resolves the admin DID from the
-//!   bearer token, signs the anchor's `state_root` with the bound signing key, and folds the
+//! - `GET  /_soland/admin/realms/{realm_id}/multisig/pending` — list pending Seals awaiting
+//!   threshold (`k of n`). Each row includes the seal_id, threshold, collected partials count, and
+//!   missing signers DIDs.
+//! - `POST /_soland/admin/realms/{realm_id}/multisig/{seal_id}/partial` — submit the current
+//!   admin's partial signature toward the pending Seal. soland resolves the admin DID from the
+//!   bearer token, signs the Seal's `state_root` with the bound signing key, and folds the
 //!   resulting partial into the pending signature set.
 //!
 //! Both routes follow the 404-tolerant pattern.
 
 use crate::api::client::{api_client, json_body};
 use crate::types::multisig::{
-    PendingMultisigAnchor, SubmitPartialSignatureRequest, SubmitPartialSignatureResponse,
+    MultisigPendingOutcome, PendingMultisigSeal, SubmitPartialSignatureRequest,
+    SubmitPartialSignatureResponse,
 };
 use crate::utils::net::error::HttpError;
 
-/// List Anchors awaiting partial signatures inside a Realm.
-pub async fn list_pending(realm_id: &str) -> Result<Vec<PendingMultisigAnchor>, HttpError> {
+/// List Seals awaiting partial signatures inside a Realm.
+pub async fn list_pending(realm_id: &str) -> Result<Vec<PendingMultisigSeal>, HttpError> {
     let url = format!(
         "/_soland/admin/realms/{}/multisig/pending",
         urlencoding::encode(realm_id)
     );
-    api_client(&url, "GET", None).await
+    let outcome: MultisigPendingOutcome = api_client(&url, "GET", None).await?;
+    Ok(outcome.entries)
 }
 
-/// Submit the current admin's partial signature toward a pending Anchor.
+/// Submit the current admin's partial signature toward a pending Seal.
 pub async fn submit_partial(
     realm_id: &str,
-    anchor_id: &str,
+    seal_id: &str,
     note: Option<String>,
 ) -> Result<SubmitPartialSignatureResponse, HttpError> {
     let url = format!(
         "/_soland/admin/realms/{}/multisig/{}/partial",
         urlencoding::encode(realm_id),
-        urlencoding::encode(anchor_id),
+        urlencoding::encode(seal_id),
     );
     let body = SubmitPartialSignatureRequest { note };
     api_client(&url, "POST", Some(json_body(&body)?)).await

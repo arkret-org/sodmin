@@ -3239,10 +3239,20 @@ dependencies = [
  "reqwest 0.13.4",
  "serde",
  "serde_json",
+ "soland-core",
  "urlencoding",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
+]
+
+[[package]]
+name = "soland-core"
+version = "0.3.0"
+dependencies = [
+ "cokret-core",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]

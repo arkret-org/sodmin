@@ -17,7 +17,7 @@
 //! Verdict picker (uphold / overturn / modify) writes
 //! `ck.moderation.appeal.decision` and — when verdict==overturn — the
 //! reducer pairs it with `ck.moderation.decision.lift` automatically in
-//! the same Anchor batch; this UI just surfaces the auto-pairing in a
+//! the same Seal batch; this UI just surfaces the auto-pairing in a
 //! callout so the admin knows what they are about to submit.
 //!
 //! Wire to `/_soland/admin/moderation/appeals`; sodmin fails closed on
@@ -298,7 +298,7 @@ pub fn ModerationAppealsPage() -> Element {
                 let open = *confirm_open.read();
                 let verdict_label = pending.map(|v| v.label()).unwrap_or("");
                 let description = match pending {
-                    Some(Verdict::Overturn) => "Overturn auto-pairs `ck.moderation.decision.lift` in the same Anchor batch.".to_string(),
+                    Some(Verdict::Overturn) => "Overturn auto-pairs `ck.moderation.decision.lift` in the same Seal batch.".to_string(),
                     _ => "Recording an appeal decision is final.".to_string(),
                 };
                 rsx! {
@@ -582,7 +582,7 @@ fn appeal_detail_card(
                             }
                         }
                         p { class: "text-xs text-muted-foreground",
-                            "Overturn writes `ck.moderation.appeal.decision` with verdict=overturn; the reducer auto-pairs `ck.moderation.decision.lift` in the same Anchor batch."
+                            "Overturn writes `ck.moderation.appeal.decision` with verdict=overturn; the reducer auto-pairs `ck.moderation.decision.lift` in the same Seal batch."
                         }
                     }
                 }

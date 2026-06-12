@@ -72,7 +72,7 @@ pub fn HardeningDashboard() -> Element {
             service_from_health(
                 "soland",
                 "Principal server (soland)",
-                "Move/Anchor/Lattice surface, admin auth, push bridge.",
+                "Control-plane Seal surface, admin auth, push bridge.",
                 soland.as_ref(),
                 None,
             ),

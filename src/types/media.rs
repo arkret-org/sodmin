@@ -6,9 +6,9 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct MediaStatistics {
-    #[serde(default, alias = "total_count")]
+    #[serde(default)]
     pub total_blobs: u64,
-    #[serde(default, alias = "total_size_bytes")]
+    #[serde(default)]
     pub total_size: u64,
     #[serde(default)]
     pub encrypted_count: u64,
@@ -24,7 +24,7 @@ pub struct ActorMediaStatistics {
     pub display_name: Option<String>,
     #[serde(default)]
     pub blob_count: u64,
-    #[serde(default, alias = "total_size_bytes")]
+    #[serde(default)]
     pub total_size: u64,
 }
 
@@ -40,7 +40,7 @@ pub struct MediaRow {
     pub encrypted: bool,
     #[serde(default)]
     pub uploaded_by: Option<String>,
-    #[serde(default, alias = "size")]
+    #[serde(default)]
     pub size_bytes: u64,
     #[serde(default)]
     pub created_at: Option<String>,

@@ -42,7 +42,7 @@ impl SigningKeyOrigin {
 pub struct SigningKeyDescribe {
     /// Wire-format `SigningKeyOrigin` (snake_case).
     pub origin: String,
-    /// `did:...#kid` of the verification method the worker signs Anchors
+    /// `did:...#kid` of the verification method the worker uses for Seals
     /// with.
     pub verification_method_id: String,
     #[serde(default)]
@@ -71,8 +71,7 @@ impl SigningKeyDescribe {
     /// Whether the `Rotate signing key` button should be enabled. Ephemeral
     /// keys cannot be rotated in-place — the operator MUST redeploy with a
     /// configured key first; otherwise rotation would just spin up another
-    /// ephemeral key, leaving notary signatures un-anchored to a stable
-    /// DID.
+    /// ephemeral key, leaving notary signatures without stable DID binding.
     pub fn can_rotate(&self) -> bool {
         self.rotatable && matches!(self.origin_typed(), SigningKeyOrigin::Configured)
     }

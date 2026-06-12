@@ -17,7 +17,7 @@ pub struct HandleAvailabilityResult {
 /// One row in `GET /_soland/admin/handles`. Mirrors the `ck.handle.*` cell
 /// projection — `canonical_uri` is the cell subject, `aliases` is the
 /// projected handle set, `issuer_did` is the principal that signed the
-/// most recent assignment Move.
+/// most recent assignment Control Move.
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct HandleRecord {
     #[serde(default)]

@@ -3,7 +3,9 @@
 //! plus the soland identity recovery extension endpoints.
 
 use crate::api::client::{api_client, build_url};
-use crate::types::{KeyBackupListResponse, ListResponse, RecoveryPolicySummary, RecoveryReceiptSummary};
+use crate::types::{
+    KeyBackupListResponse, ListResponse, RecoveryPolicySummary, RecoveryReceiptSummary,
+};
 use crate::utils::net::error::HttpError;
 
 // Recovery policy / receipt browse is a soland identity extension on the

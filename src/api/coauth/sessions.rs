@@ -31,9 +31,9 @@ pub struct CoauthOAuth2Session {
 pub struct CoauthPersonalSessionRow {
     #[serde(default)]
     pub id: String,
-    #[serde(default, alias = "actor_user_id", alias = "owner_user_id")]
+    #[serde(default)]
     pub user_id: Option<String>,
-    #[serde(default, alias = "human_name")]
+    #[serde(default)]
     pub name: Option<String>,
     #[serde(default)]
     pub created_at: Option<String>,
@@ -48,7 +48,7 @@ pub type CoauthPersonalSession = CoauthPersonalSessionRow;
 pub struct CoauthPersonalSessionOneShot {
     #[serde(flatten)]
     pub session: CoauthPersonalSessionRow,
-    #[serde(default, alias = "token", alias = "access_token")]
+    #[serde(default)]
     pub access_token: Option<String>,
 }
 
@@ -126,8 +126,8 @@ mod tests {
     fn personal_session_row_drops_token_fields() {
         let row: CoauthPersonalSessionRow = serde_json::from_value(serde_json::json!({
             "id": "session-1",
-            "actor_user_id": "user-1",
-            "human_name": "ops key",
+            "user_id": "user-1",
+            "name": "ops key",
             "created_at": "2026-06-07T00:00:00Z",
             "token": "secret-token",
             "access_token": "secret-access-token"
@@ -144,10 +144,10 @@ mod tests {
     }
 
     #[test]
-    fn personal_session_one_shot_accepts_access_token_alias() {
+    fn personal_session_one_shot_uses_current_access_token_field() {
         let response: CoauthPersonalSessionOneShot = serde_json::from_value(serde_json::json!({
             "id": "session-1",
-            "human_name": "ops key",
+            "name": "ops key",
             "access_token": "secret-access-token"
         }))
         .expect("one-shot response should deserialize");

@@ -1,7 +1,7 @@
 //! Bottom-state diagnostics page (Stream H', H'3).
 //!
-//! Lists every cell currently in `Bottom` state across visible Spaces and
-//! offers a "construct repair Move" shortcut per row. Picking the action
+//! Lists every cell currently in `Bottom` state across visible Realms and
+//! offers a "construct repair Control Move" shortcut per row. Picking the action
 //! pops a confirmation modal where the operator selects a typed
 //! `BottomRepairStrategy` (today: `head_in_winner` only; the page falls
 //! back to `manual` when no candidate heads are surfaced) before the
@@ -22,7 +22,8 @@ use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::table::*;
 use crate::components::ui::toast::{ToastVariant, show_toast};
 use crate::types::seal::{
-    BottomEntry, BottomKind, BottomKindExt, BottomRepairStrategy, WinnerHead, bottom_kind_from_wire,
+    BottomCandidateHead, BottomEntry, BottomKind, BottomKindExt, BottomRepairStrategy,
+    bottom_kind_from_wire,
 };
 
 #[component]
@@ -46,7 +47,7 @@ pub fn BottomDiagnosticsPage() -> Element {
         div { class: "space-y-6",
             PageHeader {
                 title: "Bottom diagnostics".to_string(),
-                description: "Cells currently in Bottom state across visible Spaces.".to_string(),
+                description: "Cells currently in Bottom state across visible Realms.".to_string(),
                 Button {
                     variant: ButtonVariant::Outline,
                     onclick: move |_| data.restart(),
@@ -70,9 +71,9 @@ pub fn BottomDiagnosticsPage() -> Element {
                             TableHeader {
                                 TableRow {
                                     TableHead { "Kind" }
-                                    TableHead { "Space" }
+                                    TableHead { "Realm" }
                                     TableHead { "Cell" }
-                                    TableHead { "Move IDs" }
+                                    TableHead { "Event IDs" }
                                     TableHead { "Detected" }
                                     TableHead { "Details" }
                                     TableHead { class: "text-right".to_string(), "Action" }
@@ -84,7 +85,7 @@ pub fn BottomDiagnosticsPage() -> Element {
                                             let entry_clone = entry.clone();
                                             let kind_label = format_kind_label(&entry.kind);
                                             let kind_variant = bottom_kind_variant(&entry.kind);
-                                            let move_ids = entry.move_ids.join(", ");
+                                            let event_ids = entry.event_ids.join(", ");
                                             let detected = entry
                                                 .detected_at
                                                 .clone()
@@ -107,7 +108,7 @@ pub fn BottomDiagnosticsPage() -> Element {
                                                     }
                                                     TableCell {
                                                         class: "font-mono text-xs max-w-[200px] truncate".to_string(),
-                                                        "{move_ids}"
+                                                        "{event_ids}"
                                                     }
                                                     TableCell { class: "text-muted-foreground".to_string(), "{detected}" }
                                                     TableCell {
@@ -171,7 +172,7 @@ pub fn BottomDiagnosticsPage() -> Element {
                                                                             let strategy = repair_strategy_for_entry(&entry_for_button, idx);
                                                                             pending.set(Some((entry_for_button.clone(), strategy)));
                                                                         },
-                                                                        "Construct repair Move"
+                                                                        "Construct repair Control Move"
                                                                     }
                                                                 }
                                                             }
@@ -204,7 +205,7 @@ pub fn BottomDiagnosticsPage() -> Element {
                     None => (None, None),
                 };
                 let open = entry_opt.is_some();
-                let title = "Submit repair Move?".to_string();
+                let title = "Submit repair Control Move?".to_string();
                 let description = match (&entry_opt, &strategy_opt) {
                     (Some(e), Some(s)) => format!(
                         "Cell {} ({}); strategy = {}.",
@@ -242,7 +243,7 @@ pub fn BottomDiagnosticsPage() -> Element {
                                     .await;
                                     match res {
                                         Ok(r) => show_toast(
-                                            &format!("Repair move: {}", r.move_id),
+                                            &format!("Repair Control Move: {}", r.control_move_id),
                                             ToastVariant::Success,
                                         ),
                                         Err(e) => show_toast(
@@ -263,15 +264,15 @@ pub fn BottomDiagnosticsPage() -> Element {
     }
 }
 
-/// Render label for a head option in the picker. Truncates the move id
+/// Render label for a head option in the picker. Truncates the event id
 /// to keep the dropdown narrow but still distinguishable. Pure helper so
 /// we can unit test the formatting independent of Dioxus.
-pub(crate) fn format_head_option(idx: usize, head: &WinnerHead) -> String {
+pub(crate) fn format_head_option(idx: usize, head: &BottomCandidateHead) -> String {
     let summary = head.summary.as_deref().unwrap_or("");
-    let short = if head.move_id.len() > 16 {
-        format!("{}…", &head.move_id[..16])
+    let short = if head.event_id.len() > 16 {
+        format!("{}…", &head.event_id[..16])
     } else {
-        head.move_id.clone()
+        head.event_id.clone()
     };
     if summary.is_empty() {
         format!("{}: {}", idx + 1, short)
@@ -285,7 +286,7 @@ pub(crate) fn format_head_option(idx: usize, head: &WinnerHead) -> String {
 /// populate. Returns `None` when none of the optional fields are
 /// populated, so the caller can skip rendering an empty block. Pure
 /// helper so the formatting logic is unit-testable.
-pub(crate) fn format_head_metadata(head: &WinnerHead) -> Option<String> {
+pub(crate) fn format_head_metadata(head: &BottomCandidateHead) -> Option<String> {
     let mut parts: Vec<String> = Vec::with_capacity(3);
     if let Some(issuer) = head.issuer.as_deref().filter(|s| !s.is_empty()) {
         parts.push(format!("issuer={issuer}"));
@@ -378,7 +379,7 @@ mod tests {
         format_kind_label, repair_strategy_for_entry,
     };
     use crate::components::ui::badge::BadgeVariant;
-    use crate::types::seal::{BottomEntry, BottomRepairStrategy, WinnerHead};
+    use crate::types::seal::{BottomCandidateHead, BottomEntry, BottomRepairStrategy};
 
     #[test]
     fn format_kind_label_falls_back_to_raw() {
@@ -419,28 +420,28 @@ mod tests {
             realm_id: "ck:realm:demo".into(),
             cell_id: "ck:cell:ck.component.profile.v1:ck:space:demo".into(),
             kind: "conflict".into(),
-            candidate_heads: vec![WinnerHead {
-                move_id: "move:abc".into(),
+            candidate_heads: vec![BottomCandidateHead {
+                event_id: "ck:event:abc".into(),
                 ..Default::default()
             }],
             ..Default::default()
         };
         match default_repair_strategy(&entry) {
             BottomRepairStrategy::HeadInWinner { head } => {
-                assert_eq!(head.move_id, "move:abc");
+                assert_eq!(head.event_id, "ck:event:abc");
             }
             other => panic!("expected head_in_winner default, got {other:?}"),
         }
     }
 
     #[test]
-    fn format_head_option_truncates_long_move_ids() {
-        let head = WinnerHead {
-            move_id: "sha256:aaaabbbbccccddddeeeeffff".into(),
+    fn format_head_option_truncates_long_event_ids() {
+        let head = BottomCandidateHead {
+            event_id: "ck:event:aaaabbbbccccddddeeeeffff".into(),
             ..Default::default()
         };
         let label = format_head_option(0, &head);
-        // 1-indexed, truncated with ellipsis at 16 chars of the move id.
+        // 1-indexed, truncated with ellipsis at 16 chars of the event id.
         assert!(label.starts_with("1: "));
         assert!(label.contains("\u{2026}"));
         assert!(!label.contains("ffff"));
@@ -448,14 +449,14 @@ mod tests {
 
     #[test]
     fn format_head_option_includes_summary_when_present() {
-        let head = WinnerHead {
-            move_id: "m:abc".into(),
+        let head = BottomCandidateHead {
+            event_id: "ck:event:abc".into(),
             summary: Some("set value=42".into()),
             ..Default::default()
         };
         let label = format_head_option(2, &head);
         assert!(label.starts_with("3: "));
-        assert!(label.contains("m:abc"));
+        assert!(label.contains("ck:event:abc"));
         assert!(label.contains("set value=42"));
     }
 
@@ -468,23 +469,23 @@ mod tests {
             cell_id: "ck:cell:ck.component.profile.v1:ck:space:demo".into(),
             kind: "conflict".into(),
             candidate_heads: vec![
-                WinnerHead {
-                    move_id: "m:1".into(),
+                BottomCandidateHead {
+                    event_id: "ck:event:1".into(),
                     ..Default::default()
                 },
-                WinnerHead {
-                    move_id: "m:2".into(),
+                BottomCandidateHead {
+                    event_id: "ck:event:2".into(),
                     ..Default::default()
                 },
-                WinnerHead {
-                    move_id: "m:3".into(),
+                BottomCandidateHead {
+                    event_id: "ck:event:3".into(),
                     ..Default::default()
                 },
             ],
             ..Default::default()
         };
         match repair_strategy_for_entry(&entry, 2) {
-            BottomRepairStrategy::HeadInWinner { head } => assert_eq!(head.move_id, "m:3"),
+            BottomRepairStrategy::HeadInWinner { head } => assert_eq!(head.event_id, "ck:event:3"),
             other => panic!("expected head_in_winner with picked index, got {other:?}"),
         }
     }
@@ -497,22 +498,24 @@ mod tests {
             realm_id: "ck:realm:demo".into(),
             cell_id: "ck:cell:ck.component.profile.v1:ck:space:demo".into(),
             kind: "conflict".into(),
-            candidate_heads: vec![WinnerHead {
-                move_id: "m:first".into(),
+            candidate_heads: vec![BottomCandidateHead {
+                event_id: "ck:event:first".into(),
                 ..Default::default()
             }],
             ..Default::default()
         };
         match repair_strategy_for_entry(&entry, 99) {
-            BottomRepairStrategy::HeadInWinner { head } => assert_eq!(head.move_id, "m:first"),
+            BottomRepairStrategy::HeadInWinner { head } => {
+                assert_eq!(head.event_id, "ck:event:first")
+            }
             other => panic!("expected default head_in_winner fallback, got {other:?}"),
         }
     }
 
     #[test]
     fn head_metadata_is_none_when_no_optional_fields_populated() {
-        let head = WinnerHead {
-            move_id: "m:1".into(),
+        let head = BottomCandidateHead {
+            event_id: "ck:event:1".into(),
             ..Default::default()
         };
         assert!(format_head_metadata(&head).is_none());
@@ -522,8 +525,8 @@ mod tests {
     fn head_metadata_concatenates_populated_optional_fields() {
         // All three populated: ordering is issuer · hlc · summary so the
         // operator gets a stable, predictable line.
-        let head = WinnerHead {
-            move_id: "m:1".into(),
+        let head = BottomCandidateHead {
+            event_id: "ck:event:1".into(),
             issuer: Some("did:ck:alice".into()),
             hlc: Some("01J9-0001-abcd".into()),
             summary: Some("set value=42".into()),
@@ -535,8 +538,8 @@ mod tests {
         // Empty-string optional fields are treated as absent — soland
         // sometimes serializes "" instead of `null` and we must not show
         // a bare "issuer=" key.
-        let head = WinnerHead {
-            move_id: "m:1".into(),
+        let head = BottomCandidateHead {
+            event_id: "ck:event:1".into(),
             issuer: Some(String::new()),
             hlc: None,
             summary: Some("only this".into()),

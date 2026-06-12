@@ -6,7 +6,7 @@
 //!   admin scope.
 //! - `GET /_soland/admin/handles/{id}` — single handle row.
 //! - `GET /_soland/admin/handles/{id}/audit` — handle audit trail from the T3.2 audit table.
-//! - `POST /_soland/admin/handles/{id}/revoke` — publish a revoke Move.
+//! - `POST /_soland/admin/handles/{id}/revoke` — publish a revoke Control Move.
 //! - `POST /_soland/admin/handles/{id}/reassign` — force a re-bind to a new subject DID.
 
 use crate::api::client::{api_client, build_url, json_body};

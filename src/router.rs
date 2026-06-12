@@ -38,8 +38,8 @@ pub enum Route {
         RealmNotary { realm_id: String },
         #[route("/realms/:realm_id/seal-dag")]
         RealmSealDag { realm_id: String },
-        #[route("/realms/:realm_id/covered-frontier")]
-        RealmCoveredFrontier { realm_id: String },
+        #[route("/realms/:realm_id/covered-seals")]
+        RealmCoveredSeals { realm_id: String },
         #[route("/realms/:realm_id/signing-keys")]
         RealmSigningKeys { realm_id: String },
         #[route("/realms/:realm_id/multisig")]
@@ -54,8 +54,8 @@ pub enum Route {
         #[route("/spaces/:space_id")]
         SpaceShow { space_id: String },
 
-        #[route("/anchor/bottom")]
-        BottomDiagnostics {},
+        #[route("/seal/bottom")]
+        SealBottom {},
 
         #[route("/media")]
         MediaList {},
@@ -168,7 +168,7 @@ pub enum Route {
         // Round R2/R3 T07 — deactivation 7-domain fanout review.
         #[route("/deactivations/review")]
         DeactivationReview {},
-        // Round R2/R3 T07 — realm destroy confirmation + post-anchor
+        // Round R2/R3 T07 — realm destroy confirmation + post-seal
         // fanout + erasure receipt panel.
         #[route("/realms/:realm_id/destroy")]
         RealmDestroy { realm_id: String },
@@ -324,13 +324,13 @@ fn RealmSealDag(realm_id: String) -> Element {
 }
 
 #[component]
-fn BottomDiagnostics() -> Element {
-    rsx! { pages::bottom::BottomDiagnosticsPage {} }
+fn SealBottom() -> Element {
+    rsx! { pages::seal_bottom::BottomDiagnosticsPage {} }
 }
 
 #[component]
-fn RealmCoveredFrontier(realm_id: String) -> Element {
-    rsx! { pages::realms::covered_frontier::CoveredFrontierPage { realm_id } }
+fn RealmCoveredSeals(realm_id: String) -> Element {
+    rsx! { pages::realms::covered_seals::CoveredSealsPage { realm_id } }
 }
 
 #[component]

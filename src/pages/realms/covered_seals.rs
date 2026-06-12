@@ -1,19 +1,19 @@
-//! E2EE covered_frontier lag admin page (Stream H', H'7).
+//! E2EE covered_seals lag admin page (Stream H', H'7).
 //!
 //! Renders the snapshot returned by
-//! `GET /_soland/admin/realms/{id}/mls/covered-frontier` and shows how
-//! many governance Moves the MLS group has yet to acknowledge. Above the
+//! `GET /_soland/admin/realms/{id}/mls/covered-seals` and shows how
+//! many governance Seals the MLS group has yet to acknowledge. Above the
 //! configurable threshold the lag count is painted in destructive red
 //! with a warning banner so the admin sees the urgency, AND a
-//! "Manually advance covered_frontier" override button is surfaced so
-//! the operator can fold the current governance frontier into the MLS
+//! "Manually advance covered_seals" override button is surfaced so
+//! the operator can fold the current governance Seal set into the MLS
 //! cover or-set when members are stuck offline. The override POSTs to
-//! `/_soland/admin/realms/{id}/mls/covered-frontier/advance` and follows
+//! `/_soland/admin/realms/{id}/mls/covered-seals/advance` and follows
 //! the same 404-tolerant pattern as the other Stream H' admin actions.
 
 use dioxus::prelude::*;
 
-use crate::api::covered_frontier;
+use crate::api::covered_seals;
 use crate::components::selection_required::{is_placeholder_resource_id, selection_required_state};
 use crate::components::ui::badge::{Badge, BadgeVariant};
 use crate::components::ui::button::{Button, ButtonVariant};
@@ -23,11 +23,11 @@ use crate::components::ui::error_banner::ErrorBanner;
 use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::toast::{ToastVariant, show_toast};
-use crate::types::covered_frontier::DEFAULT_LAG_WARN_THRESHOLD;
+use crate::types::covered_seals::DEFAULT_LAG_WARN_THRESHOLD;
 use crate::utils::net::error::format_optional_endpoint_error;
 
 #[component]
-pub fn CoveredFrontierPage(realm_id: String) -> Element {
+pub fn CoveredSealsPage(realm_id: String) -> Element {
     if is_placeholder_resource_id(&realm_id) {
         return selection_required_state("Realm");
     }
@@ -35,7 +35,7 @@ pub fn CoveredFrontierPage(realm_id: String) -> Element {
     let realm_id_for_fetch = realm_id.clone();
     let mut data = use_resource(move || {
         let id = realm_id_for_fetch.clone();
-        async move { covered_frontier::get_covered_frontier(&id).await }
+        async move { covered_seals::get_covered_seals(&id).await }
     });
     let mut advancing = use_signal(|| false);
     let header_realm_id = realm_id.clone();
@@ -44,8 +44,8 @@ pub fn CoveredFrontierPage(realm_id: String) -> Element {
     rsx! {
         div { class: "space-y-6",
             PageHeader {
-                title: format!("covered_frontier · {}", header_realm_id),
-                description: "Governance frontier vs MLS group epoch — Move acknowledgement lag.".to_string(),
+                title: format!("covered_seals · {}", header_realm_id),
+                description: "Governance Seals vs MLS group epoch: Seal acknowledgement lag.".to_string(),
             }
 
             match &*data.read() {
@@ -54,15 +54,15 @@ pub fn CoveredFrontierPage(realm_id: String) -> Element {
                     let above_threshold = snap.lag_above(DEFAULT_LAG_WARN_THRESHOLD);
                     let (lag_variant, lag_label) = lag_badge(lag, above_threshold);
                     let mls_epoch = snap.mls_epoch;
-                    let governance_count = snap.governance_frontier.len();
-                    let covered_count = snap.covered_frontier.len();
-                    let governance_empty = snap.governance_frontier.is_empty()
-                        && snap.covered_frontier.is_empty()
-                        && snap.latest_anchor_id.is_none();
-                    let frontier_text = snap.governance_frontier.join(", ");
-                    let covered_text = snap.covered_frontier.join(", ");
-                    let last_anchor = snap
-                        .latest_anchor_id
+                    let governance_count = snap.governance_seals.len();
+                    let covered_count = snap.covered_seals.len();
+                    let governance_empty = snap.governance_seals.is_empty()
+                        && snap.covered_seals.is_empty()
+                        && snap.latest_seal_id.is_none();
+                    let governance_text = snap.governance_seals.join(", ");
+                    let covered_text = snap.covered_seals.join(", ");
+                    let latest_seal = snap
+                        .latest_seal_id
                         .clone()
                         .unwrap_or_else(|| "-".to_string());
                     let last_covered_at = snap
@@ -73,8 +73,8 @@ pub fn CoveredFrontierPage(realm_id: String) -> Element {
                         rsx! {
                             EmptyState {
                                 icon: "shield".to_string(),
-                                title: "No covered_frontier data yet".to_string(),
-                                description: "soland has not yet seen any governance Moves for this Realm — covered_frontier is empty by construction.".to_string(),
+                                title: "No covered_seals data yet".to_string(),
+                                description: "soland has not yet seen any governance Seals for this Realm; covered_seals is empty by construction.".to_string(),
                             }
                         }
                     } else {
@@ -85,7 +85,7 @@ pub fn CoveredFrontierPage(realm_id: String) -> Element {
                                 div { class: "rounded-md bg-destructive/10 p-3 text-sm text-destructive flex items-center justify-between gap-3",
                                     span {
                                         {format!(
-                                            "Lag of {lag} Moves is above warn threshold {DEFAULT_LAG_WARN_THRESHOLD}; investigate MLS group health (member offline, KeyPackage stale)."
+                                            "Lag of {lag} Seals is above warn threshold {DEFAULT_LAG_WARN_THRESHOLD}; investigate MLS group health (member offline, KeyPackage stale)."
                                         )}
                                     }
                                     Button {
@@ -95,15 +95,15 @@ pub fn CoveredFrontierPage(realm_id: String) -> Element {
                                             let id = realm_id_for_button.clone();
                                             advancing.set(true);
                                             spawn(async move {
-                                                let res = covered_frontier::advance(&id).await;
+                                                let res = covered_seals::advance(&id).await;
                                                 match res {
                                                     Ok(r) => show_toast(
-                                                        &format!("Advanced covered_frontier; new lag = {}", r.lag_count),
+                                                        &format!("Advanced covered_seals; new lag = {}", r.lag_count),
                                                         ToastVariant::Success,
                                                     ),
                                                     Err(e) => {
                                                         let msg = format_optional_endpoint_error(
-                                                            "covered_frontier advance",
+                                                            "covered_seals advance",
                                                             &e,
                                                         );
                                                         show_toast(&msg, ToastVariant::Error);
@@ -113,7 +113,7 @@ pub fn CoveredFrontierPage(realm_id: String) -> Element {
                                                 data.restart();
                                             });
                                         },
-                                        if advancing_now { "Advancing…" } else { "Manually advance covered_frontier" }
+                                        if advancing_now { "Advancing…" } else { "Manually advance covered_seals" }
                                     }
                                 }
                             }
@@ -130,19 +130,19 @@ pub fn CoveredFrontierPage(realm_id: String) -> Element {
                                             span { class: "font-mono text-xs", "{mls_epoch}" }
                                         }
                                         div {
-                                            span { class: "text-muted-foreground mr-2", "Governance frontier size:" }
+                                            span { class: "text-muted-foreground mr-2", "Governance Seals size:" }
                                             span { class: "font-mono text-xs", "{governance_count}" }
                                         }
                                         div {
-                                            span { class: "text-muted-foreground mr-2", "Covered frontier size:" }
+                                            span { class: "text-muted-foreground mr-2", "Covered Seals size:" }
                                             span { class: "font-mono text-xs", "{covered_count}" }
                                         }
                                         div {
-                                            span { class: "text-muted-foreground mr-2", "Latest anchor:" }
-                                            span { class: "font-mono text-xs", "{last_anchor}" }
+                                            span { class: "text-muted-foreground mr-2", "Latest Seal:" }
+                                            span { class: "font-mono text-xs", "{latest_seal}" }
                                         }
                                         div {
-                                            span { class: "text-muted-foreground mr-2", "Last covered_frontier update:" }
+                                            span { class: "text-muted-foreground mr-2", "Last covered_seals update:" }
                                             span { class: "font-mono text-xs", "{last_covered_at}" }
                                         }
                                     }
@@ -150,14 +150,14 @@ pub fn CoveredFrontierPage(realm_id: String) -> Element {
                             }
 
                             Card {
-                                CardHeader { CardTitle { "Governance frontier" } }
+                                CardHeader { CardTitle { "Governance Seals" } }
                                 CardContent {
-                                    p { class: "font-mono text-xs break-all", "{frontier_text}" }
+                                    p { class: "font-mono text-xs break-all", "{governance_text}" }
                                 }
                             }
 
                             Card {
-                                CardHeader { CardTitle { "Covered frontier" } }
+                                CardHeader { CardTitle { "Covered Seals" } }
                                 CardContent {
                                     p { class: "font-mono text-xs break-all", "{covered_text}" }
                                 }
@@ -188,7 +188,7 @@ pub(crate) fn lag_badge(lag: u64, above_threshold: bool) -> (BadgeVariant, Strin
     } else {
         BadgeVariant::Secondary
     };
-    (variant, format!("{lag} Move(s)"))
+    (variant, format!("{lag} Seal(s)"))
 }
 
 #[cfg(test)]
@@ -200,7 +200,7 @@ mod tests {
     fn lag_badge_zero_is_success() {
         let (v, l) = lag_badge(0, false);
         assert!(matches!(v, BadgeVariant::Success));
-        assert_eq!(l, "0 Move(s)");
+        assert_eq!(l, "0 Seal(s)");
     }
 
     #[test]
@@ -213,6 +213,6 @@ mod tests {
     fn lag_badge_above_threshold_is_destructive() {
         let (v, l) = lag_badge(12, true);
         assert!(matches!(v, BadgeVariant::Destructive));
-        assert_eq!(l, "12 Move(s)");
+        assert_eq!(l, "12 Seal(s)");
     }
 }

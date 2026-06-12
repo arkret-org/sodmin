@@ -223,7 +223,7 @@ pub fn redact_pii(message: &str) -> String {
 }
 
 /// Format an admin-mutation error for the 404-tolerant pattern used by the
-/// Stream H' actions (consent resolve, components refresh, covered_frontier
+/// Stream H' actions (consent resolve, components refresh, covered_seals
 /// advance). When the backend hasn't wired the route yet, soland returns
 /// 404, and the admin sees a clearer "endpoint not yet wired" message
 /// rather than a generic "Resource not found". For non-404 errors the
@@ -298,7 +298,7 @@ mod tests {
         );
         let e = err(409, "conflict");
         assert_eq!(
-            format_optional_endpoint_error("covered_frontier advance", &e),
+            format_optional_endpoint_error("covered_seals advance", &e),
             "conflict"
         );
     }

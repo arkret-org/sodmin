@@ -1,6 +1,5 @@
 pub mod actors;
 pub mod agents;
-pub mod bottom;
 pub mod applets;
 pub mod audit;
 pub mod capabilities;
@@ -33,6 +32,7 @@ pub mod realm_links;
 /// R3 (UI-3) — Realm `media_service.foci[]` editor.
 pub mod realm_media_service;
 pub mod realms;
+pub mod seal_bottom;
 pub mod server_status;
 pub mod spaces;
 pub mod starid_resolver;

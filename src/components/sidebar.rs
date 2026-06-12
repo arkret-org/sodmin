@@ -198,35 +198,30 @@ fn build_nav_sections() -> Vec<NavSection> {
         ],
     ));
 
-    // Stream H' (Move/Seal/Lattice admin) — gated on the soland bridge
-    // (without the principal server there is no Move/Seal surface) and
-    // on the seal admin scope. Realm deep links keep a placeholder id
-    // because admins typically arrive from the Realm detail page.
+    // Stream H' (Control-plane Seal admin). Realm deep links
+    // keep a placeholder id because admins typically arrive from the
+    // Realm detail page.
     sections.push(NavSection::new(
-        t("nav.section_anchor"),
+        t("nav.section_seal"),
         vec![
+            NavItem::new(t("nav.seal_bottom"), Route::SealBottom {}, "alert-triangle"),
             NavItem::new(
-                t("nav.anchor_bottom"),
-                Route::BottomDiagnostics {},
-                "alert-triangle",
-            ),
-            NavItem::new(
-                t("nav.anchor_anchorer"),
+                t("nav.seal_notary"),
                 Route::RealmNotary {
                     realm_id: "_".to_string(),
                 },
                 "shield",
             ),
             NavItem::new(
-                t("nav.anchor_dag"),
+                t("nav.seal_dag"),
                 Route::RealmSealDag {
                     realm_id: "_".to_string(),
                 },
                 "git-branch",
             ),
             NavItem::new(
-                t("nav.covered_frontier"),
-                Route::RealmCoveredFrontier {
+                t("nav.covered_seals"),
+                Route::RealmCoveredSeals {
                     realm_id: "_".to_string(),
                 },
                 "lock",

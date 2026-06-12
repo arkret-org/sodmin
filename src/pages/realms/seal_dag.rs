@@ -1,9 +1,8 @@
 //! Seal DAG / compaction admin page (Stream H', H'4).
 //!
-//! Visualises the latest Seal leaves, the covered event digests, the latest
-//! `state_root` and exposes a "trigger compaction" button that POSTs to
-//! soland's `POST /_soland/admin/realms/{realm_id}/seal-dag/compact`
-//! endpoint.
+//! Visualises the latest Seal leaves, covered events, the latest
+//! `state_root` and exposes a "trigger compaction" button that POSTs (today,
+//! stub-POSTs) to soland's Seal compaction endpoint.
 
 use dioxus::prelude::*;
 
@@ -39,7 +38,7 @@ pub fn SealDagPage(realm_id: String) -> Element {
         div { class: "space-y-6",
             PageHeader {
                 title: format!("Seal DAG · {}", header_realm_id),
-                description: "Visualize Seal leaves, covered event digests and state_root for this Realm.".to_string(),
+                description: "Visualize Seal leaves, covered events and state_root for this Realm.".to_string(),
                 Button {
                     variant: ButtonVariant::Default,
                     disabled: *compacting.read(),
@@ -79,12 +78,12 @@ pub fn SealDagPage(realm_id: String) -> Element {
                                 EmptyState {
                                     icon: "shield".to_string(),
                                     title: "No Seals yet".to_string(),
-                                    description: "soland returned no Seal leaves for this Realm — the DAG is empty.".to_string(),
+                                    description: "soland returned no Seal leaves for this Realm; the DAG is empty.".to_string(),
                                 }
                             }
                         };
                     }
-                    let covered = snapshot.covered_event_digests.join(", ");
+                    let covered_events = snapshot.covered_event_digests.join(", ");
                     let state_root = snapshot
                         .state_root
                         .clone()
@@ -100,8 +99,8 @@ pub fn SealDagPage(realm_id: String) -> Element {
                             CardContent {
                                 div { class: "space-y-2 text-sm",
                                     div {
-                                        span { class: "text-muted-foreground mr-2", "Covered event digests:" }
-                                        span { class: "font-mono text-xs", "{covered}" }
+                                        span { class: "text-muted-foreground mr-2", "Covered events:" }
+                                        span { class: "font-mono text-xs", "{covered_events}" }
                                     }
                                     div {
                                         span { class: "text-muted-foreground mr-2", "state_root:" }
@@ -124,7 +123,7 @@ pub fn SealDagPage(realm_id: String) -> Element {
                                             TableRow {
                                                 TableHead { "Seal ID" }
                                                 TableHead { "state_root" }
-                                                TableHead { "Moves" }
+                                                TableHead { "Control events" }
                                                 TableHead { "Created" }
                                                 TableHead { "Signers" }
                                                 TableHead { "Type" }
@@ -147,7 +146,7 @@ pub fn SealDagPage(realm_id: String) -> Element {
                                                             .state_root
                                                             .clone()
                                                             .unwrap_or_else(|| "-".to_string());
-                                                        let move_count = leaf.move_count;
+                                                        let control_event_count = leaf.control_event_count;
                                                         let created = leaf
                                                             .created_at
                                                             .clone()
@@ -170,7 +169,7 @@ pub fn SealDagPage(realm_id: String) -> Element {
                                                                     class: "font-mono text-xs max-w-[200px] truncate".to_string(),
                                                                     "{state_root}"
                                                                 }
-                                                                TableCell { "{move_count}" }
+                                                                TableCell { "{control_event_count}" }
                                                                 TableCell { class: "text-muted-foreground".to_string(), "{created}" }
                                                                 TableCell {
                                                                     class: "font-mono text-xs max-w-[260px] truncate".to_string(),

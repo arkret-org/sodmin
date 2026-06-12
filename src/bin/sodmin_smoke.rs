@@ -286,7 +286,7 @@ fn run() -> ExitCode {
 
     // Health probe + Stream H' GET endpoints. Mutating endpoints
     // (rotate-signing-key, partial-signature submit, notary/reconfigure,
-    // bottom/repair, seal-dag/compact, covered-frontier/advance) are
+    // bottom/repair, seal-dag/compact, covered-seals/advance) are
     // intentionally NOT exercised here — running them post-deploy would
     // mutate state. Smoke checks reachability + auth only.
     let checks = vec![
@@ -312,14 +312,9 @@ fn run() -> ExitCode {
             "GET",
             build_realm_url(base, realm_id, "bottom"),
         ),
-        // NOTE: former consent, components, and signing-key describe
-        // checks hit endpoints that soland does not mount. They were
-        // removed so the smoke signal is not a false negative.
-        (
-            "realms/covered-frontier (H'7)",
-            "GET",
-            build_realm_url(base, realm_id, "mls/covered-frontier"),
-        ),
+        // NOTE: former consent, components, signing-key describe, and
+        // covered_seals checks hit endpoints that soland does not mount.
+        // They were removed so the smoke signal is not a false negative.
         (
             "realms/multisig/pending (H'9)",
             "GET",
@@ -415,11 +410,11 @@ mod tests {
         let url = build_realm_url(
             "https://soland.example.com",
             "ck:realm:demo",
-            "mls/covered-frontier",
+            "seal-dag/compact",
         );
         assert_eq!(
             url,
-            "https://soland.example.com/_soland/admin/realms/ck:realm:demo/mls/covered-frontier"
+            "https://soland.example.com/_soland/admin/realms/ck:realm:demo/seal-dag/compact"
         );
     }
 

@@ -8,7 +8,7 @@
 //! is `Ephemeral` the rotation button is hidden and a destructive banner
 //! warns the operator that production deployments must redeploy with a
 //! configured key (rotating an ephemeral key just spawns another
-//! ephemeral key, leaving notary signatures un-anchored to a stable DID).
+//! ephemeral key, leaving notary signatures without stable DID binding).
 //!
 //! Follows the 404-tolerant pattern shared with the rest of Stream H' —
 //! when the soland route hasn't been wired the operator sees a clear
@@ -78,7 +78,7 @@ pub fn SigningKeysPage(realm_id: String) -> Element {
                             // Production-readiness warning: ephemeral keys
                             // disappear on restart and are NEVER suitable
                             // for live workloads. The destructive banner
-                            // mirrors the covered_frontier lag pattern.
+                            // mirrors the covered_seals lag pattern.
                             div { class: "rounded-md bg-destructive/10 p-3 text-sm text-destructive",
                                 "NotaryWorker is signing with an EPHEMERAL key. This key will be lost on the next worker restart and cannot be rotated in place — redeploy the principal-server with a configured key (PEM / KMS) before promoting to production."
                             }

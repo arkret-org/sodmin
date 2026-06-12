@@ -1,7 +1,7 @@
 //! Multi-sig partial-signature aggregation panel (Stream H', H'9).
 //!
 //! Lists pending Seals for a Realm's notary cell that's configured as
-//! `threshold(k of n)` or `mixed`. Each row shows the anchor_id, the
+//! `threshold(k of n)` or `mixed`. Each row shows the seal_id, the
 //! `k of n` threshold, the count of partials collected, and the missing
 //! signer DIDs. When the current admin DID is in the missing-signers
 //! list, soland sets `admin_can_sign=true` on the row and the
@@ -21,7 +21,7 @@ use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::table::*;
 use crate::components::ui::toast::{ToastVariant, show_toast};
-use crate::types::multisig::PendingMultisigAnchor;
+use crate::types::multisig::PendingMultisigSeal;
 use crate::utils::net::error::format_optional_endpoint_error;
 
 #[component]
@@ -35,7 +35,7 @@ pub fn MultiSigPage(realm_id: String) -> Element {
         let id = realm_id_for_fetch.clone();
         async move { multisig::list_pending(&id).await }
     });
-    // Per-row in-flight flag keyed by anchor_id.
+    // Per-row in-flight flag keyed by seal_id.
     let mut in_flight = use_signal::<Option<String>>(|| None);
     let header_realm_id = realm_id.clone();
 
@@ -56,8 +56,8 @@ pub fn MultiSigPage(realm_id: String) -> Element {
                     rsx! {
                         EmptyState {
                             icon: "shield".to_string(),
-                            title: "No pending multi-sig Anchors".to_string(),
-                            description: "All Anchors in this Realm have reached threshold and assembled.".to_string(),
+                            title: "No pending multi-sig Seals".to_string(),
+                            description: "All Seals in this Realm have reached threshold and assembled.".to_string(),
                         }
                     }
                 } else {
@@ -66,7 +66,7 @@ pub fn MultiSigPage(realm_id: String) -> Element {
                             Table {
                                 TableHeader {
                                     TableRow {
-                                        TableHead { "Anchor ID" }
+                                        TableHead { "Seal ID" }
                                         TableHead { "Threshold" }
                                         TableHead { "Collected" }
                                         TableHead { "Missing signers" }
@@ -78,8 +78,8 @@ pub fn MultiSigPage(realm_id: String) -> Element {
                                 TableBody {
                                     for entry in pending.iter() {
                                         {
-                                            let anchor_id = entry.anchor_id.clone();
-                                            let anchor_id_for_btn = anchor_id.clone();
+                                            let seal_id = entry.seal_id.clone();
+                                            let seal_id_for_btn = seal_id.clone();
                                             let realm_id_for_btn = realm_id.clone();
                                             let threshold_label = entry.threshold_label();
                                             let collected = entry.collected_partials;
@@ -106,11 +106,11 @@ pub fn MultiSigPage(realm_id: String) -> Element {
                                             let row_in_flight = in_flight
                                                 .read()
                                                 .as_deref()
-                                                .map(|id| id == anchor_id)
+                                                .map(|id| id == seal_id)
                                                 .unwrap_or(false);
                                             rsx! {
                                                 TableRow {
-                                                    TableCell { class: "font-mono text-xs max-w-[260px] truncate".to_string(), "{anchor_id}" }
+                                                    TableCell { class: "font-mono text-xs max-w-[260px] truncate".to_string(), "{seal_id}" }
                                                     TableCell { "{threshold_label}" }
                                                     TableCell {
                                                         Badge { variant: collected_variant, "{collected_label}" }
@@ -125,12 +125,12 @@ pub fn MultiSigPage(realm_id: String) -> Element {
                                                                 size: ButtonSize::Sm,
                                                                 disabled: row_in_flight,
                                                                 onclick: move |_| {
-                                                                    let aid = anchor_id_for_btn.clone();
+                                                                    let pending_seal_id = seal_id_for_btn.clone();
                                                                     let sid = realm_id_for_btn.clone();
-                                                                    in_flight.set(Some(aid.clone()));
+                                                                    in_flight.set(Some(pending_seal_id.clone()));
                                                                     spawn(async move {
                                                                         let res = multisig::submit_partial(
-                                                                            &sid, &aid, None,
+                                                                            &sid, &pending_seal_id, None,
                                                                         )
                                                                         .await;
                                                                         match res {
@@ -139,7 +139,7 @@ pub fn MultiSigPage(realm_id: String) -> Element {
                                                                                     "Partial recorded: {}/{}{}",
                                                                                     r.collected_partials,
                                                                                     r.threshold_k,
-                                                                                    if r.threshold_met { " — threshold met" } else { "" }
+                                                                                    if r.threshold_met() { " — threshold met" } else { "" }
                                                                                 ),
                                                                                 ToastVariant::Success,
                                                                             ),
@@ -185,7 +185,7 @@ pub fn MultiSigPage(realm_id: String) -> Element {
 /// Pick a badge variant for the "collected partials" cell. When the
 /// threshold is already met (assembly pending) we show success-green;
 /// otherwise the secondary tone signals "still collecting".
-pub(crate) fn collected_badge_variant(entry: &PendingMultisigAnchor) -> BadgeVariant {
+pub(crate) fn collected_badge_variant(entry: &PendingMultisigSeal) -> BadgeVariant {
     if entry.is_threshold_met() {
         BadgeVariant::Success
     } else {
@@ -197,8 +197,8 @@ pub(crate) fn collected_badge_variant(entry: &PendingMultisigAnchor) -> BadgeVar
 mod tests {
     use super::*;
 
-    fn pending_with(collected: u32, k: u32) -> PendingMultisigAnchor {
-        PendingMultisigAnchor {
+    fn pending_with(collected: u32, k: u32) -> PendingMultisigSeal {
+        PendingMultisigSeal {
             threshold_k: k,
             threshold_n: k + 1,
             collected_partials: collected,

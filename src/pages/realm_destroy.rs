@@ -3,7 +3,7 @@
 //! Wraps `components::realm_destroy_dialog::RealmDestroyDialog` in a
 //! route shell so an operator can navigate to `/realms/{id}/destroy`,
 //! tick the five normative bullets, type `DESTROY`, and trigger the
-//! `ck.realm.destroy` anchor. After confirmation this page also reuses
+//! `ck.realm.destroy` Control Move. After confirmation this page also reuses
 //! the 7-domain fanout panel + erasure-receipt block to surface the
 //! post-destroy cascade.
 
@@ -76,7 +76,7 @@ pub fn RealmDestroyPage(realm_id: String) -> Element {
                 }
             } else {
                 p { class: "text-sm text-muted-foreground",
-                    "Open the destroy dialog to begin. The 7-domain fanout + erasure receipt panel appears after the anchor lands."
+                    "Open the destroy dialog to begin. The 7-domain fanout + erasure receipt panel appears after the Seal lands."
                 }
             }
 

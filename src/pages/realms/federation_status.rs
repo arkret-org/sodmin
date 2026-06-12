@@ -1,6 +1,6 @@
 //! Federation status admin page
 //!
-//! Per-Realm federation peers + last-anchor-pulled-at + outbound queue
+//! Per-Realm federation peers + last-seal-pulled-at + outbound queue
 //! depth. soland does not currently expose this health endpoint, so the
 //! API client returns a local "endpoint not wired" error.
 
@@ -67,7 +67,7 @@ pub fn FederationStatusPage(realm_id: String) -> Element {
                                             TableHead { {t("federation_status.realm_id")} }
                                             TableHead { {t("federation_status.peer")} }
                                             TableHead { {t("federation_status.health")} }
-                                            TableHead { {t("federation_status.last_anchor_pulled_at")} }
+                                            TableHead { {t("federation_status.last_seal_pulled_at")} }
                                             TableHead { {t("federation_status.last_pushed_at")} }
                                             TableHead { {t("federation_status.outbound_queue_depth")} }
                                         }
@@ -79,7 +79,7 @@ pub fn FederationStatusPage(realm_id: String) -> Element {
                                                 let label = typed.label().to_string();
                                                 let variant = peer_health_variant(&typed);
                                                 let peer_label = r.peer_label.clone().unwrap_or_default();
-                                                let pulled = r.last_anchor_pulled_at.clone().unwrap_or_else(|| "-".to_string());
+                                                let pulled = r.last_seal_pulled_at.clone().unwrap_or_else(|| "-".to_string());
                                                 let pushed = r.last_pushed_at.clone().unwrap_or_else(|| "-".to_string());
                                                 let depth = r.outbound_queue_depth;
                                                 let realm = r.realm_id.clone();
