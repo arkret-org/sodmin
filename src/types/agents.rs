@@ -71,29 +71,13 @@ pub struct AgentGrantEntry {
     pub expires_at: Option<String>,
 }
 
-/// CKP-0008 — agent provision wizard request body.
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct AgentProvisionRequestBody {
-    #[serde(default)]
-    pub controller_did: String,
-    #[serde(default)]
-    pub display_name: Option<String>,
-    /// Agent key proof material from step 2 of the wizard.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub agent_key_proof: Option<serde_json::Value>,
-}
-
-/// CKP-0008 — agent provision wizard response (returns the freshly
-/// issued agent principal DID).
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct AgentProvisionOutcome {
-    #[serde(default)]
-    pub agent_principal_id: String,
-    #[serde(default)]
-    pub agent_id: Option<String>,
-    #[serde(default)]
-    pub initial_grant_ids: Vec<String>,
-}
+// `POST /_cokret/self/agents` (`ck.self.agent.provision`) wire shapes —
+// SDK-authoritative per spec `agent-operations.schema.json#/$defs/
+// agent_provision_request_body` / `agent_provision_outcome`. The
+// controller is always the authenticated principal (no controller_did in
+// the body); the outcome carries the pairing handshake
+// (`pairing_request_id` / `pairing_code` / `expires_at`).
+pub use cokret_core::model::{AgentProvisionOutcome, AgentProvisionRequestBody};
 
 /// CKP-0008 — coauth `accountability_grant` request body for the
 /// wizard's controller-approval step.

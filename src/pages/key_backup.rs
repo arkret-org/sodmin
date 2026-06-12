@@ -3,22 +3,21 @@
 //! Three panes:
 //!   1. Backup series list with frontier status + per-series 3-class 409 counters
 //!      (`series_chain_broken` / `series_seq_not_monotonic` / `series_predecessor_not_found`).
-//!   2. Recovery policy editor (lifecycle pending/active/retired; KDF profile; epoch hash). Deep
-//!      validators are `TODO(P3-impl)` server-side.
+//!   2. Recovery policy history (read-only; spec `recovery_policy_summary` rows — policy publish
+//!      requires a principal-signed `auth_data` transcript the admin UI cannot mint).
 //!   3. Recovery receipt history.
 
 use dioxus::prelude::*;
 
 use crate::api::key_backup;
 use crate::components::ui::badge::{Badge, BadgeVariant};
-use crate::components::ui::button::{Button, ButtonSize, ButtonVariant};
+use crate::components::ui::button::{Button, ButtonSize};
 use crate::components::ui::error_banner::ErrorBanner;
 use crate::components::ui::input::{Input, Label};
 use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::table::*;
-use crate::components::ui::toast::{ToastVariant, show_toast};
-use crate::types::RecoveryPolicy;
+use crate::types::RecoveryPolicySummary;
 
 #[component]
 pub fn KeyBackupList() -> Element {
@@ -187,7 +186,7 @@ pub fn KeyBackupList() -> Element {
                 }
             }
 
-            // ── Recovery policy editor ──
+            // ── Recovery policy history (read-only) ──
             div { class: "rounded-md border",
                 div { class: "p-3 border-b font-medium text-sm",
                     "Recovery policies"
@@ -198,10 +197,11 @@ pub fn KeyBackupList() -> Element {
                             TableHeader {
                                 TableRow {
                                     TableHead { "policy_id" }
-                                    TableHead { "lifecycle" }
-                                    TableHead { "kdf_profile" }
-                                    TableHead { "epoch_hash" }
-                                    TableHead { "actions" }
+                                    TableHead { "version" }
+                                    TableHead { "trust_domain" }
+                                    TableHead { "allowed_proof_kinds" }
+                                    TableHead { "issued_at" }
+                                    TableHead { "expires_at" }
                                 }
                             }
                             TableBody {
@@ -214,7 +214,7 @@ pub fn KeyBackupList() -> Element {
                                     }
                                 } else {
                                     for p in resp.data.iter() {
-                                        {render_policy_row(p, move |_| policies_data.restart())}
+                                        {render_policy_row(p)}
                                     }
                                 }
                             }
@@ -239,10 +239,10 @@ pub fn KeyBackupList() -> Element {
                             TableHeader {
                                 TableRow {
                                     TableHead { "receipt_id" }
-                                    TableHead { "session_id" }
+                                    TableHead { "recovery_session_id" }
                                     TableHead { "policy_id" }
-                                    TableHead { "issued_at" }
-                                    TableHead { "verified" }
+                                    TableHead { "completed_at" }
+                                    TableHead { "outcome" }
                                 }
                             }
                             TableBody {
@@ -257,20 +257,16 @@ pub fn KeyBackupList() -> Element {
                                     for r in resp.data.iter() {
                                         TableRow {
                                             TableCell { class: "font-mono text-xs".to_string(), "{r.receipt_id}" }
-                                            TableCell { class: "font-mono text-xs".to_string(),
-                                                "{r.session_id.clone().unwrap_or_else(|| \"-\".into())}"
-                                            }
-                                            TableCell { class: "font-mono text-xs".to_string(),
-                                                "{r.policy_id.clone().unwrap_or_else(|| \"-\".into())}"
-                                            }
+                                            TableCell { class: "font-mono text-xs".to_string(), "{r.recovery_session_id}" }
+                                            TableCell { class: "font-mono text-xs".to_string(), "{r.policy_id}" }
                                             TableCell { class: "text-xs".to_string(),
-                                                "{r.issued_at.clone().unwrap_or_else(|| \"-\".into())}"
+                                                "{r.completed_at.clone().unwrap_or_else(|| \"-\".into())}"
                                             }
                                             TableCell {
-                                                if r.verified {
-                                                    Badge { variant: BadgeVariant::Default, "verified" }
+                                                if r.outcome == "success" {
+                                                    Badge { variant: BadgeVariant::Default, "success" }
                                                 } else {
-                                                    Badge { variant: BadgeVariant::Outline, "unverified" }
+                                                    Badge { variant: BadgeVariant::Outline, "{r.outcome}" }
                                                 }
                                             }
                                         }
@@ -309,50 +305,26 @@ fn render_series_row(s: &crate::types::KeyBackupSeries) -> Element {
     }
 }
 
-fn render_policy_row(p: &RecoveryPolicy, on_change: impl FnMut(()) + 'static) -> Element {
-    let mut on_change = on_change;
-    let policy = p.clone();
-    let lifecycle = p.lifecycle.clone();
-    let kdf = p.kdf_profile.clone().unwrap_or_default();
-    let epoch = p.epoch_hash.clone().unwrap_or_default();
-
+fn render_policy_row(p: &RecoveryPolicySummary) -> Element {
+    let proof_kinds = if p.allowed_proof_kinds.is_empty() {
+        // Explicit-revocation policy: an empty proof-kind set means
+        // recovery is disabled under this policy.
+        "(revoked)".to_string()
+    } else {
+        p.allowed_proof_kinds.join(", ")
+    };
+    let issued_at = p.issued_at.clone().unwrap_or_else(|| "-".into());
+    let expires_at = p.expires_at.clone().unwrap_or_else(|| "-".into());
     rsx! {
         TableRow {
-            TableCell { class: "font-mono text-xs".to_string(), "{policy.policy_id}" }
+            TableCell { class: "font-mono text-xs".to_string(), "{p.policy_id}" }
             TableCell {
-                Badge {
-                    variant: match lifecycle.as_str() {
-                        "active" => BadgeVariant::Default,
-                        "pending" => BadgeVariant::Outline,
-                        "retired" => BadgeVariant::Secondary,
-                        _ => BadgeVariant::Outline,
-                    },
-                    "{lifecycle}"
-                }
+                Badge { variant: BadgeVariant::Secondary, "v{p.version}" }
             }
-            TableCell { class: "font-mono text-xs".to_string(), "{kdf}" }
-            TableCell { class: "font-mono text-xs max-w-[160px] truncate".to_string(), "{epoch}" }
-            TableCell {
-                Button {
-                    size: ButtonSize::Sm,
-                    variant: ButtonVariant::Outline,
-                    // TODO(P3-impl): inline-edit form with lifecycle
-                    // dropdown + epoch-hash validator. For now the
-                    // button just round-trips the existing record so
-                    // the PUT wire path is exercised.
-                    onclick: move |_| {
-                        let p = policy.clone();
-                        spawn(async move {
-                            match key_backup::upsert_recovery_policy(&p).await {
-                                Ok(_) => show_toast("Policy saved", ToastVariant::Success),
-                                Err(e) => show_toast(&e.message, ToastVariant::Error),
-                            }
-                        });
-                        on_change(());
-                    },
-                    "Save"
-                }
-            }
+            TableCell { class: "font-mono text-xs max-w-[160px] truncate".to_string(), "{p.trust_domain}" }
+            TableCell { class: "text-xs".to_string(), "{proof_kinds}" }
+            TableCell { class: "text-xs".to_string(), "{issued_at}" }
+            TableCell { class: "text-xs".to_string(), "{expires_at}" }
         }
     }
 }

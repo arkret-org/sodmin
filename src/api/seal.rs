@@ -1,4 +1,4 @@
-//! HTTP client for the Move/Anchor/Lattice admin endpoints exposed by
+//! HTTP client for the Move/Seal/Lattice admin endpoints exposed by
 //! soland (Stream H', C10.F).
 //!
 //! Endpoint shape mirrors the canonical `/_soland/admin/...` admin surface
@@ -6,32 +6,31 @@
 //! land at:
 //!
 //! - `GET  /_soland/admin/realms/{realm_id}/notary`                   — describe current notary
-//!   cell value
-//! - `POST /_soland/admin/realms/{realm_id}/notary/reconfigure`       — submit reconfig Move
-//! - `GET  /_soland/admin/realms/{realm_id}/bottom`                   — list ⊥ cells in this Realm
+//!   cell value (SDK-authoritative `NotaryValue` + envelope hints)
+//! - `POST /_soland/admin/realms/{realm_id}/notary/reconfigure`       — submit reconfig Move (body
+//!   is exactly the proposed `NotaryValue`)
+//! - `GET  /_soland/admin/bottom`                                     — list ⊥ cells globally
 //! - `POST /_soland/admin/realms/{realm_id}/bottom/{cell_id}/repair`  — submit repair Move
-//! - `GET  /_soland/admin/realms/{realm_id}/seal-dag`                 — leaves+frontier+state_root
+//! - `GET  /_soland/admin/realms/{realm_id}/seal-dag`                 — leaves+digests+state_root
 //! - `POST /_soland/admin/realms/{realm_id}/seal-dag/compact`         — trigger compaction Seal
 //!
 //! The soland handlers translate the typed request bodies into real
-//! Moves / Anchors, sign them with the principal-server's anchorer key
-//! (or, for the reconfigure endpoint, route through the admin's signer
-//! flow with the bearer token from the `Authorization` header), and
-//! POST onto the canonical Move / Anchor pipelines.
+//! Moves / Seals, sign them with the admin signer flow bound to the
+//! bearer token, and POST onto the canonical Move / Seal pipelines.
 
 use crate::api::client::{api_client, build_url, json_body};
-use crate::types::anchor::{
-    AnchorDagSnapshot, AnchorerReconfigRequest, AnchorerValue, BottomEntry, BottomRepairRequest,
-    BottomRepairStrategy, CompactionRequest, SignAnchorResponse, SubmitMoveResponse,
+use crate::types::seal::{
+    BottomEntry, BottomRepairRequest, BottomRepairStrategy, CompactionOutcome, CompactionRequest,
+    NotaryCellValue, NotaryValue, SealDagSnapshot, SubmitMoveOutcome,
 };
 use crate::utils::net::error::HttpError;
 
-/// Fetch the current anchorer cell value for a Realm.
+/// Fetch the current notary cell value for a Realm.
 ///
 /// `GET /_soland/admin/realms/{realm_id}/notary`. soland projects the joined
 /// `ck:cell:ck.component.notary.v1:<realm_id>` value plus the surrounding
-/// hint fields (`max_anchor_staleness_ms`, `paused`).
-pub async fn get_anchorer_value(realm_id: &str) -> Result<AnchorerValue, HttpError> {
+/// hint fields (`revocation_freshness_window_ms`, `paused`).
+pub async fn get_notary_value(realm_id: &str) -> Result<NotaryCellValue, HttpError> {
     let url = format!(
         "/_soland/admin/realms/{}/notary",
         urlencoding::encode(realm_id)
@@ -39,23 +38,23 @@ pub async fn get_anchorer_value(realm_id: &str) -> Result<AnchorerValue, HttpErr
     api_client(&url, "GET", None).await
 }
 
-/// Submit an anchorer reconfiguration Move.
+/// Submit a notary reconfiguration Move.
 ///
-/// `POST /_soland/admin/realms/{realm_id}/notary/reconfigure`. The body shape
-/// is `{ kind, single_did?, threshold_k?, threshold_n?, threshold_dids?, ... }`
-/// (see `AnchorerReconfigRequest::to_reconfigure_body`); soland builds
-/// the typed Move on the server side, signs with the admin's key (or
-/// routes through the admin signer flow tied to the bearer token), and
-/// posts onto `/_cokret/peer/moves`.
-pub async fn submit_anchorer_reconfig(
-    req: &AnchorerReconfigRequest,
-) -> Result<SubmitMoveResponse, HttpError> {
+/// `POST /_soland/admin/realms/{realm_id}/notary/reconfigure`. The body is
+/// exactly the SDK-authoritative `NotaryValue` wire shape (internal tag
+/// `kind`, fields `did|k|n|members|primary|recovery_members`); soland
+/// validates it via `NotaryValue::validate()`, builds the typed Move on the
+/// server side, signs with the admin signer flow tied to the bearer token,
+/// and submits onto the Move pipeline.
+pub async fn submit_notary_reconfig(
+    realm_id: &str,
+    value: &NotaryValue,
+) -> Result<SubmitMoveOutcome, HttpError> {
     let url = format!(
         "/_soland/admin/realms/{}/notary/reconfigure",
-        urlencoding::encode(&req.realm_id)
+        urlencoding::encode(realm_id)
     );
-    let body = req.to_reconfigure_body();
-    api_client(&url, "POST", Some(json_body(&body)?)).await
+    api_client(&url, "POST", Some(json_body(value)?)).await
 }
 
 /// List bottom entries across every Realm the admin can see — used by
@@ -79,7 +78,7 @@ pub async fn submit_bottom_repair(
     realm_id: &str,
     cell_id: &str,
     strategy: BottomRepairStrategy,
-) -> Result<SubmitMoveResponse, HttpError> {
+) -> Result<SubmitMoveOutcome, HttpError> {
     let url = format!(
         "/_soland/admin/realms/{}/bottom/{}/repair",
         urlencoding::encode(realm_id),
@@ -93,11 +92,11 @@ pub async fn submit_bottom_repair(
     api_client(&url, "POST", Some(json_body(&req)?)).await
 }
 
-/// Fetch the Anchor DAG snapshot (leaves + frontier + state_root + last
-/// compaction timestamp).
+/// Fetch the Seal DAG snapshot (leaves + covered event digests +
+/// state_root + last compaction timestamp).
 ///
 /// `GET /_soland/admin/realms/{realm_id}/seal-dag`.
-pub async fn get_anchor_dag(realm_id: &str) -> Result<AnchorDagSnapshot, HttpError> {
+pub async fn get_seal_dag(realm_id: &str) -> Result<SealDagSnapshot, HttpError> {
     let url = format!(
         "/_soland/admin/realms/{}/seal-dag",
         urlencoding::encode(realm_id)
@@ -107,19 +106,15 @@ pub async fn get_anchor_dag(realm_id: &str) -> Result<AnchorDagSnapshot, HttpErr
 
 /// Trigger a signed compaction Seal.
 ///
-/// `POST /_soland/admin/realms/{realm_id}/seal-dag/compact`. soland's handler
-/// is the admin-facing entry point onto `ck.admin.anchors.sign`; it folds
-/// up to `max_moves` moves into a fresh compaction Anchor and returns
-/// the new anchor id + state_root.
-pub async fn trigger_compaction(realm_id: &str) -> Result<SignAnchorResponse, HttpError> {
+/// `POST /_soland/admin/realms/{realm_id}/seal-dag/compact`. soland's
+/// handler folds pending Moves into a fresh compaction Seal and returns
+/// the new seal id + state_root.
+pub async fn trigger_compaction(realm_id: &str) -> Result<CompactionOutcome, HttpError> {
     let url = format!(
         "/_soland/admin/realms/{}/seal-dag/compact",
         urlencoding::encode(realm_id)
     );
-    let req = CompactionRequest {
-        realm_id: realm_id.to_string(),
-        max_moves: None,
-    };
+    let req = CompactionRequest { max_moves: None };
     api_client(&url, "POST", Some(json_body(&req)?)).await
 }
 
@@ -129,32 +124,31 @@ mod tests {
     //! match the wire shape soland's handlers expect, without needing a
     //! live HTTP loop.
 
+    use cokret_core::Did;
+
     use super::*;
-    use crate::types::anchor::WinnerHead;
+    use crate::types::seal::WinnerHead;
 
     #[test]
-    fn reconfig_request_body_renders_threshold_shape() {
-        let req = AnchorerReconfigRequest {
-            realm_id: "ck:realm:0196419b-0000-7000-8000-000000000000".into(),
-            kind: "threshold".into(),
-            threshold_k: Some(2),
-            threshold_n: Some(3),
-            threshold_dids: vec!["did:ck:a".into(), "did:ck:b".into(), "did:ck:c".into()],
-            ..Default::default()
+    fn reconfig_body_renders_sdk_threshold_shape() {
+        let value = NotaryValue::Threshold {
+            k: 2,
+            n: 3,
+            members: vec![
+                Did::new("did:ck:a".to_owned()).unwrap(),
+                Did::new("did:ck:b".to_owned()).unwrap(),
+                Did::new("did:ck:c".to_owned()).unwrap(),
+            ],
         };
-        let body = req.to_reconfigure_body();
-        // Wire body must include kind+k+n+dids and exclude unrelated
-        // shape fields so the soland handler doesn't see ambiguous input.
+        let body = serde_json::to_value(&value).unwrap();
+        // Wire body is the SDK-authoritative internally tagged shape —
+        // `kind` + `k`/`n`/`members`, no flat alias spellings.
         assert_eq!(body["kind"], "threshold");
-        assert_eq!(body["threshold_k"], 2);
-        assert_eq!(body["threshold_n"], 3);
-        assert_eq!(
-            body["threshold_dids"]
-                .as_array()
-                .map(|a| a.len())
-                .unwrap_or(0),
-            3
-        );
+        assert_eq!(body["k"], 2);
+        assert_eq!(body["n"], 3);
+        assert_eq!(body["members"].as_array().map(|a| a.len()), Some(3));
+        assert!(body.get("threshold_k").is_none());
+        assert!(body.get("threshold_dids").is_none());
         assert!(body.get("single_did").is_none());
         assert!(body.get("open_set_members").is_none());
     }
@@ -163,7 +157,7 @@ mod tests {
     fn repair_request_body_serializes_with_strategy_tag() {
         let req = BottomRepairRequest {
             realm_id: "ck:realm:demo".into(),
-            cell_id: "ck:cell:ck.component.anchorer.v1:ck:space:demo".into(),
+            cell_id: "ck:cell:ck.component.notary.v1:ck:space:demo".into(),
             strategy: BottomRepairStrategy::HeadInWinner {
                 head: WinnerHead {
                     move_id: "sha256:aaaa".into(),
@@ -182,12 +176,8 @@ mod tests {
 
     #[test]
     fn compaction_request_body_default_omits_max_moves() {
-        let req = CompactionRequest {
-            realm_id: "ck:realm:demo".into(),
-            max_moves: None,
-        };
+        let req = CompactionRequest { max_moves: None };
         let s = serde_json::to_string(&req).unwrap();
-        assert!(s.contains("\"realm_id\":\"ck:realm:demo\""));
         assert!(!s.contains("max_moves"));
     }
 }

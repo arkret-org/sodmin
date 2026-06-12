@@ -11,7 +11,7 @@ use std::collections::HashMap;
 
 use dioxus::prelude::*;
 
-use crate::api::anchor;
+use crate::api::seal;
 use crate::components::ui::badge::{Badge, BadgeVariant};
 use crate::components::ui::button::{Button, ButtonSize, ButtonVariant};
 use crate::components::ui::dialog::ConfirmDialog;
@@ -21,13 +21,13 @@ use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::table::*;
 use crate::components::ui::toast::{ToastVariant, show_toast};
-use crate::types::anchor::{
+use crate::types::seal::{
     BottomEntry, BottomKind, BottomKindExt, BottomRepairStrategy, WinnerHead, bottom_kind_from_wire,
 };
 
 #[component]
 pub fn BottomDiagnosticsPage() -> Element {
-    let mut data = use_resource(|| async { anchor::list_bottom_entries_global().await });
+    let mut data = use_resource(|| async { seal::list_bottom_entries_global().await });
 
     // Pending repair confirmation. `None` = modal closed; `Some` = open
     // with the entry + chosen strategy snapshot the user is about to
@@ -234,7 +234,7 @@ pub fn BottomDiagnosticsPage() -> Element {
                             if let Some((entry, strategy)) = snapshot {
                                 submitting.set(true);
                                 spawn(async move {
-                                    let res = anchor::submit_bottom_repair(
+                                    let res = seal::submit_bottom_repair(
                                         &entry.realm_id,
                                         &entry.cell_id,
                                         strategy,
@@ -378,7 +378,7 @@ mod tests {
         format_kind_label, repair_strategy_for_entry,
     };
     use crate::components::ui::badge::BadgeVariant;
-    use crate::types::anchor::{BottomEntry, BottomRepairStrategy, WinnerHead};
+    use crate::types::seal::{BottomEntry, BottomRepairStrategy, WinnerHead};
 
     #[test]
     fn format_kind_label_falls_back_to_raw() {

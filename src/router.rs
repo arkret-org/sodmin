@@ -35,9 +35,9 @@ pub enum Route {
         #[route("/realms/:realm_id")]
         RealmShow { realm_id: String },
         #[route("/realms/:realm_id/notary")]
-        RealmAnchorer { realm_id: String },
+        RealmNotary { realm_id: String },
         #[route("/realms/:realm_id/seal-dag")]
-        RealmAnchorDag { realm_id: String },
+        RealmSealDag { realm_id: String },
         #[route("/realms/:realm_id/covered-frontier")]
         RealmCoveredFrontier { realm_id: String },
         #[route("/realms/:realm_id/signing-keys")]
@@ -55,7 +55,7 @@ pub enum Route {
         SpaceShow { space_id: String },
 
         #[route("/anchor/bottom")]
-        AnchorBottom {},
+        BottomDiagnostics {},
 
         #[route("/media")]
         MediaList {},
@@ -314,18 +314,18 @@ fn RealmShow(realm_id: String) -> Element {
 }
 
 #[component]
-fn RealmAnchorer(realm_id: String) -> Element {
-    rsx! { pages::realms::anchorer::AnchorerPage { realm_id } }
+fn RealmNotary(realm_id: String) -> Element {
+    rsx! { pages::realms::notary::NotaryPage { realm_id } }
 }
 
 #[component]
-fn RealmAnchorDag(realm_id: String) -> Element {
-    rsx! { pages::realms::anchor_dag::AnchorDagPage { realm_id } }
+fn RealmSealDag(realm_id: String) -> Element {
+    rsx! { pages::realms::seal_dag::SealDagPage { realm_id } }
 }
 
 #[component]
-fn AnchorBottom() -> Element {
-    rsx! { pages::anchor_bottom::BottomDiagnosticsPage {} }
+fn BottomDiagnostics() -> Element {
+    rsx! { pages::bottom::BottomDiagnosticsPage {} }
 }
 
 #[component]

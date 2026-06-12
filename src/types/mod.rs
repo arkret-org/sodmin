@@ -10,7 +10,7 @@ pub use actors::*;
 pub mod agents;
 pub use agents::*;
 
-pub mod anchor;
+pub mod seal;
 
 pub mod applets;
 pub use applets::*;

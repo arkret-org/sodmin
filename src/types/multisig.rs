@@ -1,7 +1,7 @@
 //! DTO shapes for the multi-sig partial-signature aggregation admin surface.
 //!
-//! When a Space's anchorer cell is configured as `threshold(k of n)` or
-//! `mixed`, soland's anchorer worker collects partial signatures from the
+//! When a Space's notary cell is configured as `threshold(k of n)` or
+//! `mixed`, soland's notary worker collects partial signatures from the
 //! n DIDs and assembles a fully-signed Anchor only after k partials
 //! arrive. This describe surface lets an operator see which Anchors are
 //! still waiting on partials, how many have been collected, who hasn't
@@ -10,16 +10,16 @@
 use serde::{Deserialize, Serialize};
 
 /// One row in the multi-sig pending list — an Anchor for which the
-/// anchorer worker is collecting partial signatures.
+/// notary worker is collecting partial signatures.
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct PendingMultisigAnchor {
     pub anchor_id: String,
     /// Realm boundary id. soland's anchor admin handler emits `realm_id`
-    /// (the anchorer/anchor DAG/multisig are Realm-scoped).
+    /// (the notary/Seal DAG/multisig are Realm-scoped).
     pub realm_id: String,
     /// Threshold `k` (signatures required).
     pub threshold_k: u32,
-    /// Threshold `n` (members in the anchorer set).
+    /// Threshold `n` (members in the notary set).
     pub threshold_n: u32,
     /// Number of partial signatures collected so far.
     #[serde(default)]

@@ -1,13 +1,13 @@
 //! Seal DAG / compaction admin page (Stream H', H'4).
 //!
-//! Visualises the latest Anchor leaves, the current frontier, the latest
-//! `state_root` and exposes a "trigger compaction" button that POSTs (today,
-//! stub-POSTs) to soland's `ck.admin.anchors.sign` endpoint
-//! (`POST /_soland/admin/anchors/sign`).
+//! Visualises the latest Seal leaves, the covered event digests, the latest
+//! `state_root` and exposes a "trigger compaction" button that POSTs to
+//! soland's `POST /_soland/admin/realms/{realm_id}/seal-dag/compact`
+//! endpoint.
 
 use dioxus::prelude::*;
 
-use crate::api::anchor;
+use crate::api::seal;
 use crate::components::selection_required::{is_placeholder_resource_id, selection_required_state};
 use crate::components::ui::badge::{Badge, BadgeVariant};
 use crate::components::ui::button::{Button, ButtonVariant};
@@ -20,7 +20,7 @@ use crate::components::ui::table::*;
 use crate::components::ui::toast::{ToastVariant, show_toast};
 
 #[component]
-pub fn AnchorDagPage(realm_id: String) -> Element {
+pub fn SealDagPage(realm_id: String) -> Element {
     if is_placeholder_resource_id(&realm_id) {
         return selection_required_state("Realm");
     }
@@ -28,7 +28,7 @@ pub fn AnchorDagPage(realm_id: String) -> Element {
     let realm_id_for_fetch = realm_id.clone();
     let mut data = use_resource(move || {
         let id = realm_id_for_fetch.clone();
-        async move { anchor::get_anchor_dag(&id).await }
+        async move { seal::get_seal_dag(&id).await }
     });
 
     let mut compacting = use_signal(|| false);
@@ -39,7 +39,7 @@ pub fn AnchorDagPage(realm_id: String) -> Element {
         div { class: "space-y-6",
             PageHeader {
                 title: format!("Seal DAG · {}", header_realm_id),
-                description: "Visualize Anchor leaves, frontier and state_root for this Realm.".to_string(),
+                description: "Visualize Seal leaves, covered event digests and state_root for this Realm.".to_string(),
                 Button {
                     variant: ButtonVariant::Default,
                     disabled: *compacting.read(),
@@ -47,9 +47,9 @@ pub fn AnchorDagPage(realm_id: String) -> Element {
                         compacting.set(true);
                         let id = realm_id_for_compact.clone();
                         spawn(async move {
-                            match anchor::trigger_compaction(&id).await {
+                            match seal::trigger_compaction(&id).await {
                                 Ok(r) => show_toast(
-                                    &format!("Compaction Anchor signed: {}", r.anchor_id),
+                                    &format!("Compaction Seal signed: {}", r.seal_id),
                                     ToastVariant::Success,
                                 ),
                                 Err(e) => show_toast(
@@ -67,24 +67,24 @@ pub fn AnchorDagPage(realm_id: String) -> Element {
             match &*data.read() {
                 Some(Ok(snapshot)) => {
                     // True empty snapshot: soland returned 200 but the
-                    // Realm has no Anchors yet. Distinguish from the
+                    // Realm has no Seals yet. Distinguish from the
                     // error path so the operator sees "nothing to show"
                     // rather than "fetch failed".
                     if snapshot.leaves.is_empty()
-                        && snapshot.frontier.is_empty()
+                        && snapshot.covered_event_digests.is_empty()
                         && snapshot.state_root.is_none()
                     {
                         return rsx! {
                             div { class: "space-y-6",
                                 EmptyState {
                                     icon: "shield".to_string(),
-                                    title: "No Anchors yet".to_string(),
-                                    description: "soland returned no Anchor leaves for this Realm — the DAG is empty.".to_string(),
+                                    title: "No Seals yet".to_string(),
+                                    description: "soland returned no Seal leaves for this Realm — the DAG is empty.".to_string(),
                                 }
                             }
                         };
                     }
-                    let frontier = snapshot.frontier.join(", ");
+                    let covered = snapshot.covered_event_digests.join(", ");
                     let state_root = snapshot
                         .state_root
                         .clone()
@@ -96,12 +96,12 @@ pub fn AnchorDagPage(realm_id: String) -> Element {
                     let leaves = snapshot.leaves.clone();
                     rsx! {
                         Card {
-                            CardHeader { CardTitle { "Frontier & state root" } }
+                            CardHeader { CardTitle { "Covered events & state root" } }
                             CardContent {
                                 div { class: "space-y-2 text-sm",
                                     div {
-                                        span { class: "text-muted-foreground mr-2", "Frontier:" }
-                                        span { class: "font-mono text-xs", "{frontier}" }
+                                        span { class: "text-muted-foreground mr-2", "Covered event digests:" }
+                                        span { class: "font-mono text-xs", "{covered}" }
                                     }
                                     div {
                                         span { class: "text-muted-foreground mr-2", "state_root:" }
@@ -116,13 +116,13 @@ pub fn AnchorDagPage(realm_id: String) -> Element {
                         }
 
                         Card {
-                            CardHeader { CardTitle { "Anchor leaves" } }
+                            CardHeader { CardTitle { "Seal leaves" } }
                             CardContent {
                                 div { class: "rounded-md border",
                                     Table {
                                         TableHeader {
                                             TableRow {
-                                                TableHead { "Anchor ID" }
+                                                TableHead { "Seal ID" }
                                                 TableHead { "state_root" }
                                                 TableHead { "Moves" }
                                                 TableHead { "Created" }
@@ -142,7 +142,7 @@ pub fn AnchorDagPage(realm_id: String) -> Element {
                                             } else {
                                                 for leaf in leaves.iter() {
                                                     {
-                                                        let anchor_id = leaf.anchor_id.clone();
+                                                        let seal_id = leaf.seal_id.clone();
                                                         let state_root = leaf
                                                             .state_root
                                                             .clone()
@@ -165,7 +165,7 @@ pub fn AnchorDagPage(realm_id: String) -> Element {
                                                         };
                                                         rsx! {
                                                             TableRow {
-                                                                TableCell { class: "font-mono text-xs".to_string(), "{anchor_id}" }
+                                                                TableCell { class: "font-mono text-xs".to_string(), "{seal_id}" }
                                                                 TableCell {
                                                                     class: "font-mono text-xs max-w-[200px] truncate".to_string(),
                                                                     "{state_root}"

@@ -49,8 +49,11 @@ pub async fn get_personal_agent(id: &str) -> Result<Agent, HttpError> {
     api_client(&url, "GET", None).await
 }
 
-/// `POST /_cokret/self/agents` — `ck.self.agent.provision`. Step-3 of the wizard
-/// completes via the coauth `accountability_grant` call below.
+/// `POST /_cokret/self/agents` — `ck.self.agent.provision`. Request and
+/// response are the SDK-authoritative `AgentProvisionRequestBody` /
+/// `AgentProvisionOutcome` (the controller is the authenticated
+/// principal; the outcome carries the pairing handshake). Step-3 of the
+/// wizard completes via the coauth `accountability_grant` call below.
 pub async fn provision_personal_agent(
     req: &AgentProvisionRequestBody,
 ) -> Result<AgentProvisionOutcome, HttpError> {
@@ -82,7 +85,11 @@ pub async fn deactivate_personal_agent(id: &str) -> Result<(), HttpError> {
 }
 
 /// `POST /_cokret/self/agents/{id}/rotate-key` — `ck.self.agent.rotate_key`.
-pub async fn rotate_personal_agent_key(id: &str) -> Result<AgentProvisionOutcome, HttpError> {
+/// soland's outcome is its own rotate-key shape (`ok` /
+/// `authorized_verification_method` / ...), not the provision outcome;
+/// current callers only branch on success, so the payload stays untyped
+/// until the rotate flow grows a real UI.
+pub async fn rotate_personal_agent_key(id: &str) -> Result<serde_json::Value, HttpError> {
     let url = format!(
         "/_cokret/self/agents/{}/rotate-key",
         urlencoding::encode(id)

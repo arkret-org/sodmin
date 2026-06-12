@@ -1,6 +1,5 @@
 pub mod actors;
 pub mod agents;
-pub mod anchor;
 pub mod applets;
 pub mod applets_agents_directory;
 pub mod audit;
@@ -32,6 +31,7 @@ pub mod policy;
 pub mod realm_links;
 pub mod realm_policy;
 pub mod realms;
+pub mod seal;
 pub mod server;
 pub mod signing_key;
 pub mod spaces;

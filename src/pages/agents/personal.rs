@@ -477,7 +477,9 @@ fn ProvisionWizard(props: ProvisionWizardProps) -> Element {
     let mut controller_did = use_signal(String::new);
     let mut display_name = use_signal(String::new);
     let mut agent_principal_id = use_signal(String::new);
-    let mut agent_key_proof = use_signal(String::new);
+    // Pairing handshake returned by `ck.self.agent.provision`:
+    // (pairing_request_id, pairing_code?, expires_at).
+    let mut pairing_info = use_signal::<Option<(String, Option<String>, String)>>(|| None);
     let mut error_msg = use_signal(String::new);
 
     let close = props.on_close;
@@ -527,16 +529,10 @@ fn ProvisionWizard(props: ProvisionWizardProps) -> Element {
                 } else if *step.read() == 2 {
                     div { class: "space-y-3",
                         p { class: "text-sm",
-                            "Step 2/3 — Authorize the first agent key. Paste the runtime attestation / proof-of-possession JSON if the backend requires one."
-                        }
-                        textarea {
-                            class: "w-full min-h-[140px] rounded-md border border-input bg-background p-2 font-mono text-xs",
-                            placeholder: "{{\"kind\":\"self_asserted\",\"verification_method\":\"did:web:agent.example#key-1\"}}",
-                            value: agent_key_proof.read().clone(),
-                            oninput: move |evt| agent_key_proof.set(evt.value()),
+                            "Step 2/3 — Provision the agent principal. soland issues the agent DID plus a pairing request; the agent runtime later redeems the pairing code via `ck.gate.account.agent_key_pair` to bind its first key."
                         }
                         p { class: "text-xs text-muted-foreground",
-                            "Leave blank only when the deployment performs key pairing out-of-band."
+                            "The controller is always the authenticated principal — the provision body carries display_name / requested_scope / pairing_ttl_ms only (spec `agent_provision_request_body`)."
                         }
                     }
                 } else {
@@ -544,6 +540,18 @@ fn ProvisionWizard(props: ProvisionWizardProps) -> Element {
                         p { class: "text-sm",
                             "Step 3/3 — Controller approval via coauth accountability_grant. "
                             "This issues a `ck:accountability_grant:<uuid7>` ledger row."
+                        }
+                        if let Some((request_id, code, expires_at)) = pairing_info.read().clone() {
+                            div { class: "rounded-md border bg-muted/30 p-3 space-y-1 text-xs font-mono",
+                                div { "pairing_request_id: {request_id}" }
+                                if let Some(code) = code {
+                                    div { "pairing_code: {code}" }
+                                }
+                                div { "expires_at: {expires_at}" }
+                            }
+                            p { class: "text-xs text-muted-foreground",
+                                "Relay the pairing code to the agent runtime before it expires."
+                            }
                         }
                     }
                 }
@@ -570,30 +578,28 @@ fn ProvisionWizard(props: ProvisionWizardProps) -> Element {
                     } else if *step.read() == 2 {
                         Button {
                             onclick: move |_| {
-                                let did = controller_did.read().clone();
                                 let name = display_name.read().clone();
-                                let proof_text = agent_key_proof.read().trim().to_string();
-                                let proof = if proof_text.is_empty() {
-                                    None
-                                } else {
-                                    match serde_json::from_str::<serde_json::Value>(&proof_text) {
-                                        Ok(value) => Some(value),
-                                        Err(e) => {
-                                            error_msg.set(format!("agent_key_proof JSON parse error: {e}"));
-                                            return;
-                                        }
-                                    }
-                                };
                                 error_msg.set(String::new());
                                 spawn(async move {
+                                    // Spec `agent_provision_request_body`
+                                    // — the controller is the
+                                    // authenticated principal; no
+                                    // controller_did / key-proof fields.
                                     let req = AgentProvisionRequestBody {
-                                        controller_did: did,
                                         display_name: if name.is_empty() { None } else { Some(name) },
-                                        agent_key_proof: proof,
+                                        agent_slug: None,
+                                        requested_scope: None,
+                                        accountability: serde_json::Value::Null,
+                                        pairing_ttl_ms: None,
                                     };
                                     match agents::provision_personal_agent(&req).await {
                                         Ok(resp) => {
-                                            agent_principal_id.set(resp.agent_principal_id);
+                                            agent_principal_id.set(resp.agent_principal_id.to_string());
+                                            pairing_info.set(Some((
+                                                resp.pairing_request_id.clone(),
+                                                resp.pairing_code.clone(),
+                                                resp.expires_at.to_rfc3339(),
+                                            )));
                                             step.set(3);
                                         }
                                         Err(e) => error_msg.set(e.message),

@@ -159,8 +159,8 @@ pub fn SigningKeysPage(realm_id: String) -> Element {
                             rsx! {
                                 ConfirmDialog {
                                     open,
-                                    title: "Rotate AnchorerWorker signing key?".to_string(),
-                                    description: "This generates a fresh key and rebinds the AnchorerWorker. Existing in-flight Anchors will be re-signed with the new key. Audit-logged. Continue?".to_string(),
+                                    title: "Rotate NotaryWorker signing key?".to_string(),
+                                    description: "This generates a fresh key and rebinds the NotaryWorker. Existing in-flight Seals will be re-signed with the new key. Audit-logged. Continue?".to_string(),
                                     confirm_text,
                                     cancel_text: "Cancel".to_string(),
                                     destructive: true,

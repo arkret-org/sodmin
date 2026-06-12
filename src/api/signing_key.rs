@@ -13,20 +13,22 @@
 //! wired the route yet the caller surfaces a "not yet wired" toast
 //! rather than a generic error (see `pages/spaces/signing_keys.rs`).
 
-use crate::api::anchor;
+use crate::api::seal;
 use crate::api::client::api_client;
 use crate::types::signing_key::{RotateSigningKeyResponse, SigningKeyDescribe};
 use crate::utils::net::error::HttpError;
 
 /// Fetch the current NotaryWorker signing-key describe view.
 pub async fn get_signing_key(realm_id: &str) -> Result<SigningKeyDescribe, HttpError> {
-    let notary = anchor::get_anchorer_value(realm_id).await?;
-    let did = notary
-        .single_did
-        .clone()
-        .or_else(|| notary.mixed_primary.clone())
-        .or_else(|| notary.threshold_dids.first().cloned())
-        .or_else(|| notary.open_set_members.first().cloned());
+    let notary = seal::get_notary_value(realm_id).await?;
+    let did = match &notary.value {
+        cokret_core::NotaryValue::SingleDid { did } => Some(did.to_string()),
+        cokret_core::NotaryValue::Mixed { primary, .. } => Some(primary.to_string()),
+        cokret_core::NotaryValue::Threshold { members, .. }
+        | cokret_core::NotaryValue::OpenSet { members } => {
+            members.first().map(|d| d.to_string())
+        }
+    };
     let verification_method_id = did
         .as_ref()
         .map(|did| format!("{did}#notary-key"))

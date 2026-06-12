@@ -1,6 +1,6 @@
 //! Multi-sig partial-signature aggregation panel (Stream H', H'9).
 //!
-//! Lists pending Anchors for a Realm's anchorer cell that's configured as
+//! Lists pending Seals for a Realm's notary cell that's configured as
 //! `threshold(k of n)` or `mixed`. Each row shows the anchor_id, the
 //! `k of n` threshold, the count of partials collected, and the missing
 //! signer DIDs. When the current admin DID is in the missing-signers
@@ -43,7 +43,7 @@ pub fn MultiSigPage(realm_id: String) -> Element {
         div { class: "space-y-6",
             PageHeader {
                 title: format!("Multi-sig pending · {}", header_realm_id),
-                description: "Anchors awaiting threshold partial signatures from the anchorer cell members.".to_string(),
+                description: "Seals awaiting threshold partial signatures from the notary cell members.".to_string(),
                 Button {
                     variant: ButtonVariant::Outline,
                     onclick: move |_| data.restart(),
