@@ -1,27 +1,14 @@
 use dioxus::prelude::*;
+// `PageHeader` 已迁移到 yoface(签名一致,渲染走 css_module + Soft Orbit 令牌)。
+// 直接 re-export,调用点零改动。
+pub use yoface::ui::page_header::PageHeader;
 
 use crate::router::Route;
 
-#[component]
-pub fn PageHeader(
-    title: String,
-    #[props(default)] description: String,
-    #[props(default)] children: Element,
-) -> Element {
-    rsx! {
-        div { class: "page-header",
-            div { class: "space-y-1",
-                h1 { class: "text-2xl font-bold tracking-tight", "{title}" }
-                if !description.is_empty() {
-                    p { class: "text-muted-foreground", "{description}" }
-                }
-            }
-            div { class: "page-header-actions",
-                {children}
-            }
-        }
-    }
-}
+// `Breadcrumbs` / `BreadcrumbItem` 保留本地:sodmin 用 `crate::router::Route`
+// 强类型路由,yoface 版改用 `href: Option<String>`(共享库不假设下游路由)。
+// 强类型在 sodmin 侧更安全(编译期校验路由),故保留本地实现,仅样式仍用
+// 应用级 utility class。
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct BreadcrumbItem {

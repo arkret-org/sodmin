@@ -1,6 +1,14 @@
+//! `Button` — 已迁移到 yoface(`yoface::ui::button::Button`)。
+//!
+//! 本地保留这一薄**适配器**:sodmin 调用点用 `ButtonVariant::Default`(yoface
+//! 改名为 `Primary`),且习惯以命名 prop 传 `class` / `disabled` / `type` /
+//! `onclick`(非 `Option`)。适配器把本地枚举映射到 yoface,并将这些命名 prop
+//! 透传为 yoface 的 attributes,渲染走 yoface css_module + Soft Orbit 令牌。
+//! 因此 ~140 个调用点零改动。
 use dioxus::prelude::*;
+use yoface::ui::button::{Button as YButton, ButtonSize as YSize, ButtonVariant as YVariant};
 
-#[derive(Debug, Clone, PartialEq, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Default)]
 pub enum ButtonVariant {
     #[default]
     Default,
@@ -10,11 +18,32 @@ pub enum ButtonVariant {
     Ghost,
 }
 
-#[derive(Debug, Clone, PartialEq, Default)]
+impl ButtonVariant {
+    fn to_yoface(self) -> YVariant {
+        match self {
+            ButtonVariant::Default => YVariant::Primary,
+            ButtonVariant::Destructive => YVariant::Destructive,
+            ButtonVariant::Outline => YVariant::Outline,
+            ButtonVariant::Secondary => YVariant::Secondary,
+            ButtonVariant::Ghost => YVariant::Ghost,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Default)]
 pub enum ButtonSize {
     #[default]
     Default,
     Sm,
+}
+
+impl ButtonSize {
+    fn to_yoface(self) -> YSize {
+        match self {
+            ButtonSize::Default => YSize::Default,
+            ButtonSize::Sm => YSize::Sm,
+        }
+    }
 }
 
 #[component]
@@ -27,32 +56,13 @@ pub fn Button(
     #[props(default)] onclick: EventHandler<MouseEvent>,
     children: Element,
 ) -> Element {
-    let variant_class = match variant {
-        ButtonVariant::Default => "btn-gradient",
-        ButtonVariant::Destructive => {
-            "bg-destructive text-destructive-foreground hover:bg-destructive/90"
-        }
-        ButtonVariant::Outline => "btn-outline",
-        ButtonVariant::Secondary => "btn-secondary",
-        ButtonVariant::Ghost => "hover:bg-accent hover:text-accent-foreground",
-    };
-
-    let size_class = match size {
-        ButtonSize::Default => "h-10 px-4 py-2",
-        ButtonSize::Sm => "h-9 px-3",
-    };
-
-    let disabled_class = if disabled {
-        "opacity-50 pointer-events-none"
-    } else {
-        ""
-    };
-
     rsx! {
-        button {
-            r#type,
-            class: "inline-flex items-center justify-center whitespace-nowrap rounded-lg text-sm font-semibold ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 touch-target {variant_class} {size_class} {disabled_class} {class}",
+        YButton {
+            variant: variant.to_yoface(),
+            size: size.to_yoface(),
+            class,
             disabled,
+            r#type,
             onclick: move |evt| onclick.call(evt),
             {children}
         }

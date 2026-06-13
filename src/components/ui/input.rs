@@ -1,5 +1,12 @@
 use dioxus::prelude::*;
 
+/// `Input` — 已迁移到 yoface(`yoface::ui::input::Input`,css_module 渲染)。
+///
+/// 本地保留这一薄**适配器**:sodmin 调用点以命名 prop 传 `value` / `placeholder`
+/// / `disabled` / `oninput`(非 `Option`)/ 以及一组 HTML 约束(`min_length` /
+/// `max_length` / `pattern` / `aria_describedby` 等)。适配器把它们透传为 yoface
+/// `Input` 的 attributes(`value` / `placeholder` 等都是 input 全局属性),
+/// `oninput` 包成 yoface 的 `Option<EventHandler>`。~未知数量调用点零改动。
 #[component]
 pub fn Input(
     #[props(default)] id: String,
@@ -32,11 +39,11 @@ pub fn Input(
 ) -> Element {
     let resolved_name = if name.is_empty() { id.clone() } else { name };
     rsx! {
-        input {
+        yoface::ui::input::Input {
             id,
             name: resolved_name,
             r#type,
-            class: "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 invalid:border-destructive invalid:ring-destructive/40 touch-target {class}",
+            class: "{class}",
             placeholder,
             value,
             aria_label,
