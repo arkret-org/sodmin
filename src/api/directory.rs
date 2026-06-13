@@ -1,7 +1,7 @@
 //! R3.2 (UI-SOD-4) — Directory service client for the Subject → Handles
 //! admin page.
 //!
-//! `ck.find.directory.list_handles_for_subject` is the inverse of
+//! `ck.find.directory.query.list_handles_for_subject` is the inverse of
 //! `resolve_handle`: given a known holder/principal DID it returns the
 //! currently visible signed `ck.schema.handle_claim.v1` evidence, after
 //! the directory applies disclosure policy / issuer trust / audience /
@@ -19,7 +19,7 @@ use crate::utils::net::error::HttpError;
 /// `POST /_cokret/find/directory/list-handles-for-subject`.
 pub const LIST_HANDLES_FOR_SUBJECT: &str = "/_cokret/find/directory/list-handles-for-subject";
 
-/// Call `ck.find.directory.list_handles_for_subject`. The directory applies
+/// Call `ck.find.directory.query.list_handles_for_subject`. The directory applies
 /// disclosure / issuer-trust / audience / intent filtering server-side;
 /// the caller should still defensively use
 /// [`DirectorySubjectHandleList::visible_claims`] to enforce the

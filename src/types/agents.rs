@@ -27,7 +27,7 @@ pub struct Agent {
     /// CKP-0008 — reducer-stamped actor kind. Native personal agents
     /// use `agent`; Applet-managed ghost actors use `integration` or
     /// `agent` plus provenance/accountability metadata.
-    /// Populated by soland's `ck.self.agent.list` / `ck.self.agent.get`.
+    /// Populated by soland's `ck.self.agent.query.list` / `ck.self.agent.resource.get`.
     #[serde(default)]
     pub actor_kind: Option<String>,
     /// CKP-0008 — controller DID. Native personal agents are 1:1 bound
@@ -71,7 +71,7 @@ pub struct AgentGrantEntry {
     pub expires_at: Option<String>,
 }
 
-// `POST /_cokret/self/agents` (`ck.self.agent.provision`) wire shapes —
+// `POST /_cokret/self/agents` (`ck.self.agent.command.provision`) wire shapes —
 // SDK-authoritative per spec `agent-operations.schema.json#/$defs/
 // agent_provision_request_body` / `agent_provision_outcome`. The
 // controller is always the authenticated principal (no controller_did in

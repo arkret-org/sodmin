@@ -15,7 +15,7 @@ pub mod covered_seals;
 pub mod delivery_binding;
 pub mod devices;
 /// R3.2 (UI-SOD-4) — Directory service client
-/// (`ck.find.directory.list_handles_for_subject`).
+/// (`ck.find.directory.query.list_handles_for_subject`).
 pub mod directory;
 pub mod federation;
 pub mod federation_status;

@@ -153,7 +153,7 @@ mod tests {
             "service_type": "principal_server",
             "protocol_version": "1.0",
             "supported_profiles": ["ck.profile.principal_server.v1"],
-            "supported_operations": ["ck.self.events.submit"],
+            "supported_operations": ["ck.self.events.command.submit"],
             "supported_bindings": [],
             "supported_features": ["events.describe", "events.submit"],
             "auth_metadata": {},

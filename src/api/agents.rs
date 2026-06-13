@@ -49,7 +49,7 @@ pub async fn get_personal_agent(id: &str) -> Result<Agent, HttpError> {
     api_client(&url, "GET", None).await
 }
 
-/// `POST /_cokret/self/agents` — `ck.self.agent.provision`. Request and
+/// `POST /_cokret/self/agents` — `ck.self.agent.command.provision`. Request and
 /// response are the SDK-authoritative `AgentProvisionRequestBody` /
 /// `AgentProvisionOutcome` (the controller is the authenticated
 /// principal; the outcome carries the pairing handshake). Step-3 of the
@@ -61,19 +61,19 @@ pub async fn provision_personal_agent(
     api_client("/_cokret/self/agents", "POST", Some(body)).await
 }
 
-/// `POST /_cokret/self/agents/{id}/pause` — `ck.self.agent.pause`.
+/// `POST /_cokret/self/agents/{id}/pause` — `ck.self.agent.command.pause`.
 pub async fn pause_personal_agent(id: &str) -> Result<(), HttpError> {
     let url = format!("/_cokret/self/agents/{}/pause", urlencoding::encode(id));
     api_client(&url, "POST", None).await
 }
 
-/// `POST /_cokret/self/agents/{id}/resume` — `ck.self.agent.resume`.
+/// `POST /_cokret/self/agents/{id}/resume` — `ck.self.agent.command.resume`.
 pub async fn resume_personal_agent(id: &str) -> Result<(), HttpError> {
     let url = format!("/_cokret/self/agents/{}/resume", urlencoding::encode(id));
     api_client(&url, "POST", None).await
 }
 
-/// `POST /_cokret/self/agents/{id}/deactivate` — `ck.self.agent.deactivate`.
+/// `POST /_cokret/self/agents/{id}/deactivate` — `ck.self.agent.command.deactivate`.
 /// Destructive: callers MUST gate this through `ConfirmDialog` with
 /// typed-keyword confirmation (`DEACTIVATE`).
 pub async fn deactivate_personal_agent(id: &str) -> Result<(), HttpError> {
@@ -84,7 +84,7 @@ pub async fn deactivate_personal_agent(id: &str) -> Result<(), HttpError> {
     api_client(&url, "POST", None).await
 }
 
-/// `POST /_cokret/self/agents/{id}/rotate-key` — `ck.self.agent.rotate_key`.
+/// `POST /_cokret/self/agents/{id}/rotate-key` — `ck.self.agent.command.rotate_key`.
 /// soland's outcome is its own rotate-key shape (`ok` /
 /// `authorized_verification_method` / ...), not the provision outcome;
 /// current callers only branch on success, so the payload stays untyped
@@ -97,7 +97,7 @@ pub async fn rotate_personal_agent_key(id: &str) -> Result<serde_json::Value, Ht
     api_client(&url, "POST", None).await
 }
 
-/// `POST /_cokret/self/agents/{id}/grants` — `ck.self.agent.grant.attach`.
+/// `POST /_cokret/self/agents/{id}/grants` — `ck.self.agent.grant.command.attach`.
 /// `action` is one of the 14 personal-agent capability actions; the
 /// soland reducer projects this to a `ck.capability.grant` event.
 pub async fn attach_personal_agent_grant(

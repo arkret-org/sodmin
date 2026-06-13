@@ -32,15 +32,15 @@ const AGENT_CAPABILITY_ACTIONS: &[&str] = &[
     "ck.agent.key.authorize",
     "ck.agent.key.revoke",
     "ck.agent.key.rotate",
-    "ck.self.agent.provision",
-    "ck.self.agent.pause",
-    "ck.self.agent.resume",
-    "ck.self.agent.deactivate",
+    "ck.self.agent.command.provision",
+    "ck.self.agent.command.pause",
+    "ck.self.agent.command.resume",
+    "ck.self.agent.command.deactivate",
     "ck.agent.draft.propose",
     "ck.agent.action_request",
     "ck.agent.action_approve",
     "ck.agent.action_reject",
-    "ck.self.agent.sidecar_thread.ensure",
+    "ck.self.agent.sidecar_thread.command.ensure",
     "ck.agent.sidecar_thread.write",
     "ck.agent.sidecar_thread.publish",
 ];
@@ -472,7 +472,7 @@ fn ProvisionWizard(props: ProvisionWizardProps) -> Element {
     let mut controller_did = use_signal(String::new);
     let mut display_name = use_signal(String::new);
     let mut agent_principal_id = use_signal(String::new);
-    // Pairing handshake returned by `ck.self.agent.provision`:
+    // Pairing handshake returned by `ck.self.agent.command.provision`:
     // (pairing_request_id, pairing_code?, expires_at).
     let mut pairing_info = use_signal::<Option<(String, Option<String>, String)>>(|| None);
     let mut error_msg = use_signal(String::new);
@@ -494,10 +494,10 @@ fn ProvisionWizard(props: ProvisionWizardProps) -> Element {
                     div { class: "space-y-3",
                         // P5 — pre-flight capability check so the operator
                         // sees whether their account already holds
-                        // `ck.self.agent.provision` before submit. UI hint only;
+                        // `ck.self.agent.command.provision` before submit. UI hint only;
                         // backend RBAC is canonical.
                         GrantedCapabilitiesView {
-                            required_capability: Some("ck.self.agent.provision".to_string()),
+                            required_capability: Some("ck.self.agent.command.provision".to_string()),
                             title: Some(t("agents.personal.required_capability")),
                         }
                         Label { class: "text-sm".to_string(), {t("agents.personal.controller_did")} }

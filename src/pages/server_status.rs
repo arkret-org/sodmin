@@ -741,7 +741,7 @@ fn dev_posture_card(describe: &ServerDescribeDocument) -> Element {
 
 /// R3 (UI-6) — render a single-line status row per "new R3 profile" so
 /// the operator can see at a glance which of them the server has
-/// declared in `ck.server.describe.supported_profiles`. The list of
+/// declared in `ck.server.query.describe.supported_profiles`. The list of
 /// known R3 profiles is held here (not in i18n) because it tracks the
 /// spec one-for-one and the i18n value is only the human label.
 fn r3_profile_status_section(profiles: &[String]) -> Element {

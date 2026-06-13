@@ -119,7 +119,7 @@ pub enum Route {
 
         // R3.2 (UI-SOD-4) — Subject → Handles directory page. Operator
         // enters a holder/principal DID; the page calls
-        // `ck.find.directory.list_handles_for_subject` and lists the visible
+        // `ck.find.directory.query.list_handles_for_subject` and lists the visible
         // signed handle claims + the §3.2.1 primary handle.
         #[route("/handles/by-subject?:subject")]
         HandlesBySubject { subject: Option<String> },
