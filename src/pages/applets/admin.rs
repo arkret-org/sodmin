@@ -96,7 +96,7 @@ pub fn AppletAdminPage() -> Element {
                     rsx! {
                         if page.data.is_empty() {
                             EmptyState {
-                                icon: "plug".to_string(),
+                                icon_name: "plug".to_string(),
                                 title: t("applets_admin.empty_title"),
                                 description: t("applets_admin.empty_subtitle"),
                             }

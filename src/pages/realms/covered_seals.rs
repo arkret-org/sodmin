@@ -72,7 +72,7 @@ pub fn CoveredSealsPage(realm_id: String) -> Element {
                     if governance_empty {
                         rsx! {
                             EmptyState {
-                                icon: "shield".to_string(),
+                                icon_name: "shield".to_string(),
                                 title: "No covered_seals data yet".to_string(),
                                 description: "soland has not yet seen any governance Seals for this Realm; covered_seals is empty by construction.".to_string(),
                             }

@@ -115,7 +115,7 @@ pub fn ModerationReportsPage() -> Element {
                     rsx! {
                         if page.data.is_empty() {
                             EmptyState {
-                                icon: "flag".to_string(),
+                                icon_name: "flag".to_string(),
                                 title: t("moderation_reports.empty_title"),
                                 description: t("moderation_reports.empty_subtitle"),
                             }

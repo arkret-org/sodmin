@@ -69,7 +69,7 @@ pub fn AccountDevicesPage(account_id: String) -> Element {
                     rsx! {
                         if page.data.is_empty() {
                             EmptyState {
-                                icon: "smartphone".to_string(),
+                                icon_name: "smartphone".to_string(),
                                 title: t("coauth_devices.empty_title"),
                                 description: t("coauth_devices.empty_subtitle"),
                             }

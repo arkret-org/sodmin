@@ -38,7 +38,7 @@ pub fn DeactivationReviewPage() -> Element {
             }
 
             EmptyState {
-                icon: "alert-triangle".to_string(),
+                icon_name: "alert-triangle".to_string(),
                 title: "No deactivation selected".to_string(),
                 description: "Open this workflow from an actual account or Realm deactivation record once the backend describe endpoint is published.".to_string(),
             }

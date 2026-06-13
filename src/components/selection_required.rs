@@ -13,7 +13,7 @@ pub fn selection_required_state(kind: &str) -> Element {
     );
     rsx! {
         EmptyState {
-            icon: "search".to_string(),
+            icon_name: "search".to_string(),
             title,
             description,
         }

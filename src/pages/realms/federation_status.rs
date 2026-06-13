@@ -50,7 +50,7 @@ pub fn FederationStatusPage(realm_id: String) -> Element {
                     rsx! {
                         if rows.is_empty() {
                             EmptyState {
-                                icon: "globe".to_string(),
+                                icon_name: "globe".to_string(),
                                 title: t("federation_status.empty_title"),
                                 description: t("federation_status.empty_subtitle"),
                             }

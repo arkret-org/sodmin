@@ -59,7 +59,7 @@ pub fn BottomDiagnosticsPage() -> Element {
                 Some(Ok(entries)) => if entries.is_empty() {
                     rsx! {
                         EmptyState {
-                            icon: "shield".to_string(),
+                            icon_name: "shield".to_string(),
                             title: "All clear".to_string(),
                             description: "No bottom-state cells reported across visible Spaces.".to_string(),
                         }

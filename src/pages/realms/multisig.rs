@@ -55,7 +55,7 @@ pub fn MultiSigPage(realm_id: String) -> Element {
                 Some(Ok(pending)) => if pending.is_empty() {
                     rsx! {
                         EmptyState {
-                            icon: "shield".to_string(),
+                            icon_name: "shield".to_string(),
                             title: "No pending multi-sig Seals".to_string(),
                             description: "All Seals in this Realm have reached threshold and assembled.".to_string(),
                         }

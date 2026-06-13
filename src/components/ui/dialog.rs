@@ -1,7 +1,13 @@
+//! `ConfirmDialog`:渲染实现已迁移到 yoface(`yoface::ui::modal::ConfirmDialog`)。
+//! 本地手写的遮罩 + 面板实现已删除。
+//!
+//! 保留一层**薄适配器**,把 sodmin 既有 prop 名透传/翻译到 yoface 新 API:
+//!   * `description` → yoface `message`
+//!   * `confirm_text`/`cancel_text` → yoface `confirm_label`/`cancel_label`
+//!   * `destructive: bool` → yoface `variant: ButtonVariant::{Destructive,Primary}`
+//! 避免在 ~20 处调用点逐个改 prop 名(`destructive` 含动态表达式,盲改易错)。
 use dioxus::prelude::*;
-
-use super::button::{Button, ButtonVariant};
-use super::modal::ModalOverlay;
+use yoface::ui::button::ButtonVariant;
 
 #[component]
 pub fn ConfirmDialog(
@@ -14,30 +20,21 @@ pub fn ConfirmDialog(
     on_confirm: EventHandler<()>,
     on_cancel: EventHandler<()>,
 ) -> Element {
-    if !open {
-        return rsx! {};
-    }
-
+    let variant = if destructive {
+        ButtonVariant::Destructive
+    } else {
+        ButtonVariant::Primary
+    };
     rsx! {
-        ModalOverlay { on_close: move |_| on_cancel.call(()),
-            div { class: "relative z-50 w-full max-w-lg rounded-lg border glass-panel p-6 shadow-lg",
-                div { class: "flex flex-col space-y-2 text-center sm:text-left",
-                    h2 { class: "text-lg font-semibold", "{title}" }
-                    p { class: "text-sm text-muted-foreground", "{description}" }
-                }
-                div { class: "flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 mt-4",
-                    Button {
-                        variant: ButtonVariant::Outline,
-                        onclick: move |_| on_cancel.call(()),
-                        "{cancel_text}"
-                    }
-                    Button {
-                        variant: if destructive { ButtonVariant::Destructive } else { ButtonVariant::Default },
-                        onclick: move |_| on_confirm.call(()),
-                        "{confirm_text}"
-                    }
-                }
-            }
+        yoface::ui::modal::ConfirmDialog {
+            open,
+            title,
+            message: description,
+            confirm_label: confirm_text,
+            cancel_label: cancel_text,
+            variant,
+            on_confirm: move |_| on_confirm.call(()),
+            on_cancel: move |_| on_cancel.call(()),
         }
     }
 }

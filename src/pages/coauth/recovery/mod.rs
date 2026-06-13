@@ -37,7 +37,7 @@ pub fn RecoveryPolicyList() -> Element {
                 }
                 CardContent {
                     EmptyState {
-                        icon: "key".to_string(),
+                        icon_name: "key".to_string(),
                         title: "Recovery policy endpoint unavailable".to_string(),
                         description: t("recovery.placeholder"),
                     }

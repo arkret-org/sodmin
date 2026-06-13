@@ -77,7 +77,7 @@ pub fn SpaceList() -> Element {
                     rsx! {
                         if page.data.is_empty() {
                             EmptyState {
-                                icon: "message-square".to_string(),
+                                icon_name: "message-square".to_string(),
                                 title: t("spaces.empty_title"),
                                 description: t("spaces.empty_subtitle"),
                             }

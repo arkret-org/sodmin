@@ -55,7 +55,7 @@ pub fn SpaceShow(space_id: String) -> Element {
                     rsx! {
                         if parent_count == 0 && child_count == 0 {
                             EmptyState {
-                                icon: "git-branch".to_string(),
+                                icon_name: "git-branch".to_string(),
                                 title: t("spaces.hierarchy_empty_title"),
                                 description: t("spaces.hierarchy_empty_subtitle"),
                             }

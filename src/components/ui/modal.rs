@@ -1,14 +1,20 @@
+//! Modal 家族:渲染实现已迁移到 yoface(`yoface::ui::modal`)。本地手写的
+//! `fixed inset-0 z-50 …` 遮罩 + 面板实现已删除。
+//!
+//! 为避免在 ~20 处调用点逐个改 prop 名(其中 `destructive: bool` → `variant`
+//! 是类型变更、部分还是动态表达式,盲改易错),这里保留一层**薄适配器**,
+//! 把 sodmin 既有 prop 名透传/翻译到 yoface 的新 API:
+//!   * `DialogActions.confirm_text`/`cancel_text` → yoface `confirm_label`/`cancel_label`
+//!   * `DialogActions.destructive: bool` → yoface `variant: ButtonVariant::{Destructive,Primary}`
+//!   * `Modal.max_width: String` → yoface `Modal.class`
+//!
+//! `ModalOverlay` 签名一致,直接 re-export。
 use dioxus::prelude::*;
+use yoface::ui::button::ButtonVariant;
+pub use yoface::ui::modal::ModalOverlay;
 
-use super::button::{Button, ButtonVariant};
-
-/// Full-screen dim backdrop + centered container used by every hand-rolled
-/// `fixed inset-0 z-50 ...` dialog across the list/detail pages.
-///
-/// Renders nothing when `open` is false. Clicking the backdrop fires
-/// `on_close`. `title` renders the standard `h2` header; pass form fields
-/// and a [`DialogActions`] row as `children`. `max_width` overrides the
-/// default `max-w-md` container width (e.g. `"max-w-lg"`).
+/// 适配器:本地 `max_width: String`(如 `"max-w-lg"`)映射为 yoface `Modal.class`
+/// (透传到容器,覆盖默认 max-width)。其余 prop 同名透传。
 #[component]
 pub fn Modal(
     open: bool,
@@ -17,44 +23,18 @@ pub fn Modal(
     on_close: EventHandler<()>,
     children: Element,
 ) -> Element {
-    if !open {
-        return rsx! {};
-    }
-
     rsx! {
-        ModalOverlay { on_close,
-            div { class: "relative z-50 w-full {max_width} rounded-lg border glass-panel p-6 shadow-lg space-y-4",
-                if !title.is_empty() {
-                    h2 { class: "text-lg font-semibold", "{title}" }
-                }
-                {children}
-            }
-        }
-    }
-}
-
-/// Bare centered overlay (backdrop + flex container) without the standard
-/// dialog panel. Use when a page needs a custom panel shell but still wants
-/// the shared backdrop + click-to-close behavior.
-#[component]
-pub fn ModalOverlay(on_close: EventHandler<()>, children: Element) -> Element {
-    rsx! {
-        div { class: "fixed inset-0 z-50 flex items-center justify-center",
-            div {
-                class: "fixed inset-0 bg-black/80",
-                onclick: move |_| on_close.call(()),
-            }
+        yoface::ui::modal::Modal {
+            open,
+            title,
+            class: max_width,
+            on_close: move |_| on_close.call(()),
             {children}
         }
     }
 }
 
-/// Trailing confirm/cancel button row shared by every dialog
-/// (`flex justify-end gap-2` + Outline cancel + primary/destructive confirm).
-///
-/// `confirm_loading` disables the confirm button while a mutation is in
-/// flight. Set `destructive` to render the confirm button in the
-/// destructive variant.
+/// 适配器:`confirm_text`/`cancel_text`/`destructive` → yoface 新 prop 名。
 #[component]
 pub fn DialogActions(
     confirm_text: String,
@@ -64,19 +44,19 @@ pub fn DialogActions(
     on_confirm: EventHandler<()>,
     on_cancel: EventHandler<()>,
 ) -> Element {
+    let variant = if destructive {
+        ButtonVariant::Destructive
+    } else {
+        ButtonVariant::Primary
+    };
     rsx! {
-        div { class: "flex justify-end gap-2",
-            Button {
-                variant: ButtonVariant::Outline,
-                onclick: move |_| on_cancel.call(()),
-                "{cancel_text}"
-            }
-            Button {
-                variant: if destructive { ButtonVariant::Destructive } else { ButtonVariant::Default },
-                disabled: confirm_loading,
-                onclick: move |_| on_confirm.call(()),
-                "{confirm_text}"
-            }
+        yoface::ui::modal::DialogActions {
+            confirm_label: confirm_text,
+            cancel_label: cancel_text,
+            variant,
+            confirm_loading,
+            on_confirm: move |_| on_confirm.call(()),
+            on_cancel: move |_| on_cancel.call(()),
         }
     }
 }

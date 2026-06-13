@@ -80,7 +80,7 @@ pub fn CircleList() -> Element {
 
             if applied_realm.read().trim().is_empty() {
                 EmptyState {
-                    icon: "users".to_string(),
+                    icon_name: "users".to_string(),
                     title: t("circle.empty_no_realm_title"),
                     description: t("circle.empty_no_realm_description"),
                 }
@@ -89,7 +89,7 @@ pub fn CircleList() -> Element {
                     Some(Ok(resp)) => rsx! {
                         if resp.circles.is_empty() {
                             EmptyState {
-                                icon: "users".to_string(),
+                                icon_name: "users".to_string(),
                                 title: t("circle.empty_title"),
                                 description: t("circle.empty_description"),
                             }

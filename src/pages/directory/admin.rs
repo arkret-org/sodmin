@@ -90,7 +90,7 @@ pub fn DirectoryAdminPage() -> Element {
                     rsx! {
                         if page.data.is_empty() {
                             EmptyState {
-                                icon: "globe".to_string(),
+                                icon_name: "globe".to_string(),
                                 title: t("directory_admin.empty_title"),
                                 description: t("directory_admin.empty_subtitle"),
                             }

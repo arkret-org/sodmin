@@ -235,7 +235,7 @@ pub fn ModerationAppealsPage() -> Element {
 
             if pending_only.is_empty() {
                 EmptyState {
-                    icon: "flag".to_string(),
+                    icon_name: "flag".to_string(),
                     title: t("appeals.empty_title"),
                     description: t("appeals.empty_subtitle"),
                 }

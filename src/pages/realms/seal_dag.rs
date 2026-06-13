@@ -76,7 +76,7 @@ pub fn SealDagPage(realm_id: String) -> Element {
                         return rsx! {
                             div { class: "space-y-6",
                                 EmptyState {
-                                    icon: "shield".to_string(),
+                                    icon_name: "shield".to_string(),
                                     title: "No Seals yet".to_string(),
                                     description: "soland returned no Seal leaves for this Realm; the DAG is empty.".to_string(),
                                 }

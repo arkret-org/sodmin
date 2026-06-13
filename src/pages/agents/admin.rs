@@ -156,7 +156,7 @@ pub fn AgentAdminPage() -> Element {
                     rsx! {
                         if page.data.is_empty() {
                             EmptyState {
-                                icon: "bot".to_string(),
+                                icon_name: "bot".to_string(),
                                 title: t("agents_admin.empty_title"),
                                 description: t("agents_admin.empty_subtitle"),
                             }
