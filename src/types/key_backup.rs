@@ -36,43 +36,6 @@ pub struct RecoveryPolicySummary {
     pub policy: Option<serde_json::Value>,
 }
 
-/// `GET /_cokret/self/keys/backups` outcome. Matches the spec
-/// `keys_backups_list` schema (`{backups, has_more, next_cursor?}`) rather
-/// than the generic `{data, total, next_cursor}` envelope — the latter
-/// deserialized `backups` into nothing and rendered a silently-empty list.
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct KeyBackupListOutcome {
-    #[serde(default)]
-    pub backups: Vec<KeyBackupSeries>,
-    #[serde(default)]
-    pub has_more: bool,
-    #[serde(default)]
-    pub next_cursor: Option<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct KeyBackupSeries {
-    #[serde(default)]
-    pub series_id: String,
-    #[serde(default)]
-    pub backup_class: Option<String>,
-    /// Highest `series_seq` observed for this series.
-    #[serde(default)]
-    pub frontier_seq: u64,
-    #[serde(default)]
-    pub frontier_ref: Option<String>,
-    /// Spec rename (head 37ce729): `series_sequence` → `series_seq`.
-    #[serde(default)]
-    pub series_seq: u64,
-    /// Three-class 409 reason counters per §12.1.
-    #[serde(default)]
-    pub series_chain_broken_count: u64,
-    #[serde(default)]
-    pub series_seq_not_monotonic_count: u64,
-    #[serde(default)]
-    pub series_predecessor_not_found_count: u64,
-}
-
 /// REC-1 — recovery receipt history row. Field names follow spec
 /// `recovery-receipt.schema.json` (`ck.schema.recovery_receipt.v1`):
 /// `receipt_id` / `recovery_session_id` / `policy_id` / `policy_version`

@@ -3,10 +3,9 @@
 //! plus the soland identity recovery extension endpoints.
 
 use crate::api::client::{api_client, build_url};
-use crate::types::{
-    KeyBackupListOutcome, ListResponse, RecoveryPolicySummary, RecoveryReceiptSummary,
-};
+use crate::types::{ListResponse, RecoveryPolicySummary, RecoveryReceiptSummary};
 use crate::utils::net::error::HttpError;
+use cokret_core::model::KeysBackupsList;
 
 // Recovery policy / receipt browse is a soland identity extension on the
 // product surface (`/_soland/root/identity/*`); it is NOT a `/_cokret`
@@ -41,7 +40,7 @@ struct RecoveryReceiptsEnvelope {
 pub async fn list_backups(
     series_id: Option<&str>,
     backup_class: Option<&str>,
-) -> Result<KeyBackupListOutcome, HttpError> {
+) -> Result<KeysBackupsList, HttpError> {
     let mut params: Vec<(&str, &str)> = Vec::with_capacity(2);
     if let Some(s) = series_id {
         params.push(("series_id", s));

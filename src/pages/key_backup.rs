@@ -19,6 +19,7 @@ use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::table::*;
 use crate::types::RecoveryPolicySummary;
 use crate::utils::i18n::t;
+use cokret_core::model::KeyBackupSummary;
 
 #[component]
 pub fn KeyBackupList() -> Element {
@@ -151,14 +152,12 @@ pub fn KeyBackupList() -> Element {
                         Table {
                             TableHeader {
                                 TableRow {
-                                    TableHead { "series_id" }
+                                    TableHead { "backup_id" }
+                                    TableHead { "actor_id" }
                                     TableHead { "backup_class" }
-                                    TableHead { "frontier_seq" }
-                                    TableHead { "frontier_ref" }
-                                    TableHead { "series_seq" }
-                                    TableHead { "chain_broken" }
-                                    TableHead { "not_monotonic" }
-                                    TableHead { "predecessor_not_found" }
+                                    TableHead { "backup_version" }
+                                    TableHead { "created_at" }
+                                    TableHead { "ciphertext_digest" }
                                 }
                             }
                             TableBody {
@@ -289,19 +288,17 @@ pub fn KeyBackupList() -> Element {
     }
 }
 
-fn render_series_row(s: &crate::types::KeyBackupSeries) -> Element {
-    let class = s.backup_class.clone().unwrap_or_else(|| "-".into());
-    let frontier_ref = s.frontier_ref.clone().unwrap_or_else(|| "-".into());
+fn render_series_row(s: &KeyBackupSummary) -> Element {
+    let class = format!("{:?}", s.backup_class);
+    let created_at = s.created_at.to_rfc3339();
     rsx! {
         TableRow {
-            TableCell { class: "font-mono text-xs".to_string(), "{s.series_id}" }
+            TableCell { class: "font-mono text-xs max-w-[180px] truncate".to_string(), "{s.backup_id}" }
+            TableCell { class: "font-mono text-xs max-w-[180px] truncate".to_string(), "{s.actor_id}" }
             TableCell { "{class}" }
-            TableCell { "{s.frontier_seq}" }
-            TableCell { class: "font-mono text-xs max-w-[160px] truncate".to_string(), "{frontier_ref}" }
-            TableCell { "{s.series_seq}" }
-            TableCell { class: "text-destructive".to_string(), "{s.series_chain_broken_count}" }
-            TableCell { class: "text-destructive".to_string(), "{s.series_seq_not_monotonic_count}" }
-            TableCell { class: "text-destructive".to_string(), "{s.series_predecessor_not_found_count}" }
+            TableCell { "{s.backup_version}" }
+            TableCell { class: "text-xs".to_string(), "{created_at}" }
+            TableCell { class: "font-mono text-xs max-w-[180px] truncate".to_string(), "{s.ciphertext_digest}" }
         }
     }
 }
