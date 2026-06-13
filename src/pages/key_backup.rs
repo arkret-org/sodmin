@@ -7,6 +7,7 @@
 //!      requires a principal-signed `auth_data` transcript the admin UI cannot mint).
 //!   3. Recovery receipt history.
 
+use cokret_core::model::KeyBackupSummary;
 use dioxus::prelude::*;
 
 use crate::api::key_backup;
@@ -19,7 +20,6 @@ use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::table::*;
 use crate::types::RecoveryPolicySummary;
 use crate::utils::i18n::t;
-use cokret_core::model::KeyBackupSummary;
 
 #[component]
 pub fn KeyBackupList() -> Element {

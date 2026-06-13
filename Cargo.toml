@@ -28,6 +28,7 @@ serde = {workspace = true,features = ["derive"]}
 serde_json = {workspace = true}
 soland-core = {workspace = true}
 urlencoding = {workspace = true}
+yoface = {workspace = true}
 wasm-bindgen = {workspace = true}
 wasm-bindgen-futures = {workspace = true}
 web-sys = {workspace = true,features = [
@@ -93,6 +94,14 @@ path = "src/bin/sodmin_smoke.rs"
 # core.
 # See https://github.com/cokret/dioxus/commit/e59f9f24a5c27c9303cd61edd0452b44161374ab
 # rev 钉死,升级时手工 bump。
+#
+# ⚠️ yoface 依赖 dioxus-primitives(components fork)。`[patch]` 段不被依赖继承
+# (仅对 workspace 根生效),故 sodmin 作为 workspace 根必须照抄 yoface README
+# §2 的 components patch 段,rev 与 core patch 同源钉死,否则 GenerationalBox<T>
+# 会因 dioxus-primitives 跨源(registry vs cokret fork)而 mismatch。
+[patch."https://github.com/DioxusLabs/components"]
+dioxus-primitives = { git = "https://github.com/cokret/dioxus-components", rev = "3510aeee2d14f0ca2c11682c9b826650cb557d2f" }
+
 [patch.crates-io]
 dioxus-core       = { git = "https://github.com/cokret/dioxus", rev = "e59f9f24a5c27c9303cd61edd0452b44161374ab" }
 dioxus-core-types = { git = "https://github.com/cokret/dioxus", rev = "e59f9f24a5c27c9303cd61edd0452b44161374ab" }
@@ -126,3 +135,4 @@ urlencoding = "2.1.3"
 wasm-bindgen = "0.2.123"
 wasm-bindgen-futures = "0.4.73"
 web-sys = "0.3.100"
+yoface = {path = "../yoface"}

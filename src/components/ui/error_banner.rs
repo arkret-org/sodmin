@@ -5,12 +5,14 @@ use crate::utils::net::telemetry;
 
 /// Shared inline error banner used on list/detail pages.
 ///
-/// `message` is the human-readable summary. Pass optional `errcode`,
-/// `request_id`, `retry_after_ms` from the `HttpError` envelope to
-/// surface admin-grade context (errcode, request id, retry hint) below
-/// the message. Pages that already have the [`HttpError`] in scope can
-/// fill these from `e.body.as_ref().map(|b| b.errcode.clone())`,
-/// `e.request_id.clone()`, and `e.retry_after_ms` respectively.
+/// 已迁移到 yoface:渲染交给 `yoface::ui::error_banner::ErrorBanner`(纯展示
+/// css_module 组件)。本地保留这一薄封装作为**适配器**,承担 yoface 共享库
+/// 刻意剥离的两项业务耦合(见 yoface README §3.2 接入说明):
+///   * i18n —— 把 `common.error` / `common.retry` 文案与 `error.<errcode>` 本地化在 sodmin
+///     侧解析后,经 `error_label` / `retry_label` / `detail` 传入 yoface 组件;
+///   * telemetry —— banner 挂载时按 `errcode` fire-and-forget 上报埋点。
+///
+/// 对外签名与迁移前完全一致,因此 ~50 个调用点零改动。
 #[component]
 pub fn ErrorBanner(
     message: String,
@@ -21,7 +23,7 @@ pub fn ErrorBanner(
 ) -> Element {
     let retry_label = t("common.retry");
     let error_label = t("common.error");
-    let has_meta = errcode.is_some() || request_id.is_some() || retry_after_ms.is_some();
+
     // R3 P1 backfill (ENG-5) — fire-and-forget telemetry ping when the
     // banner mounts with a known wire errcode. No-op when telemetry is
     // disabled / the user has not opted in (see `utils::net::telemetry`).
@@ -33,52 +35,26 @@ pub fn ErrorBanner(
             }
         });
     }
-    // R3 (UI-7) — when the server returned a known wire code, look up
-    // the localized copy via `error.<errcode>`. Falls back to the raw
-    // wire code below (the chip) when the key is missing.
-    let localized = errcode.as_deref().and_then(|c| {
+
+    // R3 (UI-7) — when the server returned a known wire code, look up the
+    // localized copy via `error.<errcode>`. Falls back to None (no detail
+    // line) when the key is missing.
+    let detail = errcode.as_deref().and_then(|c| {
         let key = format!("error.{}", c);
         let v = t(&key);
         if v == key { None } else { Some(v) }
     });
+
     rsx! {
-        div { class: "rounded-md bg-destructive/10 p-4 space-y-2",
-            div { class: "flex items-center justify-between gap-4",
-                p { class: "text-sm text-destructive",
-                    "{error_label}: {message}"
-                }
-                if let Some(handler) = on_retry {
-                    button {
-                        class: "text-sm font-medium text-primary hover:underline shrink-0",
-                        onclick: move |evt| handler.call(evt),
-                        "{retry_label}"
-                    }
-                }
-            }
-            if let Some(copy) = localized {
-                p { class: "text-xs text-destructive/80",
-                    "{copy}"
-                }
-            }
-            if has_meta {
-                div { class: "flex flex-wrap gap-2 text-xs text-muted-foreground",
-                    if let Some(code) = errcode {
-                        span { class: "rounded bg-destructive/10 px-2 py-0.5 font-mono",
-                            "code: {code}"
-                        }
-                    }
-                    if let Some(rid) = request_id {
-                        span { class: "rounded bg-destructive/10 px-2 py-0.5 font-mono",
-                            "ref: {rid}"
-                        }
-                    }
-                    if let Some(retry_after_ms) = retry_after_ms {
-                        span { class: "rounded bg-destructive/10 px-2 py-0.5 font-mono",
-                            "retry in: {retry_after_ms / 1000}s"
-                        }
-                    }
-                }
-            }
+        yoface::ui::error_banner::ErrorBanner {
+            message,
+            error_label,
+            retry_label,
+            detail,
+            errcode,
+            request_id,
+            retry_after_ms,
+            on_retry,
         }
     }
 }

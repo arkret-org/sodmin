@@ -62,6 +62,14 @@ fn install_csp_meta() {
 #[component]
 fn App() -> Element {
     rsx! {
+        // 设计令牌注入顺序(任务 C4 步骤 4):
+        //   1) yoface 默认令牌(第一层 shadcn 名 + 第二层别名 + 明暗开关)
+        //   2) Soft Orbit 覆盖:重写 yoface 第二层别名为珊瑚橙完整色值,
+        //      并把 sodmin 的 `.dark`/`.light` class 桥接到 yoface 明暗开关
+        //   3) sodmin 既有 utility 系统(第一层名用 HSL 三元组,供 alpha 变体)
+        // 详见 yoface_tokens.css 顶部说明。
+        style { {yoface::TOKENS_CSS} }
+        style { {include_str!("./yoface_tokens.css")} }
         style { {include_str!("./style.css")} }
         router::AppRouter {}
     }

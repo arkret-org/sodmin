@@ -1,0 +1,73 @@
+/* =========================================================================
+ * sodmin — yoface 令牌桥接 + Soft Orbit 换肤(覆盖第二层别名)
+ *
+ * 任务 C4 步骤 4。注入顺序(见 main.rs App):
+ *   1) yoface::TOKENS_CSS   —— yoface 默认令牌(第一层 shadcn 名 + 第二层别名)
+ *   2) 本文件               —— 把 yoface 组件实际引用的「第二层别名」改写为
+ *                              Soft Orbit 珊瑚橙的完整色值
+ *   3) src/style.css        —— sodmin 既有 utility 系统(第一层名用 HSL 三元组,
+ *                              供 `hsl(var(--x) / α)` alpha 变体使用)
+ *
+ * 为什么覆盖「第二层别名」而非第一层:
+ *   - yoface 组件 css_module 绝大多数引用第二层别名(--primary-color-N /
+ *     --secondary-color-N / --primary-error-color / --focused-border-color /
+ *     --surface-* / --text-*),这些名 sodmin **没有**,覆盖它们与 sodmin
+ *     的 utility 令牌(--primary 等 HSL 三元组)零冲突、零回归。
+ *   - 第一层 shadcn 名(--primary/--background/--card/--border/--muted/
+ *     --foreground/--destructive/--radius …)在 sodmin 是 HSL 三元组裸值
+ *     (为 utility 的 `hsl(... / α)` 透明度变体),与 yoface 期望的「完整色值」
+ *     格式不兼容,**不能同名共存**。两套体系在 sodmin 把本地 utility 组件全部
+ *     迁移到 yoface、utility 令牌退役后才能统一到第一层。
+ *
+ * 明 / 暗:yoface 用 `var(--dark, A) var(--light, B)` 开关;sodmin 历史用
+ * `<html class="dark|light">`。下面把 class 桥接到 yoface 的开关变量,
+ * theme.rs 仍只切 class,无需改动。
+ * ========================================================================= */
+
+/* --- .dark / .light class → yoface 明暗开关 --- */
+:root.light,
+.light {
+  --dark: ;
+  --light: initial;
+}
+:root.dark,
+.dark {
+  --dark: initial;
+  --light: ;
+}
+
+/* --- Soft Orbit 珊瑚橙:覆盖 yoface 第二层别名(完整色值) --- */
+:root {
+  /* 中性表面阶梯(由浅到深) */
+  --primary-color:    var(--dark, hsl(270 22% 10%)) var(--light, hsl(30 47% 97%));
+  --primary-color-1:  var(--dark, hsl(270 22% 10%)) var(--light, hsl(30 47% 97%));
+  --primary-color-2:  var(--dark, hsl(270 18% 13%)) var(--light, hsl(0 0% 100%));
+  --primary-color-3:  var(--dark, hsl(270 14% 18%)) var(--light, hsl(30 30% 94%));
+  --primary-color-4:  var(--dark, hsl(270 12% 18%)) var(--light, hsl(30 20% 93%));
+  --primary-color-5:  var(--dark, hsl(270 12% 18%)) var(--light, hsl(30 20% 93%));
+  --primary-color-6:  var(--dark, hsl(270 12% 22%)) var(--light, hsl(279 10% 88%));
+  --primary-color-7:  var(--dark, hsl(270 12% 30%)) var(--light, hsl(279 10% 80%));
+
+  /* 文本阶梯(由强到弱) */
+  --secondary-color:   var(--dark, hsl(30 28% 95%))  var(--light, hsl(273 24% 16%));
+  --secondary-color-1: var(--dark, hsl(30 28% 95%))  var(--light, hsl(273 24% 16%));
+  --secondary-color-2: var(--dark, hsl(6 78% 72%))   var(--light, hsl(6 83% 68%));
+  --secondary-color-3: var(--dark, hsl(270 8% 78%))  var(--light, hsl(279 10% 45%));
+  --secondary-color-4: var(--dark, hsl(30 28% 95%))  var(--light, hsl(273 24% 16%));
+  --secondary-color-5: var(--dark, hsl(270 8% 78%))  var(--light, hsl(279 10% 45%));
+
+  /* 焦点 / 错误 / 对比 */
+  --focused-border-color: var(--dark, hsl(6 78% 72%)) var(--light, hsl(6 83% 68%));
+  --primary-error-color:  var(--dark, hsl(353 64% 58%)) var(--light, hsl(353 74% 58%));
+  --contrast-error-color: hsl(0 0% 100%);
+
+  /* CTA 渐变 / 表面别名 */
+  --accent-2:        var(--dark, hsl(255 80% 75%)) var(--light, hsl(255 100% 81%));
+  --accent-strong:   var(--dark, hsl(6 78% 78%))   var(--light, hsl(6 83% 60%));
+  --text-on-accent:  var(--dark, hsl(270 28% 11%)) var(--light, hsl(0 0% 100%));
+  --surface-2:       var(--dark, hsl(270 14% 18%)) var(--light, hsl(30 30% 94%));
+  --surface-3:       var(--dark, hsl(270 12% 18%)) var(--light, hsl(30 20% 93%));
+  --surface-inv:     var(--dark, hsl(30 28% 95%))  var(--light, hsl(273 24% 16%));
+  --text-2:          var(--dark, hsl(270 8% 78%))  var(--light, hsl(279 10% 45%));
+  --text-3:          var(--dark, hsl(270 8% 78%))  var(--light, hsl(279 10% 45%));
+}

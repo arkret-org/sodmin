@@ -2,10 +2,11 @@
 //! shipped in P2 (aa76b91): `GET /_cokret/self/keys/backups?series_id=...`
 //! plus the soland identity recovery extension endpoints.
 
+use cokret_core::model::KeysBackupsList;
+
 use crate::api::client::{api_client, build_url};
 use crate::types::{ListResponse, RecoveryPolicySummary, RecoveryReceiptSummary};
 use crate::utils::net::error::HttpError;
-use cokret_core::model::KeysBackupsList;
 
 // Recovery policy / receipt browse is a soland identity extension on the
 // product surface (`/_soland/root/identity/*`); it is NOT a `/_cokret`
