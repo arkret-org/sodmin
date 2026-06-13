@@ -269,8 +269,8 @@ pub fn BottomDiagnosticsPage() -> Element {
 /// we can unit test the formatting independent of Dioxus.
 pub(crate) fn format_head_option(idx: usize, head: &BottomCandidateHead) -> String {
     let summary = head.summary.as_deref().unwrap_or("");
-    let short = if head.event_id.len() > 16 {
-        format!("{}…", &head.event_id[..16])
+    let short = if head.event_id.chars().count() > 16 {
+        format!("{}…", head.event_id.chars().take(16).collect::<String>())
     } else {
         head.event_id.clone()
     };

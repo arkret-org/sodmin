@@ -137,11 +137,12 @@ pub fn render_subject(
 }
 
 fn truncate_did(did: &str) -> String {
-    if did.len() <= 16 {
+    if did.chars().count() <= 16 {
         return did.to_owned();
     }
-    let head = &did[..10.min(did.len())];
-    let tail = &did[did.len().saturating_sub(3)..];
+    let head: String = did.chars().take(10).collect();
+    let tail_rev: Vec<char> = did.chars().rev().take(3).collect();
+    let tail: String = tail_rev.into_iter().rev().collect();
     format!("{head}\u{2026}{tail}")
 }
 

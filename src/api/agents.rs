@@ -113,26 +113,37 @@ pub async fn attach_personal_agent_grant(
     api_client(&url, "POST", Some(body.to_string())).await
 }
 
-/// Ensure the soland-hosted personal-agent sidecar thread.
+/// Ensure the personal-agent sidecar thread via the spec protocol-plane
+/// endpoint `POST /_cokret/self/agent-sidecar-threads:ensure`
+/// (`ck.self.agent.sidecar_thread.command.ensure`). The idempotency key
+/// is server-derived from `(realm_id, controller_principal_id)`; the
+/// agent principal is carried in the body, not the path.
 pub async fn ensure_sidecar_thread(id: &str) -> Result<serde_json::Value, HttpError> {
-    let url = format!(
-        "/_soland/self/agents/{}/sidecar-thread/ensure",
-        urlencoding::encode(id)
-    );
-    api_client(&url, "POST", Some("{}".to_string())).await
+    let body = serde_json::json!({ "agent_principal_id": id });
+    api_client(
+        "/_cokret/self/agent-sidecar-threads:ensure",
+        "POST",
+        Some(body.to_string()),
+    )
+    .await
 }
 
-/// coauth `POST /_cokret/self/agents/{id}/accountability-grant` — step 3 of
-/// the provisioning wizard. Issued by coauth (7c9adf7); the request
-/// MUST carry a sodmin/soland Bearer token (`ck.agent.manage` scope).
+/// coauth `POST /_coauth/self/agents/{id}/accountability-grant` — step 3 of
+/// the provisioning wizard. Issued by coauth (7c9adf7) on the `/_coauth/`
+/// product plane (reverse-proxied to coauth by the sodmin nginx).
+///
+/// NOTE(SOD-06-010, 待决策): coauth gates this endpoint to soland/sodmin
+/// static S2S bearer tokens and rejects browser sessions with 401. The
+/// sodmin SPA is cookie-only with no `Authorization: Bearer` path, so the
+/// authentication layer for this call still needs a server-side proxy
+/// decision upstream. The URL and wire shape below are aligned now; the
+/// auth model remains a pending cross-repo decision.
 pub async fn issue_accountability_grant(
     agent_id: &str,
     req: &AccountabilityGrantRequest,
 ) -> Result<AccountabilityGrantOutcome, HttpError> {
-    // coauth lives on a separate origin; resolved through the same
-    // `build_url` helper but using the coauth base prefix.
     let url = format!(
-        "/coauth/_cokret/self/agents/{}/accountability-grant",
+        "/_coauth/self/agents/{}/accountability-grant",
         urlencoding::encode(agent_id)
     );
     let body = json_body(req)?;

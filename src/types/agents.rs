@@ -80,14 +80,21 @@ pub struct AgentGrantEntry {
 pub use cokret_core::model::{AgentProvisionOutcome, AgentProvisionRequestBody};
 
 /// CKP-0008 — coauth `accountability_grant` request body for the
-/// wizard's controller-approval step.
+/// wizard's controller-approval step. Mirrors coauth's
+/// `AccountabilityGrantRequestBody` (`controller_did` / required
+/// `capabilities` / optional `reason`).
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AccountabilityGrantRequest {
     #[serde(default)]
     pub controller_did: String,
-    /// Optional human-friendly rationale stored on the grant ledger.
+    /// Capability actions covered by the grant. Each entry must be a
+    /// registered `ck.agent.*` action from `capability-action-registry.json`.
+    /// Required by coauth (no serde default upstream).
+    pub capabilities: Vec<String>,
+    /// Optional human-readable reason recorded with the grant for the
+    /// audit trail.
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub rationale: Option<String>,
+    pub reason: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]

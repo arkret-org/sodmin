@@ -610,7 +610,11 @@ fn ProvisionWizard(props: ProvisionWizardProps) -> Element {
                                 spawn(async move {
                                     let req = AccountabilityGrantRequest {
                                         controller_did: controller,
-                                        rationale: Some("provisioned via sodmin wizard".into()),
+                                        capabilities: AGENT_CAPABILITY_ACTIONS
+                                            .iter()
+                                            .map(|a| a.to_string())
+                                            .collect(),
+                                        reason: Some("provisioned via sodmin wizard".into()),
                                     };
                                     match agents::issue_accountability_grant(&id, &req).await {
                                         Ok(_) => {

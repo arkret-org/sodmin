@@ -18,8 +18,6 @@ pub use applets::*;
 pub mod audit;
 pub use audit::*;
 
-pub mod authz;
-
 pub mod capabilities;
 pub use capabilities::*;
 

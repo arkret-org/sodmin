@@ -1,16 +1,10 @@
-//! Shared contract facade for sodmin API clients.
+//! Hand-defined contract DTOs for sodmin API clients.
 //!
-//! This module is the single import point for DTOs that are owned by
-//! upstream contracts.  Where an upstream shared crate exists
-//! (`coauth-admin-types`) we re-export it directly.  For
-//! soland admin surfaces that do not yet have a standalone
-//! `soland-admin-types` crate, the DTOs live here with names that match
-//! the OpenAPI schema ids consumed by sodmin's typed clients.
-
-pub mod coauth_admin {
-    #[allow(unused_imports)]
-    pub use coauth_admin_types::*;
-}
+//! This module carries the soland/starid admin DTOs that have no
+//! standalone upstream `*-admin-types` crate, named to match the OpenAPI
+//! schema ids consumed by sodmin's typed clients. coauth DTOs are
+//! imported directly from the `coauth_admin_types` crate at their call
+//! sites (no facade re-export here).
 
 pub mod soland_admin {
     use serde::{Deserialize, Serialize};
