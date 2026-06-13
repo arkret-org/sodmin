@@ -13,7 +13,6 @@ edition = "2024"
 base64 = {workspace = true,default-features = false,features = ["alloc"]}
 chrono = {workspace = true,features = ["serde", "wasmbind"]}
 coauth-admin-types = {workspace = true}
-cokret-contracts = {workspace = true,default-features = false}
 cokret-core = {workspace = true,default-features = false}
 cokret-identifiers = {workspace = true,default-features = false}
 dioxus = {workspace = true,features = ["web", "router"]}
@@ -108,7 +107,6 @@ resolver = "3"
 base64 = {version = "0.22",default-features = false}
 chrono = "0.4.45"
 coauth-admin-types = {path = "../coauth/crates/admin-types"}
-cokret-contracts = {path = "../cokret-rust-sdk/crates/contracts",default-features = false}
 cokret-core = {path = "../cokret-rust-sdk/crates/core",default-features = false}
 cokret-identifiers = {path = "../cokret-rust-sdk/crates/identifiers",default-features = false}
 dioxus = "0.7.9"

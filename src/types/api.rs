@@ -1,4 +1,4 @@
-pub use cokret_contracts::ops::HardeningStatus;
+pub use cokret_core::ops::HardeningStatus;
 pub use cokret_core::model::{
     DirectoryListHandlesForSubjectRequestBody as ListHandlesForSubjectRequest,
     DirectorySubjectHandleList, HandleBindingState, HandleClaim, MemberDeliveryBinding,
