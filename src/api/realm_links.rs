@@ -13,34 +13,27 @@
 //! chips.
 
 use crate::api::client::api_client;
-use crate::types::{ListResponse, RealmLinkRow};
+use crate::types::{RealmLinkDirection, RealmLinkList};
 use crate::utils::net::error::HttpError;
 
-/// Direction of the link list query. The wire surface accepts
-/// `outbound` (this Realm → others) or `inbound` (others → this Realm).
-#[derive(Debug, Clone, Copy)]
-pub enum LinkDirection {
-    Outbound,
-    Inbound,
-}
+pub type LinkDirection = RealmLinkDirection;
 
-impl LinkDirection {
-    fn as_query(self) -> &'static str {
-        match self {
-            LinkDirection::Outbound => "outbound",
-            LinkDirection::Inbound => "inbound",
-        }
+fn direction_query(direction: LinkDirection) -> &'static str {
+    match direction {
+        RealmLinkDirection::Outbound => "outbound",
+        RealmLinkDirection::Inbound => "inbound",
+        RealmLinkDirection::Both => "both",
     }
 }
 
 pub async fn list_realm_links(
     realm_id: &str,
     direction: LinkDirection,
-) -> Result<ListResponse<RealmLinkRow>, HttpError> {
+) -> Result<RealmLinkList, HttpError> {
     let url = format!(
-        "/_soland/admin/realms/{}/links?direction={}",
+        "/_cokret/self/realms/{}/links?direction={}",
         urlencoding::encode(realm_id),
-        direction.as_query(),
+        direction_query(direction),
     );
     api_client(&url, "GET", None).await
 }

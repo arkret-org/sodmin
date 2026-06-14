@@ -38,7 +38,7 @@ pub fn CircleScope(circle_id: String) -> Element {
             match &*data.read() {
                 Some(Ok(circle)) => {
                     let title = circle.title.clone();
-                    let cid = circle.id.to_string();
+                    let cid = circle.circle_id.to_string();
                     let mls_group_ref = circle.mls_group_ref.clone().unwrap_or_else(|| "-".to_string());
                     let encryption_profile = encryption_profile_wire(&circle.encryption_profile).to_string();
                     let is_active = circle_is_active(circle);

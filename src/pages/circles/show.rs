@@ -40,7 +40,7 @@ pub fn CircleShow(circle_id: String) -> Element {
         div { class: "space-y-6",
             match &*data.read() {
                 Some(Ok(circle)) => {
-                    let cid = circle.id.to_string();
+                    let cid = circle.circle_id.to_string();
                     let realm_id = circle.realm_id.to_string();
                     let title = circle.title.clone();
                     let (variant, label_key) = state_badge(&circle.state);

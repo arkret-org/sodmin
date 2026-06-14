@@ -1,70 +1,14 @@
 //! CKP-0007 Circle admin envelopes.
 //!
-//! The Circle object itself is the canonical `cokret_core::model::Circle`.
-//! sodmin only owns the admin request/outcome envelopes around that spec
-//! object.
+//! The wire DTOs come from `cokret_core::model`; sodmin only keeps small UI
+//! helpers around the canonical spec types.
 
-pub use cokret_core::model::Circle;
-use cokret_core::model::{
-    CircleDirectoryVisibility, CircleJoinRule, CircleMemberState, CircleState, EncryptionFloor,
-    EncryptionProfile, HistoryVisibility,
+pub use cokret_core::model::{
+    CircleCreateRequestBody as CreateCircleRequest, CircleDirectoryVisibility, CircleJoinRule,
+    CircleList as ListCirclesOutcome, CircleMemberRequestBody as CircleMemberRequest,
+    CircleMembership, CircleMembershipOutcome, CircleScopeRotateOutcome, CircleState,
+    CircleView as Circle, EncryptionProfile, HistoryVisibility,
 };
-use cokret_core::{CircleId, Did, RealmId};
-use serde::{Deserialize, Serialize};
-
-/// `GET /_soland/self/circles?realm_id=...` outcome.
-#[derive(Debug, Clone, Deserialize, Default)]
-pub struct ListCirclesOutcome {
-    #[serde(default)]
-    pub realm_id: Option<RealmId>,
-    #[serde(default)]
-    pub circles: Vec<Circle>,
-}
-
-/// `POST /_soland/self/circles` request body.
-#[derive(Debug, Clone, Serialize)]
-pub struct CreateCircleRequest {
-    pub realm_id: RealmId,
-    pub title: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub summary: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub directory_visibility: Option<CircleDirectoryVisibility>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub join_rule: Option<CircleJoinRule>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub history_visibility: Option<HistoryVisibility>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub metadata_encryption_floor: Option<EncryptionFloor>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub encryption_profile: Option<EncryptionProfile>,
-}
-
-/// `POST /_soland/self/circles/{id}/members` request body.
-#[derive(Debug, Clone, Serialize)]
-pub struct CircleMemberRequest {
-    pub actor_id: Did,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub state: Option<CircleMemberState>,
-}
-
-/// `POST /_soland/self/circles/{id}/members` outcome.
-#[derive(Debug, Clone, Deserialize)]
-pub struct CircleMembershipOutcome {
-    pub circle_id: CircleId,
-    pub actor_id: Did,
-    pub state: CircleMemberState,
-}
-
-/// `POST /_soland/self/circles/{id}/scope-rotate` outcome.
-#[derive(Debug, Clone, Deserialize)]
-pub struct CircleScopeRotateOutcome {
-    pub circle_id: CircleId,
-    #[serde(default)]
-    pub mls_group_ref: Option<String>,
-    #[serde(default)]
-    pub note: Option<String>,
-}
 
 pub fn circle_is_active(circle: &Circle) -> bool {
     matches!(circle.state, CircleState::Active)
@@ -143,18 +87,21 @@ pub fn parse_history_visibility(value: &str) -> Option<HistoryVisibility> {
     }
 }
 
-pub fn parse_member_state(value: &str) -> Option<CircleMemberState> {
+pub fn parse_membership(value: &str) -> Option<CircleMembership> {
     match value {
-        "active" => Some(CircleMemberState::Active),
-        "invited" => Some(CircleMemberState::Invited),
-        "left" => Some(CircleMemberState::Left),
-        "banned" => Some(CircleMemberState::Banned),
+        "join" => Some(CircleMembership::Join),
+        "invite" => Some(CircleMembership::Invite),
+        "knock" => Some(CircleMembership::Knock),
+        "leave" => Some(CircleMembership::Leave),
+        "ban" => Some(CircleMembership::Ban),
         _ => None,
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use cokret_core::RealmId;
+
     use super::*;
 
     const REALM_ID: &str = "ck:realm:018f4c28-1234-7abc-8def-123456789abc";
@@ -180,21 +127,16 @@ mod tests {
         let raw = serde_json::json!({
             "realm_id": REALM_ID,
             "circles": [{
-                "id": "ck:circle:018f4c28-1234-7abc-8def-123456789abc",
-                "schema": "ck.schema.circle.v1",
+                "circle_id": "ck:circle:018f4c28-1234-7abc-8def-123456789abc",
                 "realm_id": REALM_ID,
                 "title": "Trust & Safety",
-                "display": {
-                    "short_name": "Trust",
-                    "color_token": "slate",
-                    "symbol": { "glyph": "shield" }
-                },
                 "directory_visibility": "members",
                 "join_rule": "invite",
                 "history_visibility": "joined",
                 "encryption_profile": "mls_rfc9420",
                 "mls_group_ref": "ck:mls:group:trust",
                 "state": "active",
+                "members": ["did:web:alice.example"],
                 "created_by": "did:web:admin.example",
                 "created_at": "2026-05-01T00:00:00Z"
             }]
@@ -213,6 +155,7 @@ mod tests {
             directory_visibility: Some(CircleDirectoryVisibility::Members),
             join_rule: Some(CircleJoinRule::Invite),
             history_visibility: Some(HistoryVisibility::Joined),
+            content_encryption_floor: None,
             metadata_encryption_floor: None,
             encryption_profile: None,
         };

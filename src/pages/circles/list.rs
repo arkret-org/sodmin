@@ -32,11 +32,9 @@ pub fn CircleList() -> Element {
         let realm = realm_snapshot.clone();
         async move {
             if realm.trim().is_empty() {
-                Ok::<_, crate::utils::net::error::HttpError>(
-                    crate::types::circles::ListCirclesOutcome::default(),
-                )
+                None
             } else {
-                circles::list_circles(&realm).await
+                Some(circles::list_circles(&realm).await)
             }
         }
     });
@@ -86,7 +84,7 @@ pub fn CircleList() -> Element {
                 }
             } else {
                 match &*data.read() {
-                    Some(Ok(resp)) => rsx! {
+                    Some(Some(Ok(resp))) => rsx! {
                         if resp.circles.is_empty() {
                             EmptyState {
                                 icon_name: "users".to_string(),
@@ -114,13 +112,13 @@ pub fn CircleList() -> Element {
                             }
                         }
                     },
-                    Some(Err(e)) => rsx! {
+                    Some(Some(Err(e))) => rsx! {
                         ErrorBanner {
                             message: e.message.clone(),
                             on_retry: move |_| data.restart(),
                         }
                     },
-                    None => rsx! { PageSkeleton {} },
+                    Some(None) | None => rsx! { PageSkeleton {} },
                 }
             }
         }
@@ -128,7 +126,7 @@ pub fn CircleList() -> Element {
 }
 
 fn circle_row(c: &Circle) -> Element {
-    let cid = c.id.to_string();
+    let cid = c.circle_id.to_string();
     let rid = c.realm_id.to_string();
     let (variant, label_key) = state_badge(&c.state);
     let created_at = c.created_at.to_rfc3339();

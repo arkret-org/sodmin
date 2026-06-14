@@ -15,16 +15,16 @@ use crate::components::ui::card::*;
 use crate::components::ui::error_banner::ErrorBanner;
 use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
-use crate::types::RealmLinkRow;
-use crate::utils::fmt::date::format_optional_iso_datetime;
+use crate::types::{RealmLinkKind, RealmLinkList, RealmLinkRow};
+use crate::utils::fmt::date::format_iso_datetime;
 use crate::utils::i18n::t;
 
 /// Map a free-form `link_kind` to the badge variant used to colour the
 /// chip. Unknown kinds fall back to the neutral `Secondary` variant so
 /// the surface keeps rendering when soland introduces a new link
 /// shape.
-fn link_kind_variant(link_kind: &str) -> BadgeVariant {
-    match link_kind {
+fn link_kind_variant(link_kind: &RealmLinkKind) -> BadgeVariant {
+    match link_kind.as_str() {
         "governed_by" => BadgeVariant::Default,
         "discoverable_from" => BadgeVariant::Secondary,
         "mirror_of" => BadgeVariant::Outline,
@@ -34,11 +34,12 @@ fn link_kind_variant(link_kind: &str) -> BadgeVariant {
 
 /// Look up the i18n label for a `link_kind`, falling back to the raw
 /// wire string so unknown kinds remain debuggable.
-fn link_kind_label(link_kind: &str) -> String {
-    let key = format!("realm_links.kind.{}", link_kind);
+fn link_kind_label(link_kind: &RealmLinkKind) -> String {
+    let wire = link_kind.as_str();
+    let key = format!("realm_links.kind.{}", wire);
     let translated = t(&key);
     if translated == key {
-        link_kind.to_string()
+        wire.to_string()
     } else {
         translated
     }
@@ -113,9 +114,7 @@ pub fn RealmLinks(realm_id: String) -> Element {
 }
 
 fn render_link_list<F>(
-    data: &Option<
-        Result<crate::types::ListResponse<RealmLinkRow>, crate::utils::net::error::HttpError>,
-    >,
+    data: &Option<Result<RealmLinkList, crate::utils::net::error::HttpError>>,
     retry: F,
     outbound: bool,
 ) -> Element
@@ -124,7 +123,7 @@ where
 {
     match data {
         Some(Ok(resp)) => {
-            if resp.data.is_empty() {
+            if resp.links.is_empty() {
                 let empty_key = if outbound {
                     "realm_links.outbound_empty"
                 } else {
@@ -138,7 +137,7 @@ where
             } else {
                 rsx! {
                     div { class: "space-y-2",
-                        for row in resp.data.iter() {
+                        for row in resp.links.iter() {
                             {render_link_row(row, outbound)}
                         }
                     }
@@ -154,14 +153,15 @@ where
 
 fn render_link_row(row: &RealmLinkRow, outbound: bool) -> Element {
     let other_realm = if outbound {
-        row.target_realm_id.clone()
+        row.target_realm_id.to_string()
     } else {
-        row.source_realm_id.clone()
+        row.realm_id.to_string()
     };
     let label = link_kind_label(&row.link_kind);
     let variant = link_kind_variant(&row.link_kind);
-    let updated = format_optional_iso_datetime(row.updated_at.as_deref());
-    let display_name = row.target_display_name.clone();
+    let updated = format_iso_datetime(&row.updated_at.to_rfc3339());
+    let display_name = row.label.clone();
+    let status = row.status.as_str().to_string();
 
     rsx! {
         div {
@@ -175,6 +175,7 @@ fn render_link_row(row: &RealmLinkRow, outbound: bool) -> Element {
             if let Some(name) = display_name.as_ref() {
                 span { class: "text-xs text-muted-foreground", "({name})" }
             }
+            span { class: "text-xs text-muted-foreground", "{status}" }
             span { class: "ml-auto text-xs text-muted-foreground", "{updated}" }
         }
     }
@@ -182,19 +183,15 @@ fn render_link_row(row: &RealmLinkRow, outbound: bool) -> Element {
 
 fn render_link_graph(
     realm_id: &str,
-    outbound: &Option<
-        Result<crate::types::ListResponse<RealmLinkRow>, crate::utils::net::error::HttpError>,
-    >,
-    inbound: &Option<
-        Result<crate::types::ListResponse<RealmLinkRow>, crate::utils::net::error::HttpError>,
-    >,
+    outbound: &Option<Result<RealmLinkList, crate::utils::net::error::HttpError>>,
+    inbound: &Option<Result<RealmLinkList, crate::utils::net::error::HttpError>>,
 ) -> Element {
     let outbound_rows = match outbound {
-        Some(Ok(resp)) => resp.data.clone(),
+        Some(Ok(resp)) => resp.links.clone(),
         _ => Vec::new(),
     };
     let inbound_rows = match inbound {
-        Some(Ok(resp)) => resp.data.clone(),
+        Some(Ok(resp)) => resp.links.clone(),
         _ => Vec::new(),
     };
 
@@ -234,7 +231,7 @@ fn render_link_graph(
                     {
                         let y = lane_y(idx, inbound_count);
                         let label = link_kind_label(&row.link_kind);
-                        let source = row.source_realm_id.clone();
+                        let source = row.realm_id.to_string();
                         let display = compact_realm_label(&source);
                         rsx! {
                             line {
@@ -262,7 +259,7 @@ fn render_link_graph(
                     {
                         let y = lane_y(idx, outbound_count);
                         let label = link_kind_label(&row.link_kind);
-                        let target = row.target_realm_id.clone();
+                        let target = row.target_realm_id.to_string();
                         let display = compact_realm_label(&target);
                         rsx! {
                             line {

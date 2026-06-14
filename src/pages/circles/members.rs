@@ -1,9 +1,7 @@
 //! `/circles/:circle_id/members` — Circle membership editor.
 //!
-//! The Circle object comes from `cokret_core::model::Circle` and does not
-//! inline a member list. This page therefore exposes explicit add/remove
-//! operations keyed by actor DID instead of depending on a local members
-//! projection.
+//! The Circle projection comes from `cokret_core::model::CircleView`.
+//! This page exposes explicit add/remove operations keyed by actor DID.
 
 use cokret_core::Did;
 use dioxus::prelude::*;
@@ -17,7 +15,7 @@ use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::{BreadcrumbItem, Breadcrumbs, PageHeader};
 use crate::components::ui::toast::{ToastVariant, show_toast};
 use crate::router::Route;
-use crate::types::circles::{CircleMemberRequest, circle_is_active, parse_member_state};
+use crate::types::circles::{CircleMemberRequest, circle_is_active, parse_membership};
 use crate::utils::i18n::t;
 
 #[component]
@@ -29,7 +27,7 @@ pub fn CircleMembers(circle_id: String) -> Element {
     });
 
     let mut new_actor = use_signal(String::new);
-    let mut new_state = use_signal(|| "active".to_string());
+    let mut new_membership = use_signal(|| "join".to_string());
     let mut remove_actor = use_signal(String::new);
     let mut adding = use_signal(|| false);
     let mut removing = use_signal(|| false);
@@ -42,7 +40,7 @@ pub fn CircleMembers(circle_id: String) -> Element {
             match &*data.read() {
                 Some(Ok(circle)) => {
                     let title = circle.title.clone();
-                    let cid = circle.id.to_string();
+                    let cid = circle.circle_id.to_string();
                     let realm_id = circle.realm_id.to_string();
                     let is_active = circle_is_active(circle);
 
@@ -76,7 +74,7 @@ pub fn CircleMembers(circle_id: String) -> Element {
                                                 return;
                                             }
                                         };
-                                        let state = match parse_member_state(new_state.read().trim()) {
+                                        let membership = match parse_membership(new_membership.read().trim()) {
                                             Some(value) => value,
                                             None => {
                                                 show_toast(&t("circle.error_required"), ToastVariant::Error);
@@ -85,7 +83,7 @@ pub fn CircleMembers(circle_id: String) -> Element {
                                         };
                                         let req = CircleMemberRequest {
                                             actor_id: actor,
-                                            state: Some(state),
+                                            membership: Some(membership),
                                         };
                                         let cid = cid_add.clone();
                                         adding.set(true);
@@ -118,16 +116,16 @@ pub fn CircleMembers(circle_id: String) -> Element {
                                             }
                                         }
                                         div { class: "space-y-1",
-                                            Label { r#for: "circle-new-state".to_string(), {t("circle.member_state")} }
+                                            Label { r#for: "circle-new-membership".to_string(), {t("circle.member_state")} }
                                             select {
-                                                id: "circle-new-state",
-                                                name: "state",
+                                                id: "circle-new-membership",
+                                                name: "membership",
                                                 class: "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm",
                                                 disabled: !is_active,
-                                                onchange: move |e| new_state.set(e.value()),
-                                                value: new_state(),
-                                                option { value: "active", "active" }
-                                                option { value: "invited", "invited" }
+                                                onchange: move |e| new_membership.set(e.value()),
+                                                value: new_membership(),
+                                                option { value: "join", "join" }
+                                                option { value: "invite", "invite" }
                                             }
                                         }
                                         div { class: "flex items-end",

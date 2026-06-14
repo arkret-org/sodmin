@@ -77,6 +77,7 @@ pub fn CircleCreate() -> Element {
             directory_visibility: Some(parsed_directory_visibility),
             join_rule: Some(parsed_join_rule),
             history_visibility: Some(parsed_history_visibility),
+            content_encryption_floor: None,
             metadata_encryption_floor: None,
             encryption_profile: None,
         };
@@ -85,7 +86,7 @@ pub fn CircleCreate() -> Element {
                 Ok(c) => {
                     show_toast(&t("circle.created_toast"), ToastVariant::Success);
                     let _ = nav.push(Route::CircleShow {
-                        circle_id: c.id.to_string(),
+                        circle_id: c.circle_id.to_string(),
                     });
                 }
                 Err(e) => {
