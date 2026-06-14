@@ -6,7 +6,6 @@ pub mod federation_status;
 pub mod list;
 pub mod multisig;
 pub mod notary;
-pub mod policy_editor;
 pub mod seal_dag;
 pub mod show;
 pub mod signing_keys;

@@ -7,21 +7,13 @@ pub use pagination::{CursorPage, PaginatedResponse};
 pub mod actors;
 pub use actors::*;
 
-pub mod agents;
-pub use agents::*;
-
 pub mod seal;
-
-pub mod applets;
-pub use applets::*;
 
 pub mod audit;
 pub use audit::*;
 
 pub mod capabilities;
 pub use capabilities::*;
-
-pub mod circles;
 
 pub mod coauth_devices;
 
@@ -48,16 +40,12 @@ pub use key_backup::*;
 pub mod media;
 pub use media::*;
 
-pub mod moderation;
-
 pub mod multisig;
 
 pub mod policy;
 
 pub mod realm_links;
 pub use realm_links::*;
-
-pub mod realm_policy;
 
 pub mod realms;
 pub use realms::*;

@@ -1,15 +1,11 @@
 pub mod actors;
-pub mod agents;
-pub mod applets;
 pub mod audit;
 pub mod capabilities;
-pub mod circles;
 pub mod coauth;
 pub mod dashboard;
 pub mod deactivation_review;
 pub mod delivery_binding;
 pub mod devices;
-pub mod directory;
 pub mod federation;
 pub mod handles;
 /// R3.2 (UI-SOD-4) — Subject → Handles directory page
@@ -21,7 +17,6 @@ pub mod invite_tokens;
 pub mod key_backup;
 pub mod login;
 pub mod media;
-pub mod moderation;
 pub mod not_authorized;
 pub mod oauth_callback;
 pub mod policy;

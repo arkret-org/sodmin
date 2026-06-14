@@ -70,12 +70,12 @@ If unset, the spec self-skips.
 
 ## Phase 3 — high-traffic page smoke
 
-`high-traffic-pages.spec.ts` adds twelve authenticated route-level
-smokes for dashboard, actors, spaces, federation, moderation,
-deactivation, audit, policy, server status, trust domain, and 3PID
-invites. Together with the existing dev-mode, device-revoke, and
-risk-action specs this brings the local Playwright suite to 15
-scenarios. These tests use the shared `SODMIN_E2E_BASE_URL`,
+`high-traffic-pages.spec.ts` adds authenticated route-level smokes for
+the server-ops surfaces (dashboard, actors, spaces, federation,
+deactivation, audit, policy, server status). Governance pages
+(moderation/applets/agents/directory/circles) were removed from sodmin
+in the P3 ops-level consolidation and now live in yougen, so they are no
+longer smoked here. These tests use the shared `SODMIN_E2E_BASE_URL`,
 `SODMIN_E2E_ADMIN_EMAIL`, and `SODMIN_E2E_ADMIN_PASSWORD` env vars and
 self-skip when the local stack is not configured.
 

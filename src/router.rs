@@ -46,8 +46,6 @@ pub enum Route {
         RealmMultiSig { realm_id: String },
         #[route("/realms/:realm_id/federation-status")]
         RealmFederationStatus { realm_id: String },
-        #[route("/realms/:realm_id/policy-editor")]
-        RealmPolicyEditor { realm_id: String },
 
         #[route("/spaces")]
         SpaceList {},
@@ -60,13 +58,6 @@ pub enum Route {
         #[route("/media")]
         MediaList {},
 
-        #[route("/moderation/reports")]
-        ModerationReports {},
-        // Round R2/R3 T06 — moderation appeal admin
-        // (`ck.moderation.appeal.*`).
-        #[route("/moderation/appeals")]
-        ModerationAppeals {},
-
         #[route("/federation")]
         FederationList {},
         #[route("/federation/:domain")]
@@ -77,20 +68,6 @@ pub enum Route {
 
         #[route("/capabilities")]
         CapabilityList {},
-
-        // CKP-0007 Circle admin (P3A.3). Circles are encrypted
-        // sub-boundaries inside a Realm; full CRUD + member +
-        // scope-rotation surface lives under `/circles/*`.
-        #[route("/circles")]
-        CircleList {},
-        #[route("/circles/new")]
-        CircleCreate {},
-        #[route("/circles/:circle_id")]
-        CircleShow { circle_id: String },
-        #[route("/circles/:circle_id/members")]
-        CircleMembers { circle_id: String },
-        #[route("/circles/:circle_id/scope")]
-        CircleScope { circle_id: String },
 
         #[route("/handles")]
         HandleList {},
@@ -124,31 +101,9 @@ pub enum Route {
         #[route("/handles/by-subject?:subject")]
         HandlesBySubject { subject: Option<String> },
 
-        #[route("/applets")]
-        AppletList {},
-        #[route("/applets/admin")]
-        AppletAdmin {},
-
-        #[route("/agents")]
-        AgentList {},
-        #[route("/agents/admin")]
-        AgentAdmin {},
-        // CKP-0008 personal-agent admin (P3-A). List + detail + 3-step
-        // provision wizard. Must precede the `/agents/:agent_id` catch
-        // so `/agents/personal` does NOT bind agent_id="personal".
-        #[route("/agents/personal")]
-        PersonalAgentList {},
-        #[route("/agents/personal/:agent_id")]
-        PersonalAgentShow { agent_id: String },
-        #[route("/agents/:agent_id")]
-        AgentShow { agent_id: String },
-
         // B-C key-backup admin surface (P3-B).
         #[route("/key-backup")]
         KeyBackupList {},
-
-        #[route("/directory")]
-        DirectoryAdmin {},
 
         #[route("/audit")]
         AuditLog {},
@@ -359,16 +314,6 @@ fn MediaList() -> Element {
 }
 
 #[component]
-fn ModerationReports() -> Element {
-    rsx! { pages::moderation::reports::ModerationReportsPage {} }
-}
-
-#[component]
-fn ModerationAppeals() -> Element {
-    rsx! { pages::moderation::appeals::ModerationAppealsPage {} }
-}
-
-#[component]
 fn DeactivationReview() -> Element {
     rsx! { pages::deactivation_review::DeactivationReviewPage {} }
 }
@@ -396,31 +341,6 @@ fn DeviceList() -> Element {
 #[component]
 fn CapabilityList() -> Element {
     rsx! { pages::capabilities::CapabilityList {} }
-}
-
-#[component]
-fn CircleList() -> Element {
-    rsx! { pages::circles::list::CircleList {} }
-}
-
-#[component]
-fn CircleCreate() -> Element {
-    rsx! { pages::circles::create::CircleCreate {} }
-}
-
-#[component]
-fn CircleShow(circle_id: String) -> Element {
-    rsx! { pages::circles::show::CircleShow { circle_id } }
-}
-
-#[component]
-fn CircleMembers(circle_id: String) -> Element {
-    rsx! { pages::circles::members::CircleMembers { circle_id } }
-}
-
-#[component]
-fn CircleScope(circle_id: String) -> Element {
-    rsx! { pages::circles::scope::CircleScope { circle_id } }
 }
 
 #[component]
@@ -464,53 +384,8 @@ fn CoauthRecovery() -> Element {
 }
 
 #[component]
-fn AppletList() -> Element {
-    rsx! { pages::applets::AppletList {} }
-}
-
-#[component]
-fn AppletAdmin() -> Element {
-    rsx! { pages::applets::admin::AppletAdminPage {} }
-}
-
-#[component]
-fn AgentList() -> Element {
-    rsx! { pages::agents::list::AgentList {} }
-}
-
-#[component]
-fn AgentAdmin() -> Element {
-    rsx! { pages::agents::admin::AgentAdminPage {} }
-}
-
-#[component]
-fn DirectoryAdmin() -> Element {
-    rsx! { pages::directory::admin::DirectoryAdminPage {} }
-}
-
-#[component]
 fn RealmFederationStatus(realm_id: String) -> Element {
     rsx! { pages::realms::federation_status::FederationStatusPage { realm_id } }
-}
-
-#[component]
-fn RealmPolicyEditor(realm_id: String) -> Element {
-    rsx! { pages::realms::policy_editor::PolicyEditorPage { realm_id } }
-}
-
-#[component]
-fn AgentShow(agent_id: String) -> Element {
-    rsx! { pages::agents::show::AgentShow { agent_id } }
-}
-
-#[component]
-fn PersonalAgentList() -> Element {
-    rsx! { pages::agents::personal::PersonalAgentList {} }
-}
-
-#[component]
-fn PersonalAgentShow(agent_id: String) -> Element {
-    rsx! { pages::agents::personal::PersonalAgentShow { agent_id } }
 }
 
 #[component]

@@ -1,12 +1,8 @@
 pub mod actors;
-pub mod agents;
-pub mod applets;
-pub mod applets_agents_directory;
 pub mod audit;
 pub mod auth;
 pub mod authz;
 pub mod capabilities;
-pub mod circles;
 pub mod client;
 pub mod coauth;
 pub mod coauth_devices;
@@ -24,12 +20,10 @@ pub mod invite_tokens;
 /// B-C key-backup recovery admin (soland P2 series + recovery policy).
 pub mod key_backup;
 pub mod media;
-pub mod moderation;
 pub mod multisig;
 pub mod paths;
 pub mod policy;
 pub mod realm_links;
-pub mod realm_policy;
 pub mod realms;
 pub mod seal;
 pub mod server;

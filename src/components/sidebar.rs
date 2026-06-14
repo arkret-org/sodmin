@@ -80,34 +80,11 @@ fn build_nav_sections() -> Vec<NavSection> {
         ],
     ));
 
-    // CKP-0007 Circles — encrypted sub-boundary admin (P3A.3).
-    // Pinned right under Identity so operators see Circles next to
-    // the Realm membership surfaces they extend.
-    sections.push(NavSection::new(
-        t("nav.section_circles"),
-        vec![NavItem::new(
-            t("nav.circles"),
-            Route::CircleList {},
-            "users",
-        )],
-    ));
-
     sections.push(NavSection::new(
         t("nav.section_moderation"),
         vec![
             NavItem::new(t("nav.realms"), Route::RealmList {}, "shield"),
             NavItem::new(t("nav.spaces"), Route::SpaceList {}, "message-square"),
-            NavItem::new(
-                t("nav.moderation_reports"),
-                Route::ModerationReports {},
-                "flag",
-            ),
-            // Round R2/R3 T06 — moderation appeal admin.
-            NavItem::new(
-                "Moderation appeals".to_string(),
-                Route::ModerationAppeals {},
-                "flag",
-            ),
             NavItem::new(t("nav.audit"), Route::AuditLog {}, "scroll-text"),
         ],
     ));
@@ -117,32 +94,14 @@ fn build_nav_sections() -> Vec<NavSection> {
         vec![
             NavItem::new(t("nav.federation"), Route::FederationList {}, "globe"),
             NavItem::new(t("nav.media"), Route::MediaList {}, "image"),
-            NavItem::new(t("nav.applets"), Route::AppletList {}, "plug"),
-            NavItem::new(t("nav.applets_admin"), Route::AppletAdmin {}, "plug"),
-            NavItem::new(t("nav.agents"), Route::AgentList {}, "bot"),
-            NavItem::new(t("nav.agents_admin"), Route::AgentAdmin {}, "bot"),
-            // CKP-0008 personal-agent admin (P3-A).
-            NavItem::new(
-                "Personal agents".to_string(),
-                Route::PersonalAgentList {},
-                "bot",
-            ),
             // B-C key-backup recovery admin (P3-B).
             NavItem::new("Key backup".to_string(), Route::KeyBackupList {}, "key"),
-            NavItem::new(t("nav.directory_admin"), Route::DirectoryAdmin {}, "globe"),
             NavItem::new(
                 t("nav.federation_status"),
                 Route::RealmFederationStatus {
                     realm_id: "_".to_string(),
                 },
                 "globe",
-            ),
-            NavItem::new(
-                t("nav.policy_editor"),
-                Route::RealmPolicyEditor {
-                    realm_id: "_".to_string(),
-                },
-                "file-text",
             ),
             NavItem::new(
                 t("nav.delivery_binding"),
@@ -395,12 +354,10 @@ fn is_route_active(current: &Route, target: &Route) -> bool {
             Route::RealmList {} | Route::RealmShow { .. } | Route::RealmCreate { .. }
         ),
         Route::SpaceList {} => matches!(current, Route::SpaceList {} | Route::SpaceShow { .. }),
-        Route::ModerationReports {} => matches!(current, Route::ModerationReports {}),
         Route::FederationList {} => matches!(
             current,
             Route::FederationList {} | Route::FederationShow { .. }
         ),
-        Route::AgentList {} => matches!(current, Route::AgentList {} | Route::AgentShow { .. }),
         Route::CoauthAccountList {} => matches!(
             current,
             Route::CoauthAccountList {} | Route::CoauthAccountShow { .. }

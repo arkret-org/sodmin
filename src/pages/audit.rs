@@ -8,7 +8,6 @@ use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::pagination::Pagination;
 use crate::components::ui::table::*;
-use crate::router::Route;
 use crate::types::AuditScopeKind;
 use crate::utils::i18n::t;
 
@@ -308,24 +307,17 @@ pub fn AuditLog() -> Element {
     }
 }
 
-/// P3A.5 — render the audit entry's effective scope. Circle scopes
-/// get a deep link into `/circles/:id`; Realm scopes render as plain
-/// text (the Realm directory does not yet have a `/realms/:id` show
-/// page, see `TODO(circle-rollout-P3A.5)` for the deferred follow-up).
+/// P3A.5 — render the audit entry's effective scope. Circle and Realm
+/// scopes render as plain text; the Circle governance UI moved to yougen
+/// (P3 consolidation) so there is no in-sodmin `/circles/:id` deep link
+/// target anymore.
 fn render_effective_scope(kind: &AuditScopeKind) -> Element {
     match kind {
-        AuditScopeKind::Circle(id) => {
-            let id_owned = id.clone();
-            let label = id.clone();
-            rsx! {
-                Link {
-                    to: Route::CircleShow { circle_id: id_owned },
-                    class: "text-primary hover:underline",
-                    title: t("audit.scope_jump"),
-                    {format!("{}: {}", t("audit.scope_circle"), label)}
-                }
+        AuditScopeKind::Circle(id) => rsx! {
+            span { class: "text-muted-foreground",
+                {format!("{}: {}", t("audit.scope_circle"), id)}
             }
-        }
+        },
         AuditScopeKind::Realm(id) => rsx! {
             span { class: "text-muted-foreground",
                 {format!("{}: {}", t("audit.scope_realm"), id)}

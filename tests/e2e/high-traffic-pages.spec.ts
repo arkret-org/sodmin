@@ -17,8 +17,6 @@ const pageSmokes = [
   { name: "actors", path: "/actors", heading: /actors|用户|角色/i },
   { name: "spaces", path: "/spaces", heading: /spaces|realm|空间/i },
   { name: "federation", path: "/federation", heading: /federation|联邦/i },
-  { name: "moderation reports", path: "/moderation/reports", heading: /moderation|reports|审核|举报/i },
-  { name: "moderation appeals", path: "/moderation/appeals", heading: /appeals|申诉/i },
   { name: "deactivation review", path: "/deactivations/review", heading: /deactivation|注销/i },
   { name: "audit log", path: "/audit", heading: /audit|审计/i },
   { name: "policy", path: "/policy", heading: /policy|策略/i },

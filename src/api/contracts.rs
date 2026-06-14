@@ -102,91 +102,6 @@ pub mod soland_admin {
             .collect()
     }
 
-    /// Lifecycle state of a moderation report.
-    #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-    #[serde(rename_all = "snake_case")]
-    pub enum ReportStatus {
-        Open,
-        Resolved,
-        Dismissed,
-    }
-
-    impl ReportStatus {
-        /// Returns the i18n key for the display label. Render via
-        /// `crate::utils::i18n::t(status.label())` at the call site.
-        pub fn label(&self) -> &'static str {
-            match self {
-                ReportStatus::Open => "reports.status_open",
-                ReportStatus::Resolved => "reports.status_resolved",
-                ReportStatus::Dismissed => "reports.status_dismissed",
-            }
-        }
-
-        pub fn from_wire(s: &str) -> Option<Self> {
-            match s {
-                "open" => Some(ReportStatus::Open),
-                "resolved" => Some(ReportStatus::Resolved),
-                "dismissed" => Some(ReportStatus::Dismissed),
-                _ => None,
-            }
-        }
-    }
-
-    /// OpenAPI schema: `ModerationReport`.
-    #[derive(Debug, Clone, Serialize, Deserialize, Default)]
-    pub struct ModerationReport {
-        #[serde(default)]
-        pub report_id: String,
-        #[serde(default)]
-        pub reporter_did: String,
-        #[serde(default)]
-        pub target_ref: Option<String>,
-        #[serde(default)]
-        pub realm_id: Option<String>,
-        #[serde(default)]
-        pub reason: String,
-        #[serde(default)]
-        pub status: String,
-        #[serde(default)]
-        pub created_at: Option<String>,
-        #[serde(default)]
-        pub note: Option<String>,
-    }
-
-    impl ModerationReport {
-        pub fn status_typed(&self) -> ReportStatus {
-            ReportStatus::from_wire(&self.status).unwrap_or(ReportStatus::Open)
-        }
-
-        pub fn is_resolvable(&self) -> bool {
-            matches!(self.status_typed(), ReportStatus::Open) && !self.report_id.is_empty()
-        }
-    }
-
-    #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
-    #[serde(rename_all = "snake_case")]
-    pub enum ReportDecision {
-        Resolve,
-        Dismiss,
-    }
-
-    impl ReportDecision {
-        pub fn label(&self) -> &'static str {
-            match self {
-                ReportDecision::Resolve => "resolve",
-                ReportDecision::Dismiss => "dismiss",
-            }
-        }
-    }
-
-    /// OpenAPI schema: `ResolveReportRequest`.
-    #[derive(Debug, Clone, Serialize, Deserialize)]
-    pub struct ResolveReportRequest {
-        pub decision: ReportDecision,
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        pub note: Option<String>,
-    }
-
     pub type Policy = crate::types::policy::Policy;
     pub type CreatePolicyRequest = crate::types::policy::CreatePolicyRequest;
     pub type PolicyListOutcome = crate::types::api::ListResponse<Policy>;
@@ -240,17 +155,6 @@ mod tests {
         let grant: AuthzCapabilityGrant = serde_json::from_str(raw).unwrap();
         assert_eq!(grant.status_typed(), AuthzGrantStatus::Active);
         assert!(grant.is_revocable());
-    }
-
-    #[test]
-    fn moderation_contract_request_serializes_snake_case() {
-        let req = ResolveReportRequest {
-            decision: ReportDecision::Dismiss,
-            note: None,
-        };
-        let body = serde_json::to_string(&req).unwrap();
-        assert!(body.contains("\"decision\":\"dismiss\""));
-        assert!(!body.contains("\"note\""));
     }
 
     #[test]
