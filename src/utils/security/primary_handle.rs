@@ -11,7 +11,7 @@
 //! This module no longer carries its own copy of the algorithm: the
 //! authoritative, wasm-safe implementation now lives in `cokret-core`
 //! (`cokret_core::identity::primary_handle`, SOD-05-001 / SPEC-CR-019),
-//! and `cokret_core::model::{HandleClaim, HandleBindingState, Handle}`
+//! and `cokret_core::models::{HandleClaim, HandleBindingState, Handle}`
 //! are the exact types the admin DTOs already re-export. We simply
 //! re-export the core helpers so yougen / soland / cotest / sodmin all
 //! agree on which claim wins from a single source of truth.

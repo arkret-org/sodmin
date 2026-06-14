@@ -1,13 +1,13 @@
 //! Capability grant admin surface — SDK-authoritative types plus thin
 //! display helpers.
 //!
-//! The grant itself is the SDK `cokret_core::model::CapabilityGrant`
+//! The grant itself is the SDK `cokret_core::models::CapabilityGrant`
 //! (`GrantId` / `Did` / `DateTime<Utc>` strong types, field set per
 //! `ck.schema.capability.v1`). sodmin adds no wire mirror and no legacy
 //! field aliases; display-only conveniences live in
 //! [`CapabilityGrantExt`].
 
-pub use cokret_core::model::{CapabilityGrant, CapabilitySubject};
+pub use cokret_core::models::{CapabilityGrant, CapabilitySubject};
 use serde::Serialize;
 
 pub const CAPABILITY_GRANT_SCHEMA: &str = "ck.schema.capability.v1";

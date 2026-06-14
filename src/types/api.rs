@@ -1,4 +1,4 @@
-pub use cokret_core::model::{
+pub use cokret_core::models::{
     DirectoryListHandlesForSubjectRequestBody as ListHandlesForSubjectRequest,
     DirectorySubjectHandleList, HandleBindingState, HandleClaim, MemberDeliveryBinding,
 };

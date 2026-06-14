@@ -1,7 +1,7 @@
 //! DTO shapes for the server status and describe admin surfaces.
 //!
 //! The `/_cokret/describe` payload is the SDK-authoritative
-//! [`ServerDescription`] (`cokret_core::model::api`). sodmin does not
+//! [`ServerDescription`] (`cokret_core::models::api`). sodmin does not
 //! mirror it; service-proprietary top-level extensions (coauth's
 //! `identity_registry_resolver`, `admin_audience`, …) are captured in a
 //! flattened `extra` envelope and read by the view layer on demand.
@@ -10,7 +10,7 @@
 // `CompatSurfaceEntry` element types are reachable through the SDK
 // directly; sodmin views consume them via the `ServerDescription`
 // fields and need no local re-export.)
-pub use cokret_core::model::ServerDescription;
+pub use cokret_core::models::ServerDescription;
 use serde::{Deserialize, Serialize};
 
 // ── Server info types ──
