@@ -1,4 +1,4 @@
-use crate::api::client::{api_client, build_url, json_body};
+use crate::api::client::{api_client, build_url};
 use crate::types::*;
 use crate::utils::net::error::HttpError;
 
@@ -22,14 +22,5 @@ pub async fn list_realms(
 
 pub async fn get_realm(id: &str) -> Result<Realm, HttpError> {
     let url = format!("/_soland/admin/realms/{}", urlencoding::encode(id));
-    api_client(&url, "GET", None).await
-}
-
-pub async fn create_realm(req: &CreateRealmRequest) -> Result<Realm, HttpError> {
-    api_client("/_soland/admin/realms", "POST", Some(json_body(req)?)).await
-}
-
-pub async fn list_realm_members(id: &str) -> Result<Vec<RealmMember>, HttpError> {
-    let url = format!("/_soland/admin/realms/{}/members", urlencoding::encode(id));
     api_client(&url, "GET", None).await
 }

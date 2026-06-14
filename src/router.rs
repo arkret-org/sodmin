@@ -30,8 +30,6 @@ pub enum Route {
 
         #[route("/realms")]
         RealmList {},
-        #[route("/realms/create")]
-        RealmCreate {},
         #[route("/realms/:realm_id")]
         RealmShow { realm_id: String },
         #[route("/realms/:realm_id/notary")]
@@ -256,11 +254,6 @@ fn ActorShow(actor_id: String) -> Element {
 #[component]
 fn RealmList() -> Element {
     rsx! { pages::realms::list::RealmList {} }
-}
-
-#[component]
-fn RealmCreate() -> Element {
-    rsx! { pages::realms::create::RealmCreate {} }
 }
 
 #[component]

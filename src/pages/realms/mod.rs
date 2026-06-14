@@ -1,7 +1,6 @@
 //! Admin pages for Realm security boundaries.
 
 pub mod covered_seals;
-pub mod create;
 pub mod federation_status;
 pub mod list;
 pub mod multisig;

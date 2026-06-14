@@ -349,10 +349,7 @@ fn is_route_active(current: &Route, target: &Route) -> bool {
     match target {
         Route::ActorList {} => matches!(current, Route::ActorList {} | Route::ActorShow { .. }),
         Route::HandleList {} => matches!(current, Route::HandleList {} | Route::HandleShow { .. }),
-        Route::RealmList {} => matches!(
-            current,
-            Route::RealmList {} | Route::RealmShow { .. } | Route::RealmCreate { .. }
-        ),
+        Route::RealmList {} => matches!(current, Route::RealmList {} | Route::RealmShow { .. }),
         Route::SpaceList {} => matches!(current, Route::SpaceList {} | Route::SpaceShow { .. }),
         Route::FederationList {} => matches!(
             current,

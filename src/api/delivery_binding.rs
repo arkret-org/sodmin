@@ -1,14 +1,17 @@
 //! HTTP client for the soland delivery-binding-policy admin surface.
 //!
 //! The cell lives at `ck.cell.realm.{realm_id}.delivery_binding_policy`.
-//! `allowed_recipient_services` and `binding_source_policy` are
-//! operator-mutable; `policy_frontier` is reducer-owned and read-only
-//! on the admin surface.
+//! This surface is **read-only** in sodmin: realm policy writes are a
+//! general-management action that flows through events / yougen, not the
+//! operations console. sodmin only renders the effective policy
+//! (`allowed_recipient_services`, `binding_source_policy`,
+//! reducer-owned `policy_frontier`) plus the member-routability and
+//! handover diagnostics.
 //!
 //! The admin endpoint is
-//! `/_soland/admin/realms/{id}/delivery-binding-policy`.
+//! `/_soland/admin/realms/{id}/delivery-binding-policy` (GET only).
 
-use crate::api::client::{api_client, json_body};
+use crate::api::client::api_client;
 use crate::types::*;
 use crate::utils::net::error::HttpError;
 
@@ -20,17 +23,6 @@ pub async fn get_delivery_binding_policy(
         urlencoding::encode(realm_id)
     );
     api_client(&url, "GET", None).await
-}
-
-pub async fn update_delivery_binding_policy(
-    realm_id: &str,
-    req: &UpdateDeliveryBindingPolicyRequest,
-) -> Result<RealmDeliveryBindingPolicy, HttpError> {
-    let url = format!(
-        "/_soland/admin/realms/{}/delivery-binding-policy",
-        urlencoding::encode(realm_id)
-    );
-    api_client(&url, "PATCH", Some(json_body(req)?)).await
 }
 
 pub async fn list_member_routability(
