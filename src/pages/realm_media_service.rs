@@ -5,10 +5,6 @@
 //! `moq-relay`}, an SFU `connect_url`, a `service_did`, and the list of
 //! `regions` it serves.
 //!
-//! When the underlying realm cell still carries the legacy single
-//! `sfu_endpoint` shape, a migration banner is rendered above the
-//! editor so the operator knows they're looking at a pre-R3 server.
-//!
 //! TODO(R3.1): plumb the soland `/_soland/admin/realms/{id}/media-service`
 //! GET / PUT pair through `api::server`. For now the page is a writable
 //! UI scaffold that round-trips through the client-side state — saving
@@ -67,7 +63,6 @@ pub fn RealmMediaService(realm_id: String) -> Element {
     // we boot with a single blank draft so the operator can edit and the
     // save button has something to round-trip.
     let mut foci = use_signal::<Vec<FocusDraft>>(|| vec![FocusDraft::blank()]);
-    let mut legacy_endpoint_present = use_signal(|| false);
     let realm_id_label = realm_id.clone();
 
     rsx! {
@@ -92,45 +87,6 @@ pub fn RealmMediaService(realm_id: String) -> Element {
                 class: "rounded-md border-2 border-amber-600 bg-amber-600/10 px-3 py-2 text-sm",
                 role: "alert",
                 {t("media_service.stub_banner")}
-            }
-
-            // R3 — migration banner. Rendered when the underlying cell
-            // still carries `sfu_endpoint`. The toggle is wired off the
-            // (placeholder) signal so the surface is testable until the
-            // GET endpoint is plumbed.
-            if *legacy_endpoint_present.read() {
-                div {
-                    class: "rounded-md border-2 border-amber-600 bg-amber-600/10 px-3 py-2 text-sm text-amber-900 dark:text-amber-100",
-                    role: "alert",
-                    p { class: "font-semibold",
-                        span { class: "mr-2", "\u{26A0}" }
-                        {t("media_service.legacy_banner_title")}
-                    }
-                    p { class: "text-xs",
-                        {t("media_service.legacy_banner_body")}
-                    }
-                    p { class: "text-xs mt-1",
-                        {t("error.legacy_single_endpoint_media_service")}
-                    }
-                    Button {
-                        variant: ButtonVariant::Outline,
-                        size: ButtonSize::Sm,
-                        onclick: move |_| legacy_endpoint_present.set(false),
-                        "Dismiss banner"
-                    }
-                }
-            } else if cfg!(debug_assertions) {
-                // Dev-only affordance so the banner can be exercised without
-                // a stale realm cell. Gated behind debug_assertions so it
-                // never ships in a production (release) bundle.
-                div { class: "text-xs text-muted-foreground",
-                    Button {
-                        variant: ButtonVariant::Outline,
-                        size: ButtonSize::Sm,
-                        onclick: move |_| legacy_endpoint_present.set(true),
-                        "Simulate legacy sfu_endpoint"
-                    }
-                }
             }
 
             Card {
