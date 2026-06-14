@@ -4,7 +4,7 @@
 //! value (single_did / threshold / open_set / mixed) and exposes a form
 //! that constructs a notary reconfig Control Move. The submit path posts to
 //! soland's `/_soland/admin/realms/{realm_id}/notary/reconfigure` endpoint;
-//! soland builds the typed Control Move + signs with the admin's signer flow.
+//! soland builds the typed Control Move + signs with the admin's signer strand.
 //!
 //! Spec rule: a new notary cannot self-sign itself in. We mirror that
 //! constraint client-side via `NotaryReconfigRequest::admin_self_signs_themselves_in`

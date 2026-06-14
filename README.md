@@ -86,7 +86,7 @@ normative source. The new admin pages:
 
 - **Moderation appeals** (`/moderation/appeals`) — pending-state list +
   detail/decision panel for the `ck.moderation.appeal.{submit,review,
-  decision,close}` flow. Enforces separation-of-duties (reviewer DID
+  decision,close}` strand. Enforces separation-of-duties (reviewer DID
   must differ from the original decision issuer).
 - **Trust domain** (`/server/trust-domain`) — read/write the
   deployment-wide `ck:trust_domain:<scope>`. Loud-red warning:

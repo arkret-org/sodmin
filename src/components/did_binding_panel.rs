@@ -2,7 +2,7 @@
 //!
 //! Renders the current set of `managed_dids`, plus an inline `Add binding`
 //! form (did + control_proof) and a `Remove binding` confirmation modal.
-//! Submission flows through the dedicated API helpers in
+//! Submission strands through the dedicated API helpers in
 //! `api::coauth::add_account_did_binding` /
 //! `api::coauth::remove_account_did_binding`.
 //!

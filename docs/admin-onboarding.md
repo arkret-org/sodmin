@@ -2,12 +2,12 @@
 
 This guide walks a new Cokret server administrator from a clean
 deployment to a working sodmin session with the right capabilities to
-do real work. The flow is:
+do real work. The strand is:
 
 1. **DID setup** — the admin's own controller DID is bound to a coauth account.
 2. **SSO config** — coauth knows the upstream identity provider so the admin can sign in.
-3. **First login** — the admin opens sodmin in a browser and completes the OAuth2 PKCE flow.
-4. **Capability grant flow** — coauth issues the `ck.*` admin scopes the admin needs to drive sodmin.
+3. **First login** — the admin opens sodmin in a browser and completes the OAuth2 PKCE strand.
+4. **Capability grant strand** — coauth issues the `ck.*` admin scopes the admin needs to drive sodmin.
 
 P5 — until an admin has both a bound DID **and** the right capability
 grants, sodmin will surface every destructive action with a "not in
@@ -45,7 +45,7 @@ contract.
 
 sodmin itself does not perform authentication: it redirects every
 unauthenticated user to coauth, which handles the OAuth2 PKCE
-authorization code flow against the configured upstream provider.
+authorization code strand against the configured upstream provider.
 
 Configure the upstream provider on coauth via **Upstream Providers**
 (`/coauth/upstream-providers`):
@@ -65,11 +65,11 @@ first sign-in.
 
 ## 3. First Login
 
-The admin opens the sodmin URL in a browser. The flow is:
+The admin opens the sodmin URL in a browser. The strand is:
 
 1. sodmin SPA loads, reads `/config.json`, learns the `coauth_public_url`.
 2. SPA detects no session and redirects to `/login`.
-3. `/login` page renders **Sign in with SSO** — clicking it kicks off the OAuth2 PKCE flow against coauth.
+3. `/login` page renders **Sign in with SSO** — clicking it kicks off the OAuth2 PKCE strand against coauth.
 4. coauth redirects to the upstream IdP, which authenticates the user and redirects back to coauth.
 5. coauth mints an authorization code, redirects to sodmin's `/oauth/callback`.
 6. sodmin exchanges the code for an httpOnly session cookie via coauth.
@@ -82,7 +82,7 @@ refuses to load the admin surface. Mark the account admin via the
 
 <!-- TODO(screenshot): /login — sign-in landing page with the SSO button and the auth status panel -->
 
-## 4. Capability Grant Flow
+## 4. Capability Grant Strand
 
 Being signed in as an admin does NOT, by itself, grant the right to
 drive every admin operation. The Cokret model is capability-based:
@@ -128,7 +128,7 @@ For deployment topology and the full port / path routing table see
 ## R3 admin flowcharts
 
 The flowcharts below are the canonical reference for the three most common
-operational lifecycle flows admins drive from sodmin. They are intentionally
+operational lifecycle strands admins drive from sodmin. They are intentionally
 text-only (ASCII step lists) so they survive in any review tool and can be
 read on-call without rendering.
 

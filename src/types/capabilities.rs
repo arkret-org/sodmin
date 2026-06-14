@@ -84,8 +84,8 @@ pub fn capability_resources_from_input(input: &str) -> Vec<serde_json::Value> {
     if trimmed.starts_with("ck:circle:") {
         return vec![serde_json::json!({ "kind": "circle", "circle_id": trimmed })];
     }
-    if trimmed.starts_with("ck:flow:") {
-        return vec![serde_json::json!({ "kind": "flow", "flow_id": trimmed })];
+    if trimmed.starts_with("ck:strand:") {
+        return vec![serde_json::json!({ "kind": "strand", "strand_id": trimmed })];
     }
     if trimmed.starts_with("ck:message:") {
         return vec![serde_json::json!({ "kind": "message", "message_id": trimmed })];

@@ -36,7 +36,7 @@ CSP header and the routing table below.
 | coauth `/_soland/admin/*` resource roots (accounts, claims, oauth2-sessions, personal-sessions, upstream-oauth-*, user-registration-tokens, connector-health, notification-*, audit-feed, bridge) | `${COAUTH_URL}` | coauth admin endpoints (RBAC enforced server-side); longest-prefix match wins over soland. |
 | `/_soland/admin/` (everything else) | `${SOLAND_URL}` | soland operator surface (spaces, moderation, federation, server, media, etc.). |
 | `/auth/` and `/_cokret/gate/` | `${COAUTH_URL}` | Token + session endpoints. |
-| `/authorize`, `/oauth2/`, `/.well-known/` | `${COAUTH_URL}` | OAuth2 PKCE flow + discovery. |
+| `/authorize`, `/oauth2/`, `/.well-known/` | `${COAUTH_URL}` | OAuth2 PKCE strand + discovery. |
 | `*.wasm`, `*.js`, `*.css`, images | sodmin nginx (`Cache-Control: public, immutable`) | Bundle assets. |
 
 P5 — when `floria` (E2EE / matrix bridge) or `teabay` (developer

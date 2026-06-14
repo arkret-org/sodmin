@@ -5,7 +5,7 @@ This runbook covers operational tasks the sodmin operator drives that have
 into the strict-reject accountability posture (the
 `ck.profile.accountable_principals.strict_reject.v1` profile).
 
-For onboarding flows, the agent lifecycle, recovery rotation, and the
+For onboarding strands, the agent lifecycle, recovery rotation, and the
 media-service config UI, see [`admin-onboarding.md`](./admin-onboarding.md).
 
 ## Flipping `accountable_principals.strict_reject` safely
@@ -136,7 +136,7 @@ After rollback:
   audited remain audited; they continue to appear in compliance reports
   for the audit-retention window (default 90 days).
 
-## Other operator-driven flows
+## Other operator-driven strands
 
 - **Recovery policy rotation** — see
   [`admin-onboarding.md` → R3 admin flowcharts → Recovery policy

@@ -215,7 +215,7 @@
   "auth_status.auth_capabilities_desc": "coauth 和 Principal Server admin profile 暴露的登录方式",
   "auth_status.base_url": "基础 URL",
   "auth_status.dev_diagnostics_desc": "探测 coauth 端点以调试注册、同意和 well-known 发现",
-  "auth_status.login_flows": "登录流程",
+  "auth_status.login_strands": "登录流程",
   "auth_status.server_info": "服务器连接",
   "auth_status.server_version": "服务器版本",
   "auth_status.title": "认证状态",

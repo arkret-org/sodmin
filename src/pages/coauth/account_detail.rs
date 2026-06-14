@@ -96,7 +96,7 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                                 span { class: "font-mono", "{summary.bridge_status}" }
                             }
                             div { class: "text-sm text-muted-foreground",
-                                "This panel is backed by coauth admin bridge discovery plus account, DID-binding, claims, session-grant, and risk-action endpoints. High-risk actions flow through a discovered persisted state-machine."
+                                "This panel is backed by coauth admin bridge discovery plus account, DID-binding, claims, session-grant, and risk-action endpoints. High-risk actions strand through a discovered persisted state-machine."
                             }
                         }
 

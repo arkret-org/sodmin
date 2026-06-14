@@ -4,7 +4,7 @@
 #
 # This is the minimum useful nightly assertion: "the docker-compose stack
 # came up and every service is reachable on its published port". It does
-# NOT exercise OAuth flows / federation / any business logic — that's the
+# NOT exercise OAuth strands / federation / any business logic — that's the
 # job of the playwright e2e suite, which can run against the same stack.
 #
 # Exit codes:

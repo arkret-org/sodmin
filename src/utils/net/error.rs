@@ -165,7 +165,7 @@ pub fn display_error(errcode: &str, status: u16, message: &str) -> String {
         "rate_limited" => "Rate limited",
         "temporarily_unavailable" => "Service temporarily unavailable",
         "validation" | "schema_violation" => "Request validation failed",
-        "recovery_required" => "Recovery flow must complete before this action is allowed",
+        "recovery_required" => "Recovery strand must complete before this action is allowed",
         "policy_required" => "Required policy approval is missing",
         "session_expired" => "Session expired — sign in again",
         "idempotency_conflict" => "Idempotency key conflicted with a previous request",
@@ -346,7 +346,7 @@ mod tests {
     #[test]
     fn display_error_handles_protocol_codes() {
         let s = display_error("recovery_required", 412, "");
-        assert!(s.contains("Recovery flow"));
+        assert!(s.contains("Recovery strand"));
         let s = display_error("policy_required", 412, "");
         assert!(s.contains("policy approval"));
         let s = display_error("session_expired", 401, "");

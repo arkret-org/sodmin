@@ -4,7 +4,7 @@ This directory holds the Playwright e2e tests for sodmin.
 
 ## Q2 — happy-path risk-action
 
-`risk-action.spec.ts` drives the full risk-action approval flow:
+`risk-action.spec.ts` drives the full risk-action approval strand:
 
 1. Login at `/login`
 2. Navigate to `/coauth/accounts`

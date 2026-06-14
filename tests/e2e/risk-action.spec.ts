@@ -3,7 +3,7 @@
 // Drives the sodmin SPA against a sodmin dev instance + a soland dev
 // stack. The test is intentionally narrow: it boots the SPA, signs the
 // admin in, navigates to the accounts list, opens an account detail
-// page, kicks off the risk-action flow, and asserts that an audit row
+// page, kicks off the risk-action strand, and asserts that an audit row
 // appears for the action.
 //
 // Skip behaviour: if the env vars `SODMIN_E2E_BASE_URL`,
@@ -52,7 +52,7 @@ test.describe("Q2 risk-action happy-path", () => {
     await page.goto(`${BASE_URL}/coauth/accounts/${ACCOUNT_ID}`);
     await expect(page.getByText(ACCOUNT_ID)).toBeVisible({ timeout: 10_000 });
 
-    // 6. Trigger a risk-action proposal (approve flow). The button copy
+    // 6. Trigger a risk-action proposal (approve strand). The button copy
     //    is "Approve risk action" / 批准风控操作 — we match on either.
     const approveBtn = page.getByRole("button", {
       name: /approve risk action|批准风控操作/i,
