@@ -7,7 +7,7 @@
 //! soland builds the typed Control Move + signs with the admin's signer strand.
 //!
 //! Spec rule: a new notary cannot self-sign itself in. We mirror that
-//! constraint client-side via `NotaryReconfigRequest::admin_self_signs_themselves_in`
+//! constraint client-side via `NotaryReconfigRequestBody::admin_self_signs_themselves_in`
 //! so the operator gets a hard pre-flight stop before paying a round-trip.
 
 use dioxus::prelude::*;
@@ -24,7 +24,7 @@ use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::toast::{ToastVariant, show_toast};
 use crate::types::seal::{
-    NotaryKind, NotaryReconfigRequest, NotaryValue, SubmitControlMoveOutcome,
+    NotaryKind, NotaryReconfigRequestBody, NotaryValue, SubmitControlMoveOutcome,
 };
 use crate::utils::net::session;
 
@@ -53,7 +53,7 @@ pub fn NotaryPage(realm_id: String) -> Element {
     // but not yet confirmed. While `Some`, the confirmation modal is
     // visible. We carry the typed request rather than re-reading the
     // form signals so the body the user confirmed is what we POST.
-    let mut pending = use_signal::<Option<NotaryReconfigRequest>>(|| None);
+    let mut pending = use_signal::<Option<NotaryReconfigRequestBody>>(|| None);
     // H'2 round 27 — last successful soland response. Drives the
     // "Signed Control Move body" readonly JSON viewer below the form so the
     // admin can verify byte-for-byte what was signed before walking
@@ -209,7 +209,7 @@ pub fn NotaryPage(realm_id: String) -> Element {
                                 disabled: *submitting.read(),
                                 onclick: move |_| {
                                     let kind = new_kind.read().clone();
-                                    let req = NotaryReconfigRequest {
+                                    let req = NotaryReconfigRequestBody {
                                         realm_id: realm_id_for_submit.clone(),
                                         kind: kind.clone(),
                                         single_did: opt_string(&new_single_did.read()),

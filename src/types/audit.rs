@@ -26,7 +26,7 @@ pub struct AuditEntry {
     /// (`ck:realm:...` or `ck:circle:...`). Distinct from the audited
     /// `target_id` because Circle actions surface inside a Realm
     /// envelope but get pinned to the Circle for replay-locality.
-    /// `None` for legacy entries written before the field shipped.
+    /// `None` when the source row omits the field.
     #[serde(default)]
     pub effective_scope: Option<String>,
     /// CKP-0007 — when `effective_scope` points at a Circle, this is

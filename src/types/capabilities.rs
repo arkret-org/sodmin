@@ -3,8 +3,8 @@
 //!
 //! The grant itself is the SDK `cokret_core::models::CapabilityGrant`
 //! (`GrantId` / `Did` / `DateTime<Utc>` strong types, field set per
-//! `ck.schema.capability.v1`). sodmin adds no wire mirror and no legacy
-//! field aliases; display-only conveniences live in
+//! `ck.schema.capability.v1`). sodmin adds no wire mirror or field aliases;
+//! display-only conveniences live in
 //! [`CapabilityGrantExt`].
 
 pub use cokret_core::models::{CapabilityGrant, CapabilitySubject};
@@ -53,7 +53,7 @@ impl CapabilityGrantExt for CapabilityGrant {
 }
 
 /// POST body for `/_soland/admin/capabilities` — spec-shaped
-/// (`ck.schema.capability.v1` field names; no legacy aliases).
+/// (`ck.schema.capability.v1` field names).
 #[derive(Debug, Clone, Serialize, Default)]
 pub struct GrantCapabilityRequest {
     pub schema: String,

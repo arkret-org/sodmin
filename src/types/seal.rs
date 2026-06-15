@@ -4,10 +4,10 @@
 //! sodmin admin UI use the same type definitions.
 
 pub use soland_core::admin::seal::{
-    BottomCandidateHead, BottomEntry, BottomKind, BottomKindExt, BottomRepairRequest,
-    BottomRepairStrategy, CompactionOutcome, CompactionRequest, NotaryKind, NotaryReconfigRequest,
-    NotaryValue, SealDagSnapshot, SealLeaf, SelfSignViolation, SubmitControlMoveOutcome,
-    bottom_kind_from_wire,
+    BottomCandidateHead, BottomEntry, BottomKind, BottomKindExt, BottomRepairRequestBody,
+    BottomRepairStrategy, CompactionOutcome, CompactionRequestBody, NotaryKind,
+    NotaryReconfigRequestBody, NotaryValue, SealDagSnapshot, SealLeaf, SelfSignViolation,
+    SubmitControlMoveOutcome, bottom_kind_from_wire,
 };
 
 #[cfg(test)]
@@ -34,7 +34,7 @@ mod tests {
 
     #[test]
     fn reconfigure_body_omits_unused_shape_fields() {
-        let request = NotaryReconfigRequest {
+        let request = NotaryReconfigRequestBody {
             realm_id: "ck:realm:demo".to_owned(),
             kind: "single_did".to_owned(),
             single_did: Some("did:ck:operator".to_owned()),

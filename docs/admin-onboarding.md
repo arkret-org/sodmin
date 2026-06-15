@@ -263,8 +263,3 @@ Notes:
     Audit rows under `realm.media_service.foci.update` capture every
     transition.
 ```
-
-If the realm still advertises the legacy v1.0 `sfu_endpoint` shape,
-sodmin shows a yellow banner with a one-click "Migrate to foci[]" action
-that runs the equivalent of soland's `20260520_realm_media_service_foci.sql`
-on this single realm row.

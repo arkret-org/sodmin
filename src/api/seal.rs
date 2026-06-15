@@ -3,8 +3,9 @@
 
 use crate::api::client::{api_client, build_url, json_body};
 use crate::types::seal::{
-    BottomEntry, BottomRepairRequest, BottomRepairStrategy, CompactionOutcome, CompactionRequest,
-    NotaryReconfigRequest, NotaryValue, SealDagSnapshot, SubmitControlMoveOutcome,
+    BottomEntry, BottomRepairRequestBody, BottomRepairStrategy, CompactionOutcome,
+    CompactionRequestBody, NotaryReconfigRequestBody, NotaryValue, SealDagSnapshot,
+    SubmitControlMoveOutcome,
 };
 use crate::utils::net::error::HttpError;
 
@@ -17,7 +18,7 @@ pub async fn get_notary_value(realm_id: &str) -> Result<NotaryValue, HttpError> 
 }
 
 pub async fn submit_notary_reconfig(
-    req: &NotaryReconfigRequest,
+    req: &NotaryReconfigRequestBody,
 ) -> Result<SubmitControlMoveOutcome, HttpError> {
     let url = format!(
         "/_soland/admin/realms/{}/notary/reconfigure",
@@ -42,11 +43,7 @@ pub async fn submit_bottom_repair(
         urlencoding::encode(realm_id),
         urlencoding::encode(cell_id),
     );
-    let req = BottomRepairRequest {
-        realm_id: realm_id.to_string(),
-        cell_id: cell_id.to_string(),
-        strategy,
-    };
+    let req = BottomRepairRequestBody { strategy };
     api_client(&url, "POST", Some(json_body(&req)?)).await
 }
 
@@ -63,7 +60,7 @@ pub async fn trigger_compaction(realm_id: &str) -> Result<CompactionOutcome, Htt
         "/_soland/admin/realms/{}/seal-dag/compact",
         urlencoding::encode(realm_id)
     );
-    let req = CompactionRequest {
+    let req = CompactionRequestBody {
         realm_id: realm_id.to_string(),
         max_control_moves: None,
     };
@@ -77,7 +74,7 @@ mod tests {
 
     #[test]
     fn reconfig_request_body_renders_threshold_shape() {
-        let req = NotaryReconfigRequest {
+        let req = NotaryReconfigRequestBody {
             realm_id: "ck:realm:0196419b-0000-7000-8000-000000000000".into(),
             kind: "threshold".into(),
             threshold_k: Some(2),
@@ -103,9 +100,7 @@ mod tests {
 
     #[test]
     fn repair_request_body_serializes_with_strategy_tag() {
-        let req = BottomRepairRequest {
-            realm_id: "ck:realm:demo".into(),
-            cell_id: "ck:cell:ck.component.notary.v1:ck:space:demo".into(),
+        let req = BottomRepairRequestBody {
             strategy: BottomRepairStrategy::HeadInWinner {
                 head: BottomCandidateHead {
                     event_id: "ck:event:0196419b-0000-7000-8000-000000000000".into(),
@@ -123,7 +118,7 @@ mod tests {
 
     #[test]
     fn compaction_request_body_default_omits_max_control_moves() {
-        let req = CompactionRequest {
+        let req = CompactionRequestBody {
             realm_id: "ck:realm:demo".into(),
             max_control_moves: None,
         };

@@ -10,8 +10,7 @@ use serde::{Deserialize, Serialize};
 /// see `cokret_core::models::api::ErrorEnvelope`). We keep a flattened local
 /// shape — the wire envelope is parsed in [`from_wire`] — so the existing
 /// call sites (`body.errcode`, `required_scope`) keep working while the
-/// parse path reads the authoritative `error.code` rather than the legacy
-/// Matrix-style top-level `errcode`.
+/// parse path reads the authoritative `error.code`.
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AdminErrorEnvelope {
     /// The registry error code — sourced from `error.code` on the wire.

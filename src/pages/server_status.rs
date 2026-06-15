@@ -260,8 +260,7 @@ fn describe_body(describe: &ServerDescribeDocument) -> Element {
     let bindings = describe.supported_bindings.clone();
 
     // T1.4 — surface the runtime posture. These are soland extension
-    // fields (only emitted on `/health` and the legacy `/_soland/describe`
-    // today), so they come from the extension envelope and usually render
+    // fields (emitted on `/health`), so they come from the extension envelope and usually render
     // as "-" on the spec-shaped `/_cokret/describe`. `development_mode`
     // is rendered separately below (with red styling) so the operator
     // can't miss it.

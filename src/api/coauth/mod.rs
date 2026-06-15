@@ -19,12 +19,6 @@ mod sessions;
 mod upstream;
 mod viewer;
 
-// Generic pagination value types live in `crate::types` (shared across
-// pages). Re-exported here so the legacy `crate::api::coauth::{PaginatedResponse,
-// CursorPage}` paths stay valid. NOTE: these are intentionally distinct
-// from the JSON:API envelope `coauth_admin_types::PaginatedResponse`
-// (`{data, meta, links}`) and from `crate::types::api::ListResponse`
-// (`{data, total?, next_cursor}`) — the wire shapes differ field-for-field.
 pub use accounts::{
     AccountListFilter, CoauthAccountClaim, CoauthAccountDetail, CoauthAccountRiskActionApproval,
     CoauthAccountRiskActionApprovalDraft, CoauthAccountRiskActionCurrentState,
@@ -58,5 +52,3 @@ pub use upstream::{
     toggle_upstream_provider,
 };
 pub use viewer::{CoauthViewer, get_viewer};
-
-pub use crate::types::{CursorPage, PaginatedResponse};

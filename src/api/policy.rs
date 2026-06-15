@@ -43,11 +43,6 @@ struct UpsertPolicyDocumentRequest {
     active: bool,
 }
 
-#[derive(Debug, Clone, Serialize)]
-struct PatchPolicyDocumentRequest {
-    patch: serde_json::Map<String, Value>,
-}
-
 pub async fn list_policies(
     cursor: Option<&str>,
     limit: u64,
@@ -57,7 +52,7 @@ pub async fn list_policies(
     if let Some(cursor) = cursor.filter(|c| !c.is_empty()) {
         params.push(("cursor", cursor));
     }
-    let url = build_url("/_soland/self/policies", &params)?;
+    let url = build_url("/_cokret/self/policies", &params)?;
     let resp: PolicyDocumentsEnvelope = api_client(&url, "GET", None).await?;
     Ok(PolicyListOutcome {
         data: resp
@@ -73,19 +68,19 @@ pub async fn list_policies(
 pub async fn create_policy(req: &CreatePolicyRequest) -> Result<Policy, HttpError> {
     let body = upsert_body(None, req);
     let resp: PolicyDocumentDto =
-        api_client("/_soland/self/policies", "POST", Some(json_body(&body)?)).await?;
+        api_client("/_cokret/self/policies", "POST", Some(json_body(&body)?)).await?;
     Ok(policy_from_document(resp))
 }
 
 pub async fn update_policy(id: &str, req: &CreatePolicyRequest) -> Result<Policy, HttpError> {
-    let url = format!("/_soland/self/policies/{}", urlencoding::encode(id));
-    let body = patch_body(req);
-    let resp: PolicyDocumentDto = api_client(&url, "PATCH", Some(json_body(&body)?)).await?;
+    let body = upsert_body(Some(id.to_string()), req);
+    let resp: PolicyDocumentDto =
+        api_client("/_cokret/self/policies", "POST", Some(json_body(&body)?)).await?;
     Ok(policy_from_document(resp))
 }
 
 pub async fn delete_policy(id: &str) -> Result<(), HttpError> {
-    let url = format!("/_soland/self/policies/{}", urlencoding::encode(id));
+    let url = format!("/_cokret/self/policies/{}", urlencoding::encode(id));
     let _: serde_json::Value = api_client(&url, "DELETE", None).await?;
     Ok(())
 }
@@ -114,16 +109,6 @@ fn upsert_body(
         obligations,
         active: req.is_enabled,
     }
-}
-
-fn patch_body(req: &CreatePolicyRequest) -> PatchPolicyDocumentRequest {
-    let (effect, actions, resource, obligations) = payload_parts(req);
-    let mut patch = serde_json::Map::new();
-    patch.insert("effect".to_string(), json!(effect));
-    patch.insert("actions".to_string(), json!(actions));
-    patch.insert("resource".to_string(), resource);
-    patch.insert("obligations".to_string(), json!(obligations));
-    PatchPolicyDocumentRequest { patch }
 }
 
 fn payload_parts(req: &CreatePolicyRequest) -> (String, Vec<String>, Value, Vec<Value>) {
