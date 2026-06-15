@@ -30,7 +30,7 @@ struct PolicyDocumentDto {
 }
 
 #[derive(Debug, Clone, Serialize)]
-struct UpsertPolicyDocumentRequest {
+struct UpsertPolicyDocumentRequestBody {
     #[serde(skip_serializing_if = "Option::is_none")]
     policy_id: Option<String>,
     scope: String,
@@ -88,9 +88,9 @@ pub async fn delete_policy(id: &str) -> Result<(), HttpError> {
 fn upsert_body(
     policy_id: Option<String>,
     req: &CreatePolicyRequest,
-) -> UpsertPolicyDocumentRequest {
+) -> UpsertPolicyDocumentRequestBody {
     let (effect, actions, resource, obligations) = payload_parts(req);
-    UpsertPolicyDocumentRequest {
+    UpsertPolicyDocumentRequestBody {
         policy_id,
         scope: req
             .scope
