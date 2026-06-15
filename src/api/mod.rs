@@ -20,6 +20,7 @@ pub mod invite_tokens;
 /// B-C key-backup recovery admin (soland P2 series + recovery policy).
 pub mod key_backup;
 pub mod media;
+pub mod media_service;
 pub mod multisig;
 pub mod paths;
 pub mod policy;

@@ -40,6 +40,9 @@ pub use key_backup::*;
 pub mod media;
 pub use media::*;
 
+pub mod media_service;
+pub use media_service::*;
+
 pub mod multisig;
 
 pub mod policy;
