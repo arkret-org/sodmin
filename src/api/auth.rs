@@ -511,10 +511,10 @@ pub async fn logout() -> Result<(), HttpError> {
     let body = format!("client_id={OAUTH_CLIENT_ID}");
     let _ = send_oauth_form_request("/oauth/revoke", &body).await;
 
-    // soland product-surface session logout (mounted at `/_soland/gate/*`,
-    // not the `/_cokret` protocol surface — the latter routes to coauth and
-    // 404s, leaving the soland-side session uncleared).
-    let _ = Request::post("/_soland/gate/auth/logout")
+    // Principal-Server device logout, spec `ck.gate.account.command.logout`.
+    // The gateway routes this longer prefix to soland (the rest of
+    // `/_cokret/gate/*` goes to coauth), so it clears the soland-side session.
+    let _ = Request::post("/_cokret/gate/account/logout")
         .header("Accept", "application/json")
         .credentials(RequestCredentials::Include)
         .send()
