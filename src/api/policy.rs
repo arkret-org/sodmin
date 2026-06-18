@@ -52,7 +52,7 @@ pub async fn list_policies(
     if let Some(cursor) = cursor.filter(|c| !c.is_empty()) {
         params.push(("cursor", cursor));
     }
-    let url = build_url("/_cokret/self/policies", &params)?;
+    let url = build_url("/_soland/self/policies", &params)?;
     let resp: PolicyDocumentsEnvelope = api_client(&url, "GET", None).await?;
     Ok(PolicyListOutcome {
         data: resp
@@ -68,19 +68,19 @@ pub async fn list_policies(
 pub async fn create_policy(req: &CreatePolicyRequest) -> Result<Policy, HttpError> {
     let body = upsert_body(None, req);
     let resp: PolicyDocumentDto =
-        api_client("/_cokret/self/policies", "POST", Some(json_body(&body)?)).await?;
+        api_client("/_soland/self/policies", "POST", Some(json_body(&body)?)).await?;
     Ok(policy_from_document(resp))
 }
 
 pub async fn update_policy(id: &str, req: &CreatePolicyRequest) -> Result<Policy, HttpError> {
     let body = upsert_body(Some(id.to_string()), req);
     let resp: PolicyDocumentDto =
-        api_client("/_cokret/self/policies", "POST", Some(json_body(&body)?)).await?;
+        api_client("/_soland/self/policies", "POST", Some(json_body(&body)?)).await?;
     Ok(policy_from_document(resp))
 }
 
 pub async fn delete_policy(id: &str) -> Result<(), HttpError> {
-    let url = format!("/_cokret/self/policies/{}", urlencoding::encode(id));
+    let url = format!("/_soland/self/policies/{}", urlencoding::encode(id));
     let _: serde_json::Value = api_client(&url, "DELETE", None).await?;
     Ok(())
 }

@@ -76,23 +76,21 @@ impl ServerDescribeDocument {
         self.description.development_mode && !self.description.verified_profiles.is_empty()
     }
 
-    /// Flatten the free-form `plaintext_visibility` advertisement into a
-    /// list of service names for display. Accepts both the object wire
-    /// shape (`{"default": ..., "services": [...]}`) and a bare string
-    /// array.
+    /// Render the canonical `plaintext_visibility` advertisement as a list
+    /// of the declared plaintext data-class names for display. An empty
+    /// list means the service claims no plaintext / reversible-derived
+    /// classes (the E2EE default).
     pub fn plaintext_visibility_entries(&self) -> Vec<String> {
-        let value = &self.description.plaintext_visibility;
-        let list = value
-            .get("services")
-            .and_then(serde_json::Value::as_array)
-            .or_else(|| value.as_array());
-        list.map(|items| {
-            items
-                .iter()
-                .filter_map(|item| item.as_str().map(ToOwned::to_owned))
-                .collect()
-        })
-        .unwrap_or_default()
+        self.description
+            .plaintext_visibility
+            .data_classes
+            .iter()
+            .filter_map(|class| {
+                serde_json::to_value(class)
+                    .ok()
+                    .and_then(|v| v.as_str().map(ToOwned::to_owned))
+            })
+            .collect()
     }
 }
 
@@ -156,14 +154,14 @@ mod tests {
             "supported_operations": ["ck.self.events.command.submit"],
             "supported_bindings": [],
             "supported_features": ["events.describe", "events.submit"],
-            "auth_metadata": {},
+            "auth_metadata": { "mode": "production" },
             "limits": {
                 "profile_status": {
                     "conformance": "limited_reference",
                     "implemented_surfaces": ["principal_server", "events_api_minimal"]
                 }
             },
-            "plaintext_visibility": { "default": "encrypted", "services": ["floria"] },
+            "plaintext_visibility": { "max_visibility": "private_plaintext", "data_classes": ["message_content"] },
             "implemented_features": ["events.describe"],
             "claimed_profiles": [{
                 "profile_id": "ck.profile.principal_server.v1",
@@ -202,7 +200,7 @@ mod tests {
         );
         assert_eq!(
             describe.plaintext_visibility_entries(),
-            vec!["floria".to_string()]
+            vec!["message_content".to_string()]
         );
         assert!(!describe.dev_mode_with_verified_profiles());
     }

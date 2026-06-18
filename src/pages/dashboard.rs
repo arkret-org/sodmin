@@ -363,9 +363,11 @@ fn join_or_dash(items: &[String]) -> String {
 }
 
 fn coauth_issuer_did(describe: &ServerDescribeDocument) -> Option<String> {
-    // `auth_metadata` is free-form `Value` in the SDK shape; coauth puts
-    // its issuer DID at the top level of that object.
-    json_string(&describe.auth_metadata, &["issuer_did"])
+    // `auth_metadata` is the SDK-canonical `AuthMetadata`; coauth carries its
+    // issuer DID in the type's flattened `extra` (`additionalProperties`), so
+    // serialize to JSON before walking for the `issuer_did` key.
+    let auth_metadata = serde_json::to_value(&describe.auth_metadata).unwrap_or_default();
+    json_string(&auth_metadata, &["issuer_did"])
         .or_else(|| non_empty(describe.service_did.to_string()))
 }
 

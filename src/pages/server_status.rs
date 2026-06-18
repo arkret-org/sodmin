@@ -257,7 +257,13 @@ fn describe_body(describe: &ServerDescribeDocument) -> Element {
     let features = describe.supported_features.clone();
     let implemented = describe.implemented_features.clone();
     let operations = describe.supported_operations.clone();
-    let bindings = describe.supported_bindings.clone();
+    // ServiceDescribe v1 strong-typed `supported_bindings`; render each as
+    // JSON so the free-form chip section keeps reading `kind` / `base_url`.
+    let bindings: Vec<serde_json::Value> = describe
+        .supported_bindings
+        .iter()
+        .map(|binding| serde_json::to_value(binding).unwrap_or(serde_json::Value::Null))
+        .collect();
 
     // T1.4 — surface the runtime posture. These are soland extension
     // fields (emitted on `/health`), so they come from the extension envelope and usually render
@@ -281,11 +287,19 @@ fn describe_body(describe: &ServerDescribeDocument) -> Element {
     // banner above the rest of the card.
     let dev_with_verified = describe.dev_mode_with_verified_profiles();
 
-    let rate_limit_text = if describe.rate_limit.is_null() {
+    // ServiceDescribe v1 replaced the free-form top-level `rate_limit` with a
+    // typed `rate_limit_policy` (or `rate_limit_policy_id`). Render it as JSON
+    // so the existing free-form panel keeps working.
+    let rate_limit_value = describe
+        .rate_limit_policy
+        .as_ref()
+        .map(|policy| serde_json::to_value(policy).unwrap_or(serde_json::Value::Null))
+        .unwrap_or(serde_json::Value::Null);
+    let rate_limit_text = if rate_limit_value.is_null() {
         "-".to_string()
     } else {
-        serde_json::to_string_pretty(&describe.rate_limit)
-            .unwrap_or_else(|_| describe.rate_limit.to_string())
+        serde_json::to_string_pretty(&rate_limit_value)
+            .unwrap_or_else(|_| rate_limit_value.to_string())
     };
     let limits_text = if describe.limits.is_null() {
         "-".to_string()
@@ -359,7 +373,7 @@ fn describe_body(describe: &ServerDescribeDocument) -> Element {
                         "{limits_text}"
                     }
                 }
-                {rate_limit_panel(t("server_status.rate_limit_label"), &describe.rate_limit, rate_limit_text)}
+                {rate_limit_panel(t("server_status.rate_limit_label"), &rate_limit_value, rate_limit_text)}
             }
 
             // T6.2 §1 — conformance posture grouped into four buckets.
