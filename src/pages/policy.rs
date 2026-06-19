@@ -34,6 +34,7 @@ pub fn PolicyList() -> Element {
     let mut selected_policy = use_signal(|| None::<Policy>);
     let mut dialog_error = use_signal(|| None::<String>);
     let mut dialog_required_scope = use_signal(|| None::<String>);
+    let mut dialog_read_only = use_signal(|| false);
     let mut page_error = use_signal(|| None::<String>);
 
     let cursor_snapshot = cursor_stack.read().last().cloned().unwrap_or(None);
@@ -61,6 +62,7 @@ pub fn PolicyList() -> Element {
                         selected_policy.set(None);
                         dialog_error.set(None);
                         dialog_required_scope.set(None);
+                        dialog_read_only.set(false);
                         show_dialog.set(true);
                     },
                     {t("common.create")}
@@ -110,6 +112,7 @@ pub fn PolicyList() -> Element {
                                                 let p_priority = p.priority;
                                                 let updated = p.updated_at.clone().unwrap_or_else(|| "-".to_string());
                                                 let guardrail_policy = p.clone();
+                                                let read_only = p.safety.read_only;
 
                                                 let id_for_edit = id.clone();
                                                 let id_for_delete = id.clone();
@@ -155,13 +158,15 @@ pub fn PolicyList() -> Element {
                                                                             selected_policy.set(Some(policy.clone()));
                                                                             dialog_error.set(None);
                                                                             dialog_required_scope.set(None);
+                                                                            dialog_read_only.set(read_only);
                                                                             show_dialog.set(true);
                                                                         }
                                                                     },
-                                                                    {t("common.edit")}
+                                                                    {if read_only { t("common.view") } else { t("common.edit") }}
                                                                 }
                                                                 Button {
                                                                     variant: ButtonVariant::Ghost,
+                                                                    disabled: read_only,
                                                                     onclick: {
                                                                         let id = id_for_delete.clone();
                                                                         move |_| show_delete_dialog.set(Some(id.clone()))
@@ -218,13 +223,27 @@ pub fn PolicyList() -> Element {
 
         Modal {
             open: *show_dialog.read(),
-            title: if editing_id.read().is_some() { t("policy.edit") } else { t("policy.create") },
+            title: if *dialog_read_only.read() {
+                t("policy.pin_readonly_title")
+            } else if editing_id.read().is_some() {
+                t("policy.edit")
+            } else {
+                t("policy.create")
+            },
             on_close: move |_| show_dialog.set(false),
             div { class: "space-y-3",
+                if *dialog_read_only.read() {
+                    div {
+                        class: "rounded-md border bg-muted/40 px-3 py-2 text-sm text-muted-foreground",
+                        role: "note",
+                        {t("policy.pin_standard_unavailable_detail")}
+                    }
+                }
                 div { class: "space-y-1",
                     Label { r#for: "pol-name".to_string(), {t("policy.name")} }
                     Input {
                         value: name.read().clone(),
+                        disabled: *dialog_read_only.read(),
                         oninput: move |evt: FormEvent| name.set(evt.value()),
                     }
                 }
@@ -232,6 +251,7 @@ pub fn PolicyList() -> Element {
                     Label { r#for: "pol-type".to_string(), {t("policy.policy_type")} }
                     Input {
                         value: policy_type.read().clone(),
+                        disabled: *dialog_read_only.read(),
                         oninput: move |evt: FormEvent| policy_type.set(evt.value()),
                     }
                 }
@@ -239,6 +259,7 @@ pub fn PolicyList() -> Element {
                     Label { r#for: "pol-scope".to_string(), {t("policy.scope")} }
                     Input {
                         value: scope.read().clone(),
+                        disabled: *dialog_read_only.read(),
                         oninput: move |evt: FormEvent| scope.set(evt.value()),
                     }
                 }
@@ -247,6 +268,7 @@ pub fn PolicyList() -> Element {
                     Input {
                         r#type: "number".to_string(),
                         value: priority.read().to_string(),
+                        disabled: *dialog_read_only.read(),
                         oninput: move |evt: FormEvent| {
                             if let Ok(v) = evt.value().parse() {
                                 priority.set(v);
@@ -258,6 +280,7 @@ pub fn PolicyList() -> Element {
                     input {
                         r#type: "checkbox",
                         checked: *is_enabled.read(),
+                        disabled: *dialog_read_only.read(),
                         onchange: move |evt: Event<FormData>| is_enabled.set(evt.checked()),
                     }
                     Label { {t("policy.enabled")} }
@@ -275,49 +298,71 @@ pub fn PolicyList() -> Element {
                 if let Some(policy) = selected_policy.read().clone() {
                     PolicyGuardrailPanel { policy }
                 }
+                if let Some(policy) = selected_policy.read().clone() {
+                    if policy.safety.pin_summary.is_some() {
+                        PolicyPinSafetyPanel { policy }
+                    }
+                }
             }
-            DialogActions {
-                confirm_text: t("common.save"),
-                cancel_text: t("common.cancel"),
-                confirm_loading: *dialog_loading.read(),
-                on_cancel: move |_| show_dialog.set(false),
-                on_confirm: move |_| {
-                    dialog_loading.set(true);
-                    let req = CreatePolicyRequest {
-                        name: name.read().clone(),
-                        policy_type: if policy_type.read().is_empty() { None } else { Some(policy_type.read().clone()) },
-                        scope: if scope.read().is_empty() { None } else { Some(scope.read().clone()) },
-                        is_enabled: *is_enabled.read(),
-                        priority: *priority.read(),
-                        ..Default::default()
-                    };
-                    let edit = editing_id.read().clone();
-                    spawn(async move {
-                        let result = match edit {
-                            Some(ref id) => policy::update_policy(id, &req).await.map(|_| ()),
-                            None => policy::create_policy(&req).await.map(|_| ()),
+            if *dialog_read_only.read() {
+                div { class: "flex justify-end pt-2",
+                    Button {
+                        variant: ButtonVariant::Default,
+                        onclick: move |_| show_dialog.set(false),
+                        {t("common.close")}
+                    }
+                }
+            } else {
+                DialogActions {
+                    confirm_text: t("common.save"),
+                    cancel_text: t("common.cancel"),
+                    confirm_loading: *dialog_loading.read(),
+                    on_cancel: move |_| show_dialog.set(false),
+                    on_confirm: move |_| {
+                        dialog_loading.set(true);
+                        let req = CreatePolicyRequest {
+                            name: name.read().clone(),
+                            policy_type: if policy_type.read().is_empty() { None } else { Some(policy_type.read().clone()) },
+                            scope: if scope.read().is_empty() { None } else { Some(scope.read().clone()) },
+                            is_enabled: *is_enabled.read(),
+                            priority: *priority.read(),
+                            ..Default::default()
                         };
-                        match result {
-                            Ok(_) => {
-                                show_toast(
-                                    if edit.is_some() { "Policy updated" } else { "Policy created" },
-                                    ToastVariant::Success,
-                                );
-                                dialog_error.set(None);
-                                dialog_required_scope.set(None);
-                                show_dialog.set(false);
-                                data.restart();
-                            }
-                            Err(e) => {
-                                dialog_required_scope.set(required_scope_from_error(&e));
-                                let message = policy_mutation_error_message(&e);
-                                dialog_error.set(Some(message.clone()));
-                                show_toast(&format!("Failed: {message}"), ToastVariant::Error);
-                            }
+                        if policy::request_targets_pin_policy(&req) {
+                            let message = t("policy.pin_edit_unavailable");
+                            dialog_error.set(Some(message.clone()));
+                            show_toast(&format!("Failed: {message}"), ToastVariant::Error);
+                            dialog_loading.set(false);
+                            return;
                         }
-                        dialog_loading.set(false);
-                    });
-                },
+                        let edit = editing_id.read().clone();
+                        spawn(async move {
+                            let result = match edit {
+                                Some(ref id) => policy::update_policy(id, &req).await.map(|_| ()),
+                                None => policy::create_policy(&req).await.map(|_| ()),
+                            };
+                            match result {
+                                Ok(_) => {
+                                    show_toast(
+                                        if edit.is_some() { "Policy updated" } else { "Policy created" },
+                                        ToastVariant::Success,
+                                    );
+                                    dialog_error.set(None);
+                                    dialog_required_scope.set(None);
+                                    show_dialog.set(false);
+                                    data.restart();
+                                }
+                                Err(e) => {
+                                    dialog_required_scope.set(required_scope_from_error(&e));
+                                    let message = policy_mutation_error_message(&e);
+                                    dialog_error.set(Some(message.clone()));
+                                    show_toast(&format!("Failed: {message}"), ToastVariant::Error);
+                                }
+                            }
+                            dialog_loading.set(false);
+                        });
+                    },
+                }
             }
         }
 
@@ -358,8 +403,14 @@ fn PolicyGuardrailBadges(policy: Policy) -> Element {
     let audit_count = policy.guardrails.audit_trail.len();
     let obligation_count = policy.guardrails.obligations.len();
     let has_required_scope = policy.guardrails.required_scope.is_some();
-    let has_any =
-        evidence_count > 0 || audit_count > 0 || obligation_count > 0 || has_required_scope;
+    let is_pin_policy = policy.safety.pin_summary.is_some();
+    let is_read_only = policy.safety.read_only;
+    let has_any = evidence_count > 0
+        || audit_count > 0
+        || obligation_count > 0
+        || has_required_scope
+        || is_pin_policy
+        || is_read_only;
     let approval_label = t("policy.approval_evidence");
     let audit_label = t("policy.audit_events");
     let obligation_label = t("policy.obligations");
@@ -378,8 +429,95 @@ fn PolicyGuardrailBadges(policy: Policy) -> Element {
             if has_required_scope {
                 Badge { variant: BadgeVariant::Destructive, {t("policy.permission_required")} }
             }
+            if is_pin_policy {
+                Badge { variant: BadgeVariant::Secondary, {t("policy.pin_policy")} }
+            }
+            if is_read_only {
+                Badge { variant: BadgeVariant::Outline, {t("policy.read_only")} }
+            }
             if !has_any {
                 span { class: "text-xs text-muted-foreground", {t("policy.guardrails_none")} }
+            }
+        }
+    }
+}
+
+#[component]
+fn PolicyPinSafetyPanel(policy: Policy) -> Element {
+    let safety = policy.safety.clone();
+    let Some(summary) = safety.pin_summary else {
+        return rsx! {};
+    };
+    let actions = summary.actions;
+    let pin_scopes = summary.pin_scopes;
+    let quota_limits = summary.quota_limits;
+    let note_policy = summary
+        .note_plaintext_policy
+        .unwrap_or_else(|| t("policy.pin_no_public_summary"));
+    let redacted = safety.redacted_private_categories;
+
+    rsx! {
+        div {
+            class: "space-y-3 rounded-md border border-border bg-muted/30 p-3",
+            "data-testid": "pin-policy-safety-panel",
+            div { class: "flex flex-wrap items-center justify-between gap-2",
+                h3 { class: "text-sm font-semibold", {t("policy.pin_safety_title")} }
+                Badge { variant: BadgeVariant::Outline, {t("policy.pin_standard_unavailable")} }
+            }
+            p { class: "text-sm text-muted-foreground",
+                {t("policy.pin_standard_unavailable_detail")}
+            }
+            if !redacted.is_empty() {
+                div { class: "rounded-md border border-destructive/30 bg-destructive/5 p-2 text-sm",
+                    div { class: "font-medium text-destructive", {t("policy.pin_redacted_private")} }
+                    div { class: "mt-2 flex flex-wrap gap-1",
+                        for category in redacted {
+                            Badge { variant: BadgeVariant::Destructive, "{category}" }
+                        }
+                    }
+                }
+            }
+            div { class: "grid gap-3 md:grid-cols-2",
+                PinSummaryList {
+                    label: t("policy.pin_actions"),
+                    values: actions,
+                }
+                PinSummaryList {
+                    label: t("policy.pin_scopes"),
+                    values: pin_scopes,
+                }
+                PinSummaryList {
+                    label: t("policy.pin_quota"),
+                    values: quota_limits,
+                }
+                div { class: "space-y-1",
+                    div { class: "text-xs font-semibold uppercase text-muted-foreground",
+                        {t("policy.pin_note_policy")}
+                    }
+                    div { class: "text-sm font-mono break-all", "{note_policy}" }
+                }
+            }
+        }
+    }
+}
+
+#[component]
+fn PinSummaryList(label: String, values: Vec<String>) -> Element {
+    rsx! {
+        div { class: "space-y-1",
+            div { class: "text-xs font-semibold uppercase text-muted-foreground", "{label}" }
+            if values.is_empty() {
+                div { class: "text-sm text-muted-foreground", {t("policy.pin_no_public_summary")} }
+            } else {
+                div { class: "flex flex-wrap gap-1",
+                    for value in values {
+                        Badge {
+                            variant: BadgeVariant::Secondary,
+                            class: "font-mono text-xs".to_string(),
+                            "{value}"
+                        }
+                    }
+                }
             }
         }
     }
