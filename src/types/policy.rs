@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 // ── Policy types ──
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq)]
 pub struct Policy {
     #[serde(default)]
     pub id: String,
@@ -26,6 +26,50 @@ pub struct Policy {
     pub created_at: Option<String>,
     #[serde(default)]
     pub updated_at: Option<String>,
+    #[serde(default)]
+    pub guardrails: PolicyGuardrailSummary,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq)]
+pub struct PolicyGuardrailSummary {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub required_scope: Option<String>,
+    #[serde(default)]
+    pub approval_evidence: Vec<PolicyEvidenceItem>,
+    #[serde(default)]
+    pub audit_trail: Vec<PolicyAuditEntry>,
+    #[serde(default)]
+    pub obligations: Vec<serde_json::Value>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq)]
+pub struct PolicyEvidenceItem {
+    #[serde(default)]
+    pub kind: String,
+    #[serde(default)]
+    pub reference: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub actor: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub decision: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub digest: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub issued_at: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq)]
+pub struct PolicyAuditEntry {
+    #[serde(default)]
+    pub action: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub actor: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub outcome: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub request_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub timestamp: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]

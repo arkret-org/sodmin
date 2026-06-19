@@ -104,3 +104,24 @@ Required env vars (in addition to the shared trio):
   that account
 
 If unset, the spec self-skips.
+
+## Policy editor guardrail visibility
+
+`policy-audit.spec.ts` verifies that `/policy` surfaces policy guardrail
+metadata from a pre-seeded policy document:
+
+1. Login at `/login`
+2. Navigate to `/policy`
+3. Find the row identified by `SODMIN_E2E_POLICY_ID`
+4. Assert the row exposes approval evidence and audit-trail indicators
+5. Open the edit modal and assert approval evidence / audit-trail details render
+6. If `SODMIN_E2E_POLICY_REQUIRED_SCOPE` is set, assert that scope is visible
+
+Required env vars (in addition to the shared trio):
+
+- `SODMIN_E2E_POLICY_ID` — policy document with `approval_evidence[]` and
+  `audit_trail[]` in its payload/resource metadata
+- `SODMIN_E2E_POLICY_REQUIRED_SCOPE` — optional exact required-scope text to
+  assert
+
+If the policy id is unset, the spec self-skips.
