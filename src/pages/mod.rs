@@ -24,7 +24,7 @@ pub mod realm_destroy;
 /// R3.1 (MID-3) — Realm identity audit diagnostic page.
 pub mod realm_identity_audit;
 pub mod realm_links;
-/// R3 (UI-3) — Realm `media_service.foci[]` editor.
+/// R3 (UI-3) — Realm `media_service.foci[]` read-only view.
 pub mod realm_media_service;
 pub mod realms;
 pub mod seal_bottom;

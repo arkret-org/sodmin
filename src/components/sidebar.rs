@@ -122,7 +122,7 @@ fn build_nav_sections() -> Vec<NavSection> {
                 },
                 "link",
             ),
-            // R3 (UI-3) — Realm media_service.foci[] editor.
+            // R3 (UI-3) — Realm media_service.foci[] read-only view.
             NavItem::new(
                 t("media_service.title"),
                 Route::RealmMediaService {

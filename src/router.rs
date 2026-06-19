@@ -82,7 +82,7 @@ pub enum Route {
         #[route("/realms/:realm_id/links")]
         RealmLinks { realm_id: String },
 
-        // R3 (UI-3) — Realm media_service.foci[] editor.
+        // R3 (UI-3) — Realm media_service.foci[] read-only view.
         #[route("/realms/:realm_id/media-service")]
         RealmMediaService { realm_id: String },
 
