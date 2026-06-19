@@ -287,6 +287,10 @@ fn render_checklist(h: &HardeningStatus) -> Element {
     let rows: Vec<(&str, bool)> = vec![
         ("hardening.check_dev_mode_disabled", !h.development_mode),
         ("hardening.check_tls_enabled", h.tls_enabled),
+        (
+            "hardening.check_pq_hybrid_tls",
+            h.pq_hybrid_tls_probe_verified,
+        ),
         ("hardening.check_csp_configured", h.csp_header_configured),
         ("hardening.check_cors_strict", h.cors_strict),
         ("hardening.check_secret_manager", h.secret_manager_in_use),

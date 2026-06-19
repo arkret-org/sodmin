@@ -659,6 +659,7 @@
   "hardening.check_rate_limit": "Rate limit enabled",
   "hardening.check_secret_manager": "Secret manager in use",
   "hardening.check_tls_enabled": "TLS enabled",
+  "hardening.check_pq_hybrid_tls": "PQ-hybrid TLS probe verified",
   "hardening.coauth_not_configured": "coauth public URL is not configured.",
   "hardening.failing_checks": "Failing checks",
   "hardening.fetch_failed": "Failed to fetch /health for this service. Check the upstream URL and that the service is reachable.",

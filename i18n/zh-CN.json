@@ -659,6 +659,7 @@
   "hardening.check_rate_limit": "已启用限流",
   "hardening.check_secret_manager": "已使用密钥管理器",
   "hardening.check_tls_enabled": "已启用 TLS",
+  "hardening.check_pq_hybrid_tls": "已验证 PQ-hybrid TLS 探针",
   "hardening.coauth_not_configured": "未配置 coauth 公开 URL。",
   "hardening.failing_checks": "未通过的检查",
   "hardening.fetch_failed": "拉取该服务的 /health 失败。请检查上游 URL 及该服务是否可达。",
