@@ -51,12 +51,11 @@ pub struct AuditEntry {
     #[serde(default)]
     pub authorization_ref: Option<String>,
     /// CKP-0008 — reducer-stamped projection of the actor classification
-    /// at the moment of admission. One of `user` / `org` / `team` /
-    /// `agent` / `service` / `device` / `integration`. Immutable per
-    /// envelope and supplied by the reducer; clients MUST NOT attempt
-    /// to set this on write.
+    /// at the moment of admission. Parsed with the SDK `ActorKind` enum,
+    /// so unknown/non-registry values fail instead of being rendered as
+    /// arbitrary strings.
     #[serde(default)]
-    pub actor_kind: Option<String>,
+    pub actor_kind: Option<cokret_core::models::ActorKind>,
 }
 
 impl AuditEntry {

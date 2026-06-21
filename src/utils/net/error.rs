@@ -2,6 +2,14 @@ use std::collections::BTreeMap;
 use std::fmt;
 use std::sync::OnceLock;
 
+use cokret_core::error::{
+    ERROR_CODE_AUTH_EXPIRED, ERROR_CODE_CAPABILITY_DENIED, ERROR_CODE_CAS_CONFLICT,
+    ERROR_CODE_CONFLICT, ERROR_CODE_CURSOR_EXPIRED, ERROR_CODE_CURSOR_INVALID,
+    ERROR_CODE_DUPLICATE_CONFLICT, ERROR_CODE_FAILED_PRECONDITION, ERROR_CODE_INVALID_PARAM,
+    ERROR_CODE_NOT_FOUND, ERROR_CODE_POLICY_DENIED, ERROR_CODE_POLICY_VIOLATION,
+    ERROR_CODE_RATE_LIMITED, ERROR_CODE_SCHEMA_VIOLATION, ERROR_CODE_SOFT_LOGGED_OUT,
+    ERROR_CODE_TEMPORARILY_UNAVAILABLE, ERROR_CODE_UNAUTHENTICATED,
+};
 use regex_lite::Regex;
 use serde::{Deserialize, Serialize};
 
@@ -158,17 +166,22 @@ pub fn display_error(errcode: &str, status: u16, message: &str) -> String {
     // prefix in the registry, and `schema` is registered as
     // `schema_violation`). Match those literal registry codes only.
     let fallback = match errcode {
-        "not_found" => "Resource not found",
-        "unauthenticated" => "Authentication required",
-        "capability_denied" => "Administrator capability denied",
-        "rate_limited" => "Rate limited",
-        "temporarily_unavailable" => "Service temporarily unavailable",
-        "validation" | "schema_violation" => "Request validation failed",
-        "recovery_required" => "Recovery strand must complete before this action is allowed",
-        "policy_required" => "Required policy approval is missing",
-        "session_expired" => "Session expired — sign in again",
-        "idempotency_conflict" => "Idempotency key conflicted with a previous request",
-        "precondition_failed" => "Precondition failed — refresh and retry",
+        ERROR_CODE_NOT_FOUND => "Resource not found",
+        ERROR_CODE_UNAUTHENTICATED => "Authentication required",
+        ERROR_CODE_CAPABILITY_DENIED => "Administrator capability denied",
+        ERROR_CODE_RATE_LIMITED => "Rate limited",
+        ERROR_CODE_TEMPORARILY_UNAVAILABLE => "Service temporarily unavailable",
+        ERROR_CODE_SCHEMA_VIOLATION => "Request validation failed",
+        ERROR_CODE_POLICY_DENIED | ERROR_CODE_POLICY_VIOLATION => {
+            "Required policy approval is missing"
+        }
+        ERROR_CODE_AUTH_EXPIRED | ERROR_CODE_SOFT_LOGGED_OUT => "Session expired - sign in again",
+        ERROR_CODE_DUPLICATE_CONFLICT | ERROR_CODE_CONFLICT => {
+            "Request conflicted with a previous mutation"
+        }
+        ERROR_CODE_CAS_CONFLICT | ERROR_CODE_FAILED_PRECONDITION => {
+            "Precondition failed - refresh and retry"
+        }
         _ => message,
     };
     let safe_message = redact_pii(message);
@@ -249,9 +262,9 @@ pub fn should_reset_cursor_pagination(error: &HttpError, cursor: Option<&str>) -
     // Registry codes are bare snake_case (no `ck.error.*` prefix exists in
     // the error-code-registry).
     match (error.status, errcode) {
-        (410, Some("cursor_expired")) => true,
+        (410, Some(ERROR_CODE_CURSOR_EXPIRED)) => true,
         (410, None) => true,
-        (400, Some("invalid_param")) => true,
+        (400, Some(ERROR_CODE_INVALID_PARAM | ERROR_CODE_CURSOR_INVALID)) => true,
         _ => false,
     }
 }
@@ -344,12 +357,12 @@ mod tests {
 
     #[test]
     fn display_error_handles_protocol_codes() {
-        let s = display_error("recovery_required", 412, "");
-        assert!(s.contains("Recovery strand"));
-        let s = display_error("policy_required", 412, "");
+        let s = display_error("policy_denied", 412, "");
         assert!(s.contains("policy approval"));
-        let s = display_error("session_expired", 401, "");
+        let s = display_error("auth_expired", 401, "");
         assert!(s.contains("Session expired"));
+        let s = display_error("failed_precondition", 409, "");
+        assert!(s.contains("Precondition failed"));
         // `schema_violation` is the registry code (not `schema`).
         let s = display_error("schema_violation", 422, "");
         assert!(s.contains("validation failed"));
@@ -357,7 +370,7 @@ mod tests {
 
     #[test]
     fn display_error_redacts_raw_message() {
-        let s = display_error("validation", 400, "user bob@example.org rejected");
+        let s = display_error("schema_violation", 400, "user bob@example.org rejected");
         assert!(!s.contains("bob@example.org"));
         assert!(s.contains("[email]"));
     }

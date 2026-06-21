@@ -227,7 +227,12 @@ pub fn AuditLog() -> Element {
                                             let source_ip = entry.source_ip.clone().unwrap_or_else(|| "-".to_string());
                                             let executed_by = entry.executed_by.clone().unwrap_or_else(|| "-".to_string());
                                             let authorization_ref = entry.authorization_ref.clone().unwrap_or_else(|| "-".to_string());
-                                            let actor_kind = entry.actor_kind.clone().unwrap_or_else(|| "-".to_string());
+                                            let actor_kind = entry
+                                                .actor_kind
+                                                .as_ref()
+                                                .map(actor_kind_label)
+                                                .unwrap_or("-")
+                                                .to_string();
                                             let details = entry.details.clone();
                                             let is_expanded = expanded.read().as_ref() == Some(&id);
                                             // P3A.5 — render the
@@ -324,5 +329,17 @@ fn render_effective_scope(kind: &AuditScopeKind) -> Element {
             }
         },
         AuditScopeKind::Unknown => rsx! { span { class: "text-muted-foreground", "-" } },
+    }
+}
+
+fn actor_kind_label(kind: &cokret_core::models::ActorKind) -> &'static str {
+    use cokret_core::models::ActorKind;
+    match kind {
+        ActorKind::User => "user",
+        ActorKind::Org => "org",
+        ActorKind::Team => "team",
+        ActorKind::Agent => "agent",
+        ActorKind::Service => "service",
+        ActorKind::Integration => "integration",
     }
 }

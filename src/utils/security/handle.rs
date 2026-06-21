@@ -5,14 +5,8 @@
 //! handle inline before submission instead of waiting for a server-side
 //! `handle_homograph_forbidden` round-trip.
 //!
-//! The check is intentionally lightweight and conservative:
-//!
-//! 1. Length must be in `1..=128` bytes.
-//! 2. Reject zero-width / bidi control codepoints (U+200B..U+200F, U+202A..U+202E, U+2060..U+2069,
-//!    U+FEFF).
-//! 3. Reject script-mixed labels (ASCII Latin letters mixed with non-ASCII letters).
-//! 4. Reject the minimal-confusable subset (a small hand-rolled table of Cyrillic/Greek codepoints
-//!    that visually fold to ASCII letters).
+//! The check delegates to the SDK helper instead of carrying a
+//! sodmin-local homograph table.
 //!
 //! `is_safe_handle_localpart` returns `Ok(())` when the input is clean,
 //! `Err(reason)` otherwise. The full UTS#39 skeleton table is the SDK's
@@ -36,47 +30,20 @@
 /// handle localpart. On rejection returns a short reason tag that
 /// pages can map through i18n for an inline warning.
 pub fn is_safe_handle_localpart(input: &str) -> Result<(), HomographReason> {
-    if input.is_empty() || input.len() > 128 {
-        return Err(HomographReason::OutOfRange);
-    }
+    cokret_core::models::normalize_handle_localpart(input)
+        .map(|_| ())
+        .map_err(|err| classify_handle_normalize_error(&err.to_string()))
+}
 
-    for ch in input.chars() {
-        if matches!(
-            ch,
-            '\u{200B}'..='\u{200F}'
-            | '\u{202A}'..='\u{202E}'
-            | '\u{2060}'..='\u{2069}'
-            | '\u{FEFF}'
-        ) {
-            return Err(HomographReason::ZeroWidthOrBidi);
-        }
+fn classify_handle_normalize_error(message: &str) -> HomographReason {
+    let lower = message.to_ascii_lowercase();
+    if lower.contains("length") || lower.contains("empty") {
+        HomographReason::OutOfRange
+    } else if lower.contains("zero-width") || lower.contains("bidi") {
+        HomographReason::ZeroWidthOrBidi
+    } else {
+        HomographReason::Confusable
     }
-
-    let mut has_ascii_letter = false;
-    let mut has_non_ascii_letter = false;
-    for ch in input.chars() {
-        if ch.is_ascii_alphabetic() {
-            has_ascii_letter = true;
-        } else if !ch.is_ascii() && ch.is_alphabetic() {
-            has_non_ascii_letter = true;
-        }
-    }
-    if has_ascii_letter && has_non_ascii_letter {
-        return Err(HomographReason::ScriptMixed);
-    }
-
-    // Global report #10 (candidate 8) — confusable / canonical-alphabet
-    // detection is delegated to the SDK's `normalize_handle_localpart`,
-    // which carries the full UTS#39-inspired confusable table (the
-    // pre-#10 sodmin mirror only knew 9 codepoints). The length /
-    // zero-width / script-mix classification above is kept so the UI can
-    // still surface a distinct reason; anything the SDK rejects past
-    // those gates folds into [`HomographReason::Confusable`].
-    if cokret_core::models::normalize_handle_localpart(input).is_err() {
-        return Err(HomographReason::Confusable);
-    }
-
-    Ok(())
 }
 
 /// Tag returned for each rejection reason — surfaced to the UI as a
@@ -86,7 +53,6 @@ pub fn is_safe_handle_localpart(input: &str) -> Result<(), HomographReason> {
 pub enum HomographReason {
     OutOfRange,
     ZeroWidthOrBidi,
-    ScriptMixed,
     Confusable,
 }
 
@@ -95,7 +61,6 @@ impl HomographReason {
         match self {
             HomographReason::OutOfRange => "error.handle_homograph_out_of_range",
             HomographReason::ZeroWidthOrBidi => "error.handle_homograph_zero_width",
-            HomographReason::ScriptMixed => "error.handle_homograph_script_mixed",
             HomographReason::Confusable => "error.handle_homograph_confusable",
         }
     }
@@ -212,7 +177,7 @@ mod tests {
         let suspicious = "alic\u{0430}";
         assert_eq!(
             is_safe_handle_localpart(suspicious),
-            Err(HomographReason::ScriptMixed)
+            Err(HomographReason::Confusable)
         );
     }
 
