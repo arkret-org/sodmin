@@ -20,10 +20,9 @@ use crate::utils::net::error::HttpError;
 pub const LIST_HANDLES_FOR_SUBJECT: &str = "/_cokret/find/directory/list-handles-for-subject";
 
 /// Call `ck.find.directory.query.list_handles_for_subject`. The directory applies
-/// disclosure / issuer-trust / audience / intent filtering server-side;
-/// the caller should still defensively use
-/// [`DirectorySubjectHandleList::visible_claims`] to enforce the
-/// `claims[].subject == subject` invariant.
+/// disclosure / issuer-trust / audience / intent filtering server-side; callers
+/// must still run [`DirectorySubjectHandleList::validate`] before rendering so
+/// a response with mismatching `claims[].subject` fails closed.
 pub async fn list_handles_for_subject(
     req: &ListHandlesForSubjectRequest,
 ) -> Result<DirectorySubjectHandleList, HttpError> {

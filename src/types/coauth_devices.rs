@@ -1,125 +1,133 @@
-//! DTO shapes for the per-account device admin surface
+//! DTO shapes for the per-account device admin surface.
 //!
-//! Coauth owns the device list (one row per registered device per
-//! account); soland owns the cascade-revoke that also revokes any
-//! session grants tied to the device. The admin UI reads the list from
-//! coauth and POSTs the revoke to coauth; soland is responsible for
-//! the cascade soland-side (already wired, round 23).
+//! coauth owns the device list and cascade revocation. The admin UI reads the
+//! account-scoped list from coauth and POSTs the revoke request back to coauth.
 
 use serde::{Deserialize, Serialize};
 
-/// Lifecycle state for a single registered device. Mirrors coauth's
-/// device reducer enum.
+/// Risk level reported by coauth for a registered device.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
-pub enum CoauthDeviceStatus {
-    Active,
-    Stale,
-    Revoked,
+pub enum CoauthDeviceRiskLevel {
+    Low,
+    Medium,
+    High,
+    Unknown,
 }
 
-impl CoauthDeviceStatus {
+impl CoauthDeviceRiskLevel {
     pub fn label(&self) -> &'static str {
         match self {
-            CoauthDeviceStatus::Active => "Active",
-            CoauthDeviceStatus::Stale => "Stale",
-            CoauthDeviceStatus::Revoked => "Revoked",
-        }
-    }
-
-    pub fn from_wire(s: &str) -> Option<Self> {
-        match s {
-            "active" => Some(CoauthDeviceStatus::Active),
-            "stale" => Some(CoauthDeviceStatus::Stale),
-            "revoked" => Some(CoauthDeviceStatus::Revoked),
-            _ => None,
+            CoauthDeviceRiskLevel::Low => "Low",
+            CoauthDeviceRiskLevel::Medium => "Medium",
+            CoauthDeviceRiskLevel::High => "High",
+            CoauthDeviceRiskLevel::Unknown => "Unknown",
         }
     }
 }
 
-/// One row in the per-account device list.
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+/// MFA state reported by coauth for a registered device.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum CoauthDeviceMfaState {
+    Verified,
+    Required,
+    Unknown,
+}
+
+impl CoauthDeviceMfaState {
+    pub fn label(&self) -> &'static str {
+        match self {
+            CoauthDeviceMfaState::Verified => "Verified",
+            CoauthDeviceMfaState::Required => "Required",
+            CoauthDeviceMfaState::Unknown => "Unknown",
+        }
+    }
+}
+
+/// One row in the coauth per-account device list.
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CoauthDeviceRow {
-    #[serde(default)]
-    pub device_id: String,
-    #[serde(default)]
+    pub id: String,
+    pub account_id: Option<String>,
     pub display_name: Option<String>,
-    /// Wire-format `CoauthDeviceStatus` (snake_case).
-    #[serde(default)]
-    pub status: String,
-    #[serde(default)]
-    pub last_seen_at: Option<String>,
-    #[serde(default)]
-    pub linked_session_count: u64,
-    #[serde(default)]
+    pub risk_level: CoauthDeviceRiskLevel,
+    pub mfa_state: CoauthDeviceMfaState,
     pub registered_at: Option<String>,
-    #[serde(default)]
-    pub platform: Option<String>,
+    pub revoked_at: Option<String>,
 }
 
 impl CoauthDeviceRow {
-    pub fn status_typed(&self) -> CoauthDeviceStatus {
-        CoauthDeviceStatus::from_wire(&self.status).unwrap_or(CoauthDeviceStatus::Active)
-    }
-
-    /// Only `Active` and `Stale` devices can be revoked — re-revoking
-    /// an already-revoked device would just be a noop on the server
-    /// side, so we hide the button.
+    /// coauth represents revocation with `revoked_at`.
     pub fn is_revocable(&self) -> bool {
-        !matches!(self.status_typed(), CoauthDeviceStatus::Revoked) && !self.device_id.is_empty()
+        !self.id.is_empty() && self.revoked_at.is_none()
     }
 }
 
-/// Format a relative "last-seen" cell. Pure helper — no access to
-/// `Date.now()` — so it's just the wire string with a `-` fallback for
-/// missing values. Kept separate from `signing_keys::render_*` so the
-/// fallback rule is consistent across the device table.
-pub fn render_last_seen(row: &CoauthDeviceRow) -> String {
-    row.last_seen_at.clone().unwrap_or_else(|| "-".to_string())
+pub fn render_optional_timestamp(value: Option<&str>) -> String {
+    value.unwrap_or("-").to_string()
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    fn row(status: &str, id: &str) -> CoauthDeviceRow {
+    fn row(id: &str, revoked_at: Option<&str>) -> CoauthDeviceRow {
         CoauthDeviceRow {
-            device_id: id.into(),
-            status: status.into(),
-            ..Default::default()
+            id: id.into(),
+            account_id: Some("01JZ9PK6HKFY0MM7C0TMZ1X8N7".into()),
+            display_name: None,
+            risk_level: CoauthDeviceRiskLevel::Unknown,
+            mfa_state: CoauthDeviceMfaState::Unknown,
+            registered_at: None,
+            revoked_at: revoked_at.map(str::to_owned),
         }
     }
 
     #[test]
-    fn device_status_round_trips_via_wire_strings() {
-        for (wire, label) in [
-            ("active", "Active"),
-            ("stale", "Stale"),
-            ("revoked", "Revoked"),
-        ] {
-            let s = CoauthDeviceStatus::from_wire(wire).expect("variant");
-            assert_eq!(s.label(), label);
-        }
-        assert!(CoauthDeviceStatus::from_wire("nope").is_none());
+    fn labels_match_current_coauth_device_enums() {
+        assert_eq!(CoauthDeviceRiskLevel::Low.label(), "Low");
+        assert_eq!(CoauthDeviceRiskLevel::Medium.label(), "Medium");
+        assert_eq!(CoauthDeviceRiskLevel::High.label(), "High");
+        assert_eq!(CoauthDeviceRiskLevel::Unknown.label(), "Unknown");
+
+        assert_eq!(CoauthDeviceMfaState::Verified.label(), "Verified");
+        assert_eq!(CoauthDeviceMfaState::Required.label(), "Required");
+        assert_eq!(CoauthDeviceMfaState::Unknown.label(), "Unknown");
     }
 
     #[test]
-    fn only_non_revoked_devices_with_id_are_revocable() {
-        assert!(row("active", "d1").is_revocable());
-        assert!(row("stale", "d1").is_revocable());
-        assert!(!row("revoked", "d1").is_revocable());
-
-        // Missing device_id hides the button regardless of status.
-        let mut r = row("active", "d1");
-        r.device_id.clear();
-        assert!(!r.is_revocable());
+    fn only_unrevoked_devices_with_id_are_revocable() {
+        assert!(row("d1", None).is_revocable());
+        assert!(!row("d1", Some("2026-05-09T12:00:00Z")).is_revocable());
+        assert!(!row("", None).is_revocable());
     }
 
     #[test]
-    fn last_seen_falls_back_to_dash_when_absent() {
-        let mut r = row("active", "d1");
-        assert_eq!(render_last_seen(&r), "-");
-        r.last_seen_at = Some("2026-05-09T12:00:00Z".into());
-        assert_eq!(render_last_seen(&r), "2026-05-09T12:00:00Z");
+    fn optional_timestamp_falls_back_to_dash_when_absent() {
+        assert_eq!(render_optional_timestamp(None), "-");
+        assert_eq!(
+            render_optional_timestamp(Some("2026-05-09T12:00:00Z")),
+            "2026-05-09T12:00:00Z"
+        );
+    }
+
+    #[test]
+    fn deserializes_current_coauth_device_record() {
+        let row: CoauthDeviceRow = serde_json::from_value(serde_json::json!({
+            "id": "device-1",
+            "account_id": "01JZ9PK6HKFY0MM7C0TMZ1X8N7",
+            "display_name": "Laptop",
+            "risk_level": "high",
+            "mfa_state": "required",
+            "registered_at": "2026-05-09T12:00:00Z",
+            "revoked_at": null
+        }))
+        .expect("current coauth DeviceRecord should deserialize");
+
+        assert_eq!(row.id, "device-1");
+        assert_eq!(row.risk_level, CoauthDeviceRiskLevel::High);
+        assert_eq!(row.mfa_state, CoauthDeviceMfaState::Required);
+        assert!(row.is_revocable());
     }
 }

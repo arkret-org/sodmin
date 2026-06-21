@@ -1,13 +1,8 @@
 //! Per-account device admin page
 //!
-//! Cursor-paginated list of devices registered to a single account.
-//! Each row shows status / last-seen / linked session count and (for
-//! `Active` / `Stale` rows) a destructive Revoke button.
-//!
-//! The cascade revoke of session grants on the soland side is wired in
-//! coauth
-//! soland reacts. Follows the 404-tolerant pattern shared with the rest
-//! of Stream H'.
+//! List of devices registered to a single account. Each row shows the current
+//! coauth device record and exposes a destructive Revoke button until coauth
+//! reports a `revoked_at` timestamp.
 
 use dioxus::prelude::*;
 
@@ -21,25 +16,24 @@ use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::table::*;
 use crate::components::ui::toast::{ToastVariant, show_toast};
-use crate::types::coauth_devices::{CoauthDeviceStatus, render_last_seen};
+use crate::types::coauth_devices::{
+    CoauthDeviceMfaState, CoauthDeviceRiskLevel, render_optional_timestamp,
+};
 use crate::utils::i18n::t;
 use crate::utils::net::error::format_optional_endpoint_error;
 
-const PAGE_SIZE: u64 = 25;
+const DEVICE_REVOKE_REASON: &str = "sodmin account device revoke";
 
 #[component]
 pub fn AccountDevicesPage(account_id: String) -> Element {
-    let mut cursor_stack = use_signal(|| vec![None::<String>]);
     let mut pending_revoke = use_signal::<Option<String>>(|| None);
     let mut in_flight = use_signal::<Option<String>>(|| None);
 
-    let cursor_snapshot = cursor_stack.read().last().cloned().unwrap_or(None);
     let account_for_fetch = account_id.clone();
 
     let mut data = use_resource(move || {
-        let cursor = cursor_snapshot.clone();
         let acct = account_for_fetch.clone();
-        async move { coauth_devices::list_account_devices(&acct, cursor.as_deref(), PAGE_SIZE).await }
+        async move { coauth_devices::list_account_devices(&acct).await }
     });
 
     let header_account_id = account_id.clone();
@@ -58,50 +52,42 @@ pub fn AccountDevicesPage(account_id: String) -> Element {
             }
 
             match &*data.read() {
-                Some(Ok(page)) => {
-                    let next_cursor = page.next_cursor.clone();
-                    let stack_depth = cursor_stack.read().len();
-                    let total_label = match page.total {
-                        Some(n) => format!("{n}"),
-                        None => "?".to_string(),
-                    };
-                    let row_count = page.data.len();
+                Some(Ok(rows)) => {
                     rsx! {
-                        if page.data.is_empty() {
+                        if rows.is_empty() {
                             EmptyState {
                                 icon_name: "smartphone".to_string(),
                                 title: t("coauth_devices.empty_title"),
                                 description: t("coauth_devices.empty_subtitle"),
                             }
                         } else {
-                            p { class: "text-xs text-muted-foreground",
-                                {format!("Showing {row_count} (server total: {total_label})")}
-                            }
                             div { class: "rounded-md border",
                                 Table {
                                     TableHeader {
                                         TableRow {
                                             TableHead { {t("coauth_devices.device_id")} }
                                             TableHead { {t("coauth_devices.display_name")} }
-                                            TableHead { {t("coauth_devices.status")} }
-                                            TableHead { {t("coauth_devices.last_seen")} }
-                                            TableHead { {t("coauth_devices.linked_sessions")} }
+                                            TableHead { {t("coauth_devices.risk_level")} }
+                                            TableHead { {t("coauth_devices.mfa_state")} }
+                                            TableHead { {t("coauth_devices.registered_at")} }
+                                            TableHead { {t("coauth_devices.revoked_at")} }
                                             TableHead { class: "text-right".to_string(), {t("common.actions")} }
                                         }
                                     }
                                     TableBody {
-                                        for row in page.data.iter() {
+                                        for row in rows.iter() {
                                             {
-                                                let device_id = row.device_id.clone();
+                                                let device_id = row.id.clone();
                                                 let display_name = row
                                                     .display_name
                                                     .clone()
                                                     .unwrap_or_else(|| "-".to_string());
-                                                let last_seen = render_last_seen(row);
-                                                let linked = row.linked_session_count;
-                                                let typed = row.status_typed();
-                                                let label = typed.label().to_string();
-                                                let variant = device_status_variant(&typed);
+                                                let risk_label = row.risk_level.label().to_string();
+                                                let risk_variant = device_risk_variant(&row.risk_level);
+                                                let mfa_label = row.mfa_state.label().to_string();
+                                                let mfa_variant = device_mfa_variant(&row.mfa_state);
+                                                let registered_at = render_optional_timestamp(row.registered_at.as_deref());
+                                                let revoked_at = render_optional_timestamp(row.revoked_at.as_deref());
                                                 let revocable = row.is_revocable();
                                                 let row_in_flight = in_flight
                                                     .read()
@@ -113,10 +99,13 @@ pub fn AccountDevicesPage(account_id: String) -> Element {
                                                         TableCell { class: "font-mono text-xs max-w-[260px] truncate".to_string(), "{device_id}" }
                                                         TableCell { "{display_name}" }
                                                         TableCell {
-                                                            Badge { variant, "{label}" }
+                                                            Badge { variant: risk_variant, "{risk_label}" }
                                                         }
-                                                        TableCell { class: "text-muted-foreground".to_string(), "{last_seen}" }
-                                                        TableCell { "{linked}" }
+                                                        TableCell {
+                                                            Badge { variant: mfa_variant, "{mfa_label}" }
+                                                        }
+                                                        TableCell { class: "text-muted-foreground".to_string(), "{registered_at}" }
+                                                        TableCell { class: "text-muted-foreground".to_string(), "{revoked_at}" }
                                                         TableCell { class: "text-right".to_string(),
                                                             if revocable {
                                                                 {
@@ -139,40 +128,6 @@ pub fn AccountDevicesPage(account_id: String) -> Element {
                                                 }
                                             }
                                         }
-                                    }
-                                }
-                            }
-
-                            div { class: "flex items-center justify-between px-2 py-4",
-                                div { class: "text-sm text-muted-foreground",
-                                    {format!("Page {}", stack_depth)}
-                                }
-                                div { class: "flex items-center space-x-2",
-                                    Button {
-                                        variant: ButtonVariant::Outline,
-                                        size: ButtonSize::Sm,
-                                        disabled: stack_depth <= 1,
-                                        onclick: move |_| {
-                                            let mut new_stack = cursor_stack.read().clone();
-                                            if new_stack.len() > 1 {
-                                                new_stack.pop();
-                                                cursor_stack.set(new_stack);
-                                            }
-                                        },
-                                        {t("common.previous")}
-                                    }
-                                    Button {
-                                        variant: ButtonVariant::Outline,
-                                        size: ButtonSize::Sm,
-                                        disabled: next_cursor.is_none(),
-                                        onclick: move |_| {
-                                            if let Some(c) = next_cursor.clone() {
-                                                let mut new_stack = cursor_stack.read().clone();
-                                                new_stack.push(Some(c));
-                                                cursor_stack.set(new_stack);
-                                            }
-                                        },
-                                        {t("common.next")}
                                     }
                                 }
                             }
@@ -202,7 +157,9 @@ pub fn AccountDevicesPage(account_id: String) -> Element {
                         let acct = account_for_revoke.clone();
                         spawn(async move {
                             let res = coauth_devices::revoke_account_device(
-                                &acct, &did,
+                                &acct,
+                                &did,
+                                DEVICE_REVOKE_REASON,
                             )
                             .await;
                             match res {
@@ -229,14 +186,20 @@ pub fn AccountDevicesPage(account_id: String) -> Element {
     }
 }
 
-/// Pick a Badge variant for a device status. `Active` is success-green;
-/// `Stale` is the neutral secondary tone (still revocable but not
-/// healthy); `Revoked` is destructive (red). Pure helper.
-pub(crate) fn device_status_variant(status: &CoauthDeviceStatus) -> BadgeVariant {
-    match status {
-        CoauthDeviceStatus::Active => BadgeVariant::Success,
-        CoauthDeviceStatus::Stale => BadgeVariant::Secondary,
-        CoauthDeviceStatus::Revoked => BadgeVariant::Destructive,
+pub(crate) fn device_risk_variant(risk: &CoauthDeviceRiskLevel) -> BadgeVariant {
+    match risk {
+        CoauthDeviceRiskLevel::Low => BadgeVariant::Success,
+        CoauthDeviceRiskLevel::Medium => BadgeVariant::Secondary,
+        CoauthDeviceRiskLevel::High => BadgeVariant::Destructive,
+        CoauthDeviceRiskLevel::Unknown => BadgeVariant::Outline,
+    }
+}
+
+pub(crate) fn device_mfa_variant(state: &CoauthDeviceMfaState) -> BadgeVariant {
+    match state {
+        CoauthDeviceMfaState::Verified => BadgeVariant::Success,
+        CoauthDeviceMfaState::Required => BadgeVariant::Destructive,
+        CoauthDeviceMfaState::Unknown => BadgeVariant::Outline,
     }
 }
 
@@ -246,41 +209,56 @@ mod tests {
     use crate::types::coauth_devices::CoauthDeviceRow;
 
     #[test]
-    fn device_status_variant_buckets_match_severity() {
+    fn device_risk_variant_buckets_match_severity() {
         assert!(matches!(
-            device_status_variant(&CoauthDeviceStatus::Active),
+            device_risk_variant(&CoauthDeviceRiskLevel::Low),
             BadgeVariant::Success
         ));
         assert!(matches!(
-            device_status_variant(&CoauthDeviceStatus::Stale),
+            device_risk_variant(&CoauthDeviceRiskLevel::Medium),
             BadgeVariant::Secondary
         ));
         assert!(matches!(
-            device_status_variant(&CoauthDeviceStatus::Revoked),
+            device_risk_variant(&CoauthDeviceRiskLevel::High),
             BadgeVariant::Destructive
+        ));
+        assert!(matches!(
+            device_risk_variant(&CoauthDeviceRiskLevel::Unknown),
+            BadgeVariant::Outline
+        ));
+    }
+
+    #[test]
+    fn device_mfa_variant_buckets_match_state() {
+        assert!(matches!(
+            device_mfa_variant(&CoauthDeviceMfaState::Verified),
+            BadgeVariant::Success
+        ));
+        assert!(matches!(
+            device_mfa_variant(&CoauthDeviceMfaState::Required),
+            BadgeVariant::Destructive
+        ));
+        assert!(matches!(
+            device_mfa_variant(&CoauthDeviceMfaState::Unknown),
+            BadgeVariant::Outline
         ));
     }
 
     #[test]
     fn revoke_button_visible_only_when_row_revocable() {
-        // Stale and Active rows expose the revoke button; Revoked rows
-        // do not.
         let r = CoauthDeviceRow {
-            device_id: "d1".into(),
-            status: "active".into(),
-            ..Default::default()
+            id: "d1".into(),
+            account_id: None,
+            display_name: None,
+            risk_level: CoauthDeviceRiskLevel::Unknown,
+            mfa_state: CoauthDeviceMfaState::Unknown,
+            registered_at: None,
+            revoked_at: None,
         };
         assert!(r.is_revocable());
         let r = CoauthDeviceRow {
-            device_id: "d1".into(),
-            status: "stale".into(),
-            ..Default::default()
-        };
-        assert!(r.is_revocable());
-        let r = CoauthDeviceRow {
-            device_id: "d1".into(),
-            status: "revoked".into(),
-            ..Default::default()
+            revoked_at: Some("2026-05-09T12:00:00Z".into()),
+            ..r
         };
         assert!(!r.is_revocable());
     }
