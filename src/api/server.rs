@@ -1,14 +1,18 @@
 use crate::api::client::api_client;
-use crate::api::paths::soland as soland_paths;
 use crate::types::*;
 use crate::utils::net::error::HttpError;
 
+const SERVER_INFO_PATH: &str = "/_soland/admin/server/info";
+const SERVER_DESCRIBE_PATH: &str = "/_cokret/describe";
+const SERVER_STATUS_PATH: &str = "/_soland/admin/server/status";
+const SERVER_STATS_PATH: &str = "/_soland/admin/server/stats";
+
 pub async fn get_server_info() -> Result<ServerInfo, HttpError> {
-    api_client(soland_paths::SERVER_INFO, "GET", None).await
+    api_client(SERVER_INFO_PATH, "GET", None).await
 }
 
 pub async fn get_server_describe() -> Result<ServerDescribeDocument, HttpError> {
-    api_client(soland_paths::SERVER_DESCRIBE, "GET", None).await
+    api_client(SERVER_DESCRIBE_PATH, "GET", None).await
 }
 
 pub async fn get_coauth_server_describe() -> Result<ServerDescribeDocument, HttpError> {
@@ -19,11 +23,11 @@ pub async fn get_coauth_server_describe() -> Result<ServerDescribeDocument, Http
 }
 
 pub async fn get_server_stats() -> Result<ServerStats, HttpError> {
-    api_client(soland_paths::SERVER_STATS, "GET", None).await
+    api_client(SERVER_STATS_PATH, "GET", None).await
 }
 
 pub async fn get_server_status() -> Result<ServerStatusOutcome, HttpError> {
-    api_client(soland_paths::SERVER_STATUS, "GET", None).await
+    api_client(SERVER_STATUS_PATH, "GET", None).await
 }
 
 #[derive(Debug, Clone, serde::Serialize)]

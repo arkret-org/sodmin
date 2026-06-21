@@ -79,7 +79,11 @@ mod tests {
             kind: "threshold".into(),
             threshold_k: Some(2),
             threshold_n: Some(3),
-            threshold_dids: vec!["did:ck:a".into(), "did:ck:b".into(), "did:ck:c".into()],
+            threshold_dids: vec![
+                "did:web:a.example".into(),
+                "did:web:b.example".into(),
+                "did:web:c.example".into(),
+            ],
             ..Default::default()
         };
         let body = req.to_reconfigure_body();
@@ -104,7 +108,7 @@ mod tests {
             strategy: BottomRepairStrategy::HeadInWinner {
                 head: BottomCandidateHead {
                     event_id: "ck:event:0196419b-0000-7000-8000-000000000000".into(),
-                    issuer: Some("did:ck:alice".into()),
+                    issuer: Some("did:web:alice.example".into()),
                     hlc: None,
                     summary: None,
                 },

@@ -37,9 +37,8 @@ struct Args {
     base_url: String,
     token: Option<String>,
     realm_id: String,
-    /// When true, treat 404 as a soft pass — the route may not yet be
-    /// wired on this deployment (Stream H' is partially scaffolded). The
-    /// summary marks these as `SKIP` and they don't count toward FAIL.
+    /// When true, treat 404 as a soft pass. The default is strict so a
+    /// missing mounted route fails deployment smoke checks.
     tolerate_404: bool,
     timeout_secs: u64,
 }
@@ -53,7 +52,7 @@ impl Args {
         let mut realm_id = env::var("SODMIN_SMOKE_REALM_ID").ok();
         let mut tolerate_404 = env::var("SODMIN_SMOKE_TOLERATE_404")
             .map(|v| matches!(v.as_str(), "1" | "true" | "yes"))
-            .unwrap_or(true);
+            .unwrap_or(false);
         let mut timeout_secs = DEFAULT_TIMEOUT_SECS;
 
         let mut args = env::args().skip(1);
@@ -116,7 +115,7 @@ fn print_help() {
     println!(
         "sodmin-smoke — soland admin endpoint smoke test\n\n\
 USAGE:\n  SODMIN_SMOKE_TOKEN=<BEARER> sodmin-smoke --base-url <URL> --realm-id <REALM_ID>\n\n\
-OPTIONS:\n  -u, --base-url     soland base URL (e.g. https://soland.example.com)\n  -t, --token        admin bearer token. PREFER the env var $SODMIN_SMOKE_TOKEN /\n                     $SOLAND_ADMIN_TOKEN — CLI args leak into shell history, CI\n                     logs, and the process table (/proc/<pid>/cmdline)\n  -r, --realm-id     Realm id to probe (Stream H' is per-Realm)\n      --strict       fail on 404 (default: skip — H' routes may not be wired)\n      --tolerate-404 treat 404 as SKIP (default)\n      --timeout      per-request timeout in seconds (default {DEFAULT_TIMEOUT_SECS})\n  -h, --help         print this message\n"
+OPTIONS:\n  -u, --base-url     soland base URL (e.g. https://soland.example.com)\n  -t, --token        admin bearer token. PREFER the env var $SODMIN_SMOKE_TOKEN /\n                     $SOLAND_ADMIN_TOKEN — CLI args leak into shell history, CI\n                     logs, and the process table (/proc/<pid>/cmdline)\n  -r, --realm-id     Realm id to probe (Stream H' is per-Realm)\n      --strict       fail on 404 (default)\n      --tolerate-404 treat 404 as SKIP for optional endpoints\n      --timeout      per-request timeout in seconds (default {DEFAULT_TIMEOUT_SECS})\n  -h, --help         print this message\n"
     );
 }
 

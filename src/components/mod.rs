@@ -13,9 +13,6 @@ pub mod did_binding_panel;
 /// Round 4 — DID-shaped input field with inline regex validation
 /// (`^did:[a-z0-9]+:[^\s]+$`).
 pub mod did_input;
-/// P5 — preview of the operator's current capability grants before a
-/// destructive action, to avoid the "click → 403 surprise" loop.
-pub mod granted_capabilities_view;
 /// R3.2 (UI-SOD-5) — "handle changed since" history hint shown when a
 /// captured `handle_at_time` differs from the subject's current primary
 /// handle.

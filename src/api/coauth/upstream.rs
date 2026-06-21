@@ -3,9 +3,11 @@
 use serde::{Deserialize, Serialize};
 
 use crate::api::client::{api_client, build_url};
-use crate::api::paths::coauth as coauth_paths;
 use crate::types::PaginatedResponse;
 use crate::utils::net::error::HttpError;
+
+const UPSTREAM_OAUTH_PROVIDERS_PATH: &str = "/_coauth/admin/upstream-oauth-providers";
+const UPSTREAM_OAUTH_LINKS_PATH: &str = "/_coauth/admin/upstream-oauth-links";
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 #[non_exhaustive]
@@ -42,7 +44,7 @@ pub async fn list_upstream_providers(
     per_page: u64,
 ) -> Result<PaginatedResponse<CoauthUpstreamProvider>, HttpError> {
     let url = build_url(
-        coauth_paths::UPSTREAM_OAUTH_PROVIDERS,
+        UPSTREAM_OAUTH_PROVIDERS_PATH,
         &[
             ("page", &page.to_string()),
             ("per_page", &per_page.to_string()),
@@ -85,7 +87,7 @@ pub async fn list_upstream_links(
     per_page: u64,
 ) -> Result<PaginatedResponse<CoauthUpstreamLink>, HttpError> {
     let url = build_url(
-        coauth_paths::UPSTREAM_OAUTH_LINKS,
+        UPSTREAM_OAUTH_LINKS_PATH,
         &[
             ("page", &page.to_string()),
             ("per_page", &per_page.to_string()),

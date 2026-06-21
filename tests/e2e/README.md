@@ -46,28 +46,6 @@ without a wired dev stack.
 | `SODMIN_E2E_ACCOUNT_ID` unset                     | skip    |
 | All env vars set + dev stack running              | run     |
 
-## Q6 — happy-path recovery ticket lifecycle (round 27)
-
-`recovery.spec.ts` walks a recovery ticket through Pending → Approved →
-ExecutorRunning → Complete and asserts the audit log shows the
-recovery operations:
-
-1. Login at `/login`
-2. Navigate to `/coauth/recovery/tickets`
-3. Open the target ticket detail page
-4. Click "Approve" → confirm the ConfirmDialog
-5. Click "Advance" twice (Approved → ExecutorRunning → Complete)
-6. Assert the per-ticket audit feed shows `recovery` rows
-7. Cross-check the global coauth audit log surfaces a `recovery` entry
-
-Required env vars (in addition to the shared `SODMIN_E2E_BASE_URL` /
-`_ADMIN_EMAIL` / `_ADMIN_PASSWORD`):
-
-- `SODMIN_E2E_RECOVERY_TICKET_ID` — a Pending ticket pre-seeded by the
-  operator
-
-If unset, the spec self-skips.
-
 ## Phase 3 — high-traffic page smoke
 
 `high-traffic-pages.spec.ts` adds authenticated route-level smokes for

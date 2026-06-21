@@ -3,8 +3,9 @@
 use serde::{Deserialize, Serialize};
 
 use crate::api::client::api_client;
-use crate::api::paths::coauth as coauth_paths;
 use crate::utils::net::error::HttpError;
+
+const VIEWER_PATH: &str = "/_cokret/self/account/viewer";
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 #[non_exhaustive]
@@ -24,5 +25,5 @@ pub struct CoauthViewer {
 }
 
 pub async fn get_viewer() -> Result<CoauthViewer, HttpError> {
-    api_client(coauth_paths::VIEWER, "GET", None).await
+    api_client(VIEWER_PATH, "GET", None).await
 }

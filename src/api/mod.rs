@@ -22,7 +22,6 @@ pub mod key_backup;
 pub mod media;
 pub mod media_service;
 pub mod multisig;
-pub mod paths;
 pub mod policy;
 pub mod realm_links;
 pub mod realms;

@@ -40,7 +40,7 @@ flowchart LR
   Nginx --> Coauth["coauth auth/account admin API"]
   Coauth --> OAuth["OAuth2 / PKCE session"]
   Soland --> Reducers["Cokret reducers + admin projections"]
-  Soland --> Audit["Audit / attestation evidence"]
+  Soland --> Audit["Audit feed"]
 ```
 
 ## Realm vs Space
@@ -57,14 +57,12 @@ The admin pages drive Realm boundary state through `/realms/:id/...`. The
 
 Spec round 4 (`cokret-spec` range `2a4d39b..a77b995`, 8 commits) lands
 fresh admin surfaces on top of R2/R3. See [`CHANGELOG.md`](CHANGELOG.md)
-`[Unreleased]` and [`../_todos.md`](../_todos.md) for the canonical
+`[Unreleased]` and [`../_sodmin_soland_todos.md`](../_sodmin_soland_todos.md) for the canonical
 wire-breaking list. New admin views:
 
 - **`ServiceDescribe` v2 detail** — all 17 fields rendered; the
   combination `development_mode=true` + non-empty `verified_profiles`
   paints red.
-- **Trust domain immutability** — the `/server/trust-domain` page now
-  also warns that `trust_domain` is locked once a Realm is created.
 - **Delivery-binding handover panel** — shows the new error codes
   `delivery_binding_stale` / `delivery_binding_handed_over` /
   `historical_only`, with `new_recipient_service_did` and
@@ -81,24 +79,16 @@ wire-breaking list. New admin views:
 
 Spec rounds 2+3 (2026-05-20) added several operator surfaces — see
 [`CHANGELOG.md`](CHANGELOG.md) `[Unreleased]` and
-[`../cokret-spec/CHANGELOG.md`](../cokret-spec/CHANGELOG.md) for the
+[`../cokret-spec`](../cokret-spec) for the
 normative source. The new admin pages:
 
-- **Moderation appeals** (`/moderation/appeals`) — pending-state list +
-  detail/decision panel for the `ck.moderation.appeal.{submit,review,
-  decision,close}` strand. Enforces separation-of-duties (reviewer DID
-  must differ from the original decision issuer).
-- **Trust domain** (`/server/trust-domain`) — read/write the
-  deployment-wide `ck:trust_domain:<scope>`. Loud-red warning:
-  rotating this value invalidates every outstanding
-  `ck.cross_signing.reset` proof.
 - **Deactivation review** (`/deactivations/review`) — 7-domain fanout
   panel (session / device / applet / keypackage / push / to-device /
   capability) with per-domain retry. Reused on the Realm destroy page.
-- **Audit attestation** (`/audit/attestation`) — upload + browse
-  `ck.schema.attestation_evidence.v1` documents.
-- **Relaxed window** (`/server/relaxed-window`) — slider capped at the
-  300 000 ms hard ceiling; greyed out when an audit profile is active.
+- **Realm destroy** (`/realms/:realm_id/destroy`) — destructive
+  confirmation plus fanout and erasure receipt panels.
+- **Key backup** (`/key-backup`) — recovery policies and receipts from
+  the root identity recovery API.
 
 ## Development
 
@@ -146,13 +136,14 @@ Required and optional environment variables:
 | Variable | Required | Purpose |
 | --- | --- | --- |
 | `SOLAND_URL` | yes | Internal URL of the soland Principal Server reached by the proxy. |
-| `COAUTH_URL` | recommended | Internal URL of the coauth admin service. Enables the `/auth/`, `/_cokret/gate/`, coauth `/_soland/admin/*` resource roots, `/authorize`, `/oauth2/`, `/.well-known/` proxy locations. |
+| `COAUTH_URL` | recommended | Internal URL of the coauth admin service. Enables the `/auth/`, `/_cokret/gate/`, `/_coauth/*`, `/authorize`, `/oauth/`, and `/.well-known/` proxy locations. |
 | `COAUTH_PUBLIC_URL` | recommended | Browser-facing coauth origin. Written to `/config.json` for the OAuth2 PKCE redirect. |
 | `SODMIN_PORT` | no | nginx listen port (default `80`). |
 
-The rendered nginx config sets a tight default Content-Security-Policy
-(`default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; ...`),
-`X-Frame-Options: DENY`, `Referrer-Policy: no-referrer`, and a
+The rendered nginx config enables gzip for static assets and sets a tight
+default Content-Security-Policy (`default-src 'self'; script-src 'self'
+'wasm-unsafe-eval'; object-src 'none'; upgrade-insecure-requests; ...`),
+HSTS, `X-Frame-Options: DENY`, `Referrer-Policy: no-referrer`, and a
 `Permissions-Policy` that denies camera/microphone/geolocation/payment.
 If the deployment fronts additional origins (e.g. external CDN, third
 party auth), edit `connect-src` in `docker-entrypoint.sh` accordingly.
@@ -194,11 +185,11 @@ examples/       Local deployment examples, pending Cokret stack refresh
 
 ## Current Gaps
 
-See the cross-project [`../_todos.md`](../_todos.md). Remaining deferred work includes the docs site/user guide, example-stack cold image verification, and cleanup of pre-existing dead-code warnings.
+See the cross-project [`../_sodmin_soland_todos.md`](../_sodmin_soland_todos.md). Remaining deferred work includes the docs site/user guide and example-stack cold image verification.
 
 ---
 
 <!-- circle-rollout milestone pointer -->
 > **Active milestone tracking** (local-only, gitignored): see
-> `_sodmin_todos.md` in the parent `cokret/` directory for the
+> `_sodmin_soland_todos.md` in the parent `cokret/` directory for the
 > circle-rollout (CKP-0007) work item list and per-stage checkpoints.

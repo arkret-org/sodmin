@@ -39,21 +39,34 @@ pub async fn list_federation_peers(
 }
 
 pub async fn get_federation_peer(domain: &str) -> Result<FederationPeer, HttpError> {
-    let page = list_federation_peers(None, 10_000, "").await?;
-    page.data
-        .into_iter()
-        .find(|peer| peer.domain == domain || peer.connection_id.as_deref() == Some(domain))
-        .ok_or_else(|| HttpError::message("federation peer detail endpoint is not wired"))
+    const PAGE_SIZE: u64 = 100;
+    const MAX_PAGES: usize = 50;
+
+    let mut cursor: Option<String> = None;
+    for _ in 0..MAX_PAGES {
+        let page = list_federation_peers(cursor.as_deref(), PAGE_SIZE, domain).await?;
+        if let Some(peer) = page
+            .data
+            .into_iter()
+            .find(|peer| peer.domain == domain || peer.connection_id.as_deref() == Some(domain))
+        {
+            return Ok(peer);
+        }
+        cursor = page.next_cursor;
+        if cursor.as_deref().is_none_or(str::is_empty) {
+            break;
+        }
+    }
+    Err(HttpError::message(
+        "federation peer detail is not present in the paginated listing",
+    ))
 }
 
 pub async fn reset_federation_connection(_domain: &str) -> Result<(), HttpError> {
     Err(HttpError::message("federation reset endpoint is not wired"))
 }
 
-pub async fn list_federation_allow_rules(
-    cursor: Option<&str>,
-    limit: u64,
-) -> Result<ListResponse<FederationAllowRule>, HttpError> {
+pub async fn list_federation_allow_rules() -> Result<ListResponse<FederationAllowRule>, HttpError> {
     Ok(ListResponse {
         data: Vec::new(),
         total: Some(0),

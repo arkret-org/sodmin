@@ -17,6 +17,9 @@
 //! The format is stable so a downstream `dioxus-logger` sink can parse
 //! it without re-deriving the schema.
 
+#[cfg(target_arch = "wasm32")]
+const ADMIN_AUDIT_USER_ACTION_PATH: &str = "/_soland/admin/audit/user-action";
+
 /// Outcome of an admin click — the toast variant on the page mirrors
 /// this. `Accepted` means the soland HTTP call returned 2xx; `Rejected`
 /// means it returned a non-2xx that wasn't a 404; `NotWired` means the
@@ -113,7 +116,7 @@ pub fn emit_admin_audit(
     );
 }
 
-/// Wire shape POSTed to `/_soland/admin/audit/client-event`. The
+/// Wire shape POSTed to `/_soland/admin/audit/user-action`. The
 /// envelope is intentionally schema-stable so soland's reducer can map
 /// it straight to its audit row without a sodmin-specific adapter.
 ///
@@ -137,7 +140,7 @@ pub struct AdminAuditClientEvent {
     pub note: Option<String>,
 }
 
-/// Build the wire payload for the `/_soland/admin/audit/client-event`
+/// Build the wire payload for the `/_soland/admin/audit/user-action`
 /// POST. Pure helper — split out so we can unit-test the shape
 /// without compiling the wasm fetch path.
 #[cfg_attr(not(any(target_arch = "wasm32", test)), allow(dead_code))]
@@ -162,11 +165,11 @@ pub fn build_client_event(
 
 /// Server-side admin audit POST. Mirrors [`emit_admin_audit`] but
 /// additionally fires a best-effort `POST
-/// /_soland/admin/audit/client-event` so the audit row also lands in
+/// /_soland/admin/audit/user-action` so the audit row also lands in
 /// the soland audit feed (not only the browser console).
 ///
 /// 404 / 5xx is intentionally tolerated — soland may not have wired
-/// the client-event sink yet, and a missing audit-of-the-click should
+/// the user-action sink yet, and a missing audit-of-the-click should
 /// never break the actual click. We swallow the error and log a
 /// single line so the operator can see the POST happened even when
 /// the route is missing.
@@ -193,8 +196,7 @@ pub fn emit_admin_audit_server(
 
     dioxus::prelude::spawn(async move {
         let res: Result<serde_json::Value, _> =
-            crate::api::client::api_client("/_soland/admin/audit/user-action", "POST", Some(body))
-                .await;
+            crate::api::client::api_client(ADMIN_AUDIT_USER_ACTION_PATH, "POST", Some(body)).await;
         if let Err(e) = res {
             // Don't toast — this is a fire-and-forget breadcrumb. Just
             // surface in the console for the operator who's actively

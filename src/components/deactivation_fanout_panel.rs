@@ -1,6 +1,6 @@
 //! Round R2/R3 — 7-domain deactivation fanout panel (T07).
 //!
-//! When an admin runs `ck.identity.deactivate` (or `ck.realm.destroy`),
+//! When an admin runs `ck.self.agent.deactivate` (or `ck.realm.destroy`),
 //! the principal server cascades the deactivation across seven
 //! independent local domains. This panel renders the per-domain result
 //! so the operator can spot a partial fanout and retry the failing
@@ -114,12 +114,12 @@ impl FanoutState {
 }
 
 /// Top-level snapshot of all seven domains for one
-/// `ck.identity.deactivate` (or `ck.realm.destroy`) invocation.
+/// `ck.self.agent.deactivate` (or `ck.realm.destroy`) invocation.
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct FanoutSnapshot {
     pub subject_id: String,
     pub domains: Vec<FanoutDomainResult>,
-    /// Only present on `ck.realm.destroy`. For `ck.identity.deactivate`
+    /// Only present on `ck.realm.destroy`. For `ck.self.agent.deactivate`
     /// this is `None`.
     pub erasure_receipt: Option<ErasureReceiptStatus>,
 }

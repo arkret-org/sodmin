@@ -49,8 +49,10 @@ pub fn DidBindingPanel(
                         {
                             let did_for_button = binding.did.clone();
                             let did_display = binding.did.clone();
-                            let method = binding.method.clone().unwrap_or_else(|| "-".to_string());
-                            let state = binding.state.clone().unwrap_or_else(|| "-".to_string());
+                            let kind = binding.kind.label().to_string();
+                            let state = binding.state.label().to_string();
+                            let verification = binding.verification_status.label().to_string();
+                            let primary = if binding.primary { "yes" } else { "no" };
                             let verified_at = binding.last_verified_at.clone().unwrap_or_else(|| "-".to_string());
                             rsx! {
                                 li { class: "rounded-md border p-3 space-y-2",
@@ -65,14 +67,22 @@ pub fn DidBindingPanel(
                                             "Remove"
                                         }
                                     }
-                                    div { class: "grid gap-2 text-sm md:grid-cols-3",
+                                    div { class: "grid gap-2 text-sm md:grid-cols-5",
                                         div {
-                                            span { class: "text-muted-foreground", "Method: " }
-                                            span { "{method}" }
+                                            span { class: "text-muted-foreground", "Kind: " }
+                                            span { "{kind}" }
                                         }
                                         div {
                                             span { class: "text-muted-foreground", "State: " }
                                             span { class: "font-mono", "{state}" }
+                                        }
+                                        div {
+                                            span { class: "text-muted-foreground", "Verification: " }
+                                            span { class: "font-mono", "{verification}" }
+                                        }
+                                        div {
+                                            span { class: "text-muted-foreground", "Primary: " }
+                                            span { "{primary}" }
                                         }
                                         div {
                                             span { class: "text-muted-foreground", "Last Verified: " }

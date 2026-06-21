@@ -3,9 +3,11 @@
 use serde::{Deserialize, Serialize};
 
 use crate::api::client::{api_client, build_url};
-use crate::api::paths::coauth as coauth_paths;
 use crate::types::PaginatedResponse;
 use crate::utils::net::error::HttpError;
+
+const OAUTH2_SESSIONS_PATH: &str = "/_coauth/admin/oauth-sessions";
+const PERSONAL_SESSIONS_PATH: &str = "/_coauth/admin/personal-sessions";
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 #[non_exhaustive]
@@ -57,7 +59,7 @@ pub async fn list_oauth2_sessions(
     per_page: u64,
 ) -> Result<PaginatedResponse<CoauthOAuth2Session>, HttpError> {
     let url = build_url(
-        coauth_paths::OAUTH2_SESSIONS,
+        OAUTH2_SESSIONS_PATH,
         &[
             ("page", &page.to_string()),
             ("per_page", &per_page.to_string()),
@@ -79,7 +81,7 @@ pub async fn list_personal_sessions(
     per_page: u64,
 ) -> Result<PaginatedResponse<CoauthPersonalSession>, HttpError> {
     let url = build_url(
-        coauth_paths::PERSONAL_SESSIONS,
+        PERSONAL_SESSIONS_PATH,
         &[
             ("page", &page.to_string()),
             ("per_page", &per_page.to_string()),

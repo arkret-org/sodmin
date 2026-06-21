@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 // ── Delivery binding policy (T6.2 §3) ──
 
-/// Effective `ck.cell.realm.delivery_binding_policy` for a Realm.
+/// Effective `ck.component.realm.delivery_binding_policy.v1` for a Realm.
 /// `allowed_recipient_services` and `binding_source_policy` are
 /// operator-mutable; `policy_frontier` is written by the soland
 /// reducer and is therefore read-only on the admin surface.

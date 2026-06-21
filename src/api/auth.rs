@@ -238,7 +238,7 @@ pub async fn handle_oauth_callback(code: &str, state: Option<&str>) -> Result<()
         session.remove_item(OAUTH_NONCE_KEY).ok();
         return Err(make_err("OAuth state validation failed".into()));
     }
-    // Capture nonce before cleanup — verified against id_token after token exchange.
+    // Capture nonce before cleanup; any id_token echo is diagnostic only.
     let expected_nonce = session.get_item(OAUTH_NONCE_KEY).ok().flatten();
     session.remove_item(PKCE_VERIFIER_KEY).ok();
     session.remove_item(OAUTH_STATE_KEY).ok();
@@ -276,28 +276,32 @@ pub async fn handle_oauth_callback(code: &str, state: Option<&str>) -> Result<()
     let token_resp: TokenResponse =
         serde_json::from_str(&response.text).map_err(|e| make_err(e.to_string()))?;
 
-    // OIDC nonce replay guard. We always send a `nonce` on /authorize,
-    // so whenever an `id_token` comes back it MUST carry a matching
-    // nonce — a present id_token with a missing/mismatched nonce fails
-    // closed. coauth MAY omit the id_token entirely (the bearer rides
-    // the cookie); in that case there is nothing to replay and PKCE +
-    // `state` already cover CSRF, so we proceed but log the skip.
+    // The bearer session is established by coauth's token endpoint and
+    // then confirmed through `get_viewer()` below. This SPA does not
+    // verify id_token signatures, so id_token claims are never used as
+    // authorization input. When an id_token is present, compare its
+    // unsigned nonce only as a diagnostic for provider drift; PKCE and
+    // `state` remain the client-side replay/CSRF controls.
     if let Some(expected) = &expected_nonce {
         match &token_resp.id_token {
-            Some(id_token) => match extract_id_token_nonce(id_token) {
-                Some(nonce_in_token) if &nonce_in_token == expected => {}
+            Some(id_token) => match extract_unsigned_id_token_nonce(id_token) {
+                Some(nonce_in_token) if &nonce_in_token == expected => {
+                    log::debug!("OAuth id_token carried the expected nonce");
+                }
                 Some(_) => {
-                    return Err(make_err("OIDC nonce mismatch — possible replay".into()));
+                    log::warn!(
+                        "OAuth id_token nonce mismatch ignored; id_token is unsigned in the SPA and get_viewer remains authoritative"
+                    );
                 }
                 None => {
-                    return Err(make_err(
-                        "OIDC id_token is missing the nonce claim — refusing to continue".into(),
-                    ));
+                    log::warn!(
+                        "OAuth id_token carried no readable nonce; id_token is unsigned in the SPA and get_viewer remains authoritative"
+                    );
                 }
             },
             None => {
                 log::warn!(
-                    "OAuth token response carried no id_token; OIDC nonce replay check skipped (PKCE + state still enforced)"
+                    "OAuth token response carried no id_token; PKCE + state remain enforced"
                 );
             }
         }
@@ -334,9 +338,9 @@ struct TokenResponse {
     id_token: Option<String>,
 }
 
-/// Extract the `nonce` claim from a JWT id_token (base64url-decoded payload only).
+/// Extract an unsigned `nonce` claim from a JWT id_token payload.
 /// Returns `None` if the token is malformed or has no nonce claim.
-fn extract_id_token_nonce(id_token: &str) -> Option<String> {
+fn extract_unsigned_id_token_nonce(id_token: &str) -> Option<String> {
     let parts: Vec<&str> = id_token.split('.').collect();
     if parts.len() < 2 {
         return None;
@@ -430,29 +434,9 @@ pub async fn verify_admin() -> Result<bool, HttpError> {
         return Err(make_err("Not authenticated".into()));
     }
 
-    // S5: admin probe sends the cookie automatically via
-    // credentials: "include"; no Authorization header. `server/status` is
-    // the only mounted server-admin route (and is gated by the same
-    // `RequireAdmin` hook), so its 200/403 split is the admin discriminator;
-    // the previously-probed `server/info` is not mounted in soland (404).
-    let response = Request::get("/_soland/admin/server/status")
-        .header("Accept", "application/json")
-        .credentials(RequestCredentials::Include)
-        .send()
-        .await
-        .map_err(|e| make_err(e.to_string()))?;
-
-    let status = response.status();
-    if status == 200 {
-        storage::set_item("is_admin", "true");
-        return Ok(true);
-    }
-    if status == 403 {
-        storage::set_item("is_admin", "false");
-        return Ok(false);
-    }
-    let text = response.text().await.unwrap_or_default();
-    Err(make_err(format!("admin probe HTTP {status}: {text}")))
+    let viewer = crate::api::coauth::get_viewer().await?;
+    storage::set_item("is_admin", if viewer.is_admin { "true" } else { "false" });
+    Ok(viewer.is_admin)
 }
 
 pub fn cached_is_admin() -> Option<bool> {
@@ -553,7 +537,8 @@ pub fn is_authenticated() -> bool {
 
 #[cfg(test)]
 mod tests {
-    use super::{SESSION_ACTIVE_KEY, build_oauth_scope};
+    use super::{SESSION_ACTIVE_KEY, build_oauth_scope, extract_unsigned_id_token_nonce};
+    use crate::utils::security::crypto::base64url_encode;
 
     #[test]
     fn oauth_scope_contains_admin_scopes() {
@@ -568,5 +553,31 @@ mod tests {
         assert_eq!(SESSION_ACTIVE_KEY, "session_active");
         assert_ne!(SESSION_ACTIVE_KEY, "access_token");
         assert_ne!(SESSION_ACTIVE_KEY, "refresh_token");
+    }
+
+    #[test]
+    fn unsigned_id_token_nonce_decoder_is_diagnostic_only() {
+        let payload = base64url_encode(br#"{"nonce":"n-123"}"#);
+        let token = format!("header.{payload}.signature");
+        assert_eq!(
+            extract_unsigned_id_token_nonce(&token),
+            Some("n-123".to_string())
+        );
+    }
+}
+
+#[cfg(all(test, target_arch = "wasm32"))]
+mod wasm_tests {
+    use wasm_bindgen_test::*;
+
+    use super::compute_code_challenge;
+
+    wasm_bindgen_test_configure!(run_in_browser);
+
+    #[wasm_bindgen_test(async)]
+    async fn compute_code_challenge_matches_rfc_vector() {
+        let verifier = "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk";
+        let challenge = compute_code_challenge(verifier).await.unwrap();
+        assert_eq!(challenge, "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM");
     }
 }

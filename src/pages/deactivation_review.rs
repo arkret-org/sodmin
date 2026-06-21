@@ -1,7 +1,7 @@
 //! Round R2/R3 — Deactivation review page (T07).
 //!
 //! Lands the operator on a per-subject view of the
-//! `ck.identity.deactivate` (or `ck.realm.destroy`) fanout result. The
+//! `ck.self.agent.deactivate` (or `ck.realm.destroy`) fanout result. The
 //! seven-domain fanout panel + an optional erasure-receipt block are
 //! rendered by `components::deactivation_fanout_panel`; this page is
 //! the route shell that fetches a snapshot and wires the retry handler.

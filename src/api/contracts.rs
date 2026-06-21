@@ -62,12 +62,13 @@ pub mod soland_admin {
     }
 
     impl AuthzCapabilityGrant {
-        pub fn status_typed(&self) -> AuthzGrantStatus {
-            AuthzGrantStatus::from_wire(&self.status).unwrap_or(AuthzGrantStatus::Active)
+        pub fn status_typed(&self) -> Option<AuthzGrantStatus> {
+            AuthzGrantStatus::from_wire(&self.status)
         }
 
         pub fn is_revocable(&self) -> bool {
-            matches!(self.status_typed(), AuthzGrantStatus::Active) && !self.grant_id.is_empty()
+            matches!(self.status_typed(), Some(AuthzGrantStatus::Active))
+                && !self.grant_id.is_empty()
         }
     }
 
@@ -149,12 +150,23 @@ mod tests {
             "grant_id": "grant-1",
             "holder_did": "did:web:alice.example",
             "peer_did": "did:web:bob.example",
-            "scope": "ck.cell.write",
+            "scope": "ck.capability.grant",
             "status": "active"
         }"#;
         let grant: AuthzCapabilityGrant = serde_json::from_str(raw).unwrap();
-        assert_eq!(grant.status_typed(), AuthzGrantStatus::Active);
+        assert_eq!(grant.status_typed(), Some(AuthzGrantStatus::Active));
         assert!(grant.is_revocable());
+    }
+
+    #[test]
+    fn authz_unknown_status_is_not_revocable() {
+        let grant = AuthzCapabilityGrant {
+            grant_id: "grant-unknown".to_string(),
+            status: "pending_review".to_string(),
+            ..Default::default()
+        };
+        assert_eq!(grant.status_typed(), None);
+        assert!(!grant.is_revocable());
     }
 
     #[test]

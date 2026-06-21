@@ -21,9 +21,9 @@ mod tests {
             threshold_k: Some(2),
             threshold_n: Some(3),
             threshold_dids: vec![
-                "did:ck:a".to_owned(),
-                "did:ck:b".to_owned(),
-                "did:ck:c".to_owned(),
+                "did:web:a.example".to_owned(),
+                "did:web:b.example".to_owned(),
+                "did:web:c.example".to_owned(),
             ],
             ..Default::default()
         };
@@ -37,13 +37,13 @@ mod tests {
         let request = NotaryReconfigRequestBody {
             realm_id: "ck:realm:demo".to_owned(),
             kind: "single_did".to_owned(),
-            single_did: Some("did:ck:operator".to_owned()),
+            single_did: Some("did:web:operator.example".to_owned()),
             ..Default::default()
         };
         let body = request.to_reconfigure_body();
 
         assert_eq!(body["kind"], "single_did");
-        assert_eq!(body["single_did"], "did:ck:operator");
+        assert_eq!(body["single_did"], "did:web:operator.example");
         assert!(body.get("threshold_k").is_none());
         assert!(body.get("open_set_members").is_none());
     }

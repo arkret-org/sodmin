@@ -4,9 +4,12 @@
 use serde::{Deserialize, Serialize};
 
 use crate::api::client::{api_client, build_url};
-use crate::api::paths::coauth as coauth_paths;
 use crate::types::CursorPage;
 use crate::utils::net::error::HttpError;
+
+const ACCOUNTS_PATH: &str = "/_coauth/admin/accounts";
+const BRIDGE_DESCRIBE_PATH: &str = "/_coauth/admin/bridge/describe";
+const SOLAND_INTEGRATION_DESCRIBE_PATH: &str = "/_soland/self/integration/describe";
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 #[non_exhaustive]
@@ -41,9 +44,13 @@ pub struct CoauthManagedDidBinding {
     #[serde(default)]
     pub did: String,
     #[serde(default)]
-    pub method: Option<String>,
+    pub kind: CoauthDidBindingKind,
     #[serde(default)]
-    pub state: Option<String>,
+    pub state: CoauthDidBindingState,
+    #[serde(default)]
+    pub verification_status: CoauthDidBindingVerificationStatus,
+    #[serde(default)]
+    pub primary: bool,
     #[serde(default)]
     pub last_verified_at: Option<String>,
 }
@@ -90,7 +97,9 @@ pub struct CoauthRiskActionHook {
 }
 
 pub use coauth_admin_types::{
-    AdminBridgeDescribe as CoauthAdminBridgeDescribe,
+    AdminBridgeDescribe as CoauthAdminBridgeDescribe, DidBindingKind as CoauthDidBindingKind,
+    DidBindingState as CoauthDidBindingState,
+    DidBindingVerificationStatus as CoauthDidBindingVerificationStatus,
     IntegrationManifest as CoauthIntegrationManifest,
 };
 
@@ -229,7 +238,7 @@ pub async fn list_accounts_cursor(
     if let Some(cursor) = cursor.filter(|c| !c.is_empty()) {
         params.push(("cursor", cursor));
     }
-    let url = build_url(coauth_paths::ACCOUNTS, &params)?;
+    let url = build_url(ACCOUNTS_PATH, &params)?;
     let resp: CoauthAdminPaginatedEnvelope<CoauthAdminAccountRecord> =
         api_client(&url, "GET", None).await?;
     let summaries: Vec<CoauthAccountSummary> = resp
@@ -247,8 +256,8 @@ pub async fn list_accounts_cursor(
 }
 
 pub async fn get_account_detail(id: &str) -> Result<CoauthAccountDetail, HttpError> {
-    let bridge_url = coauth_paths::BRIDGE_DESCRIBE;
-    let integration_manifest_url = coauth_paths::INTEGRATION_DESCRIBE;
+    let bridge_url = BRIDGE_DESCRIBE_PATH;
+    let integration_manifest_url = SOLAND_INTEGRATION_DESCRIBE_PATH;
     let summary_url = format!("/_coauth/admin/accounts/{}", urlencoding::encode(id));
     let dids_url = format!("/_coauth/admin/accounts/{}/dids", urlencoding::encode(id));
     let claims_url = format!("/_coauth/admin/accounts/{}/claims", urlencoding::encode(id));
@@ -429,37 +438,12 @@ fn map_admin_account_summary_resource(
 }
 
 fn map_admin_did_binding(binding: CoauthAdminDidBindingRecord) -> CoauthManagedDidBinding {
-    use coauth_admin_types::{DidBindingKind, DidBindingState, DidBindingVerificationStatus};
-    let kind_wire = match binding.kind {
-        DidBindingKind::Primary => "primary",
-        DidBindingKind::Recovery => "recovery",
-        DidBindingKind::Pairwise => "pairwise",
-    };
-    let state_wire = match binding.state {
-        DidBindingState::PendingProof => "pending_proof",
-        DidBindingState::Active => "active",
-        DidBindingState::Revoked => "revoked",
-        DidBindingState::Rejected => "rejected",
-    };
-    let verification_wire = match binding.verification_status {
-        DidBindingVerificationStatus::Pending => "pending",
-        DidBindingVerificationStatus::Verified => "verified",
-        DidBindingVerificationStatus::Rejected => "rejected",
-        DidBindingVerificationStatus::NotRequested => "not_requested",
-    };
     CoauthManagedDidBinding {
         did: binding.did,
-        method: Some(kind_wire.to_owned()),
-        state: Some(format!(
-            "{}:{}:{}",
-            state_wire,
-            verification_wire,
-            if binding.primary {
-                "primary"
-            } else {
-                "secondary"
-            }
-        )),
+        kind: binding.kind,
+        state: binding.state,
+        verification_status: binding.verification_status,
+        primary: binding.primary,
         last_verified_at: binding.last_verified_at.map(|t| t.to_rfc3339()),
     }
 }

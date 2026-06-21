@@ -25,6 +25,8 @@ pub fn risk_action_panel(
     let mut proposal_reason = use_signal(String::new);
     let mut proposal_ticket = use_signal(String::new);
     let mut pending_proposal_action = use_signal::<Option<String>>(|| None);
+    let mut approve_in_flight = use_signal(|| false);
+    let mut execute_in_flight = use_signal(|| false);
 
     // State machine gating
     let allowed_transitions = &current.allowed_next_transitions;
@@ -197,10 +199,14 @@ pub fn risk_action_panel(
                 if let Some(proposal) = last_proposal() {
                     Button {
                         variant: ButtonVariant::Secondary,
-                        disabled: !can_approve || !approval_signing_available,
+                        disabled: !can_approve || !approval_signing_available || *approve_in_flight.read(),
                         onclick: {
                             let account_id = account_id.clone();
                             move |_| {
+                                if *approve_in_flight.read() {
+                                    return;
+                                }
+                                approve_in_flight.set(true);
                                 let account_id = account_id.clone();
                                 let proposal = proposal.clone();
                                 spawn(async move {
@@ -212,19 +218,24 @@ pub fn risk_action_panel(
                                         }
                                         Err(error) => action_status.set(format!("Approval failed: {}", error.message)),
                                     }
+                                    approve_in_flight.set(false);
                                 });
                             }
                         },
-                        "Approve last proposal"
+                        if *approve_in_flight.read() { "Approving..." } else { "Approve last proposal" }
                     }
                 }
                 if let Some(approval) = last_approval() {
                     Button {
                         variant: ButtonVariant::Secondary,
-                        disabled: !can_execute,
+                        disabled: !can_execute || *execute_in_flight.read(),
                         onclick: {
                             let account_id = account_id.clone();
                             move |_| {
+                                if *execute_in_flight.read() {
+                                    return;
+                                }
+                                execute_in_flight.set(true);
                                 let account_id = account_id.clone();
                                 let approval = approval.clone();
                                 spawn(async move {
@@ -233,10 +244,11 @@ pub fn risk_action_panel(
                                         Ok(execution) => action_status.set(format_risk_action_execute_status(&execution)),
                                         Err(error) => action_status.set(format!("Execute failed: {}", error.message)),
                                     }
+                                    execute_in_flight.set(false);
                                 });
                             }
                         },
-                        "Execute approved action"
+                        if *execute_in_flight.read() { "Executing..." } else { "Execute approved action" }
                     }
                 }
             }

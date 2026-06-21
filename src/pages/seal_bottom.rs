@@ -527,12 +527,12 @@ mod tests {
         // operator gets a stable, predictable line.
         let head = BottomCandidateHead {
             event_id: "ck:event:1".into(),
-            issuer: Some("did:ck:alice".into()),
+            issuer: Some("did:web:alice.example".into()),
             hlc: Some("01J9-0001-abcd".into()),
             summary: Some("set value=42".into()),
         };
         let meta = format_head_metadata(&head).expect("metadata present");
-        assert!(meta.starts_with("issuer=did:ck:alice"));
+        assert!(meta.starts_with("issuer=did:web:alice.example"));
         assert!(meta.contains("hlc=01J9-0001-abcd"));
         assert!(meta.ends_with("summary=set value=42"));
         // Empty-string optional fields are treated as absent — soland
@@ -554,7 +554,7 @@ mod tests {
         // Non-conflict bottom kind with no candidate heads → manual.
         let entry = BottomEntry {
             realm_id: "ck:realm:demo".into(),
-            cell_id: "ck:cell:ck.component.member.state.v1:did:ck:alice".into(),
+            cell_id: "ck:cell:ck.component.member.state.v1:did:web:alice.example".into(),
             kind: "schema_error".into(),
             ..Default::default()
         };

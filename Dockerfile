@@ -33,7 +33,7 @@ RUN apt-get update && apt-get install -y binaryen && rm -rf /var/lib/apt/lists/*
 
 RUN --mount=type=cache,id=sodmin-cargo-registry,target=/usr/local/cargo/registry \
     --mount=type=cache,id=sodmin-cargo-git,target=/usr/local/cargo/git \
-    cargo install dioxus-cli@0.7.5 --locked
+    cargo install dioxus-cli@0.7.9 --locked
 
 WORKDIR /workspace
 

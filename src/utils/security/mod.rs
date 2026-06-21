@@ -1,5 +1,4 @@
 pub mod crypto;
-pub mod csp;
 /// DID input validation — delegates to the SDK scalar validator
 /// `cokret_identifiers::is_did` (global report #10, candidate 12).
 pub mod did;

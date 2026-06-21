@@ -21,7 +21,7 @@ pub fn OAuthCallback(
         spawn(async move {
             if let Some(err) = error.as_ref() {
                 log::error!("OAuth error: {} - {:?}", err, error_description);
-                nav.push(crate::router::Route::LoginPage {});
+                nav.replace(crate::router::Route::LoginPage {});
                 return;
             }
             if let Some(code) = code.as_ref() {
@@ -31,11 +31,11 @@ pub fn OAuthCallback(
                     }
                     Err(e) => {
                         log::error!("OAuth callback failed: {}", e.message);
-                        nav.push(crate::router::Route::LoginPage {});
+                        nav.replace(crate::router::Route::LoginPage {});
                     }
                 }
             } else {
-                nav.push(crate::router::Route::LoginPage {});
+                nav.replace(crate::router::Route::LoginPage {});
             }
         });
     });

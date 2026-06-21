@@ -154,10 +154,6 @@ pub enum Route {
         CoauthNotificationTemplates {},
         #[route("/coauth/connector-health")]
         CoauthConnectorHealth {},
-        // R3 (UI-4) — recovery policy admin (stub).
-        #[route("/coauth/recovery")]
-        CoauthRecovery {},
-
     #[end_layout]
 
     #[route("/:..route")]
@@ -369,11 +365,6 @@ fn RealmIdentityAudit(realm_id: String) -> Element {
 #[component]
 fn HandlesBySubject(subject: Option<String>) -> Element {
     rsx! { pages::handles_by_subject::HandlesBySubject { subject } }
-}
-
-#[component]
-fn CoauthRecovery() -> Element {
-    rsx! { pages::coauth::recovery::RecoveryPolicyList {} }
 }
 
 #[component]

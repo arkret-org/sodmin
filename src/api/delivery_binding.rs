@@ -1,6 +1,6 @@
 //! HTTP client for the soland delivery-binding-policy admin surface.
 //!
-//! The cell lives at `ck.cell.realm.{realm_id}.delivery_binding_policy`.
+//! The cell family is `ck.component.realm.delivery_binding_policy.v1`.
 //! This surface is **read-only** in sodmin: realm policy writes are a
 //! general-management action that strands through events / yougen, not the
 //! operations console. sodmin only renders the effective policy

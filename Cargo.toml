@@ -69,6 +69,9 @@ serde_json = {workspace = true}
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 reqwest = {workspace = true,default-features = false,features = ["blocking", "json", "rustls"]}
 
+[dev-dependencies]
+wasm-bindgen-test = "0.3"
+
 [[bin]]
 name = "sodmin"
 path = "src/main.rs"
@@ -78,7 +81,7 @@ name = "sodmin-smoke"
 path = "src/bin/sodmin_smoke.rs"
 
 # cokret fork of DioxusLabs/dioxus, branched off the v0.7.9 tag (same patch
-# set as yougen — keep the two in lockstep). The only delta is
+# set as yougen; build.rs checks the patch block so it cannot drift). The only delta is
 # `Callback::__point_to` in `packages/core/src/events.rs`: upstream 0.7.9
 # calls `.unwrap()` on `point_to`, which aborts the entire wasm instance
 # (white screen) when an `Option<EventHandler>` prop's owner scope is
@@ -92,13 +95,12 @@ path = "src/bin/sodmin_smoke.rs"
 # same crate would exist under two sources and `GenerationalBox<T>` would
 # mismatch across the registry `dioxus-signals`/`dioxus-web` and the patched
 # core.
-# See https://github.com/cokret/dioxus/commit/e59f9f24a5c27c9303cd61edd0452b44161374ab
-# rev 钉死,升级时手工 bump。
+# See https://github.com/cokret/dioxus/commit/e59f9f24a5c27c9303cd61edd0452b44161374ab.
 #
-# ⚠️ yoface 依赖 dioxus-primitives(components fork)。`[patch]` 段不被依赖继承
-# (仅对 workspace 根生效),故 sodmin 作为 workspace 根必须照抄 yoface README
-# §2 的 components patch 段,rev 与 core patch 同源钉死,否则 GenerationalBox<T>
-# 会因 dioxus-primitives 跨源(registry vs cokret fork)而 mismatch。
+# yoface depends on dioxus-primitives from the components fork. `[patch]`
+# entries are not inherited from dependencies, so sodmin, as the workspace
+# root, carries yoface README §2's components patch explicitly. build.rs
+# enforces the expected fork URL and rev.
 [patch."https://github.com/DioxusLabs/components"]
 dioxus-primitives = { git = "https://github.com/cokret/dioxus-components", rev = "3510aeee2d14f0ca2c11682c9b826650cb557d2f" }
 

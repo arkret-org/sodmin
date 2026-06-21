@@ -160,8 +160,8 @@ pub fn AuditLog() -> Element {
                             option { value: "ck.circle.archive", {t("audit.filter_event_kind_circle_archive")} }
                             option { value: "ck.circle.tombstone", {t("audit.filter_event_kind_circle_tombstone")} }
                             option { value: "ck.circle.member.state", {t("audit.filter_event_kind_circle_member_state")} }
-                            option { value: "ck.circle.capability.grant", {t("audit.filter_event_kind_circle_capability_grant")} }
-                            option { value: "ck.circle.capability.revoke", {t("audit.filter_event_kind_circle_capability_revoke")} }
+                            option { value: "ck.capability.grant", {t("audit.filter_event_kind_capability_grant")} }
+                            option { value: "ck.capability.revoke", {t("audit.filter_event_kind_capability_revoke")} }
                         }
                     }
                 }

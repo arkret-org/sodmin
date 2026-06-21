@@ -66,3 +66,22 @@ mod tests {
         assert_eq!(base64url_decode("Zm9v"), Some(b"foo".to_vec()));
     }
 }
+
+#[cfg(all(test, target_arch = "wasm32"))]
+mod wasm_tests {
+    use wasm_bindgen_test::*;
+
+    use super::*;
+
+    wasm_bindgen_test_configure!(run_in_browser);
+
+    #[wasm_bindgen_test]
+    fn random_bytes_uses_browser_crypto() {
+        let first = random_bytes(32);
+        let second = random_bytes(32);
+        assert_eq!(first.len(), 32);
+        assert_eq!(second.len(), 32);
+        assert!(first.iter().any(|byte| *byte != 0));
+        assert_ne!(first, second);
+    }
+}

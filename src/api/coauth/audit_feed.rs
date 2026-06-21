@@ -3,9 +3,10 @@
 use serde::{Deserialize, Serialize};
 
 use crate::api::client::{api_client, build_url};
-use crate::api::paths::coauth as coauth_paths;
 use crate::types::PaginatedResponse;
 use crate::utils::net::error::HttpError;
+
+const AUDIT_FEED_PATH: &str = "/_coauth/admin/audit-feed";
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 #[non_exhaustive]
@@ -76,6 +77,6 @@ pub async fn list_audit_feed(
     for (k, v) in owned.iter() {
         params.push((k, v.as_str()));
     }
-    let url = build_url(coauth_paths::AUDIT_FEED, &params)?;
+    let url = build_url(AUDIT_FEED_PATH, &params)?;
     api_client(&url, "GET", None).await
 }

@@ -6,9 +6,56 @@ fn main() {
     let manifest_dir = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap());
     println!("cargo:rerun-if-env-changed=SODMIN_I18N_STRICT");
     println!("cargo:rerun-if-env-changed=CI");
+    println!(
+        "cargo:rerun-if-changed={}",
+        manifest_dir.join("Cargo.toml").display()
+    );
+    check_dioxus_patch_sources(&manifest_dir);
 
     let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
     generate_i18n_tables(&manifest_dir, &out_dir);
+}
+
+fn check_dioxus_patch_sources(manifest_dir: &Path) {
+    const DIOXUS_REPO: &str = "https://github.com/cokret/dioxus";
+    const DIOXUS_REV: &str = "e59f9f24a5c27c9303cd61edd0452b44161374ab";
+    const DIOXUS_PATCH_CRATES: &[&str] = &[
+        "dioxus-core",
+        "dioxus-core-types",
+        "generational-box",
+        "subsecond",
+        "subsecond-types",
+    ];
+    const COMPONENTS_REPO: &str = "https://github.com/cokret/dioxus-components";
+    const COMPONENTS_REV: &str = "3510aeee2d14f0ca2c11682c9b826650cb557d2f";
+
+    let cargo_toml_path = manifest_dir.join("Cargo.toml");
+    let raw = fs::read_to_string(&cargo_toml_path)
+        .unwrap_or_else(|err| panic!("read {}: {}", cargo_toml_path.display(), err));
+
+    for crate_name in DIOXUS_PATCH_CRATES {
+        let line = raw
+            .lines()
+            .find(|line| line.trim_start().starts_with(crate_name) && line.contains(DIOXUS_REPO))
+            .unwrap_or_else(|| panic!("Cargo.toml Dioxus patch drift: missing {crate_name}"));
+        assert!(
+            line.contains(DIOXUS_REV),
+            "Cargo.toml Dioxus patch drift: {crate_name} must use rev {DIOXUS_REV}"
+        );
+    }
+
+    let components_line = raw
+        .lines()
+        .find(|line| {
+            line.trim_start().starts_with("dioxus-primitives") && line.contains(COMPONENTS_REPO)
+        })
+        .unwrap_or_else(|| {
+            panic!("Cargo.toml Dioxus components patch drift: missing dioxus-primitives")
+        });
+    assert!(
+        components_line.contains(COMPONENTS_REV),
+        "Cargo.toml Dioxus components patch drift: dioxus-primitives must use rev {COMPONENTS_REV}"
+    );
 }
 
 /// Reads the externalized flat-JSON translation files (`i18n/en.json`,
