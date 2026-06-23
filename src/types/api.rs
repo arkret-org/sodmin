@@ -1,6 +1,6 @@
 pub use cokret_core::models::{
     DirectoryListHandlesForSubjectRequestBody as ListHandlesForSubjectRequest,
-    DirectorySubjectHandleList, HandleBindingState, HandleClaim, MemberDeliveryBinding,
+    DirectorySubjectHandleList, HandleBindingState, HandleClaim,
 };
 pub use cokret_core::ops::HardeningStatus;
 use serde::{Deserialize, Serialize};

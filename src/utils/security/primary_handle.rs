@@ -30,6 +30,5 @@
 //! string (lexicographically smaller wins).
 
 pub use cokret_core::identity::primary_handle::{
-    PrimaryHandleSelectInput, SubjectRender, render_subject, select_primary_handle,
-    select_primary_handle_string,
+    PrimaryHandleSelectInput, SubjectRender, render_subject, select_primary_handle_string,
 };

@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 // ── Policy types ──
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq)]
-pub struct Policy {
+pub struct AdminPolicy {
     #[serde(default)]
     pub id: String,
     #[serde(default)]
@@ -116,3 +116,5 @@ pub struct CreatePolicyRequest {
     #[serde(default)]
     pub priority: i32,
 }
+
+pub type AdminPolicyListOutcome = crate::types::api::ListResponse<AdminPolicy>;

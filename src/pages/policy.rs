@@ -1,6 +1,5 @@
 use dioxus::prelude::*;
 
-use crate::api::contracts::soland_admin::CreatePolicyRequest;
 use crate::api::policy;
 use crate::components::ui::badge::{Badge, BadgeVariant};
 use crate::components::ui::button::{Button, ButtonVariant};
@@ -13,7 +12,9 @@ use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::pagination::CursorPagination;
 use crate::components::ui::table::*;
 use crate::components::ui::toast::{ToastVariant, show_toast};
-use crate::types::policy::{Policy, PolicyAuditEntry, PolicyEvidenceItem};
+use crate::types::policy::{
+    AdminPolicy, CreatePolicyRequest, PolicyAuditEntry, PolicyEvidenceItem,
+};
 use crate::utils::i18n::t;
 use crate::utils::net::error::{HttpError, should_reset_cursor_pagination};
 
@@ -31,7 +32,7 @@ pub fn PolicyList() -> Element {
     let mut is_enabled = use_signal(|| true);
     let mut priority = use_signal(|| 0i32);
     let mut dialog_loading = use_signal(|| false);
-    let mut selected_policy = use_signal(|| None::<Policy>);
+    let mut selected_policy = use_signal(|| None::<AdminPolicy>);
     let mut dialog_error = use_signal(|| None::<String>);
     let mut dialog_required_scope = use_signal(|| None::<String>);
     let mut dialog_read_only = use_signal(|| false);
@@ -398,7 +399,7 @@ pub fn PolicyList() -> Element {
 }
 
 #[component]
-fn PolicyGuardrailBadges(policy: Policy) -> Element {
+fn PolicyGuardrailBadges(policy: AdminPolicy) -> Element {
     let evidence_count = policy.guardrails.approval_evidence.len();
     let audit_count = policy.guardrails.audit_trail.len();
     let obligation_count = policy.guardrails.obligations.len();
@@ -443,7 +444,7 @@ fn PolicyGuardrailBadges(policy: Policy) -> Element {
 }
 
 #[component]
-fn PolicyPinSafetyPanel(policy: Policy) -> Element {
+fn PolicyPinSafetyPanel(policy: AdminPolicy) -> Element {
     let safety = policy.safety.clone();
     let Some(summary) = safety.pin_summary else {
         return rsx! {};
@@ -524,7 +525,7 @@ fn PinSummaryList(label: String, values: Vec<String>) -> Element {
 }
 
 #[component]
-fn PolicyGuardrailPanel(policy: Policy) -> Element {
+fn PolicyGuardrailPanel(policy: AdminPolicy) -> Element {
     let required_scope = policy.guardrails.required_scope.clone();
     let evidence = policy.guardrails.approval_evidence.clone();
     let audit = policy.guardrails.audit_trail.clone();

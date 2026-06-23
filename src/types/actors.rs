@@ -41,29 +41,3 @@ pub struct Actor {
     #[serde(default)]
     pub realm_count: u64,
 }
-
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct CreateActorRequest {
-    #[serde(default)]
-    pub handle: Option<String>,
-    #[serde(default)]
-    pub display_name: Option<String>,
-    #[serde(default)]
-    pub password: Option<String>,
-    #[serde(default)]
-    pub is_admin: bool,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct UpdateActorRequest {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub display_name: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub avatar_url: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub handle: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub is_admin: Option<bool>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub is_suspended: Option<bool>,
-}

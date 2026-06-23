@@ -125,20 +125,6 @@ pub fn device_revoke_phrase(device_id: &str, n: usize) -> String {
     }
 }
 
-/// Pure helper: pick the first `n` chars of an applet name for the
-/// suspend / revoke gate. If the name is shorter than `n`, the whole
-/// name is returned. Falls back to the applet id when the name is
-/// missing.
-pub fn applet_phrase(name: Option<&str>, fallback_id: &str, n: usize) -> String {
-    let source = name.filter(|s| !s.trim().is_empty()).unwrap_or(fallback_id);
-    let chars: Vec<char> = source.chars().collect();
-    if chars.len() <= n {
-        source.to_string()
-    } else {
-        chars[..n].iter().collect()
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -167,14 +153,5 @@ mod tests {
         assert_eq!(device_revoke_phrase("ab", 4), "ab");
         // multibyte safe
         assert_eq!(device_revoke_phrase("dev_\u{4e2d}\u{6587}id", 2), "id");
-    }
-
-    #[test]
-    fn applet_phrase_uses_name_when_present() {
-        assert_eq!(applet_phrase(Some("acme-bot"), "ap_01", 6), "acme-b");
-        assert_eq!(applet_phrase(None, "ap_01HXY7", 6), "ap_01H");
-        assert_eq!(applet_phrase(Some(""), "ap_01HXY7", 6), "ap_01H");
-        // shorter than n -> whole source
-        assert_eq!(applet_phrase(Some("ab"), "fallback", 6), "ab");
     }
 }

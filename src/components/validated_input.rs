@@ -1,42 +1,24 @@
-//! P5 — generic client-side validating input component.
+//! Generic client-side validating input component.
 //!
-//! Wraps the standard [`Input`] component with a configurable validator
-//! that runs on every keystroke. When the trimmed value fails validation
-//! an inline error message is rendered underneath the field. Empty
-//! values are treated as "untouched" — the parent is responsible for
-//! flagging a missing required field via the [`ValidationKind::Required`]
-//! variant which fires when the trimmed value is empty.
-//!
-//! Wired into:
-//! * [`crate::components::did_binding_panel::DidBindingPanel`] — the `Add binding` form uses
-//!   [`ValidationKind::Did`] for the DID and [`ValidationKind::Required`] for the control_proof
-//!   opaque blob.
+//! Wraps the standard [`Input`] component with a configurable validator that
+//! runs on every keystroke. Empty values are treated as untouched except for
+//! [`ValidationKind::Required`], which reports immediately.
+
 use dioxus::prelude::*;
 
 use crate::components::ui::input::Input;
 use crate::utils::security::did;
 
-/// Validation rule enforced by [`ValidatedInput`]. Each variant maps to
-/// a single, well-known invariant — composite rules should layer two
-/// inputs or use [`ValidationKind::MaxLength`] alongside a primary rule
-/// by checking `value.len()` on submit.
+/// Validation rule enforced by [`ValidatedInput`].
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ValidationKind {
-    /// Tightened round-4 DID grammar — `^did:[a-z0-9]+:[^\s]+$`.
+    /// Tight DID grammar: `^did:[a-z0-9]+:[^\s]+$`.
     Did,
-    /// Trimmed value MUST be non-empty.
+    /// Trimmed value must be non-empty.
     Required,
-    /// Trimmed value MUST be at most `n` characters long. Useful for
-    /// display-name fields where the backend caps length at 128.
-    MaxLength(usize),
 }
 
 impl ValidationKind {
-    /// Validate `value` (already trimmed by the caller). Returns
-    /// `Ok(())` on success, or an i18n key + fallback English message
-    /// describing the failure. Empty input passes every rule except
-    /// [`ValidationKind::Required`] so a "pristine" form does not
-    /// flash red.
     pub fn validate(&self, value: &str) -> Result<(), &'static str> {
         match self {
             ValidationKind::Did => {
@@ -53,13 +35,6 @@ impl ValidationKind {
                     Ok(())
                 }
             }
-            ValidationKind::MaxLength(max) => {
-                if value.chars().count() <= *max {
-                    Ok(())
-                } else {
-                    Err("Value exceeds the maximum allowed length")
-                }
-            }
         }
     }
 }
@@ -70,18 +45,11 @@ pub fn ValidatedInput(
     #[props(default)] placeholder: String,
     #[props(default = "text".to_string())] r#type: String,
     #[props(default)] disabled: bool,
-    /// The validation rule applied to every input value. Multiple rules
-    /// can be modelled by stacking two `ValidatedInput`s or by enforcing
-    /// composite rules in the parent form's submit handler.
     kind: ValidationKind,
     value: String,
     oninput: EventHandler<FormEvent>,
 ) -> Element {
     let trimmed = value.trim();
-    // Validation triggers only when the user has typed something; an
-    // untouched, empty field stays clean unless the kind is
-    // `Required`. `Required` fires inline because the parent typically
-    // disables the submit button on a missing required field.
     let validation = kind.validate(trimmed);
     let show_error = !trimmed.is_empty() || matches!(kind, ValidationKind::Required);
     let error_msg = validation.err();
@@ -109,7 +77,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn did_kind_accepts_round4_did() {
+    fn did_kind_accepts_valid_did() {
         assert!(ValidationKind::Did.validate("did:web:alice").is_ok());
     }
 
@@ -120,18 +88,7 @@ mod tests {
     }
 
     #[test]
-    fn max_length_rejects_overrun() {
-        let kind = ValidationKind::MaxLength(3);
-        assert!(kind.validate("abc").is_ok());
-        assert!(kind.validate("abcd").is_err());
-        // Unicode counted by chars, not bytes.
-        assert!(kind.validate("中文测").is_ok());
-        assert!(kind.validate("中文测试").is_err());
-    }
-
-    #[test]
     fn empty_passes_non_required_rules() {
         assert!(ValidationKind::Did.validate("").is_ok());
-        assert!(ValidationKind::MaxLength(5).validate("").is_ok());
     }
 }

@@ -20,35 +20,27 @@ mod upstream;
 mod viewer;
 
 pub use accounts::{
-    AccountListFilter, CoauthAccountClaim, CoauthAccountDetail, CoauthAccountRiskActionApproval,
+    AccountListFilter, CoauthAccountClaim, CoauthAccountRiskActionApproval,
     CoauthAccountRiskActionApprovalDraft, CoauthAccountRiskActionCurrentState,
     CoauthAccountRiskActionDraft, CoauthAccountRiskActionExecute,
     CoauthAccountRiskActionExecuteDraft, CoauthAccountRiskActionHistoryEntry,
-    CoauthAccountRiskActionHistoryEnvelopeShared, CoauthAccountRiskActionProposal,
-    CoauthAccountSummary, CoauthAdminBridgeDescribe, CoauthIntegrationManifest,
-    CoauthManagedDidBinding, CoauthRiskActionHook, CoauthSessionGrantSummary,
-    add_account_did_binding, approve_account_risk_action, execute_account_risk_action,
-    get_account_detail, list_accounts_cursor, remove_account_did_binding, revoke_account_claim,
-    submit_account_risk_action,
+    CoauthAccountRiskActionProposal, CoauthAdminBridgeDescribe, CoauthManagedDidBinding,
+    CoauthRiskActionHook, add_account_did_binding, approve_account_risk_action,
+    execute_account_risk_action, get_account_detail, list_accounts_cursor,
+    remove_account_did_binding, revoke_account_claim, submit_account_risk_action,
 };
-pub use audit_feed::{AuditFeedFilter, CoauthAuditEntry, list_audit_feed};
-pub use connector_health::{CoauthConnectorHealth, get_connector_health};
-pub use notifications::{
-    CoauthNotificationChannel, CoauthNotificationTemplate, list_notification_channels,
-    list_notification_templates,
-};
+pub use audit_feed::{AuditFeedFilter, list_audit_feed};
+pub use connector_health::get_connector_health;
+pub use notifications::{list_notification_channels, list_notification_templates};
 pub use registration::{
-    CoauthRegistrationToken, create_registration_token, list_registration_tokens,
-    revoke_registration_token,
+    create_registration_token, list_registration_tokens, revoke_registration_token,
 };
 pub use sessions::{
-    CoauthOAuth2Session, CoauthPersonalSession, CoauthPersonalSessionOneShot,
-    CoauthPersonalSessionRow, create_personal_session, finish_oauth2_session, list_oauth2_sessions,
-    list_personal_sessions, regenerate_personal_session, revoke_personal_session,
+    create_personal_session, finish_oauth2_session, list_oauth2_sessions, list_personal_sessions,
+    regenerate_personal_session, revoke_personal_session,
 };
 pub use upstream::{
-    CoauthUpstreamLink, CoauthUpstreamProvider, create_upstream_provider, delete_upstream_link,
-    delete_upstream_provider, list_upstream_links, list_upstream_providers,
-    toggle_upstream_provider,
+    create_upstream_provider, delete_upstream_link, delete_upstream_provider, list_upstream_links,
+    list_upstream_providers, toggle_upstream_provider,
 };
-pub use viewer::{CoauthViewer, get_viewer};
+pub use viewer::get_viewer;

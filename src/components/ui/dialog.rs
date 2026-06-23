@@ -1,11 +1,11 @@
-//! `ConfirmDialog`:渲染实现已迁移到 yoface(`yoface::ui::modal::ConfirmDialog`)。
-//! 本地手写的遮罩 + 面板实现已删除。
+//! `ConfirmDialog` rendering is delegated to yoface.
 //!
-//! 保留一层**薄适配器**,把 sodmin 既有 prop 名透传/翻译到 yoface 新 API:
-//!   * `description` → yoface `message`
-//!   * `confirm_text`/`cancel_text` → yoface `confirm_label`/`cancel_label`
-//!   * `destructive: bool` → yoface `variant: ButtonVariant::{Destructive,Primary}`
-//! 避免在 ~20 处调用点逐个改 prop 名(`destructive` 含动态表达式,盲改易错)。
+//! This adapter preserves sodmin's existing prop names while translating them
+//! to the yoface modal API:
+//! - `description` -> yoface `message`
+//! - `confirm_text`/`cancel_text` -> yoface `confirm_label`/`cancel_label`
+//! - `destructive: bool` -> yoface `variant: ButtonVariant::{Destructive,Primary}`
+
 use dioxus::prelude::*;
 use yoface::ui::button::ButtonVariant;
 

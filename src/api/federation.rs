@@ -62,38 +62,6 @@ pub async fn get_federation_peer(domain: &str) -> Result<FederationPeer, HttpErr
     ))
 }
 
-pub async fn reset_federation_connection(_domain: &str) -> Result<(), HttpError> {
-    Err(HttpError::message("federation reset endpoint is not wired"))
-}
-
-pub async fn list_federation_allow_rules() -> Result<ListResponse<FederationAllowRule>, HttpError> {
-    Ok(ListResponse {
-        data: Vec::new(),
-        total: Some(0),
-        next_cursor: None,
-    })
-}
-
-pub async fn add_federation_rule(
-    _request: &AddFederationRuleRequest,
-) -> Result<FederationAllowRule, HttpError> {
-    Err(HttpError::message(
-        "federation allow-rule write endpoint is not wired",
-    ))
-}
-
-pub async fn defederate_federation_peer(_domain: &str) -> Result<(), HttpError> {
-    Err(HttpError::message(
-        "federation defederate endpoint is not wired",
-    ))
-}
-
-pub async fn delete_federation_allow_rule(_id: &str) -> Result<(), HttpError> {
-    Err(HttpError::message(
-        "federation allow-rule delete endpoint is not wired",
-    ))
-}
-
 fn federation_snapshot_to_peer(value: serde_json::Value) -> FederationPeer {
     let operation_id = string_field(&value, &["operation_id", "id"]);
     let realm_id = string_field(&value, &["realm_id"]);

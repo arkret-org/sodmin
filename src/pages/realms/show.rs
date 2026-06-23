@@ -48,7 +48,7 @@ pub fn RealmShow(realm_id: String) -> Element {
                                 CardContent {
                                     div { class: "space-y-3",
                                     {field_row(t("realms.id"), realm.id.clone())}
-                                    {field_row(t("realms.type"), realm_type_label(&realm))}
+                                    {field_row(t("realms.type"), realm_type_label(realm))}
                                     {field_row(t("realms.discoverability"), realm.discoverability.as_deref().unwrap_or("-").to_string())}
                                     {field_row(t("realms.creator"), realm.created_by.as_deref().unwrap_or("-").to_string())}
                                     {field_row(t("realms.members"), realm.member_count.to_string())}
@@ -93,7 +93,7 @@ pub fn RealmShow(realm_id: String) -> Element {
     }
 }
 
-fn realm_type_label(realm: &crate::types::Realm) -> String {
+fn realm_type_label(realm: &crate::types::AdminRealm) -> String {
     realm
         .realm_class
         .as_deref()

@@ -23,34 +23,3 @@ pub struct FederationPeer {
     #[serde(default)]
     pub connection_id: Option<String>,
 }
-
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct FederationAllowRule {
-    #[serde(default)]
-    pub id: String,
-    #[serde(default)]
-    pub domain: String,
-    #[serde(default)]
-    pub rule_type: Option<String>,
-    #[serde(default)]
-    pub polarity: Option<String>,
-    #[serde(default)]
-    pub action: Option<String>,
-    #[serde(default)]
-    pub allowlist_enforced: Option<bool>,
-    #[serde(default)]
-    pub created_at: Option<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct AddFederationRuleRequest {
-    pub domain: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub rule_type: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub polarity: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub action: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub allowlist_enforced: Option<bool>,
-}

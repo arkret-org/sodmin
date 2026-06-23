@@ -1,7 +1,6 @@
 pub mod actors;
 pub mod audit;
 pub mod auth;
-pub mod authz;
 pub mod capabilities;
 pub mod client;
 pub mod coauth;

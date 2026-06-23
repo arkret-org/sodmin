@@ -4,14 +4,6 @@ use serde::{Deserialize, Serialize};
 
 // ── Handle availability ──
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct HandleAvailabilityResult {
-    #[serde(default)]
-    pub available: bool,
-    #[serde(default)]
-    pub error: Option<String>,
-}
-
 // ── Handle management (T6.2 §2) ──
 
 /// One row in `GET /_soland/admin/handles`. Mirrors the `ck.handle.*` cell

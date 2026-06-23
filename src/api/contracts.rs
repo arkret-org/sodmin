@@ -6,108 +6,6 @@
 //! imported directly from the `coauth_admin_types` crate at their call
 //! sites (no facade re-export here).
 
-pub mod soland_admin {
-    use serde::{Deserialize, Serialize};
-
-    /// Status of a single capability grant. Mirrors soland's authz
-    /// reducer state machine.
-    #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-    #[serde(rename_all = "snake_case")]
-    pub enum AuthzGrantStatus {
-        Active,
-        Revoked,
-        Expired,
-    }
-
-    impl AuthzGrantStatus {
-        /// Returns the i18n key for the display label. Render via
-        /// `crate::utils::i18n::t(status.label())` at the call site.
-        pub fn label(&self) -> &'static str {
-            match self {
-                AuthzGrantStatus::Active => "authz.grant_status_active",
-                AuthzGrantStatus::Revoked => "authz.grant_status_revoked",
-                AuthzGrantStatus::Expired => "authz.grant_status_expired",
-            }
-        }
-
-        pub fn from_wire(s: &str) -> Option<Self> {
-            match s {
-                "active" => Some(AuthzGrantStatus::Active),
-                "revoked" => Some(AuthzGrantStatus::Revoked),
-                "expired" => Some(AuthzGrantStatus::Expired),
-                _ => None,
-            }
-        }
-    }
-
-    /// OpenAPI schema: `AuthzCapabilityGrant`.
-    #[derive(Debug, Clone, Serialize, Deserialize, Default)]
-    pub struct AuthzCapabilityGrant {
-        #[serde(default)]
-        pub grant_id: String,
-        #[serde(default)]
-        pub holder_did: String,
-        #[serde(default)]
-        pub peer_did: String,
-        #[serde(default)]
-        pub scope: String,
-        #[serde(default)]
-        pub status: String,
-        #[serde(default)]
-        pub granted_at: Option<String>,
-        #[serde(default)]
-        pub expires_at: Option<String>,
-        #[serde(default)]
-        pub note: Option<String>,
-    }
-
-    impl AuthzCapabilityGrant {
-        pub fn status_typed(&self) -> Option<AuthzGrantStatus> {
-            AuthzGrantStatus::from_wire(&self.status)
-        }
-
-        pub fn is_revocable(&self) -> bool {
-            matches!(self.status_typed(), Some(AuthzGrantStatus::Active))
-                && !self.grant_id.is_empty()
-        }
-    }
-
-    #[derive(Debug, Clone, Default)]
-    pub struct AuthzGrantFilter {
-        pub holder: String,
-        pub peer: String,
-        pub scope: String,
-    }
-
-    impl AuthzGrantFilter {
-        pub fn is_empty(&self) -> bool {
-            self.holder.trim().is_empty()
-                && self.peer.trim().is_empty()
-                && self.scope.trim().is_empty()
-        }
-    }
-
-    pub fn filter_grants(
-        grants: &[AuthzCapabilityGrant],
-        filter: &AuthzGrantFilter,
-    ) -> Vec<AuthzCapabilityGrant> {
-        let holder = filter.holder.trim().to_lowercase();
-        let peer = filter.peer.trim().to_lowercase();
-        let scope = filter.scope.trim().to_lowercase();
-        grants
-            .iter()
-            .filter(|g| holder.is_empty() || g.holder_did.to_lowercase().contains(&holder))
-            .filter(|g| peer.is_empty() || g.peer_did.to_lowercase().contains(&peer))
-            .filter(|g| scope.is_empty() || g.scope.to_lowercase().contains(&scope))
-            .cloned()
-            .collect()
-    }
-
-    pub type Policy = crate::types::policy::Policy;
-    pub type CreatePolicyRequest = crate::types::policy::CreatePolicyRequest;
-    pub type PolicyListOutcome = crate::types::api::ListResponse<Policy>;
-}
-
 pub mod starid {
     use chrono::{DateTime, Utc};
     use serde::{Deserialize, Serialize};
@@ -141,33 +39,7 @@ pub mod starid {
 
 #[cfg(test)]
 mod tests {
-    use super::soland_admin::*;
     use super::starid::StaridDescribe;
-
-    #[test]
-    fn authz_contract_dto_round_trips_status() {
-        let raw = r#"{
-            "grant_id": "grant-1",
-            "holder_did": "did:web:alice.example",
-            "peer_did": "did:web:bob.example",
-            "scope": "ck.capability.grant",
-            "status": "active"
-        }"#;
-        let grant: AuthzCapabilityGrant = serde_json::from_str(raw).unwrap();
-        assert_eq!(grant.status_typed(), Some(AuthzGrantStatus::Active));
-        assert!(grant.is_revocable());
-    }
-
-    #[test]
-    fn authz_unknown_status_is_not_revocable() {
-        let grant = AuthzCapabilityGrant {
-            grant_id: "grant-unknown".to_string(),
-            status: "pending_review".to_string(),
-            ..Default::default()
-        };
-        assert_eq!(grant.status_typed(), None);
-        assert!(!grant.is_revocable());
-    }
 
     #[test]
     fn starid_contract_describe_tolerates_optional_status_fields() {

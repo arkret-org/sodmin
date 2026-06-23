@@ -261,12 +261,15 @@ pub fn should_reset_cursor_pagination(error: &HttpError, cursor: Option<&str>) -
     let errcode = error.body.as_ref().map(|body| body.errcode.as_str());
     // Registry codes are bare snake_case (no `ck.error.*` prefix exists in
     // the error-code-registry).
-    match (error.status, errcode) {
-        (410, Some(ERROR_CODE_CURSOR_EXPIRED)) => true,
-        (410, None) => true,
-        (400, Some(ERROR_CODE_INVALID_PARAM | ERROR_CODE_CURSOR_INVALID)) => true,
-        _ => false,
-    }
+    matches!(
+        (error.status, errcode),
+        (410, Some(ERROR_CODE_CURSOR_EXPIRED))
+            | (410, None)
+            | (
+                400,
+                Some(ERROR_CODE_INVALID_PARAM | ERROR_CODE_CURSOR_INVALID)
+            )
+    )
 }
 
 #[cfg(test)]

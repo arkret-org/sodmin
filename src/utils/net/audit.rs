@@ -29,7 +29,6 @@ const ADMIN_AUDIT_USER_ACTION_PATH: &str = "/_soland/admin/audit/user-action";
 pub enum AdminAuditOutcome {
     Accepted,
     Rejected,
-    NotWired,
 }
 
 impl AdminAuditOutcome {
@@ -37,18 +36,6 @@ impl AdminAuditOutcome {
         match self {
             AdminAuditOutcome::Accepted => "accepted",
             AdminAuditOutcome::Rejected => "rejected",
-            AdminAuditOutcome::NotWired => "not_wired",
-        }
-    }
-
-    /// Map an `HttpError.status` to an outcome. `0` and `2xx` count as
-    /// `Accepted` (the call site only invokes this on the failure
-    /// branch).
-    pub fn from_http_status(status: u16) -> Self {
-        match status {
-            404 => AdminAuditOutcome::NotWired,
-            200..=299 => AdminAuditOutcome::Accepted,
-            _ => AdminAuditOutcome::Rejected,
         }
     }
 }
@@ -232,27 +219,6 @@ mod tests {
     fn outcome_labels_are_stable() {
         assert_eq!(AdminAuditOutcome::Accepted.label(), "accepted");
         assert_eq!(AdminAuditOutcome::Rejected.label(), "rejected");
-        assert_eq!(AdminAuditOutcome::NotWired.label(), "not_wired");
-    }
-
-    #[test]
-    fn http_status_mapping_classifies_404_as_not_wired() {
-        assert_eq!(
-            AdminAuditOutcome::from_http_status(404),
-            AdminAuditOutcome::NotWired
-        );
-        assert_eq!(
-            AdminAuditOutcome::from_http_status(200),
-            AdminAuditOutcome::Accepted
-        );
-        assert_eq!(
-            AdminAuditOutcome::from_http_status(500),
-            AdminAuditOutcome::Rejected
-        );
-        assert_eq!(
-            AdminAuditOutcome::from_http_status(409),
-            AdminAuditOutcome::Rejected
-        );
     }
 
     #[test]
@@ -346,14 +312,14 @@ mod tests {
             "applet",
             "ap_01",
             "revoke",
-            AdminAuditOutcome::NotWired,
+            AdminAuditOutcome::Rejected,
             Some("hand-off to coauth"),
         );
         let json = serde_json::to_string(&ev).expect("json");
         assert!(json.contains("\"target_type\":\"applet\""));
         assert!(json.contains("\"target_id\":\"ap_01\""));
         assert!(json.contains("\"action\":\"revoke\""));
-        assert!(json.contains("\"outcome\":\"not_wired\""));
+        assert!(json.contains("\"outcome\":\"rejected\""));
         assert!(json.contains("\"note\":\"hand-off to coauth\""));
     }
 

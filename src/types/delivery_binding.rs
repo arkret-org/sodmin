@@ -23,14 +23,6 @@ pub struct RealmDeliveryBindingPolicy {
     pub updated_at: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct UpdateDeliveryBindingPolicyRequest {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub allowed_recipient_services: Option<Vec<String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub binding_source_policy: Option<String>,
-}
-
 /// One row in the per-Realm "is each member routable?" check table.
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct MemberRoutabilityRow {
@@ -109,21 +101,5 @@ impl DeliveryBindingHandoverRow {
             Some("historical_only") => Some(DeliveryBindingHandoverReason::HistoricalOnly),
             _ => None,
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::UpdateDeliveryBindingPolicyRequest;
-
-    #[test]
-    fn delivery_binding_policy_request_omits_none() {
-        let req = UpdateDeliveryBindingPolicyRequest {
-            allowed_recipient_services: Some(vec!["did:web:floria.example".to_string()]),
-            binding_source_policy: None,
-        };
-        let serialized = serde_json::to_string(&req).expect("serializes");
-        assert!(serialized.contains("allowed_recipient_services"));
-        assert!(!serialized.contains("binding_source_policy"));
     }
 }

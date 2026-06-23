@@ -4,10 +4,9 @@ use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 
 use crate::api::client::{api_client, build_url, json_body};
-use crate::api::contracts::soland_admin::{CreatePolicyRequest, Policy, PolicyListOutcome};
 use crate::types::policy::{
-    PinPolicySummary, PolicyAuditEntry, PolicyEvidenceItem, PolicyGuardrailSummary,
-    PolicySafetySummary,
+    AdminPolicy, AdminPolicyListOutcome, CreatePolicyRequest, PinPolicySummary, PolicyAuditEntry,
+    PolicyEvidenceItem, PolicyGuardrailSummary, PolicySafetySummary,
 };
 use crate::utils::net::error::HttpError;
 
@@ -52,7 +51,7 @@ struct UpsertPolicyDocumentRequestBody {
 pub async fn list_policies(
     cursor: Option<&str>,
     limit: u64,
-) -> Result<PolicyListOutcome, HttpError> {
+) -> Result<AdminPolicyListOutcome, HttpError> {
     let limit_str = limit.max(1).to_string();
     let mut params: Vec<(&str, &str)> = vec![("limit", limit_str.as_str())];
     if let Some(cursor) = cursor.filter(|c| !c.is_empty()) {
@@ -60,7 +59,7 @@ pub async fn list_policies(
     }
     let url = build_url("/_soland/self/policies", &params)?;
     let resp: PolicyDocumentsEnvelope = api_client(&url, "GET", None).await?;
-    Ok(PolicyListOutcome {
+    Ok(AdminPolicyListOutcome {
         data: resp
             .policies
             .into_iter()
@@ -71,7 +70,7 @@ pub async fn list_policies(
     })
 }
 
-pub async fn create_policy(req: &CreatePolicyRequest) -> Result<Policy, HttpError> {
+pub async fn create_policy(req: &CreatePolicyRequest) -> Result<AdminPolicy, HttpError> {
     if request_targets_pin_policy(req) {
         return Err(pin_policy_unavailable_error());
     }
@@ -81,7 +80,7 @@ pub async fn create_policy(req: &CreatePolicyRequest) -> Result<Policy, HttpErro
     Ok(policy_from_document(resp))
 }
 
-pub async fn update_policy(id: &str, req: &CreatePolicyRequest) -> Result<Policy, HttpError> {
+pub async fn update_policy(id: &str, req: &CreatePolicyRequest) -> Result<AdminPolicy, HttpError> {
     if request_targets_pin_policy(req) {
         return Err(pin_policy_unavailable_error());
     }
@@ -156,7 +155,7 @@ fn payload_parts(req: &CreatePolicyRequest) -> (String, Vec<String>, Value, Vec<
     (effect, actions, resource, obligations)
 }
 
-fn policy_from_document(doc: PolicyDocumentDto) -> Policy {
+fn policy_from_document(doc: PolicyDocumentDto) -> AdminPolicy {
     let guardrails = policy_guardrails_from_payload(&doc.payload);
     let safety = policy_safety_from_document(&doc);
     let rules = if safety.pin_summary.is_some() {
@@ -179,7 +178,7 @@ fn policy_from_document(doc: PolicyDocumentDto) -> Policy {
         .get("priority")
         .and_then(Value::as_i64)
         .unwrap_or_default() as i32;
-    Policy {
+    AdminPolicy {
         id: doc.policy_id,
         name,
         policy_type: Some(doc.policy_type).filter(|s| !s.is_empty()),
@@ -338,10 +337,11 @@ fn collect_quota_limits(value: &Value, quota_context: bool, limits: &mut BTreeSe
                     if let Some(label) = public_scalar_label(value) {
                         limits.insert(format!("{key}={label}"));
                     }
-                } else if next_quota_context && is_public_quota_leaf(&key_lc) {
-                    if let Some(label) = public_scalar_label(value) {
-                        limits.insert(format!("{key}={label}"));
-                    }
+                } else if next_quota_context
+                    && is_public_quota_leaf(&key_lc)
+                    && let Some(label) = public_scalar_label(value)
+                {
+                    limits.insert(format!("{key}={label}"));
                 }
                 collect_quota_limits(value, next_quota_context, limits);
             }
@@ -402,10 +402,9 @@ fn find_note_plaintext_policy(value: &Value) -> Option<String> {
                         | "pin_note_plaintext"
                         | "plaintext_notes"
                         | "note_visibility"
-                ) {
-                    if let Some(label) = public_scalar_label(value) {
-                        return Some(label);
-                    }
+                ) && let Some(label) = public_scalar_label(value)
+                {
+                    return Some(label);
                 }
                 if let Some(found) = find_note_plaintext_policy(value) {
                     return Some(found);

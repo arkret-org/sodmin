@@ -2,10 +2,10 @@
 //!
 //! Endpoints:
 //!
-//! - `GET /_soland/admin/spaces` — list of Spaces visible to the current admin scope.
-//!   Cursor-paginated.
-//! Per-space hierarchy views are assembled client-side from the same
-//! snapshot; soland does not expose a dedicated hierarchy endpoint.
+//! - `GET /_soland/admin/spaces`: list Spaces visible to the current admin scope. Cursor-paginated.
+//!
+//! Per-space hierarchy views are assembled client-side from the same snapshot;
+//! soland does not expose a dedicated hierarchy endpoint.
 
 use crate::api::client::{api_client, build_url};
 use crate::types::api::ListResponse;

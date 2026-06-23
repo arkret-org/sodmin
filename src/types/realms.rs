@@ -11,7 +11,7 @@ use crate::types::HandleClaim;
 // separately by `spaces::SpaceRow`.
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct Realm {
+pub struct AdminRealm {
     #[serde(default)]
     pub id: String,
     #[serde(default)]
