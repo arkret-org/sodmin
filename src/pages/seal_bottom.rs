@@ -304,54 +304,27 @@ pub(crate) fn format_head_metadata(head: &BottomCandidateHead) -> Option<String>
     }
 }
 
-/// Pick the repair strategy for an entry given a user-selected head
-/// index. When the entry has >1 candidate heads the picker lets the
-/// admin choose; we honor that selection here. Out-of-bounds indices
-/// fall back to the same logic as `default_repair_strategy` so the page
-/// is robust to stale `selected_heads` state across re-fetches.
+/// Pick the repair strategy for an entry given a user-selected head index.
+/// `HeadInWinner` now requires recovery and witness proof references that
+/// are not present in a bottom listing, so selection stays advisory until
+/// a complete repair payload is entered.
 pub(crate) fn repair_strategy_for_entry(
     entry: &BottomEntry,
-    head_idx: usize,
+    _head_idx: usize,
 ) -> BottomRepairStrategy {
-    if let Some(head) = entry.candidate_heads.get(head_idx) {
-        match bottom_kind_from_wire(&entry.kind) {
-            Some(BottomKind::Conflict) | Some(BottomKind::NotarySplit) => {
-                return BottomRepairStrategy::HeadInWinner { head: head.clone() };
-            }
-            _ => {}
-        }
-    }
     default_repair_strategy(entry)
 }
 
 /// Pick the default `BottomRepairStrategy` to seed into the confirmation
-/// modal based on the bottom entry shape:
-///
-/// - **Conflict** with a non-empty `candidate_heads` list: pre-select the first head with
-///   `HeadInWinner`. The operator confirms or backs out (and a future iteration can offer a head
-///   picker before the modal opens).
-/// - Otherwise (non-conflict bottoms, or conflicts with no surfaced candidates): default to
-///   `Manual` with an empty effects list and a note describing the kind. soland's repair handler
-///   will reject an empty manual payload, so this is intentionally a safe placeholder that fails
-///   closed if the operator clicks "Submit" without first filling in effects.
+/// modal. soland rejects incomplete repairs, so sodmin seeds a manual
+/// placeholder instead of synthesizing missing recovery proof references.
 pub(crate) fn default_repair_strategy(entry: &BottomEntry) -> BottomRepairStrategy {
-    match (
-        bottom_kind_from_wire(&entry.kind),
-        entry.candidate_heads.first(),
-    ) {
-        (Some(BottomKind::Conflict), Some(head)) => {
-            BottomRepairStrategy::HeadInWinner { head: head.clone() }
-        }
-        (Some(BottomKind::NotarySplit), Some(head)) => {
-            BottomRepairStrategy::HeadInWinner { head: head.clone() }
-        }
-        _ => BottomRepairStrategy::Manual {
-            note: Some(format!(
-                "Manual repair — bottom kind = {}",
-                format_kind_label(&entry.kind)
-            )),
-            effects: vec![],
-        },
+    BottomRepairStrategy::Manual {
+        note: Some(format!(
+            "Manual repair - bottom kind = {}",
+            format_kind_label(&entry.kind)
+        )),
+        effects: vec![],
     }
 }
 
@@ -415,7 +388,7 @@ mod tests {
     }
 
     #[test]
-    fn default_strategy_picks_head_in_for_conflict_with_candidates() {
+    fn default_strategy_uses_manual_even_for_conflict_with_candidates() {
         let entry = BottomEntry {
             realm_id: "ck:realm:demo".into(),
             cell_id: "ck:cell:ck.component.profile.v1:ck:space:demo".into(),
@@ -427,10 +400,11 @@ mod tests {
             ..Default::default()
         };
         match default_repair_strategy(&entry) {
-            BottomRepairStrategy::HeadInWinner { head } => {
-                assert_eq!(head.event_id, "ck:event:abc");
+            BottomRepairStrategy::Manual { note, effects } => {
+                assert!(effects.is_empty());
+                assert!(note.unwrap_or_default().contains("Conflict"));
             }
-            other => panic!("expected head_in_winner default, got {other:?}"),
+            other => panic!("expected manual default, got {other:?}"),
         }
     }
 
@@ -461,9 +435,7 @@ mod tests {
     }
 
     #[test]
-    fn repair_strategy_picker_uses_chosen_index() {
-        // Conflict bottom with 3 candidate heads → picker index 2 should
-        // produce HeadInWinner { head: heads[2] }, not the default first.
+    fn repair_strategy_picker_requires_manual_payload() {
         let entry = BottomEntry {
             realm_id: "ck:realm:demo".into(),
             cell_id: "ck:cell:ck.component.profile.v1:ck:space:demo".into(),
@@ -485,15 +457,16 @@ mod tests {
             ..Default::default()
         };
         match repair_strategy_for_entry(&entry, 2) {
-            BottomRepairStrategy::HeadInWinner { head } => assert_eq!(head.event_id, "ck:event:3"),
-            other => panic!("expected head_in_winner with picked index, got {other:?}"),
+            BottomRepairStrategy::Manual { note, effects } => {
+                assert!(effects.is_empty());
+                assert!(note.unwrap_or_default().contains("Conflict"));
+            }
+            other => panic!("expected manual strategy, got {other:?}"),
         }
     }
 
     #[test]
     fn repair_strategy_picker_falls_back_when_index_out_of_bounds() {
-        // Out-of-bounds index → fall back to default_repair_strategy
-        // (which picks the first head for a conflict entry).
         let entry = BottomEntry {
             realm_id: "ck:realm:demo".into(),
             cell_id: "ck:cell:ck.component.profile.v1:ck:space:demo".into(),
@@ -505,10 +478,11 @@ mod tests {
             ..Default::default()
         };
         match repair_strategy_for_entry(&entry, 99) {
-            BottomRepairStrategy::HeadInWinner { head } => {
-                assert_eq!(head.event_id, "ck:event:first")
+            BottomRepairStrategy::Manual { note, effects } => {
+                assert!(effects.is_empty());
+                assert!(note.unwrap_or_default().contains("Conflict"));
             }
-            other => panic!("expected default head_in_winner fallback, got {other:?}"),
+            other => panic!("expected manual fallback, got {other:?}"),
         }
     }
 

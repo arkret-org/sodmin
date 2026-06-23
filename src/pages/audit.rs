@@ -144,8 +144,8 @@ pub fn AuditLog() -> Element {
                         }
                     }
                     // P3A.5 — CKP-0007 event-kind filter dropdown.
-                    // The seven ck.circle.* event kinds match the
-                    // SDK's event-kind registry exactly.
+                    // The ck.circle.* event kinds match the SDK's
+                    // event-kind registry exactly.
                     div { class: "space-y-1",
                         Label { class: "text-xs text-muted-foreground".to_string(), {t("audit.filter_event_kind")} }
                         select {
@@ -158,6 +158,7 @@ pub fn AuditLog() -> Element {
                             option { value: "ck.circle.create", {t("audit.filter_event_kind_circle_create")} }
                             option { value: "ck.circle.update", {t("audit.filter_event_kind_circle_update")} }
                             option { value: "ck.circle.archive", {t("audit.filter_event_kind_circle_archive")} }
+                            option { value: "ck.circle.restore", {t("audit.filter_event_kind_circle_restore")} }
                             option { value: "ck.circle.tombstone", {t("audit.filter_event_kind_circle_tombstone")} }
                             option { value: "ck.circle.member.state", {t("audit.filter_event_kind_circle_member_state")} }
                             option { value: "ck.capability.grant", {t("audit.filter_event_kind_capability_grant")} }

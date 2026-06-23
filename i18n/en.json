@@ -173,6 +173,7 @@
   "audit.filter_event_kind_capability_revoke": "ck.capability.revoke",
   "audit.filter_event_kind_circle_create": "ck.circle.create",
   "audit.filter_event_kind_circle_member_state": "ck.circle.member.state",
+  "audit.filter_event_kind_circle_restore": "ck.circle.restore",
   "audit.filter_event_kind_circle_tombstone": "ck.circle.tombstone",
   "audit.filter_event_kind_circle_update": "ck.circle.update",
   "audit.filter_reset": "Reset",

@@ -112,12 +112,17 @@ mod tests {
                     hlc: None,
                     summary: None,
                 },
+                recovery_capability_ref: "ck:grant:recovery".into(),
+                state_witness_ref: format!("ck:seal:sha256:{}", "11".repeat(32)),
+                state_witness_inclusion_proof_ref: Some("ck:proof:state-witness".into()),
             },
         };
         let encoded = serde_json::to_string(&req).unwrap();
 
         assert!(encoded.contains("\"strategy\":\"head_in_winner\""));
         assert!(encoded.contains("\"event_id\":\"ck:event:0196419b-0000-7000-8000-000000000000\""));
+        assert!(encoded.contains("\"recovery_capability_ref\":\"ck:grant:recovery\""));
+        assert!(encoded.contains("\"state_witness_ref\":\"ck:seal:sha256:"));
     }
 
     #[test]
