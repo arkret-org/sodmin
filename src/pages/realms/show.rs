@@ -70,6 +70,13 @@ pub fn RealmShow(realm_id: String) -> Element {
                                 CardHeader { CardTitle { {t("realms.actions")} } }
                                 CardContent {
                                     div { class: "space-y-2",
+                                        // SOD-ORG-01..03 — verified organization
+                                        // relationship + principal control audit.
+                                        Link {
+                                            to: Route::RealmOrganization { realm_id: realm.id.clone() },
+                                            class: "inline-flex w-full items-center justify-center rounded-md border border-border px-4 py-2 text-sm font-medium hover:bg-muted",
+                                            {t("realm_organization.title")}
+                                        }
                                         // `ck.realm.destroy` is irreversible at the principal
                                         // server. Route through the dedicated destroy page
                                         // (five normative-bullet checkboxes + typed `DESTROY`)

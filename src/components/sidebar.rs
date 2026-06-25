@@ -130,6 +130,15 @@ fn build_nav_sections() -> Vec<NavSection> {
                 },
                 "video",
             ),
+            // SOD-ORG-01..03 — Realm verified organization relationship +
+            // organization principal control / delegation audit.
+            NavItem::new(
+                t("realm_organization.title"),
+                Route::RealmOrganization {
+                    realm_id: "_".to_string(),
+                },
+                "building",
+            ),
         ],
     ));
 

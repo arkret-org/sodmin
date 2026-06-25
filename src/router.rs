@@ -92,6 +92,13 @@ pub enum Route {
         #[route("/realms/:realm_id/identity-audit")]
         RealmIdentityAudit { realm_id: String },
 
+        // SOD-ORG-01..03 — Realm verified organization relationship +
+        // organization principal control / delegation audit + security
+        // operation entry points. Mock-backed today; live data depends on
+        // soland SOL-ORG-06 + coauth COA-ORG-05.
+        #[route("/realms/:realm_id/organization")]
+        RealmOrganization { realm_id: String },
+
         // R3.2 (UI-SOD-4) — Subject → Handles directory page. Operator
         // enters a holder/principal DID; the page calls
         // `ck.find.directory.query.list_handles_for_subject` and lists the visible
@@ -355,6 +362,11 @@ fn RealmLinks(realm_id: String) -> Element {
 #[component]
 fn RealmMediaService(realm_id: String) -> Element {
     rsx! { pages::realm_media_service::RealmMediaService { realm_id } }
+}
+
+#[component]
+fn RealmOrganization(realm_id: String) -> Element {
+    rsx! { pages::realm_organization::RealmOrganization { realm_id } }
 }
 
 #[component]
