@@ -96,6 +96,7 @@ pub fn AccountDevicesPage(account_id: String) -> Element {
                                                     .unwrap_or(false);
                                                 rsx! {
                                                     TableRow {
+                                                        key: "{device_id}",
                                                         TableCell { class: "font-mono text-xs max-w-[260px] truncate".to_string(), "{device_id}" }
                                                         TableCell { "{display_name}" }
                                                         TableCell {

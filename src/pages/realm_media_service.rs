@@ -100,6 +100,7 @@ pub fn RealmMediaService(realm_id: String) -> Element {
                                             div { class: "flex flex-wrap gap-1",
                                                 for src in allowed.iter() {
                                                     Badge {
+                                                        key: "{src}",
                                                         variant: BadgeVariant::Secondary,
                                                         class: "font-mono text-xs".to_string(),
                                                         "{src}"
@@ -122,7 +123,9 @@ pub fn RealmMediaService(realm_id: String) -> Element {
                                         p { class: "text-sm text-muted-foreground", {t("media_service.empty")} }
                                     } else {
                                         for (idx, focus) in foci.iter().enumerate() {
-                                            {render_focus_row(idx, focus)}
+                                            div { key: "{focus.focus_id.clone().unwrap_or_else(|| idx.to_string())}",
+                                                {render_focus_row(idx, focus)}
+                                            }
                                         }
                                     }
                                 }
@@ -190,6 +193,7 @@ fn render_focus_row(idx: usize, focus: &MediaServiceFocus) -> Element {
                         div { class: "flex flex-wrap gap-1",
                             for region in regions.iter() {
                                 Badge {
+                                    key: "{region}",
                                     variant: BadgeVariant::Secondary,
                                     class: "font-mono text-xs".to_string(),
                                     "{region}"

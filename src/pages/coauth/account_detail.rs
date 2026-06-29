@@ -153,6 +153,7 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                                                 let issued_at = grant.issued_at.clone().unwrap_or_else(|| "-".to_string());
                                                 rsx! {
                                                     li { class: "rounded-md border p-3",
+                                                        key: "{grant.grant_id}",
                                                         div { class: "font-mono text-sm", "{grant.grant_id}" }
                                                         div { class: "mt-2 grid gap-2 text-sm md:grid-cols-2",
                                                             {detail_row("Subject", &subject)}

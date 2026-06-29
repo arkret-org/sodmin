@@ -65,6 +65,7 @@ pub fn CapabilityList() -> Element {
                                             let revoked = cap.is_revoked();
                                             rsx! {
                                                 TableRow {
+                                                    key: "{id}",
                                                     TableCell { class: "font-medium".to_string(), "{id}" }
                                                     TableCell { class: "max-w-[180px] truncate".to_string(), "{issuer}" }
                                                     TableCell { class: "max-w-[180px] truncate".to_string(), "{subject}" }

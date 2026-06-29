@@ -19,17 +19,17 @@ const AUTOREFRESH_STORAGE_KEY: &str = "sodmin.federation.autorefresh";
 
 #[component]
 pub fn FederationList() -> Element {
-    let mut peer_cursors = use_signal(|| vec![None::<String>]);
+    let mut op_cursors = use_signal(|| vec![None::<String>]);
     let mut search = use_signal(String::new);
     let mut autorefresh = use_signal(|| auto_refresh::load(AUTOREFRESH_STORAGE_KEY));
 
-    let peer_cursor = peer_cursors.read().last().cloned().unwrap_or(None);
+    let op_cursor = op_cursors.read().last().cloned().unwrap_or(None);
     let search_val = search.read().clone();
 
-    let mut peers = use_resource(move || {
-        let c = peer_cursor.clone();
+    let mut operations = use_resource(move || {
+        let c = op_cursor.clone();
         let s = search_val.clone();
-        async move { federation::list_federation_peers(c.as_deref(), PAGE_SIZE, &s).await }
+        async move { federation::list_federation_operations(c.as_deref(), PAGE_SIZE, &s).await }
     });
 
     let mut interval_handle = use_signal::<Option<gloo_timers::callback::Interval>>(|| None);
@@ -37,9 +37,9 @@ pub fn FederationList() -> Element {
         let choice = *autorefresh.read();
         interval_handle.set(None);
         if let Some(ms) = choice.millis() {
-            let mut peers = peers;
+            let mut operations = operations;
             let handle = gloo_timers::callback::Interval::new(ms, move || {
-                peers.restart();
+                operations.restart();
             });
             interval_handle.set(Some(handle));
         }
@@ -55,11 +55,11 @@ pub fn FederationList() -> Element {
             div { class: "flex items-center gap-4 flex-wrap",
                 div { class: "flex-1 min-w-[240px]",
                     SearchInput {
-                        placeholder: t("federation.domain"),
+                        placeholder: t("federation.search"),
                         value: search.read().clone(),
                         oninput: move |evt: FormEvent| {
                             search.set(evt.value());
-                            peer_cursors.set(vec![None::<String>]);
+                            op_cursors.set(vec![None::<String>]);
                         },
                     }
                 }
@@ -70,56 +70,57 @@ pub fn FederationList() -> Element {
                 }
                 Button {
                     variant: ButtonVariant::Outline,
-                    onclick: move |_| peers.restart(),
+                    onclick: move |_| operations.restart(),
                     {t("common.refresh")}
                 }
             }
 
-            match &*peers.read() {
+            match &*operations.read() {
                 Some(Ok(data)) => {
                     let next_cursor = data.next_cursor.clone();
-                    let depth = peer_cursors.read().len();
+                    let depth = op_cursors.read().len();
                     let search_for_filter = search.read().clone();
                     rsx! {
                         div { class: "rounded-md border",
                             Table {
                                 TableHeader {
                                     TableRow {
-                                        TableHead { {t("federation.domain")} }
-                                        TableHead { {t("federation.status")} }
-                                        TableHead { {t("federation.trust_level")} }
-                                        TableHead { {t("federation.last_successful_txn")} }
-                                        TableHead { {t("federation.last_error")} }
+                                        TableHead { {t("federation.operation_id")} }
+                                        TableHead { {t("federation.realm_id")} }
+                                        TableHead { {t("federation.operation_type")} }
+                                        TableHead { {t("federation.canonical_kind")} }
+                                        TableHead { {t("federation.created_at")} }
                                     }
                                 }
                                 TableBody {
                                     if data.data.is_empty() {
                                         TableRow {
                                             TableCell { class: "text-center text-muted-foreground py-8".to_string(), colspan: 99,
-                                                {t("federation.no_peers")}
+                                                {t("federation.no_operations")}
                                             }
                                         }
                                     } else {
-                                        for peer in data.data.iter().filter(|p| matches_name_or_id(&search_for_filter, &p.domain, None)) {
+                                        for op in data.data.iter().filter(|o| matches_name_or_id(&search_for_filter, &o.operation_id, o.realm_id.as_deref())) {
                                             {
-                                                let domain = peer.domain.clone();
-                                                let status = peer.status.clone().unwrap_or_else(|| "-".to_string());
-                                                let trust_level = peer.trust_level.clone().unwrap_or_else(|| "-".to_string());
-                                                let last_txn = peer.last_successful_txn.clone().unwrap_or_else(|| "-".to_string());
-                                                let last_error = peer.last_error.clone().unwrap_or_else(|| "-".to_string());
+                                                let operation_id = op.operation_id.clone();
+                                                let realm_id = op.realm_id.clone().unwrap_or_else(|| "-".to_string());
+                                                let operation_type = op.operation_type.clone().unwrap_or_else(|| "-".to_string());
+                                                let canonical_kind = op.canonical_kind.clone().unwrap_or_else(|| "-".to_string());
+                                                let created_at = op.created_at.clone().unwrap_or_else(|| "-".to_string());
                                                 rsx! {
                                                     TableRow {
+                                                        key: "{operation_id}",
                                                         TableCell {
                                                             Link {
-                                                                to: Route::FederationShow { domain: urlencoding::encode(&domain).to_string() },
+                                                                to: Route::FederationShow { operation_id: urlencoding::encode(&operation_id).to_string() },
                                                                 class: "font-medium text-primary hover:underline",
-                                                                "{domain}"
+                                                                "{operation_id}"
                                                             }
                                                         }
-                                                        TableCell { Badge { variant: BadgeVariant::Secondary, "{status}" } }
-                                                        TableCell { "{trust_level}" }
-                                                        TableCell { class: "text-muted-foreground".to_string(), "{last_txn}" }
-                                                        TableCell { class: "max-w-[240px] truncate text-muted-foreground".to_string(), "{last_error}" }
+                                                        TableCell { class: "text-muted-foreground".to_string(), "{realm_id}" }
+                                                        TableCell { Badge { variant: BadgeVariant::Secondary, "{operation_type}" } }
+                                                        TableCell { class: "text-muted-foreground".to_string(), "{canonical_kind}" }
+                                                        TableCell { class: "text-muted-foreground".to_string(), "{created_at}" }
                                                     }
                                                 }
                                             }
@@ -132,17 +133,17 @@ pub fn FederationList() -> Element {
                             depth,
                             has_next: next_cursor.is_some(),
                             on_prev: move |_| {
-                                let mut new_stack = peer_cursors.read().clone();
+                                let mut new_stack = op_cursors.read().clone();
                                 if new_stack.len() > 1 {
                                     new_stack.pop();
-                                    peer_cursors.set(new_stack);
+                                    op_cursors.set(new_stack);
                                 }
                             },
                             on_next: move |_| {
                                 if let Some(c) = next_cursor.clone() {
-                                    let mut new_stack = peer_cursors.read().clone();
+                                    let mut new_stack = op_cursors.read().clone();
                                     new_stack.push(Some(c));
-                                    peer_cursors.set(new_stack);
+                                    op_cursors.set(new_stack);
                                 }
                             },
                         }
@@ -154,7 +155,7 @@ pub fn FederationList() -> Element {
                         errcode: e.body.as_ref().map(|b| b.errcode.clone()),
                         request_id: e.request_id.clone(),
                         retry_after_ms: e.retry_after_ms,
-                        on_retry: move |_| peers.restart(),
+                        on_retry: move |_| operations.restart(),
                     }
                 },
                 None => rsx! { PageSkeleton {} },

@@ -3,7 +3,7 @@ use std::collections::BTreeSet;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 
-use crate::api::client::{api_client, build_url, json_body};
+use crate::api::client::{api_client, build_url, json_body, NoBody};
 use crate::types::policy::{
     AdminPolicy, AdminPolicyListOutcome, CreatePolicyRequest, PinPolicySummary, PolicyAuditEntry,
     PolicyEvidenceItem, PolicyGuardrailSummary, PolicySafetySummary,
@@ -92,7 +92,7 @@ pub async fn update_policy(id: &str, req: &CreatePolicyRequest) -> Result<AdminP
 
 pub async fn delete_policy(id: &str) -> Result<(), HttpError> {
     let url = format!("/_soland/self/policies/{}", urlencoding::encode(id));
-    let _: serde_json::Value = api_client(&url, "DELETE", None).await?;
+    let _: NoBody = api_client(&url, "DELETE", None).await?;
     Ok(())
 }
 

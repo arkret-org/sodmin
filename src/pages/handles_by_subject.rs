@@ -107,7 +107,7 @@ pub fn HandlesBySubject(subject: Option<String>) -> Element {
                             Input {
                                 id: "subject-did".to_string(),
                                 r#type: "text".to_string(),
-                                placeholder: "did:web:alice.example".to_string(),
+                                placeholder: "did:webvh:alice.example".to_string(),
                                 value: input.read().clone(),
                                 oninput: move |evt: FormEvent| input.set(evt.value()),
                             }
@@ -272,6 +272,7 @@ fn claim_row(claim: &HandleClaim, primary: Option<&str>) -> Element {
 
     rsx! {
         TableRow {
+            key: "{handle}",
             TableCell { class: "font-mono text-xs".to_string(),
                 div { class: "flex flex-col",
                     div { class: "flex items-center gap-1",

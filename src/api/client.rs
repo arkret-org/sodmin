@@ -9,6 +9,23 @@ use crate::utils::security::crypto::random_token;
 pub const HEADER_REQUEST_ID: &str = "X-Cokret-Request-Id";
 pub const HEADER_IDEMPOTENCY_KEY: &str = "Idempotency-Key";
 
+/// Deserialization target for mutation endpoints whose response body is
+/// irrelevant (only success/failure matters). Tolerates `{}`, `null`, or any
+/// JSON shape without allocating a `serde_json::Value` tree, and works with the
+/// 204 fast-path in [`raw_fetch`] (which feeds `"{}"` / `"null"`).
+#[derive(Debug, Default)]
+pub struct NoBody;
+
+impl<'de> serde::Deserialize<'de> for NoBody {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        serde::de::IgnoredAny::deserialize(deserializer)?;
+        Ok(NoBody)
+    }
+}
+
 const SENSITIVE_QUERY_KEYS: &[&str] = &[
     "access_token",
     "auth",

@@ -110,6 +110,7 @@ pub fn MultiSigPage(realm_id: String) -> Element {
                                                 .unwrap_or(false);
                                             rsx! {
                                                 TableRow {
+                                                    key: "{seal_id}",
                                                     TableCell { class: "font-mono text-xs max-w-[260px] truncate".to_string(), "{seal_id}" }
                                                     TableCell { "{threshold_label}" }
                                                     TableCell {

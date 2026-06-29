@@ -18,7 +18,6 @@ use serde::{Deserialize, Serialize};
 
 pub use cokret_core::models::{
     RealmOrganizationControlScope, RealmOrganizationIssuerRole, RealmOrganizationRelationship,
-    RealmOrganizationStatus,
 };
 
 /// Lifecycle bucket the operator view assigns to a verified relationship row.
@@ -26,7 +25,7 @@ pub use cokret_core::models::{
 /// soland's verified projection (SOL-ORG-06) MUST keep `revoked` / `expired` /
 /// `stale` separate from `active` so the admin never mistakes a dead
 /// relationship for live consent. We mirror that split here instead of
-/// collapsing everything into [`RealmOrganizationStatus`] (which only encodes
+/// collapsing everything into `RealmOrganizationStatus` (which only encodes
 /// the on-wire active/revoked discriminator).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]

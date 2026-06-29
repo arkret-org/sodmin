@@ -10,11 +10,11 @@ use crate::router::Route;
 use crate::utils::i18n::t;
 
 #[component]
-pub fn FederationShow(domain: String) -> Element {
-    let domain_for_resource = domain.clone();
-    let mut peer_data = use_resource(move || {
-        let d = domain_for_resource.clone();
-        async move { federation::get_federation_peer(&d).await }
+pub fn FederationShow(operation_id: String) -> Element {
+    let operation_id_for_resource = operation_id.clone();
+    let mut operation_data = use_resource(move || {
+        let id = operation_id_for_resource.clone();
+        async move { federation::get_federation_operation(&id).await }
     });
 
     rsx! {
@@ -22,34 +22,38 @@ pub fn FederationShow(domain: String) -> Element {
             Breadcrumbs {
                 items: vec![
                     BreadcrumbItem { label: t("federation.title"), route: Some(Route::FederationList {}) },
-                    BreadcrumbItem { label: domain, route: None },
+                    BreadcrumbItem { label: operation_id, route: None },
                 ],
             }
 
-            match &*peer_data.read() {
-                Some(Ok(peer)) => {
-                    let domain = peer.domain.clone();
-                    let status = peer.status.clone().unwrap_or_else(|| "-".to_string());
-                    let trust_level = peer.trust_level.clone().unwrap_or_else(|| "-".to_string());
-                    let last_txn = peer.last_successful_txn.clone().unwrap_or_else(|| "-".to_string());
-                    let last_error = peer.last_error.clone().unwrap_or_else(|| "-".to_string());
-                    let direction = peer.direction.clone().unwrap_or_else(|| "-".to_string());
+            match &*operation_data.read() {
+                Some(Ok(op)) => {
+                    let operation_id = op.operation_id.clone();
+                    let realm_id = op.realm_id.clone().unwrap_or_else(|| "-".to_string());
+                    let operation_type = op.operation_type.clone().unwrap_or_else(|| "-".to_string());
+                    let canonical_kind = op.canonical_kind.clone().unwrap_or_else(|| "-".to_string());
+                    let strand_id = op.strand_id.clone().unwrap_or_else(|| "-".to_string());
+                    let track = op.track.clone().unwrap_or_else(|| "-".to_string());
+                    let digest = op.digest.clone().unwrap_or_else(|| "-".to_string());
+                    let created_at = op.created_at.clone().unwrap_or_else(|| "-".to_string());
                     rsx! {
                         PageHeader {
-                            title: domain.clone(),
-                            description: t("federation.peer_details"),
+                            title: operation_id.clone(),
+                            description: t("federation.operation_details"),
                         }
 
                         Card {
-                            CardHeader { CardTitle { {t("federation.peer_info")} } }
+                            CardHeader { CardTitle { {t("federation.operation_info")} } }
                             CardContent {
                                 div { class: "space-y-4",
-                                    InfoRow { label: t("federation.domain"), value: domain }
-                                    InfoRow { label: t("federation.status"), value: status }
-                                    InfoRow { label: t("federation.trust_level"), value: trust_level }
-                                    InfoRow { label: t("federation.direction"), value: direction }
-                                    InfoRow { label: t("federation.last_successful_txn"), value: last_txn }
-                                    InfoRow { label: t("federation.last_error"), value: last_error }
+                                    InfoRow { label: t("federation.operation_id"), value: operation_id }
+                                    InfoRow { label: t("federation.realm_id"), value: realm_id }
+                                    InfoRow { label: t("federation.operation_type"), value: operation_type }
+                                    InfoRow { label: t("federation.canonical_kind"), value: canonical_kind }
+                                    InfoRow { label: t("federation.strand_id"), value: strand_id }
+                                    InfoRow { label: t("federation.track"), value: track }
+                                    InfoRow { label: t("federation.digest"), value: digest }
+                                    InfoRow { label: t("federation.created_at"), value: created_at }
                                 }
                             }
                         }
@@ -58,7 +62,7 @@ pub fn FederationShow(domain: String) -> Element {
                 Some(Err(e)) => rsx! {
                     ErrorBanner {
                         message: e.message.clone(),
-                        on_retry: move |_| peer_data.restart(),
+                        on_retry: move |_| operation_data.restart(),
                     }
                 },
                 None => rsx! { PageSkeleton {} },

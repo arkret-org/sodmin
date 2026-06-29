@@ -3,7 +3,7 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::api::client::{api_client, build_url};
+use crate::api::client::{api_client, build_url, NoBody};
 use crate::types::CursorPage;
 use crate::utils::net::error::HttpError;
 
@@ -329,7 +329,7 @@ pub async fn add_account_did_binding(
         "did": did,
         "control_proof": control_proof,
     });
-    let _: serde_json::Value = api_client(&url, "POST", Some(body.to_string())).await?;
+    let _: NoBody = api_client(&url, "POST", Some(body.to_string())).await?;
     Ok(())
 }
 
@@ -341,7 +341,7 @@ pub async fn remove_account_did_binding(account_id: &str, did: &str) -> Result<(
         urlencoding::encode(account_id),
         urlencoding::encode(did),
     );
-    let _: serde_json::Value = api_client(&url, "DELETE", None).await?;
+    let _: NoBody = api_client(&url, "DELETE", None).await?;
     Ok(())
 }
 
@@ -351,7 +351,7 @@ pub async fn revoke_account_claim(claim_id: &str) -> Result<(), HttpError> {
         "/_coauth/admin/claims/{}/revoke",
         urlencoding::encode(claim_id),
     );
-    let _: serde_json::Value = api_client(&url, "POST", None).await?;
+    let _: NoBody = api_client(&url, "POST", None).await?;
     Ok(())
 }
 

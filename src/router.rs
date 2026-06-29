@@ -58,8 +58,8 @@ pub enum Route {
 
         #[route("/federation")]
         FederationList {},
-        #[route("/federation/:domain")]
-        FederationShow { domain: String },
+        #[route("/federation/:operation_id")]
+        FederationShow { operation_id: String },
 
         #[route("/devices")]
         DeviceList {},
@@ -325,8 +325,8 @@ fn FederationList() -> Element {
 }
 
 #[component]
-fn FederationShow(domain: String) -> Element {
-    rsx! { pages::federation::show::FederationShow { domain } }
+fn FederationShow(operation_id: String) -> Element {
+    rsx! { pages::federation::show::FederationShow { operation_id } }
 }
 
 #[component]

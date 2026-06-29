@@ -23,14 +23,18 @@ MUST be lowercase ASCII alphanumeric — no `.`/`-`/`_`/`:`.
 
 Examples that pass the SDK normalizer:
 
-* `did:web:admin.example.org`
-* `did:key:z6MkXYZ`
 * `did:webvh:auth.example.net:admin-1`
+* `did:webvh:admin.example.org:ops`
 
-Pick one DID method appropriate for your deployment (`did:web` is the
-typical choice for a self-hosted server). The admin generates the
-keypair on a secure host and publishes the DID document at the
+Always use `did:webvh` (the only DID method accepted by default). The
+admin generates the keypair on a secure host and publishes the
+`did:webvh` document — with its verifiable history log — at the
 location implied by the method.
+
+> `did:web` is **not** a default and **never** a fallback. It is only
+> permitted for explicit no-history `service` / `personal_node` profiles
+> where the deployment has deliberately opted out of webvh history; it
+> MUST NOT be used for administrator or agent identities.
 
 <!-- TODO(screenshot): /agents/personal/new — provision wizard step 1 showing the controller DID field with inline ValidatedInput error -->
 
@@ -138,7 +142,7 @@ read on-call without rendering.
 [provision]
     │
     │  /agents/personal → "Provision new agent" wizard
-    │  - choose DID method (did:key by default; did:web for cross-realm)
+    │  - DID method is did:webvh (the only accepted method)
     │  - generate key pair (browser-side; private key never leaves the wizard)
     │  - paste accountable_principal_ids chain (defaults to the operator's own grant)
     │  - submit

@@ -20,7 +20,7 @@ use crate::utils::security::did;
 #[component]
 pub fn DidInput(
     #[props(default)] class: String,
-    #[props(default = "did:web:example".to_string())] placeholder: String,
+    #[props(default = "did:webvh:example".to_string())] placeholder: String,
     #[props(default)] disabled: bool,
     value: String,
     oninput: EventHandler<FormEvent>,

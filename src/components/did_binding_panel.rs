@@ -107,7 +107,7 @@ pub fn DidBindingPanel(
                     // identical regex to `crate::utils::security::did::is_valid_did`.
                     ValidatedInput {
                         kind: ValidationKind::Did,
-                        placeholder: "did:web:example.org:account:alice".to_string(),
+                        placeholder: "did:webvh:example.org:account:alice".to_string(),
                         value: new_did.read().clone(),
                         oninput: move |evt: FormEvent| new_did.set(evt.value()),
                     }

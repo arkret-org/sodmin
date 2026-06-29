@@ -21,13 +21,48 @@
 //! Sending failures are silently swallowed; telemetry MUST never break
 //! the UI.
 //!
-//! TODO(P5-impl): exponential-backoff batching when the endpoint is
-//! down; currently each call is a fire-and-forget single POST.
+//! Error storms (e.g. soland briefly returning 5xx on every API call) are
+//! bounded by a client-side token-bucket rate limiter: at most
+//! [`MAX_EVENTS_PER_WINDOW`] events are sent per [`WINDOW_MS`]; overflow is
+//! dropped so telemetry never amplifies an outage into a request flood.
+
+use std::cell::RefCell;
+use std::collections::VecDeque;
 
 use serde::Serialize;
 
 use crate::utils::net::error::HttpError;
 use crate::utils::storage;
+
+/// Sliding rate-limit window length, in milliseconds.
+const WINDOW_MS: f64 = 5_000.0;
+/// Maximum telemetry events emitted within any [`WINDOW_MS`] window.
+const MAX_EVENTS_PER_WINDOW: usize = 10;
+
+thread_local! {
+    /// Timestamps (ms since epoch) of recently sent telemetry events, used
+    /// for the sliding-window rate limit. WASM is single-threaded, so a
+    /// thread-local `RefCell` is sufficient and lock-free.
+    static SEND_TIMES: RefCell<VecDeque<f64>> = const { RefCell::new(VecDeque::new()) };
+}
+
+/// Token-bucket gate: returns `true` (and records the send) when another
+/// telemetry event is allowed inside the current window, `false` when the
+/// window is saturated and the event must be dropped.
+fn allow_send() -> bool {
+    let now = js_sys::Date::now();
+    SEND_TIMES.with(|cell| {
+        let mut times = cell.borrow_mut();
+        while times.front().is_some_and(|t| now - *t > WINDOW_MS) {
+            times.pop_front();
+        }
+        if times.len() >= MAX_EVENTS_PER_WINDOW {
+            return false;
+        }
+        times.push_back(now);
+        true
+    })
+}
 
 /// localStorage key for the operator opt-in flag.
 const OPT_IN_KEY: &str = "sodmin_telemetry_opt_in";
@@ -105,6 +140,10 @@ pub fn report_http_error(path: &str, error: &HttpError) {
         Some(e) if !e.is_empty() => e,
         _ => return,
     };
+    // Bound error storms: drop the event when the window is saturated.
+    if !allow_send() {
+        return;
+    }
 
     let errcode = error
         .body
@@ -153,6 +192,10 @@ pub fn report_error(code: &str, context: &str) {
         Some(e) if !e.is_empty() => e,
         _ => return,
     };
+    // Bound error storms: drop the event when the window is saturated.
+    if !allow_send() {
+        return;
+    }
 
     let payload = serde_json::json!({
         "code": code,

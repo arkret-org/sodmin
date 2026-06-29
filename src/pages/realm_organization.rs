@@ -155,7 +155,7 @@ fn VerifiedRelationshipCard(panel: RealmOrganizationPanel) -> Element {
                             p { class: "font-semibold mb-1", {t("realm_organization.declared_only_title")} }
                             ul { class: "list-disc pl-5 space-y-0.5",
                                 for did in declared_only.iter() {
-                                    li { class: "font-mono text-xs", "{did}" }
+                                    li { key: "{did}", class: "font-mono text-xs", "{did}" }
                                 }
                             }
                         }
@@ -168,7 +168,7 @@ fn VerifiedRelationshipCard(panel: RealmOrganizationPanel) -> Element {
                             p { class: "font-semibold mb-1", {t("realm_organization.verified_undeclared_title")} }
                             ul { class: "list-disc pl-5 space-y-0.5",
                                 for did in verified_undeclared.iter() {
-                                    li { class: "font-mono text-xs", "{did}" }
+                                    li { key: "{did}", class: "font-mono text-xs", "{did}" }
                                 }
                             }
                         }
@@ -217,6 +217,7 @@ fn relationship_row(row: &VerifiedOrgRelationship) -> Element {
         .join(", ");
     rsx! {
         TableRow {
+            key: "{row.statement_id}",
             TableCell { class: "font-mono text-xs".to_string(), "{row.organization_id}" }
             TableCell { class: "text-xs".to_string(), {relationship_label(row.relationship)} }
             TableCell { {lifecycle_badge(row.lifecycle)} }
@@ -307,8 +308,15 @@ fn principal_control_row(row: &OrgPrincipalControl) -> Element {
         .map(|s| scope_label(*s))
         .collect::<Vec<_>>()
         .join(", ");
+    // Stable row key: delegation ref is unique per row when present, otherwise
+    // fall back to the org DID + issuer role pair.
+    let row_key = row
+        .account_authority_delegation_ref
+        .clone()
+        .unwrap_or_else(|| format!("{}:{:?}", row.organization_id, row.issuer_role));
     rsx! {
         TableRow {
+            key: "{row_key}",
             TableCell { class: "font-mono text-xs".to_string(), "{row.organization_id}" }
             TableCell { class: "font-mono text-xs".to_string(),
                 {row.controller.clone().unwrap_or_else(|| dash.clone())}

@@ -7,7 +7,7 @@
 
 use serde::Serialize;
 
-use crate::api::client::{api_client, json_body};
+use crate::api::client::{api_client, json_body, NoBody};
 use crate::types::coauth_devices::CoauthDeviceRow;
 use crate::utils::net::error::HttpError;
 
@@ -45,6 +45,6 @@ pub async fn revoke_account_device(
         urlencoding::encode(device_id),
     );
     let body = RevokeDeviceRequestBody { reason };
-    let _: serde_json::Value = api_client(&url, "POST", Some(json_body(&body)?)).await?;
+    let _: NoBody = api_client(&url, "POST", Some(json_body(&body)?)).await?;
     Ok(())
 }

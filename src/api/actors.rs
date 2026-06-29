@@ -1,4 +1,4 @@
-use crate::api::client::{api_client, build_url};
+use crate::api::client::{api_client, build_url, NoBody};
 use crate::types::*;
 use crate::utils::net::error::HttpError;
 
@@ -42,6 +42,6 @@ pub async fn deactivate_account(account_id: &str) -> Result<(), HttpError> {
         "/_soland/admin/accounts/{}/deactivate",
         urlencoding::encode(account_id)
     );
-    let _: serde_json::Value = api_client(&url, "POST", None).await?;
+    let _: NoBody = api_client(&url, "POST", None).await?;
     Ok(())
 }
