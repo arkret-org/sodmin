@@ -62,6 +62,7 @@ pub fn AuthzCapabilitiesPage() -> Element {
                                             let variant = if revoked { BadgeVariant::Destructive } else { BadgeVariant::Success };
                                             rsx! {
                                                 TableRow {
+                                                    key: "{id}",
                                                     TableCell { class: "font-mono text-xs max-w-[220px] truncate".to_string(), "{id}" }
                                                     TableCell { class: "font-mono text-xs max-w-[260px] truncate".to_string(), "{holder}" }
                                                     TableCell { class: "font-mono text-xs max-w-[260px] truncate".to_string(), "{scope}" }

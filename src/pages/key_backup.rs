@@ -256,6 +256,7 @@ pub fn KeyBackupList() -> Element {
                                 } else {
                                     for r in resp.data.iter() {
                                         TableRow {
+                                            key: "{r.receipt_id}",
                                             TableCell { class: "font-mono text-xs".to_string(), "{r.receipt_id}" }
                                             TableCell { class: "font-mono text-xs".to_string(), "{r.recovery_session_id}" }
                                             TableCell { class: "font-mono text-xs".to_string(), "{r.policy_id}" }
@@ -293,6 +294,7 @@ fn render_series_row(s: &KeyBackupSummary) -> Element {
     let created_at = s.created_at.to_rfc3339();
     rsx! {
         TableRow {
+            key: "{s.backup_id}",
             TableCell { class: "font-mono text-xs max-w-[180px] truncate".to_string(), "{s.backup_id}" }
             TableCell { class: "font-mono text-xs max-w-[180px] truncate".to_string(), "{s.actor_id}" }
             TableCell { "{class}" }
@@ -315,6 +317,7 @@ fn render_policy_row(p: &RecoveryPolicySummary) -> Element {
     let expires_at = p.expires_at.clone().unwrap_or_else(|| "-".into());
     rsx! {
         TableRow {
+            key: "{p.policy_id}",
             TableCell { class: "font-mono text-xs".to_string(), "{p.policy_id}" }
             TableCell {
                 Badge { variant: BadgeVariant::Secondary, "v{p.version}" }

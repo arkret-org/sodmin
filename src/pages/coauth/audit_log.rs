@@ -193,6 +193,7 @@ pub fn AuditLogPage() -> Element {
 
                                             rsx! {
                                                 TableRow {
+                                                    key: "{id}",
                                                     TableCell { class: "font-medium".to_string(), "{id}" }
                                                     TableCell { "{op}" }
                                                     TableCell { class: "max-w-[150px] truncate".to_string(), "{actor}" }

@@ -57,6 +57,7 @@ pub fn ActorList() -> Element {
                                         let actor_id = actor.id.clone();
                                         rsx! {
                                             TableRow {
+                                                key: "{actor.id}",
                                                 TableCell { class: "font-mono text-xs",
                                                     Link {
                                                         to: Route::ActorShow { actor_id: actor_id.clone() },

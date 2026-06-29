@@ -35,7 +35,7 @@ pub fn MediaList() -> Element {
                 Some(Ok(stats)) => rsx! {
                     div { class: "grid gap-3 md:grid-cols-4",
                         {metric_tile("Blobs", stats.total_blobs.to_string())}
-                        {metric_tile("Stored", format_bytes(stats.total_size))}
+                        {metric_tile("Stored", yoface::utils::format::format_bytes(stats.total_size))}
                         {metric_tile("Encrypted", stats.encrypted_count.to_string())}
                         {metric_tile("Quarantined", stats.quarantined_count.to_string())}
                     }
@@ -117,7 +117,7 @@ pub fn MediaList() -> Element {
                                                 let media_type = row.media_type.clone().unwrap_or_else(|| "-".to_string());
                                                 let realm_id = row.realm_id.clone().unwrap_or_else(|| "-".to_string());
                                                 let uploaded_by = row.uploaded_by.clone().unwrap_or_else(|| "-".to_string());
-                                                let size = format_bytes(row.size_bytes);
+                                                let size = yoface::utils::format::format_bytes(row.size_bytes);
                                                 let encrypted = if row.encrypted { "yes" } else { "no" };
                                                 let created = row.created_at.clone().unwrap_or_else(|| "-".to_string());
                                                 rsx! {
@@ -197,9 +197,10 @@ fn actor_media_section(
                                 let actor_id = row.actor_id.clone();
                                 let display_name = row.display_name.clone().unwrap_or_else(|| "-".to_string());
                                 let blob_count = row.blob_count.to_string();
-                                let total_size = format_bytes(row.total_size);
+                                let total_size = yoface::utils::format::format_bytes(row.total_size);
                                 rsx! {
                                     TableRow {
+                                        key: "{actor_id}",
                                         TableCell { class: "font-mono text-xs max-w-[260px] truncate".to_string(), "{actor_id}" }
                                         TableCell { "{display_name}" }
                                         TableCell { "{blob_count}" }
@@ -228,20 +229,4 @@ fn media_row_matches(row: &crate::types::MediaRow, needle: &str) -> bool {
     .into_iter()
     .flatten()
     .any(|value| value.to_ascii_lowercase().contains(needle))
-}
-
-fn format_bytes(bytes: u64) -> String {
-    const KB: u64 = 1024;
-    const MB: u64 = 1024 * KB;
-    const GB: u64 = 1024 * MB;
-
-    if bytes >= GB {
-        format!("{:.1} GB", bytes as f64 / GB as f64)
-    } else if bytes >= MB {
-        format!("{:.1} MB", bytes as f64 / MB as f64)
-    } else if bytes >= KB {
-        format!("{:.1} KB", bytes as f64 / KB as f64)
-    } else {
-        format!("{bytes} B")
-    }
 }

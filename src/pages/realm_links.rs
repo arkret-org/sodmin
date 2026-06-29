@@ -165,6 +165,7 @@ fn render_link_row(row: &RealmLinkRow, outbound: bool) -> Element {
 
     rsx! {
         div {
+            key: "{other_realm}-{label}",
             class: "flex flex-wrap items-center gap-2 rounded-md border border-border bg-card px-3 py-2 text-sm",
             Badge {
                 variant: variant,

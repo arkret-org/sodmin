@@ -158,6 +158,7 @@ pub fn DeliveryBindingPolicy(realm_id: String) -> Element {
                                                 let routable = row.in_allowed_list;
                                                 rsx! {
                                                     TableRow {
+                                                        key: "{row.actor_id}",
                                                         TableCell { class: "text-xs".to_string(), "{actor}" }
                                                         TableCell { class: "text-xs font-mono max-w-[260px] truncate".to_string(), "{recipient}" }
                                                         TableCell { class: "text-xs".to_string(), "{status}" }

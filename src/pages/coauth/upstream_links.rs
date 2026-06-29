@@ -64,6 +64,7 @@ pub fn UpstreamLinksPage() -> Element {
 
                                             rsx! {
                                                 TableRow {
+                                                    key: "{id}",
                                                     TableCell { class: "font-medium".to_string(), "{id}" }
                                                     TableCell { class: "max-w-[150px] truncate".to_string(), "{user_id}" }
                                                     TableCell { class: "max-w-[150px] truncate".to_string(), "{provider_id}" }

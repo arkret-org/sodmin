@@ -81,6 +81,7 @@ pub fn RegistrationTokensPage() -> Element {
 
                                             rsx! {
                                                 TableRow {
+                                                    key: "{id}",
                                                     TableCell { class: "font-medium".to_string(), "{id}" }
                                                     TableCell {
                                                         span { class: "font-mono text-xs", "{tok}" }

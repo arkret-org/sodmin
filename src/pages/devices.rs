@@ -64,8 +64,12 @@ pub fn DeviceList() -> Element {
         }
     });
 
-    // Snapshot the currently visible ids for "Select all" semantics.
-    let visible_ids: Vec<String> = match &*data.read() {
+    // Visible id set after filtering the current page. Cached via use_memo keyed
+    // on (data, search): previously the render `for` loop re-applied the same
+    // predicate (including search.read()) over resp.data, running the filter twice
+    // per frame. Now the filter is computed once and shared by render and the
+    // "select all" semantics.
+    let visible_ids_memo = use_memo(move || match &*data.read() {
         Some(Ok(resp)) => resp
             .data
             .iter()
@@ -73,9 +77,10 @@ pub fn DeviceList() -> Element {
                 matches_name_or_id(search.read().as_str(), &d.id, d.display_name.as_deref())
             })
             .map(|d| d.id.clone())
-            .collect(),
+            .collect::<Vec<String>>(),
         _ => Vec::new(),
-    };
+    });
+    let visible_ids: Vec<String> = visible_ids_memo.read().clone();
     let selected_on_page = visible_ids
         .iter()
         .filter(|id| selected.read().contains(id.as_str()))
@@ -207,7 +212,7 @@ pub fn DeviceList() -> Element {
                                             }
                                         }
                                     } else {
-                                        for device in resp.data.iter().filter(|d| matches_name_or_id(search.read().as_str(), &d.id, d.display_name.as_deref())) {
+                                        for device in resp.data.iter().filter(|d| visible_ids.contains(&d.id)) {
                                             {
                                                 let id = device.id.clone();
                                                 let actor_id = device.actor_id.clone().unwrap_or_else(|| "-".to_string());
@@ -228,6 +233,7 @@ pub fn DeviceList() -> Element {
 
                                                 rsx! {
                                                     TableRow {
+                                                        key: "{id}",
                                                         TableCell {
                                                             class: "w-10".to_string(),
                                                             Checkbox {
@@ -235,13 +241,13 @@ pub fn DeviceList() -> Element {
                                                                 aria_label: format!("Select device {}", id),
                                                                 checked: is_checked,
                                                                 onchange: move |_| {
-                                                                    let mut cur = selected.read().clone();
-                                                                    if cur.contains(&id_for_check) {
-                                                                        cur.remove(&id_for_check);
+                                                                    // Mutate in place to avoid cloning the whole HashSet on every toggle.
+                                                                    let mut sel = selected.write();
+                                                                    if sel.contains(&id_for_check) {
+                                                                        sel.remove(&id_for_check);
                                                                     } else {
-                                                                        cur.insert(id_for_check.clone());
+                                                                        sel.insert(id_for_check.clone());
                                                                     }
-                                                                    selected.set(cur);
                                                                 },
                                                             }
                                                         }

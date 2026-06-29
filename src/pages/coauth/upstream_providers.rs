@@ -79,6 +79,7 @@ pub fn UpstreamProvidersPage() -> Element {
 
                                             rsx! {
                                                 TableRow {
+                                                    key: "{id}",
                                                     TableCell { class: "font-medium".to_string(), "{id}" }
                                                     TableCell { class: "max-w-[200px] truncate".to_string(), "{p_issuer}" }
                                                     TableCell { class: "max-w-[150px] truncate".to_string(), "{p_client_id}" }

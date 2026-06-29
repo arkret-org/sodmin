@@ -245,6 +245,7 @@ pub fn AuditLog() -> Element {
 
                                             rsx! {
                                                 TableRow {
+                                                    key: "{id}",
                                                     TableCell { class: "font-medium".to_string(),
                                                         button {
                                                             class: "text-left w-full cursor-pointer",
@@ -276,6 +277,7 @@ pub fn AuditLog() -> Element {
                                                 }
                                                 if is_expanded {
                                                     TableRow {
+                                                        key: "{id}-details",
                                                         TableCell { colspan: 99, class: "p-0".to_string(),
                                                             div { class: "p-4 bg-muted/50",
                                                                 p { class: "text-xs font-medium mb-2", "Details" }

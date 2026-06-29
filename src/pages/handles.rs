@@ -120,6 +120,7 @@ pub fn HandleList() -> Element {
 
                                             rsx! {
                                                 TableRow {
+                                                    key: "{id}",
                                                     TableCell { class: "font-mono text-xs max-w-[260px] truncate".to_string(),
                                                         div { class: "flex flex-col",
                                                             Link { to: Route::HandleShow { handle_id: id_for_link.clone() },
@@ -402,6 +403,7 @@ pub fn HandleShow(handle_id: String) -> Element {
                                                 let reason = ev.reason.clone().unwrap_or_else(|| "-".to_string());
                                                 rsx! {
                                                     TableRow {
+                                                        key: "{ev.id}",
                                                         TableCell { class: "text-xs text-muted-foreground".to_string(), "{when}" }
                                                         TableCell { class: "text-xs font-medium".to_string(), "{action}" }
                                                         TableCell { class: "text-xs font-mono max-w-[180px] truncate".to_string(), "{actor}" }

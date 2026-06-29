@@ -121,6 +121,7 @@ pub fn PolicyList() -> Element {
 
                                                 rsx! {
                                                     TableRow {
+                                                        key: "{id}",
                                                         TableCell { class: "font-medium".to_string(), "{id}" }
                                                         TableCell { "{p_name}" }
                                                         TableCell { "{p_type}" }

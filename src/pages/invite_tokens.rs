@@ -85,6 +85,7 @@ pub fn InviteTokenList() -> Element {
 
                                             rsx! {
                                                 TableRow {
+                                                    key: "{id}",
                                                     TableCell { class: "font-medium".to_string(), "{id}" }
                                                     TableCell {
                                                         div { class: "flex items-center gap-1 max-w-[200px]",
