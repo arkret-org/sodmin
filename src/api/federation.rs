@@ -1,4 +1,4 @@
-use crate::api::client::{api_client, build_url};
+use crate::api::client::{api_client, build_url, NO_BODY};
 use crate::types::*;
 use crate::utils::net::error::HttpError;
 
@@ -18,7 +18,7 @@ pub async fn list_federation_operations(
         params.push(("cursor", c));
     }
     let url = build_url("/_soland/admin/federation", &params)?;
-    let mut resp: ListResponse<FederationOperation> = api_client(&url, "GET", None).await?;
+    let mut resp: ListResponse<FederationOperation> = api_client(&url, "GET", NO_BODY).await?;
     let needle = search.trim().to_ascii_lowercase();
     let data = resp
         .data

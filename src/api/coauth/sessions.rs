@@ -2,7 +2,7 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::api::client::{api_client, build_url};
+use crate::api::client::{api_client, build_url, NO_BODY};
 use crate::types::PaginatedResponse;
 use crate::utils::net::error::HttpError;
 
@@ -65,7 +65,7 @@ pub async fn list_oauth2_sessions(
             ("per_page", &per_page.to_string()),
         ],
     )?;
-    api_client(&url, "GET", None).await
+    api_client(&url, "GET", NO_BODY).await
 }
 
 pub async fn finish_oauth2_session(id: &str) -> Result<(), HttpError> {
@@ -73,7 +73,7 @@ pub async fn finish_oauth2_session(id: &str) -> Result<(), HttpError> {
         "/_coauth/admin/oauth-sessions/{}/finish",
         urlencoding::encode(id)
     );
-    api_client(&url, "POST", None).await
+    api_client(&url, "POST", NO_BODY).await
 }
 
 pub async fn list_personal_sessions(
@@ -87,19 +87,14 @@ pub async fn list_personal_sessions(
             ("per_page", &per_page.to_string()),
         ],
     )?;
-    api_client(&url, "GET", None).await
+    api_client(&url, "GET", NO_BODY).await
 }
 
 pub async fn create_personal_session(
     name: &str,
 ) -> Result<CoauthPersonalSessionOneShot, HttpError> {
     let body = serde_json::json!({ "name": name });
-    api_client(
-        "/_coauth/admin/personal-sessions",
-        "POST",
-        Some(body.to_string()),
-    )
-    .await
+    api_client("/_coauth/admin/personal-sessions", "POST", Some(&body)).await
 }
 
 pub async fn revoke_personal_session(id: &str) -> Result<(), HttpError> {
@@ -107,7 +102,7 @@ pub async fn revoke_personal_session(id: &str) -> Result<(), HttpError> {
         "/_coauth/admin/personal-sessions/{}/revoke",
         urlencoding::encode(id)
     );
-    api_client(&url, "POST", None).await
+    api_client(&url, "POST", NO_BODY).await
 }
 
 pub async fn regenerate_personal_session(
@@ -117,7 +112,7 @@ pub async fn regenerate_personal_session(
         "/_coauth/admin/personal-sessions/{}/regenerate",
         urlencoding::encode(id)
     );
-    api_client(&url, "POST", None).await
+    api_client(&url, "POST", NO_BODY).await
 }
 
 #[cfg(test)]

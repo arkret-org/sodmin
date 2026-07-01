@@ -1,6 +1,6 @@
 use chrono::{DateTime, NaiveDateTime, TimeZone, Utc};
 
-use crate::api::client::{api_client, build_url};
+use crate::api::client::{api_client, build_url, NO_BODY};
 use crate::types::*;
 use crate::utils::net::error::HttpError;
 
@@ -58,7 +58,7 @@ pub async fn list_audit_entries(
     let mut params: Vec<(&str, &str)> = vec![("limit", limit_str.as_str()), ("cursor", &cursor)];
     params.extend(filters.iter().map(|(key, value)| (*key, value.as_str())));
     let url = build_url("/_soland/admin/audit", &params)?;
-    let mut resp: ListResponse<AuditEntry> = api_client(&url, "GET", None).await?;
+    let mut resp: ListResponse<AuditEntry> = api_client(&url, "GET", NO_BODY).await?;
     if !filters.is_empty() {
         resp.data
             .retain(|entry| audit_entry_matches(entry, &filters));

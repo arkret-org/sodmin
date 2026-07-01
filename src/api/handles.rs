@@ -9,7 +9,7 @@
 //! - `POST /_soland/admin/handles/{id}/revoke` — publish a revoke Control Move.
 //! - `POST /_soland/admin/handles/{id}/reassign` — force a re-bind to a new subject DID.
 
-use crate::api::client::{api_client, build_url, json_body};
+use crate::api::client::{api_client, build_url, NO_BODY};
 use crate::types::*;
 use crate::utils::net::error::HttpError;
 
@@ -26,22 +26,22 @@ pub async fn list_handles(
             ("search", search),
         ],
     )?;
-    api_client(&url, "GET", None).await
+    api_client(&url, "GET", NO_BODY).await
 }
 
 pub async fn get_handle(id: &str) -> Result<HandleRecord, HttpError> {
     let url = format!("/_soland/admin/handles/{}", urlencoding::encode(id));
-    api_client(&url, "GET", None).await
+    api_client(&url, "GET", NO_BODY).await
 }
 
 pub async fn get_handle_audit(id: &str) -> Result<ListResponse<HandleAuditEvent>, HttpError> {
     let url = format!("/_soland/admin/handles/{}/audit", urlencoding::encode(id));
-    api_client(&url, "GET", None).await
+    api_client(&url, "GET", NO_BODY).await
 }
 
 pub async fn revoke_handle(id: &str) -> Result<(), HttpError> {
     let url = format!("/_soland/admin/handles/{}/revoke", urlencoding::encode(id));
-    api_client(&url, "POST", None).await
+    api_client(&url, "POST", NO_BODY).await
 }
 
 pub async fn reassign_handle(
@@ -52,5 +52,5 @@ pub async fn reassign_handle(
         "/_soland/admin/handles/{}/reassign",
         urlencoding::encode(id)
     );
-    api_client(&url, "POST", Some(json_body(req)?)).await
+    api_client(&url, "POST", Some(req)).await
 }

@@ -12,7 +12,7 @@
 //! enhancement; for now the page renders the rows as a simple list of
 //! chips.
 
-use crate::api::client::api_client;
+use crate::api::client::{api_client, NO_BODY};
 use crate::types::{RealmLinkDirection, RealmLinkList};
 use crate::utils::net::error::HttpError;
 
@@ -35,5 +35,5 @@ pub async fn list_realm_links(
         urlencoding::encode(realm_id),
         direction_query(direction),
     );
-    api_client(&url, "GET", None).await
+    api_client(&url, "GET", NO_BODY).await
 }

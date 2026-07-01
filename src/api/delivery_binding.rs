@@ -11,7 +11,7 @@
 //! The admin endpoint is
 //! `/_soland/admin/realms/{id}/delivery-binding-policy` (GET only).
 
-use crate::api::client::api_client;
+use crate::api::client::{api_client, NO_BODY};
 use crate::types::*;
 use crate::utils::net::error::HttpError;
 
@@ -22,7 +22,7 @@ pub async fn get_delivery_binding_policy(
         "/_soland/admin/realms/{}/delivery-binding-policy",
         urlencoding::encode(realm_id)
     );
-    api_client(&url, "GET", None).await
+    api_client(&url, "GET", NO_BODY).await
 }
 
 pub async fn list_member_routability(
@@ -32,7 +32,7 @@ pub async fn list_member_routability(
         "/_soland/admin/realms/{}/member-routability",
         urlencoding::encode(realm_id)
     );
-    api_client(&url, "GET", None).await
+    api_client(&url, "GET", NO_BODY).await
 }
 
 pub async fn list_delivery_binding_handovers(
@@ -42,5 +42,5 @@ pub async fn list_delivery_binding_handovers(
         "/_soland/admin/realms/{}/delivery-binding/handovers",
         urlencoding::encode(realm_id)
     );
-    api_client(&url, "GET", None).await
+    api_client(&url, "GET", NO_BODY).await
 }

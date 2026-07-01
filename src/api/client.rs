@@ -1,4 +1,5 @@
 use gloo_net::http::{Headers, Request, RequestBuilder};
+use serde::Serialize;
 use serde::de::DeserializeOwned;
 use web_sys::RequestCredentials;
 
@@ -25,6 +26,10 @@ impl<'de> serde::Deserialize<'de> for NoBody {
         Ok(NoBody)
     }
 }
+
+/// Sentinel for bodyless requests. Fixes `B = ()` so callers write
+/// `api_client(url, method, NO_BODY)` instead of a `None::<()>` turbofish.
+pub const NO_BODY: Option<()> = None;
 
 const SENSITIVE_QUERY_KEYS: &[&str] = &[
     "access_token",
@@ -206,7 +211,7 @@ pub fn format_admin_error(
     (message, error_body)
 }
 
-pub async fn api_client<T: DeserializeOwned>(
+async fn api_client_raw<T: DeserializeOwned>(
     url: &str,
     method: &str,
     body: Option<String>,
@@ -226,6 +231,20 @@ pub async fn api_client<T: DeserializeOwned>(
     }
 
     result
+}
+
+/// Admin API call. `body` is serialized to JSON internally; pass
+/// [`NO_BODY`] for a bodyless GET / DELETE / POST.
+pub async fn api_client<T: DeserializeOwned, B: Serialize>(
+    url: &str,
+    method: &str,
+    body: Option<B>,
+) -> Result<T, HttpError> {
+    let body = match body {
+        Some(value) => Some(json_body(&value)?),
+        None => None,
+    };
+    api_client_raw(url, method, body).await
 }
 
 pub fn build_url(path: &str, params: &[(&str, &str)]) -> Result<String, HttpError> {

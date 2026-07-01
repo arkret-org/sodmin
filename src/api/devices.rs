@@ -1,4 +1,4 @@
-use crate::api::client::{api_client, build_url};
+use crate::api::client::{api_client, build_url, NO_BODY};
 use crate::types::*;
 use crate::utils::net::error::HttpError;
 
@@ -21,12 +21,12 @@ pub async fn list_devices(
         params.push(("filter[name_or_id]", search));
     }
     let url = build_url("/_soland/admin/devices", &params)?;
-    api_client(&url, "GET", None).await
+    api_client(&url, "GET", NO_BODY).await
 }
 
 /// Revoke helper. Revocation is terminal and audit-retaining; sodmin does
 /// not issue physical DELETEs for devices.
 pub async fn revoke_device(id: &str) -> Result<(), HttpError> {
     let url = format!("/_soland/admin/devices/{}/revoke", urlencoding::encode(id));
-    api_client(&url, "POST", None).await
+    api_client(&url, "POST", NO_BODY).await
 }

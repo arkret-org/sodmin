@@ -1,7 +1,7 @@
 //! HTTP client for the Notary / Seal / Bottom admin endpoints exposed by
 //! soland.
 
-use crate::api::client::{api_client, build_url, json_body};
+use crate::api::client::{api_client, build_url, NO_BODY};
 use crate::types::seal::{
     BottomEntry, BottomRepairRequestBody, BottomRepairStrategy, CompactionOutcome,
     CompactionRequestBody, NotaryReconfigRequestBody, NotaryValue, SealDagSnapshot,
@@ -14,7 +14,7 @@ pub async fn get_notary_value(realm_id: &str) -> Result<NotaryValue, HttpError> 
         "/_soland/admin/realms/{}/notary",
         urlencoding::encode(realm_id)
     );
-    api_client(&url, "GET", None).await
+    api_client(&url, "GET", NO_BODY).await
 }
 
 pub async fn submit_notary_reconfig(
@@ -25,12 +25,12 @@ pub async fn submit_notary_reconfig(
         urlencoding::encode(&req.realm_id)
     );
     let body = req.to_reconfigure_body();
-    api_client(&url, "POST", Some(json_body(&body)?)).await
+    api_client(&url, "POST", Some(&body)).await
 }
 
 pub async fn list_bottom_entries_global() -> Result<Vec<BottomEntry>, HttpError> {
     let url = build_url("/_soland/admin/bottom", &[])?;
-    api_client(&url, "GET", None).await
+    api_client(&url, "GET", NO_BODY).await
 }
 
 pub async fn submit_bottom_repair(
@@ -44,7 +44,7 @@ pub async fn submit_bottom_repair(
         urlencoding::encode(cell_id),
     );
     let req = BottomRepairRequestBody { strategy };
-    api_client(&url, "POST", Some(json_body(&req)?)).await
+    api_client(&url, "POST", Some(&req)).await
 }
 
 pub async fn get_seal_dag(realm_id: &str) -> Result<SealDagSnapshot, HttpError> {
@@ -52,7 +52,7 @@ pub async fn get_seal_dag(realm_id: &str) -> Result<SealDagSnapshot, HttpError> 
         "/_soland/admin/realms/{}/seal-dag",
         urlencoding::encode(realm_id)
     );
-    api_client(&url, "GET", None).await
+    api_client(&url, "GET", NO_BODY).await
 }
 
 pub async fn trigger_compaction(realm_id: &str) -> Result<CompactionOutcome, HttpError> {
@@ -64,7 +64,7 @@ pub async fn trigger_compaction(realm_id: &str) -> Result<CompactionOutcome, Htt
         realm_id: realm_id.to_string(),
         max_control_moves: None,
     };
-    api_client(&url, "POST", Some(json_body(&req)?)).await
+    api_client(&url, "POST", Some(&req)).await
 }
 
 #[cfg(test)]

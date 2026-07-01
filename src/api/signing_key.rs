@@ -51,5 +51,5 @@ pub async fn rotate_signing_key(realm_id: &str) -> Result<RotateSigningKeyOutcom
         "/_soland/admin/realms/{}/notary/rotate-signing-key",
         urlencoding::encode(realm_id)
     );
-    api_client(&url, "POST", Some("{}".to_string())).await
+    api_client(&url, "POST", Some(&serde_json::json!({}))).await
 }

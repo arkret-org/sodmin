@@ -3,7 +3,7 @@ use std::collections::BTreeSet;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 
-use crate::api::client::{api_client, build_url, json_body, NoBody};
+use crate::api::client::{api_client, build_url, NoBody, NO_BODY};
 use crate::types::policy::{
     AdminPolicy, AdminPolicyListOutcome, CreatePolicyRequest, PinPolicySummary, PolicyAuditEntry,
     PolicyEvidenceItem, PolicyGuardrailSummary, PolicySafetySummary,
@@ -58,7 +58,7 @@ pub async fn list_policies(
         params.push(("cursor", cursor));
     }
     let url = build_url("/_soland/self/policies", &params)?;
-    let resp: PolicyDocumentsEnvelope = api_client(&url, "GET", None).await?;
+    let resp: PolicyDocumentsEnvelope = api_client(&url, "GET", NO_BODY).await?;
     Ok(AdminPolicyListOutcome {
         data: resp
             .policies
@@ -76,7 +76,7 @@ pub async fn create_policy(req: &CreatePolicyRequest) -> Result<AdminPolicy, Htt
     }
     let body = upsert_body(None, req);
     let resp: PolicyDocumentDto =
-        api_client("/_soland/self/policies", "POST", Some(json_body(&body)?)).await?;
+        api_client("/_soland/self/policies", "POST", Some(&body)).await?;
     Ok(policy_from_document(resp))
 }
 
@@ -86,13 +86,13 @@ pub async fn update_policy(id: &str, req: &CreatePolicyRequest) -> Result<AdminP
     }
     let body = upsert_body(Some(id.to_string()), req);
     let resp: PolicyDocumentDto =
-        api_client("/_soland/self/policies", "POST", Some(json_body(&body)?)).await?;
+        api_client("/_soland/self/policies", "POST", Some(&body)).await?;
     Ok(policy_from_document(resp))
 }
 
 pub async fn delete_policy(id: &str) -> Result<(), HttpError> {
     let url = format!("/_soland/self/policies/{}", urlencoding::encode(id));
-    let _: NoBody = api_client(&url, "DELETE", None).await?;
+    let _: NoBody = api_client(&url, "DELETE", NO_BODY).await?;
     Ok(())
 }
 

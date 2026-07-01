@@ -1,4 +1,4 @@
-use crate::api::client::{api_client, build_url, NoBody};
+use crate::api::client::{api_client, build_url, NoBody, NO_BODY};
 use crate::types::*;
 use crate::utils::net::error::HttpError;
 
@@ -13,7 +13,7 @@ pub async fn list_actors(
         "/_soland/admin/actors",
         &[("limit", &limit.to_string()), ("cursor", &cursor)],
     )?;
-    let mut resp: ListResponse<Actor> = api_client(&url, "GET", None).await?;
+    let mut resp: ListResponse<Actor> = api_client(&url, "GET", NO_BODY).await?;
     let needle = search.trim().to_ascii_lowercase();
     if !needle.is_empty() {
         resp.data.retain(|actor| {
@@ -34,7 +34,7 @@ pub async fn list_actors(
 
 pub async fn get_actor(id: &str) -> Result<Actor, HttpError> {
     let url = format!("/_soland/admin/actors/{}", urlencoding::encode(id));
-    api_client(&url, "GET", None).await
+    api_client(&url, "GET", NO_BODY).await
 }
 
 pub async fn deactivate_account(account_id: &str) -> Result<(), HttpError> {
@@ -42,6 +42,6 @@ pub async fn deactivate_account(account_id: &str) -> Result<(), HttpError> {
         "/_soland/admin/accounts/{}/deactivate",
         urlencoding::encode(account_id)
     );
-    let _: NoBody = api_client(&url, "POST", None).await?;
+    let _: NoBody = api_client(&url, "POST", NO_BODY).await?;
     Ok(())
 }

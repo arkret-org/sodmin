@@ -9,7 +9,7 @@
 //! The admin endpoint is `/_soland/admin/realms/{id}/media-service`
 //! (GET only).
 
-use crate::api::client::api_client;
+use crate::api::client::{api_client, NO_BODY};
 use crate::types::*;
 use crate::utils::net::error::HttpError;
 
@@ -18,5 +18,5 @@ pub async fn get_realm_media_service(realm_id: &str) -> Result<RealmMediaService
         "/_soland/admin/realms/{}/media-service",
         urlencoding::encode(realm_id)
     );
-    api_client(&url, "GET", None).await
+    api_client(&url, "GET", NO_BODY).await
 }

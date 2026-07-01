@@ -173,17 +173,13 @@ pub fn emit_admin_audit_server(
     emit_admin_audit(target, id, action, outcome, note);
 
     let payload = build_client_event(target, id, action, outcome, note);
-    let body = match serde_json::to_string(&payload) {
-        Ok(b) => b,
-        Err(e) => {
-            log::warn!("sodmin.admin.audit_server serialize failed: {e}");
-            return;
-        }
-    };
 
     dioxus::prelude::spawn(async move {
+        // `api_client` serializes `payload` internally; a serialize
+        // failure surfaces as an `HttpError` handled by the branch below.
         let res: Result<crate::api::client::NoBody, _> =
-            crate::api::client::api_client(ADMIN_AUDIT_USER_ACTION_PATH, "POST", Some(body)).await;
+            crate::api::client::api_client(ADMIN_AUDIT_USER_ACTION_PATH, "POST", Some(&payload))
+                .await;
         if let Err(e) = res {
             // Don't toast — this is a fire-and-forget breadcrumb. Just
             // surface in the console for the operator who's actively

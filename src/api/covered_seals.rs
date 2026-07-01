@@ -12,7 +12,7 @@
 //!   hammer (it doesn't replace per-epoch MLS commits) so the page only surfaces it when lag >
 //!   threshold. On 404 the UI surfaces a "not yet wired" toast.
 
-use crate::api::client::api_client;
+use crate::api::client::{api_client, NO_BODY};
 use crate::types::covered_seals::{CoveredSealsAdvanceOutcome, CoveredSealsSnapshot};
 use crate::utils::net::error::HttpError;
 
@@ -22,7 +22,7 @@ pub async fn get_covered_seals(realm_id: &str) -> Result<CoveredSealsSnapshot, H
         "/_soland/admin/realms/{}/mls/covered-seals",
         urlencoding::encode(realm_id)
     );
-    api_client(&url, "GET", None).await
+    api_client(&url, "GET", NO_BODY).await
 }
 
 /// Admin override: manually advance covered_seals so it matches the
@@ -34,5 +34,5 @@ pub async fn advance(realm_id: &str) -> Result<CoveredSealsAdvanceOutcome, HttpE
         "/_soland/admin/realms/{}/mls/covered-seals/advance",
         urlencoding::encode(realm_id)
     );
-    api_client(&url, "POST", Some("{}".to_string())).await
+    api_client(&url, "POST", Some(&serde_json::json!({}))).await
 }

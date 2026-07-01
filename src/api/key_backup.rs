@@ -4,7 +4,7 @@
 
 use cokret_core::models::KeysBackupsList;
 
-use crate::api::client::{api_client, build_url};
+use crate::api::client::{api_client, build_url, NO_BODY};
 use crate::types::{ListResponse, RecoveryPolicySummary, RecoveryReceiptSummary};
 use crate::utils::net::error::HttpError;
 
@@ -50,7 +50,7 @@ pub async fn list_backups(
         params.push(("backup_class", c));
     }
     let url = build_url("/_cokret/self/keys/backups", &params)?;
-    api_client(&url, "GET", None).await
+    api_client(&url, "GET", NO_BODY).await
 }
 
 /// `GET /_soland/root/identity/recovery-policies` — current recovery policies.
@@ -62,7 +62,7 @@ pub async fn list_recovery_policies(
         params.push(("principal_id", principal_id));
     }
     let url = build_url(RECOVERY_POLICIES_PATH, &params)?;
-    let resp: RecoveryPoliciesEnvelope = api_client(&url, "GET", None).await?;
+    let resp: RecoveryPoliciesEnvelope = api_client(&url, "GET", NO_BODY).await?;
     Ok(ListResponse {
         data: resp.policies,
         total: resp.total,
@@ -89,7 +89,7 @@ pub async fn list_recovery_receipts(
         params.push(("principal_id", principal_id));
     }
     let url = build_url(RECOVERY_RECEIPTS_PATH, &params)?;
-    let resp: RecoveryReceiptsEnvelope = api_client(&url, "GET", None).await?;
+    let resp: RecoveryReceiptsEnvelope = api_client(&url, "GET", NO_BODY).await?;
     Ok(ListResponse {
         data: resp.receipts,
         total: resp.total,

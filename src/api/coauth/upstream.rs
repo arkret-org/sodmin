@@ -2,7 +2,7 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::api::client::{api_client, build_url};
+use crate::api::client::{api_client, build_url, NO_BODY};
 use crate::types::PaginatedResponse;
 use crate::utils::net::error::HttpError;
 
@@ -50,18 +50,13 @@ pub async fn list_upstream_providers(
             ("per_page", &per_page.to_string()),
         ],
     )?;
-    api_client(&url, "GET", None).await
+    api_client(&url, "GET", NO_BODY).await
 }
 
 pub async fn create_upstream_provider(
     provider: &serde_json::Value,
 ) -> Result<CoauthUpstreamProvider, HttpError> {
-    api_client(
-        "/_coauth/admin/upstream-oauth-providers",
-        "POST",
-        Some(provider.to_string()),
-    )
-    .await
+    api_client("/_coauth/admin/upstream-oauth-providers", "POST", Some(provider)).await
 }
 
 pub async fn delete_upstream_provider(id: &str) -> Result<(), HttpError> {
@@ -69,7 +64,7 @@ pub async fn delete_upstream_provider(id: &str) -> Result<(), HttpError> {
         "/_coauth/admin/upstream-oauth-providers/{}",
         urlencoding::encode(id)
     );
-    api_client(&url, "DELETE", None).await
+    api_client(&url, "DELETE", NO_BODY).await
 }
 
 pub async fn toggle_upstream_provider(id: &str, enable: bool) -> Result<(), HttpError> {
@@ -79,7 +74,7 @@ pub async fn toggle_upstream_provider(id: &str, enable: bool) -> Result<(), Http
         urlencoding::encode(id),
         action
     );
-    api_client(&url, "POST", None).await
+    api_client(&url, "POST", NO_BODY).await
 }
 
 pub async fn list_upstream_links(
@@ -93,7 +88,7 @@ pub async fn list_upstream_links(
             ("per_page", &per_page.to_string()),
         ],
     )?;
-    api_client(&url, "GET", None).await
+    api_client(&url, "GET", NO_BODY).await
 }
 
 pub async fn delete_upstream_link(id: &str) -> Result<(), HttpError> {
@@ -101,5 +96,5 @@ pub async fn delete_upstream_link(id: &str) -> Result<(), HttpError> {
         "/_coauth/admin/upstream-oauth-links/{}",
         urlencoding::encode(id)
     );
-    api_client(&url, "DELETE", None).await
+    api_client(&url, "DELETE", NO_BODY).await
 }

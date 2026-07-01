@@ -1,4 +1,4 @@
-use crate::api::client::{api_client, build_url};
+use crate::api::client::{api_client, build_url, NO_BODY};
 use crate::types::*;
 use crate::utils::net::error::HttpError;
 
@@ -13,5 +13,5 @@ pub async fn list_capabilities(
         "/_soland/admin/capabilities",
         &[("limit", limit_str.as_str()), ("cursor", &cursor)],
     )?;
-    api_client(&url, "GET", None).await
+    api_client(&url, "GET", NO_BODY).await
 }

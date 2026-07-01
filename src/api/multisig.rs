@@ -13,7 +13,7 @@
 //!
 //! Both routes follow the 404-tolerant pattern.
 
-use crate::api::client::{api_client, json_body};
+use crate::api::client::{api_client, NO_BODY};
 use crate::types::multisig::{
     MultisigPendingOutcome, PendingMultisigSeal, SubmitPartialSignatureOutcome,
     SubmitPartialSignatureRequest,
@@ -26,7 +26,7 @@ pub async fn list_pending(realm_id: &str) -> Result<Vec<PendingMultisigSeal>, Ht
         "/_soland/admin/realms/{}/multisig/pending",
         urlencoding::encode(realm_id)
     );
-    let outcome: MultisigPendingOutcome = api_client(&url, "GET", None).await?;
+    let outcome: MultisigPendingOutcome = api_client(&url, "GET", NO_BODY).await?;
     Ok(outcome.entries)
 }
 
@@ -42,5 +42,5 @@ pub async fn submit_partial(
         urlencoding::encode(seal_id),
     );
     let body = SubmitPartialSignatureRequest { note };
-    api_client(&url, "POST", Some(json_body(&body)?)).await
+    api_client(&url, "POST", Some(&body)).await
 }

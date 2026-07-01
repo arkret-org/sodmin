@@ -1,4 +1,4 @@
-use crate::api::client::{api_client, build_url, json_body, NoBody};
+use crate::api::client::{api_client, build_url, NoBody, NO_BODY};
 use crate::types::*;
 use crate::utils::net::error::HttpError;
 
@@ -12,20 +12,15 @@ pub async fn list_invite_tokens(
         "/_soland/admin/invite-tokens",
         &[("limit", &limit.to_string()), ("cursor", &cursor)],
     )?;
-    api_client(&url, "GET", None).await
+    api_client(&url, "GET", NO_BODY).await
 }
 
 pub async fn create_invite_token(req: &CreateInviteTokenRequest) -> Result<InviteToken, HttpError> {
-    api_client(
-        "/_soland/admin/invite-tokens",
-        "POST",
-        Some(json_body(req)?),
-    )
-    .await
+    api_client("/_soland/admin/invite-tokens", "POST", Some(req)).await
 }
 
 pub async fn delete_invite_token(id: &str) -> Result<(), HttpError> {
     let url = format!("/_soland/admin/invite-tokens/{}", urlencoding::encode(id));
-    let _: NoBody = api_client(&url, "DELETE", None).await?;
+    let _: NoBody = api_client(&url, "DELETE", NO_BODY).await?;
     Ok(())
 }

@@ -3,7 +3,7 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::api::client::{api_client, build_url, NoBody};
+use crate::api::client::{api_client, build_url, NoBody, NO_BODY};
 use crate::types::CursorPage;
 use crate::utils::net::error::HttpError;
 
@@ -240,7 +240,7 @@ pub async fn list_accounts_cursor(
     }
     let url = build_url(ACCOUNTS_PATH, &params)?;
     let resp: CoauthAdminPaginatedEnvelope<CoauthAdminAccountRecord> =
-        api_client(&url, "GET", None).await?;
+        api_client(&url, "GET", NO_BODY).await?;
     let summaries: Vec<CoauthAccountSummary> = resp
         .data
         .unwrap_or_default()
@@ -274,18 +274,18 @@ pub async fn get_account_detail(id: &str) -> Result<CoauthAccountDetail, HttpErr
         urlencoding::encode(id)
     );
     let summary: CoauthAdminSingleEnvelope<CoauthAdminAccountRecord> =
-        api_client(&summary_url, "GET", None).await?;
-    let dids: CoauthAdminDidBindingsEnvelope = api_client(&dids_url, "GET", None).await?;
-    let claims: CoauthAccountClaimsEnvelope = api_client(&claims_url, "GET", None).await?;
+        api_client(&summary_url, "GET", NO_BODY).await?;
+    let dids: CoauthAdminDidBindingsEnvelope = api_client(&dids_url, "GET", NO_BODY).await?;
+    let claims: CoauthAccountClaimsEnvelope = api_client(&claims_url, "GET", NO_BODY).await?;
     let session_grants: CoauthAccountSessionGrantsEnvelope =
-        api_client(&grants_url, "GET", None).await?;
-    let bridge: CoauthAdminBridgeDescribe = api_client(bridge_url, "GET", None).await?;
+        api_client(&grants_url, "GET", NO_BODY).await?;
+    let bridge: CoauthAdminBridgeDescribe = api_client(bridge_url, "GET", NO_BODY).await?;
     let integration_manifest: CoauthIntegrationManifest =
-        api_client(integration_manifest_url, "GET", None).await?;
+        api_client(integration_manifest_url, "GET", NO_BODY).await?;
     let current: CoauthAdminSingleEnvelope<CoauthAccountRiskActionCurrentState> =
-        api_client(&current_url, "GET", None).await?;
+        api_client(&current_url, "GET", NO_BODY).await?;
     let history: CoauthAccountRiskActionHistoryEnvelopeShared =
-        api_client(&history_url, "GET", None).await?;
+        api_client(&history_url, "GET", NO_BODY).await?;
     let account = map_admin_account_summary_resource(summary.data);
     Ok(CoauthAccountDetail {
         claims: claims
@@ -329,7 +329,7 @@ pub async fn add_account_did_binding(
         "did": did,
         "control_proof": control_proof,
     });
-    let _: NoBody = api_client(&url, "POST", Some(body.to_string())).await?;
+    let _: NoBody = api_client(&url, "POST", Some(&body)).await?;
     Ok(())
 }
 
@@ -341,7 +341,7 @@ pub async fn remove_account_did_binding(account_id: &str, did: &str) -> Result<(
         urlencoding::encode(account_id),
         urlencoding::encode(did),
     );
-    let _: NoBody = api_client(&url, "DELETE", None).await?;
+    let _: NoBody = api_client(&url, "DELETE", NO_BODY).await?;
     Ok(())
 }
 
@@ -351,7 +351,7 @@ pub async fn revoke_account_claim(claim_id: &str) -> Result<(), HttpError> {
         "/_coauth/admin/claims/{}/revoke",
         urlencoding::encode(claim_id),
     );
-    let _: NoBody = api_client(&url, "POST", None).await?;
+    let _: NoBody = api_client(&url, "POST", NO_BODY).await?;
     Ok(())
 }
 
@@ -363,13 +363,10 @@ pub async fn submit_account_risk_action(
         "/_coauth/admin/accounts/{}/risk-action",
         urlencoding::encode(id)
     );
-    let body = serde_json::json!({
-        "action": draft.action,
-        "reason": draft.reason,
-        "ticket": draft.ticket,
-        "approved_by": draft.approved_by,
-    });
-    api_client(&url, "POST", Some(body.to_string())).await
+    // `CoauthAccountRiskActionDraft` is a re-export of
+    // `coauth_admin_types::AccountRiskActionProposalRequestBody`, so the
+    // draft is already the exact request-body shape coauth deserializes.
+    api_client(&url, "POST", Some(draft)).await
 }
 
 pub async fn approve_account_risk_action(
@@ -382,14 +379,9 @@ pub async fn approve_account_risk_action(
         urlencoding::encode(id),
         urlencoding::encode(proposal_id)
     );
-    let body = serde_json::json!({
-        "action": draft.action,
-        "ticket": draft.ticket,
-        "approved_by": draft.approved_by,
-        "approval_note": draft.approval_note,
-        "approval_proof_jws": draft.approval_proof_jws,
-    });
-    api_client(&url, "POST", Some(body.to_string())).await
+    // `CoauthAccountRiskActionApprovalDraft` is a re-export of
+    // `coauth_admin_types::AccountRiskActionApprovalRequestBody`.
+    api_client(&url, "POST", Some(draft)).await
 }
 
 pub async fn execute_account_risk_action(
@@ -402,12 +394,9 @@ pub async fn execute_account_risk_action(
         urlencoding::encode(id),
         urlencoding::encode(proposal_id)
     );
-    let body = serde_json::json!({
-        "action": draft.action,
-        "ticket": draft.ticket,
-        "execution_note": draft.execution_note,
-    });
-    api_client(&url, "POST", Some(body.to_string())).await
+    // `CoauthAccountRiskActionExecuteDraft` is a re-export of
+    // `coauth_admin_types::AccountRiskActionExecuteRequestBody`.
+    api_client(&url, "POST", Some(draft)).await
 }
 
 fn map_admin_account_summary_resource(

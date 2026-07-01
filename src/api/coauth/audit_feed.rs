@@ -2,7 +2,7 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::api::client::{api_client, build_url};
+use crate::api::client::{api_client, build_url, NO_BODY};
 use crate::types::PaginatedResponse;
 use crate::utils::net::error::HttpError;
 
@@ -78,5 +78,5 @@ pub async fn list_audit_feed(
         params.push((k, v.as_str()));
     }
     let url = build_url(AUDIT_FEED_PATH, &params)?;
-    api_client(&url, "GET", None).await
+    api_client(&url, "GET", NO_BODY).await
 }

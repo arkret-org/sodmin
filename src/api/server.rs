@@ -1,4 +1,4 @@
-use crate::api::client::api_client;
+use crate::api::client::{api_client, NO_BODY};
 use crate::types::*;
 use crate::utils::net::error::HttpError;
 
@@ -8,26 +8,26 @@ const SERVER_STATUS_PATH: &str = "/_soland/admin/server/status";
 const SERVER_STATS_PATH: &str = "/_soland/admin/server/stats";
 
 pub async fn get_server_info() -> Result<ServerInfo, HttpError> {
-    api_client(SERVER_INFO_PATH, "GET", None).await
+    api_client(SERVER_INFO_PATH, "GET", NO_BODY).await
 }
 
 pub async fn get_server_describe() -> Result<ServerDescribeDocument, HttpError> {
-    api_client(SERVER_DESCRIBE_PATH, "GET", None).await
+    api_client(SERVER_DESCRIBE_PATH, "GET", NO_BODY).await
 }
 
 pub async fn get_coauth_server_describe() -> Result<ServerDescribeDocument, HttpError> {
     let url = crate::utils::net::session::coauth_public_url()
         .map(|base| format!("{}/_cokret/describe", base.trim_end_matches('/')))
         .unwrap_or_else(|| "/_cokret/describe".to_string());
-    api_client(&url, "GET", None).await
+    api_client(&url, "GET", NO_BODY).await
 }
 
 pub async fn get_server_stats() -> Result<ServerStats, HttpError> {
-    api_client(SERVER_STATS_PATH, "GET", None).await
+    api_client(SERVER_STATS_PATH, "GET", NO_BODY).await
 }
 
 pub async fn get_server_status() -> Result<ServerStatusOutcome, HttpError> {
-    api_client(SERVER_STATUS_PATH, "GET", None).await
+    api_client(SERVER_STATUS_PATH, "GET", NO_BODY).await
 }
 
 #[derive(Debug, Clone, serde::Serialize)]
@@ -45,7 +45,7 @@ pub async fn destroy_realm(
     _body: &DestroyRealmRequest,
 ) -> Result<serde_json::Value, HttpError> {
     let url = format!("/_soland/admin/realms/{}", urlencoding::encode(realm_id));
-    api_client(&url, "DELETE", None).await
+    api_client(&url, "DELETE", NO_BODY).await
 }
 
 pub async fn retry_realm_destroy(
@@ -53,7 +53,7 @@ pub async fn retry_realm_destroy(
     _body: &RetryRealmDestroyRequest,
 ) -> Result<serde_json::Value, HttpError> {
     let url = format!("/_soland/admin/realms/{}", urlencoding::encode(realm_id));
-    api_client(&url, "DELETE", None).await
+    api_client(&url, "DELETE", NO_BODY).await
 }
 
 /// T8.3 — `/health` envelope deserialized for the hardening dashboard.
@@ -69,7 +69,7 @@ pub struct HealthEnvelope {
 /// block; older soland builds without the field still parse cleanly
 /// (Option::None).
 pub async fn get_soland_health() -> Result<HealthEnvelope, HttpError> {
-    api_client("/health", "GET", None).await
+    api_client("/health", "GET", NO_BODY).await
 }
 
 /// T8.3 — fetch coauth `/health` against the configured upstream URL.
@@ -77,7 +77,7 @@ pub async fn get_coauth_health() -> Result<HealthEnvelope, HttpError> {
     let url = crate::utils::net::session::coauth_public_url()
         .map(|base| format!("{}/health", base.trim_end_matches('/')))
         .unwrap_or_else(|| "/health".to_string());
-    api_client(&url, "GET", None).await
+    api_client(&url, "GET", NO_BODY).await
 }
 
 /// T8.3 — fetch starid `/health` against the configured upstream URL.
@@ -85,5 +85,5 @@ pub async fn get_starid_health() -> Result<HealthEnvelope, HttpError> {
     let url = crate::utils::net::session::starid_public_url()
         .map(|base| format!("{}/health", base.trim_end_matches('/')))
         .unwrap_or_else(|| "/health".to_string());
-    api_client(&url, "GET", None).await
+    api_client(&url, "GET", NO_BODY).await
 }

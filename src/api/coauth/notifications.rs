@@ -5,7 +5,7 @@ pub use coauth_admin_types::{
     NotificationTemplateEntry as CoauthNotificationTemplate,
 };
 
-use crate::api::client::api_client;
+use crate::api::client::{api_client, NO_BODY};
 use crate::utils::net::error::HttpError;
 
 const NOTIFICATION_CHANNELS_PATH: &str = "/_coauth/admin/notification-channels";
@@ -13,7 +13,7 @@ const NOTIFICATION_TEMPLATES_PATH: &str = "/_coauth/admin/notification-templates
 
 pub async fn list_notification_channels() -> Result<Vec<CoauthNotificationChannel>, HttpError> {
     let resp: coauth_admin_types::NotificationChannelsOutcome =
-        api_client(NOTIFICATION_CHANNELS_PATH, "GET", None).await?;
+        api_client(NOTIFICATION_CHANNELS_PATH, "GET", NO_BODY).await?;
     Ok(resp.channels)
 }
 
@@ -23,6 +23,6 @@ pub async fn list_notification_channels() -> Result<Vec<CoauthNotificationChanne
 /// instead of pretending there's a paging cursor.
 pub async fn list_notification_templates() -> Result<Vec<CoauthNotificationTemplate>, HttpError> {
     let resp: coauth_admin_types::NotificationTemplatesOutcome =
-        api_client(NOTIFICATION_TEMPLATES_PATH, "GET", None).await?;
+        api_client(NOTIFICATION_TEMPLATES_PATH, "GET", NO_BODY).await?;
     Ok(resp.templates)
 }

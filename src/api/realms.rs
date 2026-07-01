@@ -1,4 +1,4 @@
-use crate::api::client::{api_client, build_url};
+use crate::api::client::{api_client, build_url, NO_BODY};
 use crate::types::*;
 use crate::utils::net::error::HttpError;
 
@@ -17,10 +17,10 @@ pub async fn list_realms(
         params.push(("filter[search]", search));
     }
     let url = build_url("/_soland/admin/realms", &params)?;
-    api_client(&url, "GET", None).await
+    api_client(&url, "GET", NO_BODY).await
 }
 
 pub async fn get_realm(id: &str) -> Result<AdminRealm, HttpError> {
     let url = format!("/_soland/admin/realms/{}", urlencoding::encode(id));
-    api_client(&url, "GET", None).await
+    api_client(&url, "GET", NO_BODY).await
 }

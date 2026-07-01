@@ -5,7 +5,7 @@
 //! response — service DID + protocol version, head version_id, witness
 //! count, and freshness.
 
-use crate::api::client::api_client;
+use crate::api::client::{api_client, NO_BODY};
 pub use crate::api::contracts::starid::StaridDescribe;
 use crate::utils::net::error::HttpError;
 use crate::utils::net::session;
@@ -26,7 +26,7 @@ pub async fn get_describe() -> Result<Result<StaridDescribe, HttpError>, StaridN
         "{}/_cokret/root/identity/describe",
         base.trim_end_matches('/')
     );
-    Ok(api_client(&url, "GET", None).await)
+    Ok(api_client(&url, "GET", NO_BODY).await)
 }
 
 #[cfg(test)]

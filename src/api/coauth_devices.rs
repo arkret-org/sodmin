@@ -7,7 +7,7 @@
 
 use serde::Serialize;
 
-use crate::api::client::{api_client, json_body, NoBody};
+use crate::api::client::{api_client, NoBody, NO_BODY};
 use crate::types::coauth_devices::CoauthDeviceRow;
 use crate::utils::net::error::HttpError;
 
@@ -26,7 +26,7 @@ pub async fn list_account_devices(account_id: &str) -> Result<Vec<CoauthDeviceRo
         "/_coauth/admin/accounts/{}/devices",
         urlencoding::encode(account_id)
     );
-    let resp: CoauthDevicesEnvelope = api_client(&path, "GET", None).await?;
+    let resp: CoauthDevicesEnvelope = api_client(&path, "GET", NO_BODY).await?;
     Ok(resp.data)
 }
 
@@ -45,6 +45,6 @@ pub async fn revoke_account_device(
         urlencoding::encode(device_id),
     );
     let body = RevokeDeviceRequestBody { reason };
-    let _: NoBody = api_client(&url, "POST", Some(json_body(&body)?)).await?;
+    let _: NoBody = api_client(&url, "POST", Some(&body)).await?;
     Ok(())
 }

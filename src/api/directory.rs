@@ -12,7 +12,7 @@
 //! expose this endpoint yet — the page surfaces the error to the
 //! operator rather than crashing.
 
-use crate::api::client::{api_client, json_body};
+use crate::api::client::api_client;
 use crate::types::{DirectorySubjectHandleList, ListHandlesForSubjectRequest};
 use crate::utils::net::error::HttpError;
 
@@ -26,5 +26,5 @@ pub const LIST_HANDLES_FOR_SUBJECT: &str = "/_cokret/find/directory/list-handles
 pub async fn list_handles_for_subject(
     req: &ListHandlesForSubjectRequest,
 ) -> Result<DirectorySubjectHandleList, HttpError> {
-    api_client(LIST_HANDLES_FOR_SUBJECT, "POST", Some(json_body(req)?)).await
+    api_client(LIST_HANDLES_FOR_SUBJECT, "POST", Some(req)).await
 }
