@@ -12,7 +12,7 @@
 //!   hammer (it doesn't replace per-epoch MLS commits) so the page only surfaces it when lag >
 //!   threshold. On 404 the UI surfaces a "not yet wired" toast.
 
-use crate::api::client::{api_client, NO_BODY};
+use crate::api::client::{NO_BODY, api_client};
 use crate::types::covered_seals::{CoveredSealsAdvanceOutcome, CoveredSealsSnapshot};
 use crate::utils::net::error::HttpError;
 

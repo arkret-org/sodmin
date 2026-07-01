@@ -2,7 +2,7 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::api::client::{api_client, build_url, NO_BODY};
+use crate::api::client::{NO_BODY, api_client, build_url};
 use crate::types::PaginatedResponse;
 use crate::utils::net::error::HttpError;
 
@@ -56,7 +56,12 @@ pub async fn list_upstream_providers(
 pub async fn create_upstream_provider(
     provider: &serde_json::Value,
 ) -> Result<CoauthUpstreamProvider, HttpError> {
-    api_client("/_coauth/admin/upstream-oauth-providers", "POST", Some(provider)).await
+    api_client(
+        "/_coauth/admin/upstream-oauth-providers",
+        "POST",
+        Some(provider),
+    )
+    .await
 }
 
 pub async fn delete_upstream_provider(id: &str) -> Result<(), HttpError> {

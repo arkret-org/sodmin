@@ -3,7 +3,7 @@ use std::collections::BTreeSet;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 
-use crate::api::client::{api_client, build_url, NoBody, NO_BODY};
+use crate::api::client::{NO_BODY, NoBody, api_client, build_url};
 use crate::types::policy::{
     AdminPolicy, AdminPolicyListOutcome, CreatePolicyRequest, PinPolicySummary, PolicyAuditEntry,
     PolicyEvidenceItem, PolicyGuardrailSummary, PolicySafetySummary,
@@ -75,8 +75,7 @@ pub async fn create_policy(req: &CreatePolicyRequest) -> Result<AdminPolicy, Htt
         return Err(pin_policy_unavailable_error());
     }
     let body = upsert_body(None, req);
-    let resp: PolicyDocumentDto =
-        api_client("/_soland/self/policies", "POST", Some(&body)).await?;
+    let resp: PolicyDocumentDto = api_client("/_soland/self/policies", "POST", Some(&body)).await?;
     Ok(policy_from_document(resp))
 }
 
@@ -85,8 +84,7 @@ pub async fn update_policy(id: &str, req: &CreatePolicyRequest) -> Result<AdminP
         return Err(pin_policy_unavailable_error());
     }
     let body = upsert_body(Some(id.to_string()), req);
-    let resp: PolicyDocumentDto =
-        api_client("/_soland/self/policies", "POST", Some(&body)).await?;
+    let resp: PolicyDocumentDto = api_client("/_soland/self/policies", "POST", Some(&body)).await?;
     Ok(policy_from_document(resp))
 }
 

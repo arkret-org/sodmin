@@ -5,7 +5,7 @@ pub use coauth_admin_types::{
     NotificationTemplateEntry as CoauthNotificationTemplate,
 };
 
-use crate::api::client::{api_client, NO_BODY};
+use crate::api::client::{NO_BODY, api_client};
 use crate::utils::net::error::HttpError;
 
 const NOTIFICATION_CHANNELS_PATH: &str = "/_coauth/admin/notification-channels";

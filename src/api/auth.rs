@@ -314,13 +314,11 @@ pub async fn handle_oauth_callback(code: &str, state: Option<&str>) -> Result<()
 
     match crate::api::coauth::get_viewer().await {
         Ok(viewer_resp) => {
-            storage::set_item("user_id", &viewer_resp.sub);
-            if let Some(name) = viewer_resp.display_name {
-                storage::set_item("user_display_name", &name);
+            storage::set_item("user_id", viewer_resp.principal_id.as_str());
+            if let Some(profile) = viewer_resp.profile.as_ref() {
+                storage::set_item("user_display_name", &profile.display_name);
             }
-            if let Some(url) = viewer_resp.avatar_url {
-                storage::set_item("user_avatar_url", &url);
-            }
+            storage::remove_item("user_avatar_url");
         }
         Err(err) => {
             log::warn!("OAuth viewer fetch failed after token exchange: {}", err);
@@ -435,8 +433,15 @@ pub async fn verify_admin() -> Result<bool, HttpError> {
     }
 
     let viewer = crate::api::coauth::get_viewer().await?;
-    storage::set_item("is_admin", if viewer.is_admin { "true" } else { "false" });
-    Ok(viewer.is_admin)
+    storage::set_item(
+        "is_admin",
+        if viewer.is_server_admin {
+            "true"
+        } else {
+            "false"
+        },
+    );
+    Ok(viewer.is_server_admin)
 }
 
 pub fn cached_is_admin() -> Option<bool> {

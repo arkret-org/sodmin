@@ -5,7 +5,7 @@
 //! response — service DID + protocol version, head version_id, witness
 //! count, and freshness.
 
-use crate::api::client::{api_client, NO_BODY};
+use crate::api::client::{NO_BODY, api_client};
 pub use crate::api::contracts::starid::StaridDescribe;
 use crate::utils::net::error::HttpError;
 use crate::utils::net::session;

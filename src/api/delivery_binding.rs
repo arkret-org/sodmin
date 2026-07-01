@@ -11,7 +11,7 @@
 //! The admin endpoint is
 //! `/_soland/admin/realms/{id}/delivery-binding-policy` (GET only).
 
-use crate::api::client::{api_client, NO_BODY};
+use crate::api::client::{NO_BODY, api_client};
 use crate::types::*;
 use crate::utils::net::error::HttpError;
 

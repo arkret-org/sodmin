@@ -2,21 +2,18 @@
 //!
 //! Read-only operator surface that answers two questions an admin must be able
 //! to answer at a glance:
-//!   * **SOD-ORG-01** — "Who claims to own/govern this Realm, and did the
-//!     organization actually consent?" Shows the verified relationship rows
-//!     from soland's projection next to the declared-only `owning_organizations`
-//!     set, diffing the two. `revoked` / `expired` / `stale` rows are bucketed
-//!     separately and never counted as verified.
-//!   * **SOD-ORG-02** — "Who controls the organization principal, and through
-//!     what proof?" Shows controller / governance service / Account-Authority
-//!     delegation / PCR bootstrap source and the `executed_by` executor (which
-//!     is explicitly NOT the organization principal / a shared account).
-//!     Expiring / revoked delegations are highlighted.
-//!   * **SOD-ORG-03** — security operation entry points (revoke / renew
-//!     delegation, revoke realm relationship). These are skeleton-only: each
-//!     button shows the impact scope and is wired to a TODO that MUST call the
-//!     coauth / soland standard authorization API — sodmin never edits the DB
-//!     or emits product-private events directly.
+//!   * **SOD-ORG-01** — "Who claims to own/govern this Realm, and did the organization actually
+//!     consent?" Shows the verified relationship rows from soland's projection next to the
+//!     declared-only `owning_organizations` set, diffing the two. `revoked` / `expired` / `stale`
+//!     rows are bucketed separately and never counted as verified.
+//!   * **SOD-ORG-02** — "Who controls the organization principal, and through what proof?" Shows
+//!     controller / governance service / Account-Authority delegation / PCR bootstrap source and
+//!     the `executed_by` executor (which is explicitly NOT the organization principal / a shared
+//!     account). Expiring / revoked delegations are highlighted.
+//!   * **SOD-ORG-03** — security operation entry points (revoke / renew delegation, revoke realm
+//!     relationship). These are skeleton-only: each button shows the impact scope and is wired to a
+//!     TODO that MUST call the coauth / soland standard authorization API — sodmin never edits the
+//!     DB or emits product-private events directly.
 //!
 //! Route: `/realms/:realm_id/organization`.
 //!
@@ -242,14 +239,21 @@ fn relationship_row(row: &VerifiedOrgRelationship) -> Element {
 /// `active` so they are never read as verified consent.
 fn lifecycle_badge(lc: RelationshipLifecycle) -> Element {
     let (variant, key) = match lc {
-        RelationshipLifecycle::Active => (BadgeVariant::Success, "realm_organization.lifecycle_active"),
-        RelationshipLifecycle::Revoked => {
-            (BadgeVariant::Destructive, "realm_organization.lifecycle_revoked")
+        RelationshipLifecycle::Active => {
+            (BadgeVariant::Success, "realm_organization.lifecycle_active")
         }
-        RelationshipLifecycle::Expired => {
-            (BadgeVariant::Destructive, "realm_organization.lifecycle_expired")
-        }
-        RelationshipLifecycle::Stale => (BadgeVariant::Secondary, "realm_organization.lifecycle_stale"),
+        RelationshipLifecycle::Revoked => (
+            BadgeVariant::Destructive,
+            "realm_organization.lifecycle_revoked",
+        ),
+        RelationshipLifecycle::Expired => (
+            BadgeVariant::Destructive,
+            "realm_organization.lifecycle_expired",
+        ),
+        RelationshipLifecycle::Stale => (
+            BadgeVariant::Secondary,
+            "realm_organization.lifecycle_stale",
+        ),
     };
     rsx! { Badge { variant, {t(key)} } }
 }
@@ -360,15 +364,18 @@ fn principal_control_row(row: &OrgPrincipalControl) -> Element {
 fn delegation_badge(lc: DelegationLifecycle) -> Element {
     let (variant, key) = match lc {
         DelegationLifecycle::Live => (BadgeVariant::Success, "realm_organization.delegation_live"),
-        DelegationLifecycle::ExpiringSoon => {
-            (BadgeVariant::Outline, "realm_organization.delegation_expiring")
-        }
-        DelegationLifecycle::Expired => {
-            (BadgeVariant::Destructive, "realm_organization.delegation_expired")
-        }
-        DelegationLifecycle::Revoked => {
-            (BadgeVariant::Destructive, "realm_organization.delegation_revoked")
-        }
+        DelegationLifecycle::ExpiringSoon => (
+            BadgeVariant::Outline,
+            "realm_organization.delegation_expiring",
+        ),
+        DelegationLifecycle::Expired => (
+            BadgeVariant::Destructive,
+            "realm_organization.delegation_expired",
+        ),
+        DelegationLifecycle::Revoked => (
+            BadgeVariant::Destructive,
+            "realm_organization.delegation_revoked",
+        ),
     };
     rsx! { Badge { variant, {t(key)} } }
 }
@@ -439,7 +446,9 @@ fn relationship_label(r: RealmOrganizationRelationship) -> String {
         RealmOrganizationRelationship::Owner => "realm_organization.rel_owner",
         RealmOrganizationRelationship::Governance => "realm_organization.rel_governance",
         RealmOrganizationRelationship::Sponsor => "realm_organization.rel_sponsor",
-        RealmOrganizationRelationship::DirectoryCertifier => "realm_organization.rel_directory_certifier",
+        RealmOrganizationRelationship::DirectoryCertifier => {
+            "realm_organization.rel_directory_certifier"
+        }
     };
     t(key)
 }
@@ -447,8 +456,12 @@ fn relationship_label(r: RealmOrganizationRelationship) -> String {
 fn issuer_role_label(r: RealmOrganizationIssuerRole) -> String {
     let key = match r {
         RealmOrganizationIssuerRole::OrganizationDid => "realm_organization.role_organization_did",
-        RealmOrganizationIssuerRole::GovernanceService => "realm_organization.role_governance_service",
-        RealmOrganizationIssuerRole::AccountAuthority => "realm_organization.role_account_authority",
+        RealmOrganizationIssuerRole::GovernanceService => {
+            "realm_organization.role_governance_service"
+        }
+        RealmOrganizationIssuerRole::AccountAuthority => {
+            "realm_organization.role_account_authority"
+        }
         RealmOrganizationIssuerRole::ThresholdQuorum => "realm_organization.role_threshold_quorum",
     };
     t(key)

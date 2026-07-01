@@ -24,12 +24,12 @@ pub mod realm_destroy;
 /// R3.1 (MID-3) — Realm identity audit diagnostic page.
 pub mod realm_identity_audit;
 pub mod realm_links;
+/// R3 (UI-3) — Realm `media_service.foci[]` read-only view.
+pub mod realm_media_service;
 /// SOD-ORG-01..03 — Realm verified organization relationship + organization
 /// principal control / delegation audit + security operation entry points
 /// (mock-backed; SOL-ORG-06 + COA-ORG-05 pending).
 pub mod realm_organization;
-/// R3 (UI-3) — Realm `media_service.foci[]` read-only view.
-pub mod realm_media_service;
 pub mod realms;
 pub mod seal_bottom;
 pub mod server_status;

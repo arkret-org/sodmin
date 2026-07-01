@@ -7,7 +7,7 @@
 //! Per-space hierarchy views are assembled client-side from the same snapshot;
 //! soland does not expose a dedicated hierarchy endpoint.
 
-use crate::api::client::{api_client, build_url, NO_BODY};
+use crate::api::client::{NO_BODY, api_client, build_url};
 use crate::types::api::ListResponse;
 use crate::types::spaces::{SpaceHierarchy, SpaceHierarchyNode, SpaceRow};
 use crate::utils::net::error::HttpError;

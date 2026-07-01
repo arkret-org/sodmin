@@ -1,10 +1,8 @@
 //! Realm organization control API client (SOD-ORG-01..03).
 //!
 //! The backing endpoints are not wired yet:
-//!   * soland's verified Realm organization projection (SOL-ORG-06) for the
-//!     relationship panel; and
-//!   * coauth's organization-principal admin API (COA-ORG-05) for the
-//!     delegation / PCR audit view.
+//!   * soland's verified Realm organization projection (SOL-ORG-06) for the relationship panel; and
+//!   * coauth's organization-principal admin API (COA-ORG-05) for the delegation / PCR audit view.
 //!
 //! Until those land, these read paths return **empty** panels so the page
 //! renders an explicit "feature not yet live" empty state. No fabricated

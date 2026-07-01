@@ -12,7 +12,7 @@
 //! enhancement; for now the page renders the rows as a simple list of
 //! chips.
 
-use crate::api::client::{api_client, NO_BODY};
+use crate::api::client::{NO_BODY, api_client};
 use crate::types::{RealmLinkDirection, RealmLinkList};
 use crate::utils::net::error::HttpError;
 

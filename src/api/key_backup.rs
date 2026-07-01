@@ -4,7 +4,7 @@
 
 use cokret_core::models::KeysBackupsList;
 
-use crate::api::client::{api_client, build_url, NO_BODY};
+use crate::api::client::{NO_BODY, api_client, build_url};
 use crate::types::{ListResponse, RecoveryPolicySummary, RecoveryReceiptSummary};
 use crate::utils::net::error::HttpError;
 

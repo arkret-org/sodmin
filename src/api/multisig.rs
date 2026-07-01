@@ -13,7 +13,7 @@
 //!
 //! Both routes follow the 404-tolerant pattern.
 
-use crate::api::client::{api_client, NO_BODY};
+use crate::api::client::{NO_BODY, api_client};
 use crate::types::multisig::{
     MultisigPendingOutcome, PendingMultisigSeal, SubmitPartialSignatureOutcome,
     SubmitPartialSignatureRequest,

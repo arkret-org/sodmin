@@ -2,7 +2,7 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::api::client::{api_client, build_url, NO_BODY};
+use crate::api::client::{NO_BODY, api_client, build_url};
 use crate::types::PaginatedResponse;
 use crate::utils::net::error::HttpError;
 
@@ -47,7 +47,12 @@ pub async fn create_registration_token(
     uses_allowed: Option<u64>,
 ) -> Result<CoauthRegistrationToken, HttpError> {
     let body = serde_json::json!({ "uses_allowed": uses_allowed });
-    api_client("/_coauth/admin/user-registration-tokens", "POST", Some(&body)).await
+    api_client(
+        "/_coauth/admin/user-registration-tokens",
+        "POST",
+        Some(&body),
+    )
+    .await
 }
 
 pub async fn revoke_registration_token(id: &str) -> Result<(), HttpError> {

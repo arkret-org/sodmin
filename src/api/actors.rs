@@ -1,4 +1,4 @@
-use crate::api::client::{api_client, build_url, NoBody, NO_BODY};
+use crate::api::client::{NO_BODY, NoBody, api_client, build_url};
 use crate::types::*;
 use crate::utils::net::error::HttpError;
 

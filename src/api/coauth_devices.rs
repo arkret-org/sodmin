@@ -7,7 +7,7 @@
 
 use serde::Serialize;
 
-use crate::api::client::{api_client, NoBody, NO_BODY};
+use crate::api::client::{NO_BODY, NoBody, api_client};
 use crate::types::coauth_devices::CoauthDeviceRow;
 use crate::utils::net::error::HttpError;
 

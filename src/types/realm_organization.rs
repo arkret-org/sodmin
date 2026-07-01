@@ -7,18 +7,15 @@
 //! issuer-role / scope vocabulary plus coauth delegation metadata.
 //!
 //! Real data is not yet available:
-//!   * SOD-ORG-01 data depends on soland's verified Realm organization
-//!     projection (SOL-ORG-06).
-//!   * SOD-ORG-02 data depends on coauth's organization-principal admin API
-//!     (COA-ORG-05).
+//!   * SOD-ORG-01 data depends on soland's verified Realm organization projection (SOL-ORG-06).
+//!   * SOD-ORG-02 data depends on coauth's organization-principal admin API (COA-ORG-05).
 //! Until those land, the `api::realm_organization` layer returns mock rows
 //! constructed from these DTOs (see the TODO markers there).
-
-use serde::{Deserialize, Serialize};
 
 pub use cokret_core::models::{
     RealmOrganizationControlScope, RealmOrganizationIssuerRole, RealmOrganizationRelationship,
 };
+use serde::{Deserialize, Serialize};
 
 /// Lifecycle bucket the operator view assigns to a verified relationship row.
 ///
