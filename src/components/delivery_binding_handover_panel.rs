@@ -10,11 +10,12 @@
 //! - Distinguish a fresh failure from a `historical_only` cached replay — the latter is diagnostic
 //!   only and MUST NOT be presented as a "fresh action" indicator.
 
+use cokret_core::ErrorCode;
 use dioxus::prelude::*;
 
 use crate::components::ui::badge::{Badge, BadgeVariant};
 use crate::components::ui::card::*;
-use crate::types::{DeliveryBindingHandoverReason, DeliveryBindingHandoverRow};
+use crate::types::DeliveryBindingHandoverRow;
 use crate::utils::i18n::t;
 
 #[derive(Props, Clone, PartialEq)]
@@ -51,19 +52,19 @@ pub fn DeliveryBindingHandoverPanel(props: DeliveryBindingHandoverPanelProps) ->
 fn render_row(row: &DeliveryBindingHandoverRow) -> Element {
     let reason = row.classified_reason();
     let (border_class, badge_variant, code_label, explainer_key) = match reason {
-        Some(DeliveryBindingHandoverReason::DeliveryBindingStale) => (
+        Some(ErrorCode::DeliveryBindingStale) => (
             "border-red-600/40 bg-red-600/10",
             BadgeVariant::Destructive,
             "delivery_binding_stale".to_string(),
             "delivery_binding.handover.stale_explainer",
         ),
-        Some(DeliveryBindingHandoverReason::DeliveryBindingHandedOver) => (
+        Some(ErrorCode::DeliveryBindingHandedOver) => (
             "border-red-600/40 bg-red-600/10",
             BadgeVariant::Destructive,
             "delivery_binding_handed_over".to_string(),
             "delivery_binding.handover.handed_over_explainer",
         ),
-        Some(DeliveryBindingHandoverReason::HistoricalOnly) => (
+        Some(ErrorCode::HistoricalOnly) => (
             // historical_only is a diagnostic, NOT a fresh-action
             // marker. Use the muted secondary tone so operators don't
             // misread it as a new failure.
@@ -72,7 +73,7 @@ fn render_row(row: &DeliveryBindingHandoverRow) -> Element {
             "historical_only".to_string(),
             "delivery_binding.handover.historical_only_explainer",
         ),
-        None => (
+        Some(_) | None => (
             "border-muted",
             BadgeVariant::Secondary,
             row.reason_code
@@ -162,7 +163,7 @@ mod tests {
         };
         assert_eq!(
             stale.classified_reason(),
-            Some(DeliveryBindingHandoverReason::DeliveryBindingStale)
+            Some(ErrorCode::DeliveryBindingStale)
         );
 
         let handed_over = DeliveryBindingHandoverRow {
@@ -171,7 +172,7 @@ mod tests {
         };
         assert_eq!(
             handed_over.classified_reason(),
-            Some(DeliveryBindingHandoverReason::DeliveryBindingHandedOver)
+            Some(ErrorCode::DeliveryBindingHandedOver)
         );
 
         let historical = DeliveryBindingHandoverRow {
@@ -180,7 +181,7 @@ mod tests {
         };
         assert_eq!(
             historical.classified_reason(),
-            Some(DeliveryBindingHandoverReason::HistoricalOnly)
+            Some(ErrorCode::HistoricalOnly)
         );
     }
 }

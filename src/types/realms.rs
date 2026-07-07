@@ -1,5 +1,6 @@
 //! DTO shapes for the Realm admin surface.
 
+use cokret_core::{Discoverability, HistoryVisibility, JoinRule};
 use serde::{Deserialize, Serialize};
 
 use crate::types::HandleClaim;
@@ -17,7 +18,7 @@ pub struct AdminRealm {
     #[serde(default)]
     pub title: Option<String>,
     #[serde(default)]
-    pub discoverability: Option<String>,
+    pub discoverability: Option<Discoverability>,
     #[serde(default)]
     pub created_by: Option<String>,
     #[serde(default)]
@@ -33,12 +34,32 @@ pub struct AdminRealm {
     #[serde(default)]
     pub created_at: Option<String>,
     #[serde(default, rename = "default_join_rule")]
-    pub join_rule: Option<String>,
+    pub join_rule: Option<JoinRule>,
     #[serde(default)]
-    pub history_visibility: Option<String>,
+    pub history_visibility: Option<HistoryVisibility>,
     /// CKP-0007 (P3A.6) — `principal_control` vs `collaboration`.
     #[serde(default)]
     pub realm_class: Option<String>,
+}
+
+impl AdminRealm {
+    pub fn discoverability_label(&self) -> Option<String> {
+        self.discoverability.as_ref().map(wire_label)
+    }
+
+    pub fn join_rule_label(&self) -> Option<String> {
+        self.join_rule.as_ref().map(wire_label)
+    }
+}
+
+fn wire_label<T>(value: &T) -> String
+where
+    T: Serialize,
+{
+    serde_json::to_value(value)
+        .ok()
+        .and_then(|value| value.as_str().map(ToOwned::to_owned))
+        .unwrap_or_else(|| "-".to_owned())
 }
 
 /// MID-3 — read-only row in the per-Realm identity-audit diagnostic

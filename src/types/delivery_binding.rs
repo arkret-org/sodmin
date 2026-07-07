@@ -1,5 +1,6 @@
 //! DTO shapes for the delivery-binding admin surface.
 
+use cokret_core::ErrorCode;
 use serde::{Deserialize, Serialize};
 
 // ── Delivery binding policy (T6.2 §3) ──
@@ -42,26 +43,6 @@ pub struct MemberRoutabilityRow {
 //     delivery_binding_stale / delivery_binding_handed_over /
 //     historical_only) ──────────────────────────────────────────────
 
-/// Round 4 — discriminated reason a delivery-binding handover row
-/// surfaces. The first two are wire-breaking failures the operator must
-/// act on; `HistoricalOnly` is a 200 diagnostic that documents a
-/// cached-replay response and MUST NOT be presented as a fresh action.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum DeliveryBindingHandoverReason {
-    /// `delivery_binding_stale` (HTTP 409). Recipient rejected the
-    /// envelope because its binding has moved on. Retry against
-    /// `new_recipient_service_did` at/after `handover_frontier`.
-    DeliveryBindingStale,
-    /// `delivery_binding_handed_over` (HTTP 409). Recipient has
-    /// permanently handed delivery off; submissions MUST switch to
-    /// `new_recipient_service_did`.
-    DeliveryBindingHandedOver,
-    /// `historical_only` (HTTP 200, diagnostic). Cached replay against a
-    /// prior key state. Information only — NOT a fresh action.
-    HistoricalOnly,
-}
-
 /// Round 4 — one row in the delivery-binding handover panel. Surfaces
 /// the new error-code triple plus the redirect target + frontier the
 /// handover advertises.
@@ -90,16 +71,17 @@ pub struct DeliveryBindingHandoverRow {
 }
 
 impl DeliveryBindingHandoverRow {
-    pub fn classified_reason(&self) -> Option<DeliveryBindingHandoverReason> {
-        match self.reason_code.as_deref() {
-            Some("delivery_binding_stale") => {
-                Some(DeliveryBindingHandoverReason::DeliveryBindingStale)
-            }
-            Some("delivery_binding_handed_over") => {
-                Some(DeliveryBindingHandoverReason::DeliveryBindingHandedOver)
-            }
-            Some("historical_only") => Some(DeliveryBindingHandoverReason::HistoricalOnly),
-            _ => None,
-        }
+    pub fn classified_reason(&self) -> Option<ErrorCode> {
+        self.reason_code
+            .as_deref()
+            .and_then(ErrorCode::from_wire)
+            .filter(|reason| {
+                matches!(
+                    *reason,
+                    ErrorCode::DeliveryBindingStale
+                        | ErrorCode::DeliveryBindingHandedOver
+                        | ErrorCode::HistoricalOnly
+                )
+            })
     }
 }

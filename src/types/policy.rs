@@ -4,6 +4,74 @@ use serde::{Deserialize, Serialize};
 
 // ── Policy types ──
 
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(transparent)]
+pub struct PolicyDocumentPayload(serde_json::Value);
+
+impl Default for PolicyDocumentPayload {
+    fn default() -> Self {
+        Self(serde_json::json!({}))
+    }
+}
+
+impl PolicyDocumentPayload {
+    pub fn as_value(&self) -> &serde_json::Value {
+        &self.0
+    }
+}
+
+impl From<serde_json::Value> for PolicyDocumentPayload {
+    fn from(value: serde_json::Value) -> Self {
+        Self(value)
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(transparent)]
+pub struct PolicyRuleSet(serde_json::Value);
+
+impl Default for PolicyRuleSet {
+    fn default() -> Self {
+        Self(serde_json::json!({}))
+    }
+}
+
+impl PolicyRuleSet {
+    pub fn as_value(&self) -> &serde_json::Value {
+        &self.0
+    }
+
+    pub fn into_value(self) -> serde_json::Value {
+        self.0
+    }
+}
+
+impl From<serde_json::Value> for PolicyRuleSet {
+    fn from(value: serde_json::Value) -> Self {
+        Self(value)
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(transparent)]
+pub struct PolicyResource(serde_json::Value);
+
+impl From<serde_json::Value> for PolicyResource {
+    fn from(value: serde_json::Value) -> Self {
+        Self(value)
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(transparent)]
+pub struct PolicyObligation(serde_json::Value);
+
+impl From<serde_json::Value> for PolicyObligation {
+    fn from(value: serde_json::Value) -> Self {
+        Self(value)
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq)]
 pub struct AdminPolicy {
     #[serde(default)]
@@ -17,7 +85,7 @@ pub struct AdminPolicy {
     #[serde(default)]
     pub scope: Option<String>,
     #[serde(default)]
-    pub rules: Option<serde_json::Value>,
+    pub rules: Option<PolicyRuleSet>,
     #[serde(default)]
     pub is_enabled: bool,
     #[serde(default)]
@@ -41,7 +109,7 @@ pub struct PolicyGuardrailSummary {
     #[serde(default)]
     pub audit_trail: Vec<PolicyAuditEntry>,
     #[serde(default)]
-    pub obligations: Vec<serde_json::Value>,
+    pub obligations: Vec<PolicyObligation>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq)]
@@ -110,7 +178,7 @@ pub struct CreatePolicyRequest {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub scope: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub rules: Option<serde_json::Value>,
+    pub rules: Option<PolicyRuleSet>,
     #[serde(default)]
     pub is_enabled: bool,
     #[serde(default)]
