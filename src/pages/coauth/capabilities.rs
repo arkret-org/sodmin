@@ -15,11 +15,11 @@ const PAGE_SIZE: u64 = 25;
 #[component]
 pub fn AuthzCapabilitiesPage() -> Element {
     let mut page = use_signal(|| 1u64);
+    let mut data = use_resource(move || {
+        let page_val = *page.read();
+        async move { capabilities::list_capabilities(page_val, PAGE_SIZE).await }
+    });
     let page_val = *page.read();
-    let mut data =
-        use_resource(
-            move || async move { capabilities::list_capabilities(page_val, PAGE_SIZE).await },
-        );
 
     rsx! {
         div { class: "space-y-6",
@@ -80,7 +80,7 @@ pub fn AuthzCapabilitiesPage() -> Element {
 
                     Pagination {
                         page: page_val,
-                        total: resp.total_or_len(),
+                        total: resp.total_or_page_floor(page_val, PAGE_SIZE),
                         per_page: PAGE_SIZE,
                         on_page_change: move |p| page.set(p),
                     }

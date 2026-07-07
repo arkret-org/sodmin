@@ -57,17 +57,16 @@ pub async fn list_spaces(
 }
 
 pub async fn get_space(space_id: &str) -> Result<SpaceHierarchy, HttpError> {
-    let page = list_spaces(None, 10_000, "").await?;
-    let Some(center) = page.data.iter().find(|row| row.id == space_id).cloned() else {
+    let rows = list_all_spaces().await?;
+    let Some(center) = rows.iter().find(|row| row.id == space_id).cloned() else {
         return Err(HttpError::message("space not found in admin snapshot"));
     };
     let parent = center
         .parent_space_id
         .as_ref()
-        .and_then(|parent_id| page.data.iter().find(|row| row.id == *parent_id))
+        .and_then(|parent_id| rows.iter().find(|row| row.id == *parent_id))
         .map(space_node);
-    let children = page
-        .data
+    let children = rows
         .iter()
         .filter(|row| row.parent_space_id.as_deref() == Some(space_id))
         .map(space_node)
@@ -78,6 +77,22 @@ pub async fn get_space(space_id: &str) -> Result<SpaceHierarchy, HttpError> {
         parent,
         children,
     })
+}
+
+async fn list_all_spaces() -> Result<Vec<SpaceRow>, HttpError> {
+    let mut cursor = None::<String>;
+    let mut rows = Vec::new();
+    loop {
+        let page = list_spaces(cursor.as_deref(), 1000, "").await?;
+        rows.extend(page.data);
+        match page.next_cursor {
+            Some(next) if !next.is_empty() && cursor.as_deref() != Some(next.as_str()) => {
+                cursor = Some(next);
+            }
+            _ => break,
+        }
+    }
+    Ok(rows)
 }
 
 fn space_node(row: &SpaceRow) -> SpaceHierarchyNode {

@@ -13,9 +13,7 @@
 
 use dioxus::prelude::*;
 
-use crate::components::ui::input::Input;
-use crate::utils::i18n::t;
-use crate::utils::security::did;
+use crate::components::validated_input::{ValidatedInput, ValidationKind};
 
 #[component]
 pub fn DidInput(
@@ -25,21 +23,14 @@ pub fn DidInput(
     value: String,
     oninput: EventHandler<FormEvent>,
 ) -> Element {
-    let trimmed = value.trim();
-    let show_error = !trimmed.is_empty() && !did::is_valid_did(trimmed);
-
     rsx! {
-        div { class: "space-y-1 {class}",
-            Input {
-                r#type: "text".to_string(),
-                placeholder,
-                value: value.clone(),
-                disabled,
-                oninput: move |evt| oninput.call(evt),
-            }
-            if show_error {
-                p { class: "text-xs text-destructive font-mono", {t("did_input.invalid")} }
-            }
+        ValidatedInput {
+            class,
+            placeholder,
+            disabled,
+            kind: ValidationKind::Did,
+            value,
+            oninput,
         }
     }
 }

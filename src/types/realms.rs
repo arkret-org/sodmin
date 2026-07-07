@@ -50,6 +50,13 @@ impl AdminRealm {
     pub fn join_rule_label(&self) -> Option<String> {
         self.join_rule.as_ref().map(wire_label)
     }
+
+    pub fn type_label(&self) -> String {
+        self.realm_class
+            .as_deref()
+            .unwrap_or("collaboration")
+            .to_owned()
+    }
 }
 
 fn wire_label<T>(value: &T) -> String

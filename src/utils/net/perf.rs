@@ -8,10 +8,8 @@ thread_local! {
     static LATENCY_SAMPLES: RefCell<Vec<f64>> = const { RefCell::new(Vec::new()) };
 }
 
-/// Record an API call metric. Only `duration_ms` is retained; the
-/// other fetch metadata used to be stored too but no surface consumed
-/// it.
-pub fn record_api_call(_url: &str, _method: &str, duration_ms: f64, _status: u16) {
+/// Record an API call latency sample.
+pub fn record_api_call(duration_ms: f64) {
     LATENCY_SAMPLES.with(|m| {
         let mut samples = m.borrow_mut();
         samples.push(duration_ms);

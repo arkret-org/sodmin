@@ -14,7 +14,7 @@ mod utils;
 use dioxus::prelude::*;
 
 fn main() {
-    dioxus_logger::init(dioxus_logger::tracing::Level::INFO).expect("failed to init logger");
+    let _ = dioxus_logger::init(dioxus_logger::tracing::Level::INFO);
 
     components::theme::apply_theme();
     utils::i18n::sync_document_language();

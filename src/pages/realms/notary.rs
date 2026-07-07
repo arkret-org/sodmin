@@ -60,13 +60,10 @@ pub fn NotaryPage(realm_id: String) -> Element {
     // away from the page.
     let mut last_response = use_signal::<Option<SubmitControlMoveOutcome>>(|| None);
 
-    // Best-effort admin DID. Used both for the spec-rule pre-check
-    // ("new notary cannot self-sign itself in") and for the warning
-    // banner that prompts the operator to re-check their admin scope
-    // before submitting. `user_id` is what the OAuth callback persists;
-    // for did:key admins this is the did string itself, for opaque
-    // admins it's a stable id we still treat as the DID for comparison.
-    let admin_did: Option<String> = session::current_user().id.filter(|s| !s.is_empty());
+    // Best-effort admin DID. Only DID-shaped session ids participate in the
+    // client-side self-sign pre-check; opaque account ids must not be treated
+    // as DIDs. The server remains the authoritative enforcement point.
+    let admin_did: Option<String> = session::current_user().id.filter(|s| s.starts_with("did:"));
     let admin_did_for_submit = admin_did.clone();
     let admin_did_for_modal = admin_did.clone();
 

@@ -264,8 +264,8 @@ pub fn KeyBackupList() -> Element {
                                                 "{r.completed_at.clone().unwrap_or_else(|| \"-\".into())}"
                                             }
                                             TableCell {
-                                                if r.outcome == "success" {
-                                                    Badge { variant: BadgeVariant::Default, "success" }
+                                                if r.outcome == "completed" {
+                                                    Badge { variant: BadgeVariant::Default, "completed" }
                                                 } else {
                                                     Badge { variant: BadgeVariant::Outline, "{r.outcome}" }
                                                 }

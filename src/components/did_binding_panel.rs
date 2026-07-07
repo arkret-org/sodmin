@@ -11,7 +11,7 @@
 
 use dioxus::prelude::*;
 
-use crate::api::coauth::{self, CoauthManagedDidBinding};
+use crate::api::coauth::{self, CoauthDidBindingKind, CoauthManagedDidBinding};
 use crate::components::ui::button::{Button, ButtonVariant};
 use crate::components::ui::dialog::ConfirmDialog;
 use crate::components::ui::input::Label;
@@ -25,7 +25,9 @@ pub fn DidBindingPanel(
     on_mutated: EventHandler<()>,
 ) -> Element {
     let mut new_did = use_signal(String::new);
-    let mut new_control_proof = use_signal(String::new);
+    let mut new_kind = use_signal(|| "primary".to_string());
+    let mut new_control_proof_jws = use_signal(String::new);
+    let mut new_control_proof_nonce = use_signal(String::new);
     let mut submit_in_flight = use_signal(|| false);
     let mut submit_error = use_signal(|| None::<String>);
 
@@ -99,7 +101,7 @@ pub fn DidBindingPanel(
             div { class: "rounded-md border p-3 space-y-3",
                 h3 { class: "text-sm font-semibold", "Add DID Binding" }
                 p { class: "text-xs text-muted-foreground",
-                    "Both fields are required. The control_proof is an opaque blob the backend forwards to the DID resolver."
+                    "DID, binding kind, proof JWS, and nonce are required."
                 }
                 div { class: "space-y-2",
                     Label { r#for: "new-did".to_string(), "DID" }
@@ -113,14 +115,32 @@ pub fn DidBindingPanel(
                     }
                 }
                 div { class: "space-y-2",
-                    Label { r#for: "new-control-proof".to_string(), "Control Proof" }
-                    // P5 — Required validation gives the operator inline
-                    // feedback when they tab through an empty field.
+                    Label { r#for: "new-kind".to_string(), "Kind" }
+                    select {
+                        class: "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm",
+                        value: new_kind.read().clone(),
+                        onchange: move |evt: Event<FormData>| new_kind.set(evt.value()),
+                        option { value: "primary", "Primary" }
+                        option { value: "recovery", "Recovery" }
+                        option { value: "pairwise", "Pairwise" }
+                    }
+                }
+                div { class: "space-y-2",
+                    Label { r#for: "new-control-proof-jws".to_string(), "Control Proof JWS" }
                     ValidatedInput {
                         kind: ValidationKind::Required,
-                        placeholder: "base64url-encoded signed challenge".to_string(),
-                        value: new_control_proof.read().clone(),
-                        oninput: move |evt: FormEvent| new_control_proof.set(evt.value()),
+                        placeholder: "compact JWS".to_string(),
+                        value: new_control_proof_jws.read().clone(),
+                        oninput: move |evt: FormEvent| new_control_proof_jws.set(evt.value()),
+                    }
+                }
+                div { class: "space-y-2",
+                    Label { r#for: "new-control-proof-nonce".to_string(), "Control Proof Nonce" }
+                    ValidatedInput {
+                        kind: ValidationKind::Required,
+                        placeholder: "nonce from the signed binding statement".to_string(),
+                        value: new_control_proof_nonce.read().clone(),
+                        oninput: move |evt: FormEvent| new_control_proof_nonce.set(evt.value()),
                     }
                 }
 
@@ -134,20 +154,33 @@ pub fn DidBindingPanel(
                     variant: ButtonVariant::Default,
                     disabled: *submit_in_flight.read()
                         || new_did.read().trim().is_empty()
-                        || new_control_proof.read().trim().is_empty(),
+                        || new_control_proof_jws.read().trim().is_empty()
+                        || new_control_proof_nonce.read().trim().is_empty(),
                     onclick: {
                         let account_id = account_id.clone();
                         move |_| {
                             let account_id = account_id.clone();
                             let did = new_did.read().trim().to_string();
-                            let proof = new_control_proof.read().trim().to_string();
+                            let kind = did_binding_kind_from_form(&new_kind.read());
+                            let proof_jws = new_control_proof_jws.read().trim().to_string();
+                            let proof_nonce = new_control_proof_nonce.read().trim().to_string();
                             spawn(async move {
                                 submit_in_flight.set(true);
                                 submit_error.set(None);
-                                match coauth::add_account_did_binding(&account_id, &did, &proof).await {
+                                match coauth::add_account_did_binding(
+                                    &account_id,
+                                    &did,
+                                    kind,
+                                    &proof_jws,
+                                    &proof_nonce,
+                                )
+                                .await
+                                {
                                     Ok(()) => {
                                         new_did.set(String::new());
-                                        new_control_proof.set(String::new());
+                                        new_kind.set("primary".to_string());
+                                        new_control_proof_jws.set(String::new());
+                                        new_control_proof_nonce.set(String::new());
                                         submit_in_flight.set(false);
                                         on_mutated.call(());
                                     }
@@ -223,5 +256,13 @@ fn format_err(e: &HttpError) -> String {
     match e.status {
         0 => format!("Network error: {}", e.message),
         s => format!("HTTP {}: {}", s, e.message),
+    }
+}
+
+fn did_binding_kind_from_form(value: &str) -> CoauthDidBindingKind {
+    match value {
+        "recovery" => CoauthDidBindingKind::Recovery,
+        "pairwise" => CoauthDidBindingKind::Pairwise,
+        _ => CoauthDidBindingKind::Primary,
     }
 }

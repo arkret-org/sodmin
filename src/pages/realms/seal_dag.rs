@@ -11,6 +11,7 @@ use crate::components::selection_required::{is_placeholder_resource_id, selectio
 use crate::components::ui::badge::{Badge, BadgeVariant};
 use crate::components::ui::button::{Button, ButtonVariant};
 use crate::components::ui::card::*;
+use crate::components::ui::dialog::ConfirmDialog;
 use crate::components::ui::empty_state::EmptyState;
 use crate::components::ui::error_banner::ErrorBanner;
 use crate::components::ui::loading::PageSkeleton;
@@ -31,6 +32,7 @@ pub fn SealDagPage(realm_id: String) -> Element {
     });
 
     let mut compacting = use_signal(|| false);
+    let mut show_compact_confirm = use_signal(|| false);
     let realm_id_for_compact = realm_id.clone();
     let header_realm_id = realm_id.clone();
 
@@ -42,23 +44,7 @@ pub fn SealDagPage(realm_id: String) -> Element {
                 Button {
                     variant: ButtonVariant::Default,
                     disabled: *compacting.read(),
-                    onclick: move |_| {
-                        compacting.set(true);
-                        let id = realm_id_for_compact.clone();
-                        spawn(async move {
-                            match seal::trigger_compaction(&id).await {
-                                Ok(r) => show_toast(
-                                    &format!("Compaction Seal signed: {}", r.seal_id),
-                                    ToastVariant::Success,
-                                ),
-                                Err(e) => show_toast(
-                                    &format!("Failed: {}", e.message),
-                                    ToastVariant::Error,
-                                ),
-                            }
-                            compacting.set(false);
-                        });
-                    },
+                    onclick: move |_| show_compact_confirm.set(true),
                     "Trigger compaction"
                 }
             }
@@ -197,6 +183,41 @@ pub fn SealDagPage(realm_id: String) -> Element {
                     }
                 },
                 None => rsx! { PageSkeleton {} },
+            }
+
+            ConfirmDialog {
+                open: *show_compact_confirm.read(),
+                title: "Trigger Seal DAG compaction?".to_string(),
+                description: format!(
+                    "This requests Seal DAG compaction for Realm {}. Continue only after checking the current leaves and state_root.",
+                    realm_id_for_compact
+                ),
+                confirm_text: "Trigger compaction".to_string(),
+                cancel_text: "Cancel".to_string(),
+                destructive: true,
+                on_cancel: move |_| show_compact_confirm.set(false),
+                on_confirm: move |_| {
+                    if *compacting.read() {
+                        return;
+                    }
+                    show_compact_confirm.set(false);
+                    compacting.set(true);
+                    let id = realm_id_for_compact.clone();
+                    spawn(async move {
+                        match seal::trigger_compaction(&id).await {
+                            Ok(r) => show_toast(
+                                &format!("Compaction Seal signed: {}", r.seal_id),
+                                ToastVariant::Success,
+                            ),
+                            Err(e) => show_toast(
+                                &format!("Failed: {}", e.message),
+                                ToastVariant::Error,
+                            ),
+                        }
+                        compacting.set(false);
+                        data.restart();
+                    });
+                },
             }
         }
     }

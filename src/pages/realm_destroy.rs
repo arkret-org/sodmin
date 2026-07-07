@@ -54,22 +54,13 @@ pub fn RealmDestroyPage(realm_id: String) -> Element {
                         DeactivationFanoutPanel {
                             snapshot: snap,
                             on_retry: move |domain: FanoutDomain| {
-                                let realm_id = realm_id_for_panel.clone();
-                                spawn(async move {
-                                    let body = server::RetryRealmDestroyRequest {
-                                        domain: domain.slug().to_string(),
-                                    };
-                                    match server::retry_realm_destroy(&realm_id, &body).await {
-                                        Ok(_) => show_toast(
-                                            &format!("Retry queued for `{}`.", domain.slug()),
-                                            ToastVariant::Success,
-                                        ),
-                                        Err(err) => show_toast(
-                                            &format!("Retry failed: {err}"),
-                                            ToastVariant::Error,
-                                        ),
-                                    }
-                                });
+                                show_toast(
+                                    &format!(
+                                        "Per-domain retry for `{}` is not exposed by soland yet; refusing to replay whole-Realm destroy.",
+                                        domain.slug()
+                                    ),
+                                    ToastVariant::Error,
+                                );
                             }
                         }
                     }
@@ -91,10 +82,16 @@ pub fn RealmDestroyPage(realm_id: String) -> Element {
                             confirmation: "DESTROY".to_string(),
                         };
                         match server::destroy_realm(&realm_id, &body).await {
-                            Ok(_) => {
+                            Ok(outcome) => {
                                 dialog_open.set(false);
                                 destroyed.set(true);
-                                show_toast("ck.realm.destroy queued.", ToastVariant::Success);
+                                show_toast(
+                                    &format!(
+                                        "ck.realm.destroy queued for {} (deleted={}).",
+                                        outcome.realm_id, outcome.deleted
+                                    ),
+                                    ToastVariant::Success,
+                                );
                             }
                             Err(err) => show_toast(
                                 &format!("Realm destroy failed: {err}"),

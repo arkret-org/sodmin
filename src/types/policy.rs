@@ -85,6 +85,8 @@ pub struct AdminPolicy {
     #[serde(default)]
     pub scope: Option<String>,
     #[serde(default)]
+    pub subject_ref: Option<String>,
+    #[serde(default)]
     pub rules: Option<PolicyRuleSet>,
     #[serde(default)]
     pub is_enabled: bool,
@@ -177,6 +179,8 @@ pub struct CreatePolicyRequest {
     pub description: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub scope: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub subject_ref: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub rules: Option<PolicyRuleSet>,
     #[serde(default)]

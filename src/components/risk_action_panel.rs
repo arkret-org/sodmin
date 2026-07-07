@@ -10,13 +10,17 @@ use crate::components::ui::input::{Input, Label};
 /// Called from `AccountDetailPage` with borrowed references to avoid
 /// duplicating the data fetch.  Maintains its own signals for
 /// proposal/approve/execute workflow state.
-pub fn risk_action_panel(
+pub fn risk_action_panel<F>(
     account_id: &str,
     current: &coauth::CoauthAccountRiskActionCurrentState,
     history: &[coauth::CoauthAccountRiskActionHistoryEntry],
     hook: &coauth::CoauthRiskActionHook,
     bridge: &coauth::CoauthAdminBridgeDescribe,
-) -> Element {
+    on_mutated: F,
+) -> Element
+where
+    F: FnMut() + Clone + 'static,
+{
     let account_id = account_id.to_string();
 
     let mut action_status = use_signal(String::new);
@@ -202,6 +206,7 @@ pub fn risk_action_panel(
                         disabled: !can_approve || !approval_signing_available || *approve_in_flight.read(),
                         onclick: {
                             let account_id = account_id.clone();
+                            let on_mutated = on_mutated.clone();
                             move |_| {
                                 if *approve_in_flight.read() {
                                     return;
@@ -209,12 +214,14 @@ pub fn risk_action_panel(
                                 approve_in_flight.set(true);
                                 let account_id = account_id.clone();
                                 let proposal = proposal.clone();
+                                let mut on_mutated = on_mutated.clone();
                                 spawn(async move {
                                     let draft = build_risk_action_approval_draft(&proposal);
                                     match coauth::approve_account_risk_action(&account_id, &proposal.proposal_id, &draft).await {
                                         Ok(approval) => {
                                             last_approval.set(Some(approval.clone()));
                                             action_status.set(format_risk_action_approval_status(&approval));
+                                            on_mutated();
                                         }
                                         Err(error) => action_status.set(format!("Approval failed: {}", error.message)),
                                     }
@@ -231,6 +238,7 @@ pub fn risk_action_panel(
                         disabled: !can_execute || *execute_in_flight.read(),
                         onclick: {
                             let account_id = account_id.clone();
+                            let on_mutated = on_mutated.clone();
                             move |_| {
                                 if *execute_in_flight.read() {
                                     return;
@@ -238,10 +246,14 @@ pub fn risk_action_panel(
                                 execute_in_flight.set(true);
                                 let account_id = account_id.clone();
                                 let approval = approval.clone();
+                                let mut on_mutated = on_mutated.clone();
                                 spawn(async move {
                                     let draft = build_risk_action_execute_draft(&approval);
                                     match coauth::execute_account_risk_action(&account_id, &approval.proposal_id, &draft).await {
-                                        Ok(execution) => action_status.set(format_risk_action_execute_status(&execution)),
+                                        Ok(execution) => {
+                                            action_status.set(format_risk_action_execute_status(&execution));
+                                            on_mutated();
+                                        }
                                         Err(error) => action_status.set(format!("Execute failed: {}", error.message)),
                                     }
                                     execute_in_flight.set(false);
@@ -271,9 +283,11 @@ pub fn risk_action_panel(
                             on_confirm: {
                                 let account_id = account_id.clone();
                                 let action = action.clone();
+                                let on_mutated = on_mutated.clone();
                                 move |_| {
                                     let account_id = account_id.clone();
                                     let action = action.clone();
+                                    let mut on_mutated = on_mutated.clone();
                                     let reason = proposal_reason.read().trim().to_string();
                                     let ticket = proposal_ticket.read().trim().to_string();
                                     if reason.is_empty() || ticket.is_empty() {
@@ -289,6 +303,7 @@ pub fn risk_action_panel(
                                                 last_proposal.set(Some(proposal.clone()));
                                                 last_approval.set(None);
                                                 action_status.set(format_risk_action_status(&proposal));
+                                                on_mutated();
                                             }
                                             Err(error) => action_status.set(format!("{} proposal failed: {}", action, error.message)),
                                         }

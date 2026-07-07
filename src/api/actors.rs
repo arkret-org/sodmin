@@ -42,6 +42,7 @@ pub async fn deactivate_account(account_id: &str) -> Result<(), HttpError> {
         "/_soland/admin/accounts/{}/deactivate",
         urlencoding::encode(account_id)
     );
-    let _: NoBody = api_client(&url, "POST", NO_BODY).await?;
+    let body = serde_json::json!({});
+    let _: NoBody = api_client(&url, "POST", Some(&body)).await?;
     Ok(())
 }

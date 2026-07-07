@@ -402,6 +402,7 @@
   "common.copy": "复制",
   "common.create": "创建",
   "common.delete": "删除",
+  "common.disable": "禁用",
   "common.disabled": "已禁用",
   "common.dismiss": "关闭",
   "common.edit": "编辑",

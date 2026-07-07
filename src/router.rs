@@ -75,38 +75,21 @@ pub enum Route {
         #[route("/realms/:realm_id/delivery-binding")]
         RealmDeliveryBinding { realm_id: String },
 
-        // R5.2 — Realm link-graph admin page. Sits next to delivery
-        // binding because they share the same Realm-scoped /realms/:id/
-        // URL prefix and are conceptually a pair (binding policy +
-        // typed boundary edges).
         #[route("/realms/:realm_id/links")]
         RealmLinks { realm_id: String },
 
-        // R3 (UI-3) — Realm media_service.foci[] read-only view.
         #[route("/realms/:realm_id/media-service")]
         RealmMediaService { realm_id: String },
 
-        // R3.1 (MID-3) — Realm identity audit diagnostic page. Stub
-        // view today; full data plumbing lands after yougen MID-4 ships
-        // the MLS decrypt pipeline (TODO(R4)).
         #[route("/realms/:realm_id/identity-audit")]
         RealmIdentityAudit { realm_id: String },
 
-        // SOD-ORG-01..03 — Realm verified organization relationship +
-        // organization principal control / delegation audit + security
-        // operation entry points. Mock-backed today; live data depends on
-        // soland SOL-ORG-06 + coauth COA-ORG-05.
         #[route("/realms/:realm_id/organization")]
         RealmOrganization { realm_id: String },
 
-        // R3.2 (UI-SOD-4) — Subject → Handles directory page. Operator
-        // enters a holder/principal DID; the page calls
-        // `ck.find.directory.query.list_handles_for_subject` and lists the visible
-        // signed handle claims + the §3.2.1 primary handle.
         #[route("/handles/by-subject?:subject")]
         HandlesBySubject { subject: Option<String> },
 
-        // B-C key-backup admin surface (P3-B).
         #[route("/key-backup")]
         KeyBackupList {},
 
@@ -125,11 +108,8 @@ pub enum Route {
         #[route("/hardening")]
         HardeningDashboard {},
 
-        // Round R2/R3 T07 — deactivation 7-domain fanout review.
         #[route("/deactivations/review")]
         DeactivationReview {},
-        // Round R2/R3 T07 — realm destroy confirmation + post-seal
-        // fanout + erasure receipt panel.
         #[route("/realms/:realm_id/destroy")]
         RealmDestroy { realm_id: String },
         #[route("/starid/resolver")]
@@ -185,17 +165,34 @@ fn AuthenticatedLayout() -> Element {
         };
     }
 
+    // sodmin treats coauth server-admin and soland admin reachability as one
+    // operator role in the current deployment model. Backend calls still
+    // enforce their own authorization; this layout only prevents obviously
+    // non-admin users from entering either admin surface.
     let cached = auth::cached_is_admin();
-    let admin_probe = use_resource(move || async move {
+    let mut admin_probe_error = use_signal(|| None::<String>);
+    let mut admin_probe = use_resource(move || async move {
         match auth::verify_admin().await {
-            Ok(flag) => Some(flag),
-            Err(_) => cached,
+            Ok(flag) => {
+                admin_probe_error.set(None);
+                Some(flag)
+            }
+            Err(err) if err.status == 401 || err.status == 403 => Some(false),
+            Err(err) if err.status == 0 || err.status >= 500 => {
+                log::error!("admin probe failed: {}", err.message);
+                if cached.is_none() {
+                    admin_probe_error.set(Some(err.message));
+                }
+                cached
+            }
+            Err(_) => Some(false),
         }
     });
 
     let verdict = match admin_probe.read().as_ref() {
         Some(Some(v)) => Some(*v),
-        Some(None) | None => cached,
+        Some(None) => cached,
+        None => None,
     };
 
     match verdict {
@@ -208,8 +205,25 @@ fn AuthenticatedLayout() -> Element {
             pages::not_authorized::NotAuthorizedPage {}
         },
         None => rsx! {
-            div { class: "flex min-h-screen items-center justify-center",
-                crate::components::ui::loading::Spinner { class: String::new() }
+            if let Some(message) = admin_probe_error.read().clone() {
+                div { class: "flex min-h-screen items-center justify-center p-6",
+                    div { class: "max-w-md rounded-md border p-4 text-center space-y-3",
+                        h1 { class: "text-lg font-semibold", "Admin check failed" }
+                        p { class: "text-sm text-muted-foreground", "{message}" }
+                        button {
+                            class: "inline-flex h-10 items-center rounded-md border px-4 text-sm font-medium transition-colors hover:bg-accent",
+                            onclick: move |_| {
+                                admin_probe_error.set(None);
+                                admin_probe.restart();
+                            },
+                            "Retry"
+                        }
+                    }
+                }
+            } else {
+                div { class: "flex min-h-screen items-center justify-center",
+                    crate::components::ui::loading::Spinner { class: String::new() }
+                }
             }
         },
     }
@@ -431,12 +445,20 @@ fn CoauthAccountList() -> Element {
 
 #[component]
 fn CoauthAccountShow(account_id: String) -> Element {
-    rsx! { pages::coauth::account_detail::AccountDetailPage { account_id } }
+    rsx! {
+        div { key: "{account_id}",
+            pages::coauth::account_detail::AccountDetailPage { account_id }
+        }
+    }
 }
 
 #[component]
 fn CoauthAccountDevices(account_id: String) -> Element {
-    rsx! { pages::coauth::devices::AccountDevicesPage { account_id } }
+    rsx! {
+        div { key: "{account_id}",
+            pages::coauth::devices::AccountDevicesPage { account_id }
+        }
+    }
 }
 
 #[component]

@@ -4,6 +4,8 @@ use crate::api::client::{NO_BODY, api_client, build_url};
 use crate::types::*;
 use crate::utils::net::error::HttpError;
 
+const FILTERED_AUDIT_FETCH_LIMIT: u64 = 1000;
+
 /// Multi-dimensional filter for `/_soland/admin/audit` queries. Empty fields
 /// are dropped before encoding so the wire form only carries what the
 /// operator actually filtered on.
@@ -53,17 +55,66 @@ pub async fn list_audit_entries(
 ) -> Result<ListResponse<AuditEntry>, HttpError> {
     let limit = per_page.max(1);
     let cursor = page.saturating_sub(1).saturating_mul(limit).to_string();
-    let limit_str = limit.to_string();
     let filters = filter.into_query();
-    let mut params: Vec<(&str, &str)> = vec![("limit", limit_str.as_str()), ("cursor", &cursor)];
-    params.extend(filters.iter().map(|(key, value)| (*key, value.as_str())));
-    let url = build_url("/_soland/admin/audit", &params)?;
-    let mut resp: ListResponse<AuditEntry> = api_client(&url, "GET", NO_BODY).await?;
-    if !filters.is_empty() {
-        resp.data
-            .retain(|entry| audit_entry_matches(entry, &filters));
+    if filters.is_empty() {
+        return fetch_audit_page(Some(&cursor), limit).await;
     }
-    Ok(resp)
+    list_filtered_audit_entries(page, limit, &filters).await
+}
+
+async fn fetch_audit_page(
+    cursor: Option<&str>,
+    limit: u64,
+) -> Result<ListResponse<AuditEntry>, HttpError> {
+    let limit_str = limit.max(1).to_string();
+    let mut params: Vec<(&str, &str)> = vec![("limit", limit_str.as_str())];
+    if let Some(cursor) = cursor.filter(|c| !c.is_empty()) {
+        params.push(("cursor", cursor));
+    }
+    let url = build_url("/_soland/admin/audit", &params)?;
+    api_client(&url, "GET", NO_BODY).await
+}
+
+async fn list_filtered_audit_entries(
+    page: u64,
+    per_page: u64,
+    filters: &[(&'static str, String)],
+) -> Result<ListResponse<AuditEntry>, HttpError> {
+    let mut cursor = None::<String>;
+    let mut matched = Vec::new();
+
+    loop {
+        let resp = fetch_audit_page(cursor.as_deref(), FILTERED_AUDIT_FETCH_LIMIT).await?;
+        matched.extend(
+            resp.data
+                .into_iter()
+                .filter(|entry| audit_entry_matches(entry, filters)),
+        );
+        match resp.next_cursor {
+            Some(next) if !next.is_empty() && cursor.as_deref() != Some(next.as_str()) => {
+                cursor = Some(next);
+            }
+            _ => break,
+        }
+    }
+
+    let total = matched.len() as u64;
+    let start = page.saturating_sub(1).saturating_mul(per_page) as usize;
+    let data: Vec<AuditEntry> = matched
+        .into_iter()
+        .skip(start)
+        .take(per_page as usize)
+        .collect();
+    let next_cursor = if (start as u64).saturating_add(data.len() as u64) < total {
+        Some(page.saturating_add(1).to_string())
+    } else {
+        None
+    };
+    Ok(ListResponse {
+        data,
+        total: Some(total),
+        next_cursor,
+    })
 }
 
 fn audit_entry_matches(entry: &AuditEntry, filters: &[(&'static str, String)]) -> bool {

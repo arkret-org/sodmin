@@ -2,6 +2,7 @@ use dioxus::prelude::*;
 
 use crate::api::coauth;
 use crate::components::ui::button::{Button, ButtonSize, ButtonVariant};
+use crate::components::ui::dialog::ConfirmDialog;
 use crate::components::ui::error_banner::ErrorBanner;
 use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
@@ -15,13 +16,14 @@ const PAGE_SIZE: u64 = 25;
 #[component]
 pub fn OAuth2SessionsPage() -> Element {
     let mut page = use_signal(|| 1u64);
+    let mut pending_finish = use_signal(|| None::<String>);
+    let mut in_flight = use_signal(|| None::<String>);
 
+    let mut data = use_resource(move || async move {
+        let page_val = *page.read();
+        coauth::list_oauth2_sessions(page_val, PAGE_SIZE).await
+    });
     let page_val = *page.read();
-
-    let mut data =
-        use_resource(
-            move || async move { coauth::list_oauth2_sessions(page_val, PAGE_SIZE).await },
-        );
 
     rsx! {
         div { class: "space-y-6",
@@ -63,6 +65,11 @@ pub fn OAuth2SessionsPage() -> Element {
                                             let created = session.created_at.clone().unwrap_or_else(|| "-".to_string());
 
                                             let id_for_finish = id.clone();
+                                            let row_in_flight = in_flight
+                                                .read()
+                                                .as_deref()
+                                                .map(|current| current == id.as_str())
+                                                .unwrap_or(false);
 
                                             rsx! {
                                                 TableRow {
@@ -77,20 +84,10 @@ pub fn OAuth2SessionsPage() -> Element {
                                                         Button {
                                                             variant: ButtonVariant::Ghost,
                                                             size: ButtonSize::Sm,
+                                                            disabled: row_in_flight,
                                                             onclick: {
                                                                 let id = id_for_finish.clone();
-                                                                move |_| {
-                                                                    let id = id.clone();
-                                                                    spawn(async move {
-                                                                        match coauth::finish_oauth2_session(&id).await {
-                                                                            Ok(_) => {
-                                                                                show_toast(&t("coauth.oauth2_sessions.toast_finished"), ToastVariant::Success);
-                                                                                data.restart();
-                                                                            }
-                                                                            Err(e) => show_toast(&format!("Failed: {}", e.message), ToastVariant::Error),
-                                                                        }
-                                                                    });
-                                                                }
+                                                                move |_| pending_finish.set(Some(id.clone()))
                                                             },
                                                             {t("coauth.oauth2_sessions.finish")}
                                                         }
@@ -118,6 +115,35 @@ pub fn OAuth2SessionsPage() -> Element {
                     }
                 },
                 None => rsx! { PageSkeleton {} },
+            }
+
+            ConfirmDialog {
+                open: pending_finish.read().is_some(),
+                title: t("coauth.oauth2_sessions.finish"),
+                description: "Finish this OAuth2 session now? This can interrupt the third-party client using it.".to_string(),
+                confirm_text: t("coauth.oauth2_sessions.finish"),
+                cancel_text: t("common.cancel"),
+                destructive: true,
+                on_cancel: move |_| pending_finish.set(None),
+                on_confirm: move |_| {
+                    if let Some(id) = pending_finish.read().clone() {
+                        if in_flight.read().is_some() {
+                            return;
+                        }
+                        in_flight.set(Some(id.clone()));
+                        spawn(async move {
+                            match coauth::finish_oauth2_session(&id).await {
+                                Ok(_) => {
+                                    show_toast(&t("coauth.oauth2_sessions.toast_finished"), ToastVariant::Success);
+                                    data.restart();
+                                }
+                                Err(e) => show_toast(&format!("Failed: {}", e.message), ToastVariant::Error),
+                            }
+                            in_flight.set(None);
+                        });
+                    }
+                    pending_finish.set(None);
+                },
             }
         }
     }

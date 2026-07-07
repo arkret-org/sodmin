@@ -91,7 +91,7 @@ pub fn CapabilityList() -> Element {
 
                     Pagination {
                         page: page_val,
-                        total: resp.total_or_len(),
+                        total: resp.total_or_page_floor(page_val, PAGE_SIZE),
                         per_page: PAGE_SIZE,
                         on_page_change: move |p| page.set(p),
                     }

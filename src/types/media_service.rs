@@ -17,18 +17,20 @@ pub struct MediaServiceFocus {
     pub focus_id: Option<String>,
     /// SFU backend kind, e.g. `livekit` / `mediasoup` / `janus` /
     /// `cokret-native` / `moq-relay`.
+    #[serde(default, rename = "type")]
+    pub focus_type: Option<String>,
     #[serde(default)]
-    pub backend: Option<String>,
+    pub region: Option<String>,
+    #[serde(default)]
+    pub token_endpoint: Option<String>,
     #[serde(default)]
     pub connect_url: Option<String>,
-    /// Signing key id the focus issues participant tokens under.
     #[serde(default)]
-    pub issuer_kid: Option<String>,
+    pub capabilities: Vec<String>,
     #[serde(default)]
-    pub audience: Option<String>,
-    /// Regions the focus serves, when the Realm declares them.
+    pub health_endpoint: Option<String>,
     #[serde(default)]
-    pub regions: Vec<String>,
+    pub cascade_group: Option<String>,
 }
 
 /// Effective `ck.component.realm.media_service.v1` cell for a Realm,

@@ -42,6 +42,8 @@ web-sys = {workspace = true,features = [
     "MediaQueryList",
     "Url",
     "UrlSearchParams",
+    "AbortController",
+    "AbortSignal",
     "Headers",
     "RequestInit",
     "Request",

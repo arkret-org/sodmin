@@ -615,6 +615,7 @@ dependencies = [
  "serde_json",
  "serde_urlencoded",
  "sha2 0.10.9",
+ "soland-core",
  "subtle",
  "thiserror 2.0.18",
  "tokio",

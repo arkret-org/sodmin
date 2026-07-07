@@ -21,6 +21,7 @@ pub fn AccountDetailPage(account_id: String) -> Element {
     // gets its own owned handle.
     let mut data_for_dids = data;
     let mut data_for_claims = data;
+    let mut data_for_risk = data;
 
     rsx! {
         div { class: "space-y-6",
@@ -39,17 +40,10 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                     let summary = &detail.account;
                     let display_name = summary.display_name.clone().unwrap_or_else(|| summary.id.clone());
                     let handle = summary.username.clone().unwrap_or_else(|| "-".to_string());
-                    let email = summary.email.clone().unwrap_or_else(|| "-".to_string());
                     let created_at = summary.created_at.clone().unwrap_or_else(|| "-".to_string());
                     let updated_at = summary.updated_at.clone().unwrap_or_else(|| "-".to_string());
                     let primary_did = summary.primary_did.clone().unwrap_or_else(|| "-".to_string());
-                    let lifecycle = if summary.is_deactivated {
-                        "Deactivated"
-                    } else if summary.is_locked {
-                        "Locked"
-                    } else {
-                        "Active"
-                    };
+                    let lifecycle = summary.lifecycle_label();
                     let integration_dependencies = if detail.integration_manifest.dependencies.is_empty() {
                         "none".to_string()
                     } else {
@@ -106,7 +100,6 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                                 rsx! {
                                     {detail_row("Account ID", &summary.id)}
                                     {detail_row("Handle", &handle)}
-                                    {detail_row("Email", &email)}
                                     {detail_row("Primary DID", &primary_did)}
                                 },
                             )}
@@ -176,6 +169,7 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                             &detail.risk_action_history,
                             &detail.risk_action_hook,
                             &detail.admin_bridge,
+                            move || data_for_risk.restart(),
                         )}
 
                         div { class: "rounded-lg border p-4 space-y-4",

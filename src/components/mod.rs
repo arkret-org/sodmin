@@ -27,7 +27,6 @@ pub mod selection_required;
 pub mod sidebar;
 pub mod theme;
 pub mod ui;
-/// P5 — generic client-side validating input (DID / URL / Email /
-/// Required / MaxLength). Wired into the personal-agent provision
-/// wizard step 1 and the DID-binding panel `Add binding` form.
+/// Generic client-side validating input. Current validation kinds are DID
+/// and Required, used by the DID-binding panel `Add binding` form.
 pub mod validated_input;

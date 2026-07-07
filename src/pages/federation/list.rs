@@ -11,7 +11,6 @@ use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::pagination::CursorPagination;
 use crate::components::ui::table::*;
 use crate::router::Route;
-use crate::utils::fmt::search::matches_name_or_id;
 use crate::utils::i18n::t;
 
 const PAGE_SIZE: u64 = 25;
@@ -79,7 +78,6 @@ pub fn FederationList() -> Element {
                 Some(Ok(data)) => {
                     let next_cursor = data.next_cursor.clone();
                     let depth = op_cursors.read().len();
-                    let search_for_filter = search.read().clone();
                     rsx! {
                         div { class: "rounded-md border",
                             Table {
@@ -100,7 +98,7 @@ pub fn FederationList() -> Element {
                                             }
                                         }
                                     } else {
-                                        for op in data.data.iter().filter(|o| matches_name_or_id(&search_for_filter, &o.operation_id, o.realm_id.as_deref())) {
+                                        for op in data.data.iter() {
                                             {
                                                 let operation_id = op.operation_id.clone();
                                                 let realm_id = op.realm_id.clone().unwrap_or_else(|| "-".to_string());

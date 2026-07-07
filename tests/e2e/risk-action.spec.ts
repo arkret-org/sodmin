@@ -65,11 +65,10 @@ test.describe("Q2 risk-action happy-path", () => {
     await expect(confirmBtn).toBeVisible({ timeout: 5_000 });
     await confirmBtn.click();
 
-    // 8. Toast surfaces — either success or "endpoint not yet wired".
-    //    Both are acceptable round-26 outcomes; the audit log assertion
-    //    below is the real check.
+    // 8. Toast surfaces the mutation result. An unwired backend endpoint
+    //    is a real failure for this manual high-risk-action regression spec.
     await expect(
-      page.getByText(/risk action recorded|approved|not yet wired/i),
+      page.getByText(/risk action recorded|approved/i),
     ).toBeVisible({ timeout: 10_000 });
 
     // 9. Navigate to the audit log and expect the entry. The

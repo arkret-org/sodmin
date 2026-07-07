@@ -24,12 +24,11 @@ pub fn RegistrationTokensPage() -> Element {
     let mut uses_allowed = use_signal(String::new);
     let mut create_loading = use_signal(|| false);
 
+    let mut data = use_resource(move || async move {
+        let page_val = *page.read();
+        coauth::list_registration_tokens(page_val, PAGE_SIZE).await
+    });
     let page_val = *page.read();
-
-    let mut data =
-        use_resource(
-            move || async move { coauth::list_registration_tokens(page_val, PAGE_SIZE).await },
-        );
 
     rsx! {
         div { class: "space-y-6",
@@ -154,7 +153,18 @@ pub fn RegistrationTokensPage() -> Element {
                 on_cancel: move |_| show_create.set(false),
                 on_confirm: move |_| {
                     create_loading.set(true);
-                    let ua: Option<u64> = uses_allowed.read().parse().ok();
+                    let raw_uses = uses_allowed.read().trim().to_string();
+                    let ua = match raw_uses.parse::<u64>() {
+                        Ok(value) if value > 0 => Some(value),
+                        _ => {
+                            show_toast(
+                                "Uses allowed must be a positive number",
+                                ToastVariant::Error,
+                            );
+                            create_loading.set(false);
+                            return;
+                        }
+                    };
                     spawn(async move {
                         match coauth::create_registration_token(ua).await {
                             Ok(_) => {

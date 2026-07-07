@@ -95,14 +95,15 @@ test.describe("Q9 device-revoke happy-path", () => {
       .getByRole("button", { name: /^revoke$|^撤销$|^confirm$|^确认$/i })
       .last();
     await expect(confirmBtn).toBeVisible({ timeout: 5_000 });
+    await page
+      .getByLabel(/reason|ticket|原因|工单/i)
+      .fill(`e2e-device-revoke-${Date.now()}`);
     await confirmBtn.click();
 
-    // 10. Toast surfaces — either success ("Device revoked. Linked
-    //     session grants cascade-revoke …") or "endpoint not yet
-    //     wired". Both are acceptable round-27 outcomes; the audit
-    //     assertion below is the real check.
+    // 10. Toast surfaces the mutation result. An unwired backend endpoint
+    //     is a real failure for this manual high-risk-action regression spec.
     await expect(
-      page.getByText(/device revoked|cascade-revoke|not yet wired/i),
+      page.getByText(/device revoked|cascade-revoke/i),
     ).toBeVisible({ timeout: 10_000 });
 
     // 11. After the action, the row's status badge should transition

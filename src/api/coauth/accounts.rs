@@ -9,7 +9,7 @@ use crate::utils::net::error::HttpError;
 
 const ACCOUNTS_PATH: &str = "/_coauth/admin/accounts";
 const BRIDGE_DESCRIBE_PATH: &str = "/_coauth/admin/bridge/describe";
-const SOLAND_INTEGRATION_DESCRIBE_PATH: &str = "/_soland/self/integration/describe";
+const COAUTH_INTEGRATION_DESCRIBE_PATH: &str = "/_coauth/account/integration/describe";
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 #[non_exhaustive]
@@ -23,8 +23,6 @@ pub struct CoauthAccountSummary {
     #[serde(default)]
     pub avatar_url: Option<String>,
     #[serde(default)]
-    pub email: Option<String>,
-    #[serde(default)]
     pub primary_did: Option<String>,
     #[serde(default)]
     pub is_locked: bool,
@@ -36,6 +34,18 @@ pub struct CoauthAccountSummary {
     pub updated_at: Option<String>,
     #[serde(default)]
     pub bridge_status: String,
+}
+
+impl CoauthAccountSummary {
+    pub fn lifecycle_label(&self) -> &'static str {
+        if self.is_deactivated {
+            "Deactivated"
+        } else if self.is_locked {
+            "Locked"
+        } else {
+            "Active"
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
@@ -155,6 +165,8 @@ pub struct CoauthAccountRiskActionExecute {
     #[serde(default)]
     pub execution_state: String,
     #[serde(default)]
+    pub mutation_kind: String,
+    #[serde(default)]
     pub state_revision: u64,
     #[serde(default)]
     pub transition_kind: String,
@@ -164,6 +176,9 @@ pub struct CoauthAccountRiskActionExecute {
     pub execution_mode: String,
     #[serde(default)]
     pub execution_note: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub account:
+        Option<coauth_admin_types::SingleOutcome<coauth_admin_types::AdminAccountAttributes>>,
     #[serde(default)]
     pub mutation_endpoint: String,
     #[serde(default)]
@@ -204,6 +219,21 @@ struct CoauthAdminPaginationMeta {
 type CoauthAdminAccountRecord = coauth_admin_types::AdminAccountAttributes;
 type CoauthAdminDidBindingsEnvelope = coauth_admin_types::AdminAccountDidBindingsOutcome;
 type CoauthAdminDidBindingRecord = coauth_admin_types::AdminAccountDidBinding;
+
+#[derive(Debug, Clone, Serialize)]
+struct AddAccountDidBindingRequestBody {
+    did: String,
+    kind: CoauthDidBindingKind,
+    control_proof: ControlProofPayload,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    make_primary: Option<bool>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+struct ControlProofPayload {
+    jws: String,
+    nonce: String,
+}
 
 /// Filter inputs accepted by `list_accounts_cursor`. Empty strings are
 /// dropped before encoding so the wire form only carries what the
@@ -257,7 +287,7 @@ pub async fn list_accounts_cursor(
 
 pub async fn get_account_detail(id: &str) -> Result<CoauthAccountDetail, HttpError> {
     let bridge_url = BRIDGE_DESCRIBE_PATH;
-    let integration_manifest_url = SOLAND_INTEGRATION_DESCRIBE_PATH;
+    let integration_manifest_url = COAUTH_INTEGRATION_DESCRIBE_PATH;
     let summary_url = format!("/_coauth/admin/accounts/{}", urlencoding::encode(id));
     let dids_url = format!("/_coauth/admin/accounts/{}/dids", urlencoding::encode(id));
     let claims_url = format!("/_coauth/admin/accounts/{}/claims", urlencoding::encode(id));
@@ -273,19 +303,25 @@ pub async fn get_account_detail(id: &str) -> Result<CoauthAccountDetail, HttpErr
         "/_coauth/admin/accounts/{}/risk-action/history",
         urlencoding::encode(id)
     );
-    let summary: CoauthAdminSingleEnvelope<CoauthAdminAccountRecord> =
-        api_client(&summary_url, "GET", NO_BODY).await?;
-    let dids: CoauthAdminDidBindingsEnvelope = api_client(&dids_url, "GET", NO_BODY).await?;
-    let claims: CoauthAccountClaimsEnvelope = api_client(&claims_url, "GET", NO_BODY).await?;
-    let session_grants: CoauthAccountSessionGrantsEnvelope =
-        api_client(&grants_url, "GET", NO_BODY).await?;
-    let bridge: CoauthAdminBridgeDescribe = api_client(bridge_url, "GET", NO_BODY).await?;
-    let integration_manifest: CoauthIntegrationManifest =
-        api_client(integration_manifest_url, "GET", NO_BODY).await?;
-    let current: CoauthAdminSingleEnvelope<CoauthAccountRiskActionCurrentState> =
-        api_client(&current_url, "GET", NO_BODY).await?;
-    let history: CoauthAccountRiskActionHistoryEnvelopeShared =
-        api_client(&history_url, "GET", NO_BODY).await?;
+    let (summary, dids, claims, session_grants, bridge, integration_manifest, current, history): (
+        CoauthAdminSingleEnvelope<CoauthAdminAccountRecord>,
+        CoauthAdminDidBindingsEnvelope,
+        CoauthAccountClaimsEnvelope,
+        CoauthAccountSessionGrantsEnvelope,
+        CoauthAdminBridgeDescribe,
+        CoauthIntegrationManifest,
+        CoauthAdminSingleEnvelope<CoauthAccountRiskActionCurrentState>,
+        CoauthAccountRiskActionHistoryEnvelopeShared,
+    ) = futures_util::try_join!(
+        api_client(&summary_url, "GET", NO_BODY),
+        api_client(&dids_url, "GET", NO_BODY),
+        api_client(&claims_url, "GET", NO_BODY),
+        api_client(&grants_url, "GET", NO_BODY),
+        api_client(bridge_url, "GET", NO_BODY),
+        api_client(integration_manifest_url, "GET", NO_BODY),
+        api_client(&current_url, "GET", NO_BODY),
+        api_client(&history_url, "GET", NO_BODY),
+    )?;
     let account = map_admin_account_summary_resource(summary.data);
     Ok(CoauthAccountDetail {
         claims: claims
@@ -313,22 +349,27 @@ pub async fn get_account_detail(id: &str) -> Result<CoauthAccountDetail, HttpErr
     })
 }
 
-/// Add a managed DID binding to an account. The `control_proof` is an
-/// opaque blob (typically a signed challenge) the backend forwards to
-/// the DID resolver — sodmin does not interpret it client-side.
+/// Add a managed DID binding to an account.
 pub async fn add_account_did_binding(
     account_id: &str,
     did: &str,
-    control_proof: &str,
+    kind: CoauthDidBindingKind,
+    proof_jws: &str,
+    proof_nonce: &str,
 ) -> Result<(), HttpError> {
     let url = format!(
         "/_coauth/admin/accounts/{}/dids",
         urlencoding::encode(account_id)
     );
-    let body = serde_json::json!({
-        "did": did,
-        "control_proof": control_proof,
-    });
+    let body = AddAccountDidBindingRequestBody {
+        did: did.to_owned(),
+        kind,
+        control_proof: ControlProofPayload {
+            jws: proof_jws.to_owned(),
+            nonce: proof_nonce.to_owned(),
+        },
+        make_primary: Some(kind == CoauthDidBindingKind::Primary),
+    };
     let _: NoBody = api_client(&url, "POST", Some(&body)).await?;
     Ok(())
 }
@@ -416,7 +457,6 @@ fn map_admin_account_summary_resource(
         username: Some(attributes.handle),
         display_name: attributes.display_name,
         avatar_url: attributes.avatar_url,
-        email: None,
         primary_did,
         is_locked,
         is_deactivated,

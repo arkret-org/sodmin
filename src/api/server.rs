@@ -35,23 +35,16 @@ pub struct DestroyRealmRequest {
     pub confirmation: String,
 }
 
-#[derive(Debug, Clone, serde::Serialize)]
-pub struct RetryRealmDestroyRequest {
-    pub domain: String,
+#[derive(Debug, Clone, serde::Deserialize)]
+pub struct RealmDeleteOutcome {
+    pub realm_id: String,
+    pub deleted: bool,
 }
 
 pub async fn destroy_realm(
     realm_id: &str,
     _body: &DestroyRealmRequest,
-) -> Result<serde_json::Value, HttpError> {
-    let url = format!("/_soland/admin/realms/{}", urlencoding::encode(realm_id));
-    api_client(&url, "DELETE", NO_BODY).await
-}
-
-pub async fn retry_realm_destroy(
-    realm_id: &str,
-    _body: &RetryRealmDestroyRequest,
-) -> Result<serde_json::Value, HttpError> {
+) -> Result<RealmDeleteOutcome, HttpError> {
     let url = format!("/_soland/admin/realms/{}", urlencoding::encode(realm_id));
     api_client(&url, "DELETE", NO_BODY).await
 }

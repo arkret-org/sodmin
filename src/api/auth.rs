@@ -39,7 +39,6 @@ use crate::utils::storage;
 const OAUTH_CLIENT_ID: &str = "sodmin";
 const COAUTH_ADMIN_SCOPE: &str = "urn:coauth:admin";
 const CK_ADMIN_SCOPE: &str = "urn:cokret:admin:*";
-const OAUTH_DEVICE_ID_STORAGE_KEY: &str = "oauth_device_id";
 const PKCE_VERIFIER_KEY: &str = "pkce_code_verifier";
 const OAUTH_STATE_KEY: &str = "oauth_state";
 const OAUTH_NONCE_KEY: &str = "oauth_nonce";
@@ -57,17 +56,6 @@ struct TextResponse {
 
 fn build_oauth_scope() -> String {
     format!("{COAUTH_ADMIN_SCOPE} {CK_ADMIN_SCOPE}")
-}
-
-fn get_or_create_device_id() -> String {
-    if let Some(device_id) = storage::get_item(OAUTH_DEVICE_ID_STORAGE_KEY)
-        && device_id.len() >= 10
-    {
-        return device_id;
-    }
-    let device_id = crate::utils::security::password::generate_device_id();
-    storage::set_item(OAUTH_DEVICE_ID_STORAGE_KEY, &device_id);
-    device_id
 }
 
 fn coauth_public_base() -> Option<String> {
@@ -172,7 +160,6 @@ pub async fn start_oauth_login() -> Result<(), HttpError> {
     let challenge = compute_code_challenge(&verifier).await?;
     let state = generate_code_verifier();
     let nonce = generate_code_verifier();
-    let _device_id = get_or_create_device_id();
     let scope = build_oauth_scope();
 
     let session = session_storage()?;
@@ -525,7 +512,6 @@ fn clear_session_marker() {
         "user_id",
         "user_display_name",
         "user_avatar_url",
-        OAUTH_DEVICE_ID_STORAGE_KEY,
     ];
     for key in KEYS_TO_CLEAR {
         storage::remove_item(key);

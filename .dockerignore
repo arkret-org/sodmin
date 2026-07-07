@@ -25,6 +25,17 @@ test-results/
 .devcontainer/
 .codex-*.log
 *.log
+.env
+.env.*
+*.env
+*.pem
+*.key
+*.p12
+*.pfx
+*secret*
+*secrets*
+*credential*
+*credentials*
 
 # Files dockerignore'd to avoid invalidating image layer caches.
 .dockerignore

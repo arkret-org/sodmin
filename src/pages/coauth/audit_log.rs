@@ -59,13 +59,12 @@ pub fn AuditLogPage() -> Element {
     let mut draft = use_signal(DraftFilter::default);
     let mut applied = use_signal(DraftFilter::default);
 
-    let page_val = *page.read();
-    let applied_filter = applied.read().clone();
-
     let mut data = use_resource(move || {
-        let filter = applied_filter.clone();
+        let page_val = *page.read();
+        let filter = applied.read().clone();
         async move { coauth::list_audit_feed(page_val, PAGE_SIZE, filter.to_query()).await }
     });
+    let page_val = *page.read();
 
     rsx! {
         div { class: "space-y-6",

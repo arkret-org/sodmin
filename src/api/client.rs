@@ -1,7 +1,10 @@
+use std::cell::Cell;
+use std::rc::Rc;
+
 use gloo_net::http::{Headers, Request, RequestBuilder};
 use serde::Serialize;
 use serde::de::DeserializeOwned;
-use web_sys::RequestCredentials;
+use web_sys::{AbortController, RequestCredentials};
 
 use crate::utils::net::error::{AdminErrorEnvelope, HttpError, display_error};
 use crate::utils::net::perf;
@@ -9,6 +12,7 @@ use crate::utils::security::crypto::random_token;
 
 pub const HEADER_REQUEST_ID: &str = "X-Cokret-Request-Id";
 pub const HEADER_IDEMPOTENCY_KEY: &str = "Idempotency-Key";
+const REQUEST_TIMEOUT_MS: u32 = 30_000;
 
 /// Deserialization target for mutation endpoints whose response body is
 /// irrelevant (only success/failure matters). Tolerates `{}`, `null`, or any
@@ -33,13 +37,21 @@ pub const NO_BODY: Option<()> = None;
 
 const SENSITIVE_QUERY_KEYS: &[&str] = &[
     "access_token",
+    "api_key",
+    "apikey",
     "auth",
     "authorization",
     "bearer",
+    "client_secret",
+    "code",
     "id_token",
+    "otp",
+    "password",
     "refresh_token",
     "session",
     "session_token",
+    "sig",
+    "signature",
     "token",
 ];
 
@@ -67,6 +79,7 @@ pub async fn raw_fetch<T, F>(
     method: &str,
     body: Option<String>,
     format_error: F,
+    idempotency_key: Option<&str>,
 ) -> Result<T, HttpError>
 where
     T: DeserializeOwned,
@@ -78,24 +91,51 @@ where
 
     let rid_value = generate_request_id();
     let rid = Some(rid_value.clone());
+    let abort_controller = AbortController::new().map_err(|e| HttpError {
+        message: format!("failed to create request abort controller: {e:?}"),
+        status: 0,
+        body: None,
+        request_id: rid.clone(),
+        retry_after_ms: None,
+    })?;
+    let abort_signal = abort_controller.signal();
 
     // S5 token hardening: every admin API call rides the httpOnly
     // session cookie. There is no `Authorization: Bearer <token>`
     // header from the SPA — the cookie is sent automatically by the
     // browser when `credentials: "include"` is set on the request.
-    let mut builder: RequestBuilder = match method {
+    let normalized_method = method.to_ascii_uppercase();
+    let mut builder: RequestBuilder = match normalized_method.as_str() {
         "POST" => Request::post(url),
         "PUT" => Request::put(url),
         "PATCH" => Request::patch(url),
         "DELETE" => Request::delete(url),
-        _ => Request::get(url),
+        "GET" => Request::get(url),
+        _ => {
+            return Err(HttpError {
+                message: format!("unsupported HTTP method: {method}"),
+                status: 0,
+                body: None,
+                request_id: rid.clone(),
+                retry_after_ms: None,
+            });
+        }
     }
     .header("Accept", "application/json")
     .header(HEADER_REQUEST_ID, &rid_value)
-    .credentials(RequestCredentials::Include);
+    .credentials(RequestCredentials::Include)
+    .abort_signal(Some(&abort_signal));
 
-    if is_mutation_method(method) {
-        builder = builder.header(HEADER_IDEMPOTENCY_KEY, &generate_idempotency_key());
+    if is_mutation_method(&normalized_method) {
+        let generated_key;
+        let key = match idempotency_key {
+            Some(key) => key,
+            None => {
+                generated_key = generate_idempotency_key();
+                &generated_key
+            }
+        };
+        builder = builder.header(HEADER_IDEMPOTENCY_KEY, key);
     }
 
     if body.is_some() {
@@ -120,8 +160,15 @@ where
         })?
     };
 
+    let timed_out = Rc::new(Cell::new(false));
+    let timed_out_for_timer = timed_out.clone();
+    let timeout = gloo_timers::callback::Timeout::new(REQUEST_TIMEOUT_MS, move || {
+        timed_out_for_timer.set(true);
+        abort_controller.abort();
+    });
+
     let response = request.send().await.map_err(|e| HttpError {
-        message: e.to_string(),
+        message: fetch_error_message(&e.to_string(), timed_out.get()),
         status: 0,
         body: None,
         request_id: rid.clone(),
@@ -133,14 +180,10 @@ where
     let response_rid = response_request_id.or(rid.clone());
     let retry_after_ms = retry_after_ms(response.headers());
     let duration_ms = js_sys::Date::now() - start_time;
-    perf::record_api_call(
-        &redact_url_for_diagnostics(url),
-        method,
-        duration_ms,
-        status,
-    );
+    perf::record_api_call(duration_ms);
 
     if status == 204 {
+        drop(timeout);
         let empty = serde_json::from_str::<T>("{}").or_else(|_| serde_json::from_str::<T>("null"));
         return empty.map_err(|e| HttpError {
             message: e.to_string(),
@@ -152,12 +195,13 @@ where
     }
 
     let text = response.text().await.map_err(|e| HttpError {
-        message: e.to_string(),
+        message: fetch_error_message(&e.to_string(), timed_out.get()),
         status,
         body: None,
         request_id: response_rid.clone(),
         retry_after_ms,
     })?;
+    drop(timeout);
 
     if status >= 400 {
         let (message, error_body) = format_error(status, &text, retry_after_ms);
@@ -216,18 +260,49 @@ async fn api_client_raw<T: DeserializeOwned>(
     method: &str,
     body: Option<String>,
 ) -> Result<T, HttpError> {
+    api_client_raw_with_idempotency(url, method, body, None).await
+}
+
+async fn api_client_raw_with_idempotency<T: DeserializeOwned>(
+    url: &str,
+    method: &str,
+    body: Option<String>,
+    idempotency_key: Option<String>,
+) -> Result<T, HttpError> {
     // Spend a refresh round-trip ahead of the request when the cached
     // access token is within ~60s of expiry, so the happy path stays a
     // single call instead of failing with 401 and replaying.
     crate::api::auth::refresh_if_expiring_soon().await;
 
-    let result = raw_fetch::<T, _>(url, method, body.clone(), format_admin_error).await;
+    let idempotency_key = idempotency_key.or_else(|| {
+        if is_mutation_method(method) {
+            Some(generate_idempotency_key())
+        } else {
+            None
+        }
+    });
+
+    let result = raw_fetch::<T, _>(
+        url,
+        method,
+        body.clone(),
+        format_admin_error,
+        idempotency_key.as_deref(),
+    )
+    .await;
 
     if let Err(ref err) = result
         && err.status == 401
         && crate::api::auth::handle_unauthorized().await
     {
-        return raw_fetch::<T, _>(url, method, body, format_admin_error).await;
+        return raw_fetch::<T, _>(
+            url,
+            method,
+            body,
+            format_admin_error,
+            idempotency_key.as_deref(),
+        )
+        .await;
     }
 
     result
@@ -245,6 +320,23 @@ pub async fn api_client<T: DeserializeOwned, B: Serialize>(
         None => None,
     };
     api_client_raw(url, method, body).await
+}
+
+/// Admin API call for a caller-scoped mutation retry. Reuse the same
+/// idempotency key for every physical send that belongs to the same operator
+/// intent, including a 401 refresh/replay inside this client.
+#[allow(dead_code)]
+pub async fn api_client_with_idempotency_key<T: DeserializeOwned, B: Serialize>(
+    url: &str,
+    method: &str,
+    body: Option<B>,
+    idempotency_key: &str,
+) -> Result<T, HttpError> {
+    let body = match body {
+        Some(value) => Some(json_body(&value)?),
+        None => None,
+    };
+    api_client_raw_with_idempotency(url, method, body, Some(idempotency_key.to_owned())).await
 }
 
 pub fn build_url(path: &str, params: &[(&str, &str)]) -> Result<String, HttpError> {
@@ -276,16 +368,35 @@ fn is_mutation_method(method: &str) -> bool {
     )
 }
 
+fn fetch_error_message(error: &str, timed_out: bool) -> String {
+    if timed_out {
+        format!("request timed out after {REQUEST_TIMEOUT_MS}ms")
+    } else {
+        error.to_string()
+    }
+}
+
 fn header_value(headers: Headers, name: &str) -> Option<String> {
     headers.get(name).filter(|value| !value.trim().is_empty())
 }
 
 fn retry_after_ms(headers: Headers) -> Option<u64> {
-    header_value(headers, "Retry-After")?
-        .trim()
+    let value = header_value(headers, "Retry-After")?;
+    let trimmed = value.trim();
+    if let Some(ms) = trimmed
         .parse::<u64>()
         .ok()
         .and_then(|seconds| seconds.checked_mul(1000))
+    {
+        return Some(ms);
+    }
+
+    let target_ms = js_sys::Date::parse(trimmed);
+    if target_ms.is_nan() {
+        return None;
+    }
+    let wait_ms = target_ms - js_sys::Date::now();
+    Some(wait_ms.max(0.0) as u64)
 }
 
 fn reject_query_credentials(url: &str) -> Result<(), HttpError> {
@@ -304,7 +415,7 @@ fn reject_query_credentials(url: &str) -> Result<(), HttpError> {
 
 fn reject_query_key(key: &str) -> Result<(), HttpError> {
     let decoded = urlencoding::decode(key).unwrap_or_else(|_| key.into());
-    if SENSITIVE_QUERY_KEYS.contains(&decoded.to_ascii_lowercase().as_str()) {
+    if is_sensitive_query_key(&decoded) {
         return Err(HttpError::message(
             "query string authentication material is not allowed",
         ));
@@ -312,43 +423,23 @@ fn reject_query_key(key: &str) -> Result<(), HttpError> {
     Ok(())
 }
 
-fn redact_url_for_diagnostics(url: &str) -> String {
-    let Some((base, rest)) = url.split_once('?') else {
-        return url.to_string();
-    };
-    let fragment = rest.split_once('#').map(|(_, fragment)| fragment);
-    let query = rest.split('#').next().unwrap_or(rest);
-    let redacted_query = query
-        .split('&')
-        .filter(|pair| !pair.is_empty())
-        .map(|pair| {
-            let (key, value) = pair.split_once('=').unwrap_or((pair, ""));
-            let decoded = urlencoding::decode(key).unwrap_or_else(|_| key.into());
-            if SENSITIVE_QUERY_KEYS.contains(&decoded.to_ascii_lowercase().as_str()) {
-                format!("{key}=REDACTED")
-            } else if value.is_empty() {
-                key.to_string()
-            } else {
-                format!("{key}={value}")
-            }
-        })
-        .collect::<Vec<_>>()
-        .join("&");
-
-    match fragment {
-        Some(fragment) => format!("{base}?{redacted_query}#{fragment}"),
-        None => format!("{base}?{redacted_query}"),
-    }
+fn is_sensitive_query_key(key: &str) -> bool {
+    let key = key.to_ascii_lowercase();
+    SENSITIVE_QUERY_KEYS
+        .iter()
+        .any(|sensitive| key.contains(sensitive))
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{build_url, format_admin_error, is_mutation_method, redact_url_for_diagnostics};
+    use super::{build_url, format_admin_error, is_mutation_method};
 
     #[test]
     fn build_url_rejects_query_credentials() {
         assert!(build_url("/_soland/admin/actors", &[("access_token", "secret")]).is_err());
         assert!(build_url("/_soland/admin/actors?token=secret", &[]).is_err());
+        assert!(build_url("/_soland/admin/actors?client_secret=secret", &[]).is_err());
+        assert!(build_url("/_soland/admin/actors?oauth_code=secret", &[]).is_err());
     }
 
     #[test]
@@ -356,14 +447,6 @@ mod tests {
         assert_eq!(
             build_url("/_soland/admin/actors", &[("cursor", "c1")]).unwrap(),
             "/_soland/admin/actors?cursor=c1"
-        );
-    }
-
-    #[test]
-    fn diagnostics_redacts_sensitive_query_values() {
-        assert_eq!(
-            redact_url_for_diagnostics("/x?cursor=c1&access_token=secret#frag"),
-            "/x?cursor=c1&access_token=REDACTED#frag"
         );
     }
 

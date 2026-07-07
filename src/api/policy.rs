@@ -1,6 +1,5 @@
 use std::collections::BTreeSet;
 
-use cokret_core::PolicyEffect;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 
@@ -27,6 +26,8 @@ struct PolicyDocumentDto {
     #[serde(default)]
     scope: String,
     #[serde(default)]
+    subject_ref: String,
+    #[serde(default)]
     policy_type: String,
     #[serde(default)]
     payload: PolicyDocumentPayload,
@@ -43,23 +44,28 @@ struct UpsertPolicyDocumentRequestBody {
     scope: String,
     subject_ref: String,
     policy_type: String,
-    effect: PolicyEffect,
+    effect: SolandPolicyEffect,
     actions: Vec<String>,
     resource: PolicyResource,
     obligations: Vec<PolicyObligation>,
     active: bool,
 }
 
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+enum SolandPolicyEffect {
+    Allow,
+    SoftDeny,
+    HardDeny,
+    RequireReview,
+    Quarantine,
+}
+
 pub async fn list_policies(
-    cursor: Option<&str>,
-    limit: u64,
+    _cursor: Option<&str>,
+    _limit: u64,
 ) -> Result<AdminPolicyListOutcome, HttpError> {
-    let limit_str = limit.max(1).to_string();
-    let mut params: Vec<(&str, &str)> = vec![("limit", limit_str.as_str())];
-    if let Some(cursor) = cursor.filter(|c| !c.is_empty()) {
-        params.push(("cursor", cursor));
-    }
-    let url = build_url("/_soland/self/policies", &params)?;
+    let url = build_url("/_soland/self/policies", &[])?;
     let resp: PolicyDocumentsEnvelope = api_client(&url, "GET", NO_BODY).await?;
     Ok(AdminPolicyListOutcome {
         data: resp
@@ -76,7 +82,7 @@ pub async fn create_policy(req: &CreatePolicyRequest) -> Result<AdminPolicy, Htt
     if request_targets_pin_policy(req) {
         return Err(pin_policy_unavailable_error());
     }
-    let body = upsert_body(None, req);
+    let body = upsert_body(None, req)?;
     let resp: PolicyDocumentDto = api_client("/_soland/self/policies", "POST", Some(&body)).await?;
     Ok(policy_from_document(resp))
 }
@@ -85,7 +91,7 @@ pub async fn update_policy(id: &str, req: &CreatePolicyRequest) -> Result<AdminP
     if request_targets_pin_policy(req) {
         return Err(pin_policy_unavailable_error());
     }
-    let body = upsert_body(Some(id.to_string()), req);
+    let body = upsert_body(Some(id.to_string()), req)?;
     let resp: PolicyDocumentDto = api_client("/_soland/self/policies", "POST", Some(&body)).await?;
     Ok(policy_from_document(resp))
 }
@@ -99,16 +105,20 @@ pub async fn delete_policy(id: &str) -> Result<(), HttpError> {
 fn upsert_body(
     policy_id: Option<String>,
     req: &CreatePolicyRequest,
-) -> UpsertPolicyDocumentRequestBody {
-    let (effect, actions, resource, obligations) = payload_parts(req);
-    UpsertPolicyDocumentRequestBody {
+) -> Result<UpsertPolicyDocumentRequestBody, HttpError> {
+    let (effect, actions, resource, obligations) = payload_parts(req)?;
+    Ok(UpsertPolicyDocumentRequestBody {
         policy_id,
         scope: req
             .scope
             .clone()
             .filter(|s| !s.trim().is_empty())
             .unwrap_or_else(|| "*".to_string()),
-        subject_ref: "*".to_string(),
+        subject_ref: req
+            .subject_ref
+            .clone()
+            .filter(|s| !s.trim().is_empty())
+            .unwrap_or_else(|| "*".to_string()),
         policy_type: req
             .policy_type
             .clone()
@@ -119,25 +129,28 @@ fn upsert_body(
         resource,
         obligations,
         active: req.is_enabled,
-    }
+    })
 }
 
 fn payload_parts(
     req: &CreatePolicyRequest,
-) -> (
-    PolicyEffect,
-    Vec<String>,
-    PolicyResource,
-    Vec<PolicyObligation>,
-) {
+) -> Result<
+    (
+        SolandPolicyEffect,
+        Vec<String>,
+        PolicyResource,
+        Vec<PolicyObligation>,
+    ),
+    HttpError,
+> {
     let rules = req.rules.clone().unwrap_or_default();
     let rules_value = rules.as_value();
-    let effect = rules
-        .as_value()
-        .get("effect")
-        .and_then(Value::as_str)
-        .and_then(policy_effect_from_wire)
-        .unwrap_or(PolicyEffect::Allow);
+    let effect = match rules_value.get("effect").and_then(Value::as_str) {
+        Some(value) => policy_effect_from_wire(value).ok_or_else(|| {
+            HttpError::message(format!("unsupported policy effect from server: {value}"))
+        })?,
+        None => SolandPolicyEffect::Allow,
+    };
     let actions = rules_value
         .get("actions")
         .and_then(Value::as_array)
@@ -167,15 +180,16 @@ fn payload_parts(
         "priority": req.priority,
         "rules": rules.into_value(),
     }));
-    (effect, actions, resource, obligations)
+    Ok((effect, actions, resource, obligations))
 }
 
-fn policy_effect_from_wire(value: &str) -> Option<PolicyEffect> {
+fn policy_effect_from_wire(value: &str) -> Option<SolandPolicyEffect> {
     match value {
-        "allow" => Some(PolicyEffect::Allow),
-        "deny" => Some(PolicyEffect::Deny),
-        "quarantine" => Some(PolicyEffect::Quarantine),
-        "require_review" => Some(PolicyEffect::RequireReview),
+        "allow" => Some(SolandPolicyEffect::Allow),
+        "soft_deny" => Some(SolandPolicyEffect::SoftDeny),
+        "hard_deny" => Some(SolandPolicyEffect::HardDeny),
+        "require_review" => Some(SolandPolicyEffect::RequireReview),
+        "quarantine" => Some(SolandPolicyEffect::Quarantine),
         _ => None,
     }
 }
@@ -210,6 +224,7 @@ fn policy_from_document(doc: PolicyDocumentDto) -> AdminPolicy {
         policy_type: Some(doc.policy_type).filter(|s| !s.is_empty()),
         description,
         scope: Some(doc.scope).filter(|s| !s.is_empty()),
+        subject_ref: Some(doc.subject_ref).filter(|s| !s.is_empty()),
         rules,
         guardrails,
         is_enabled: doc.active,
@@ -277,14 +292,58 @@ fn text_targets_pin_policy(value: &str) -> bool {
 }
 
 fn value_targets_pin_policy(value: &Value) -> bool {
+    value_targets_pin_policy_in(value, None)
+}
+
+fn value_targets_pin_policy_in(value: &Value, context_key: Option<&str>) -> bool {
     match value {
-        Value::String(s) => text_targets_pin_policy(s),
-        Value::Array(items) => items.iter().any(value_targets_pin_policy),
+        Value::String(s) => context_key.is_some_and(pin_text_context) && text_targets_pin_policy(s),
+        Value::Array(items) => items
+            .iter()
+            .any(|item| value_targets_pin_policy_in(item, context_key)),
         Value::Object(map) => map.iter().any(|(key, value)| {
-            text_targets_pin_policy(key) || key == "pin_scope" || value_targets_pin_policy(value)
+            let key_lc = key.to_ascii_lowercase();
+            structural_pin_key(&key_lc) || value_targets_pin_policy_in(value, Some(&key_lc))
         }),
         _ => false,
     }
+}
+
+fn pin_text_context(key: &str) -> bool {
+    matches!(
+        key,
+        "policy_type"
+            | "type"
+            | "kind"
+            | "action"
+            | "actions"
+            | "operation"
+            | "operations"
+            | "capability"
+            | "capabilities"
+            | "profile_key"
+            | "component"
+    )
+}
+
+fn structural_pin_key(key: &str) -> bool {
+    matches!(
+        key,
+        "pin_policy"
+            | "pin.policy"
+            | "pin_scope"
+            | "pinned_items"
+            | "pin_quota"
+            | "pin_limit"
+            | "max_pins"
+            | "max_pin_count"
+            | "max_pinned_items"
+            | "max_pins_per_scope"
+            | "max_pins_per_realm"
+            | "max_pins_per_space"
+            | "max_pins_per_circle"
+            | "max_pins_per_strand"
+    )
 }
 
 fn pin_summary_from_payload(policy_type: &str, payload: &Value) -> PinPolicySummary {
@@ -580,7 +639,7 @@ fn evidence_item(value: &Value) -> Option<PolicyEvidenceItem> {
             .filter(|value| !value.trim().is_empty())
     };
     Some(PolicyEvidenceItem {
-        kind: field(&["kind", "type", "proof_kind"]).unwrap_or_else(|| "approval".to_owned()),
+        kind: field(&["kind", "type", "proof_kind"])?,
         reference: field(&[
             "evidence_ref",
             "ref",
@@ -588,8 +647,7 @@ fn evidence_item(value: &Value) -> Option<PolicyEvidenceItem> {
             "approval_id",
             "request_id",
             "digest",
-        ])
-        .unwrap_or_else(|| "inline".to_owned()),
+        ])?,
         actor: field(&["approved_by", "issuer", "actor_id", "subject_id"]),
         decision: field(&["decision", "outcome", "state"]),
         digest: field(&["digest", "proof_digest", "request_canonical_digest"]),
@@ -616,7 +674,7 @@ fn audit_entry(value: &Value) -> Option<PolicyAuditEntry> {
             .filter(|value| !value.trim().is_empty())
     };
     Some(PolicyAuditEntry {
-        action: field(&["action", "operation", "kind"]).unwrap_or_else(|| "policy".to_owned()),
+        action: field(&["action", "operation", "kind"])?,
         actor: field(&["actor", "actor_id", "admin", "principal_id"]),
         outcome: field(&["outcome", "decision", "state"]),
         request_id: field(&["request_id", "trace_id"]),
@@ -690,6 +748,7 @@ mod tests {
         let doc = PolicyDocumentDto {
             policy_id: "ck:policy:01HXY".to_owned(),
             scope: "ck:realm:01HXY".to_owned(),
+            subject_ref: "did:web:admin.example".to_owned(),
             policy_type: "ck.realm.policy.update".to_owned(),
             payload: json!({
                 "resource": {
@@ -706,7 +765,45 @@ mod tests {
         let policy = policy_from_document(doc);
         assert_eq!(policy.name, "Realm policy");
         assert_eq!(policy.priority, 3);
+        assert_eq!(policy.subject_ref.as_deref(), Some("did:web:admin.example"));
         assert_eq!(policy.guardrails.audit_trail.len(), 1);
+    }
+
+    #[test]
+    fn upsert_body_preserves_subject_ref_and_hard_deny_effect() {
+        let req = CreatePolicyRequest {
+            name: "Targeted deny".to_owned(),
+            scope: Some("ck:realm:01HXY".to_owned()),
+            subject_ref: Some("did:web:bob.example".to_owned()),
+            policy_type: Some("ck.message.send".to_owned()),
+            rules: Some(
+                json!({
+                    "effect": "hard_deny",
+                    "actions": ["ck.message.send"]
+                })
+                .into(),
+            ),
+            is_enabled: true,
+            ..Default::default()
+        };
+
+        let body = upsert_body(Some("ck:policy:deny-bob".to_owned()), &req).unwrap();
+        let encoded = serde_json::to_value(body).unwrap();
+
+        assert_eq!(encoded["subject_ref"], "did:web:bob.example");
+        assert_eq!(encoded["effect"], "hard_deny");
+        assert_eq!(encoded["actions"], json!(["ck.message.send"]));
+    }
+
+    #[test]
+    fn upsert_body_rejects_unknown_policy_effect() {
+        let req = CreatePolicyRequest {
+            name: "Bad effect".to_owned(),
+            rules: Some(json!({"effect": "deny"}).into()),
+            ..Default::default()
+        };
+
+        assert!(upsert_body(None, &req).is_err());
     }
 
     #[test]
@@ -714,6 +811,7 @@ mod tests {
         let doc = PolicyDocumentDto {
             policy_id: "ck:policy:pins".to_owned(),
             scope: "ck:realm:01HXY".to_owned(),
+            subject_ref: "*".to_owned(),
             policy_type: "ck.profile.pinned_items.v1".to_owned(),
             payload: json!({
                 "actions": ["ck.pin.add", "ck.pin.reorder"],
@@ -780,5 +878,14 @@ mod tests {
             ..Default::default()
         };
         assert!(!request_targets_pin_policy(&ordinary));
+
+        let ordinary_with_free_text = CreatePolicyRequest {
+            policy_type: Some("ck.message.create".to_owned()),
+            rules: Some(
+                json!({"resource": {"description": "mentions pin policy in prose"}}).into(),
+            ),
+            ..Default::default()
+        };
+        assert!(!request_targets_pin_policy(&ordinary_with_free_text));
     }
 }

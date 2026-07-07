@@ -59,7 +59,7 @@ pub fn RealmList() -> Element {
                             let rows: Vec<Vec<String>> = resp.data.iter().map(|s| vec![
                                 s.id.clone(),
                                 s.title.clone().unwrap_or_default(),
-                                realm_type_label(s),
+                                s.type_label(),
                                 s.member_count.to_string(),
                                 if s.is_encrypted { "true".into() } else { "false".into() },
                                 if s.is_blocked { "blocked".into() } else { "active".into() },
@@ -128,7 +128,7 @@ pub fn RealmList() -> Element {
                                                         }
                                                     }
                                                     TableCell { {realm.title.as_deref().unwrap_or("-")} }
-                                                    TableCell { {realm_type_label(realm)} }
+                                                    TableCell { {realm.type_label()} }
                                                     TableCell { "{realm.member_count}" }
                                                     TableCell {
                                                         if realm.is_encrypted {
@@ -183,12 +183,4 @@ pub fn RealmList() -> Element {
             }
         }
     }
-}
-
-fn realm_type_label(realm: &crate::types::AdminRealm) -> String {
-    realm
-        .realm_class
-        .as_deref()
-        .unwrap_or("collaboration")
-        .to_owned()
 }

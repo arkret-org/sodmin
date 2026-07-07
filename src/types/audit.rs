@@ -6,19 +6,19 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AuditEntry {
-    #[serde(default)]
+    #[serde(default, alias = "audit_id")]
     pub id: String,
     #[serde(default)]
     pub action: String,
-    #[serde(default)]
+    #[serde(default, alias = "actor")]
     pub actor_id: Option<String>,
     #[serde(default)]
     pub target_type: Option<String>,
     #[serde(default)]
     pub target_id: Option<String>,
-    #[serde(default)]
+    #[serde(default, alias = "payload")]
     pub details: Option<serde_json::Value>,
-    #[serde(default)]
+    #[serde(default, alias = "created_at")]
     pub timestamp: Option<String>,
     #[serde(default)]
     pub source_ip: Option<String>,

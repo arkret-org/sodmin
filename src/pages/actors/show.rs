@@ -1,7 +1,7 @@
 use dioxus::prelude::*;
 
 use crate::api::actors;
-use crate::components::dangerous_action_dialog::{DangerousActionDialog, device_revoke_phrase};
+use crate::components::dangerous_action_dialog::{DangerousActionDialog, confirmation_suffix};
 use crate::components::ui::button::{Button, ButtonVariant};
 use crate::components::ui::card::*;
 use crate::components::ui::error_banner::ErrorBanner;
@@ -126,7 +126,7 @@ pub fn ActorShow(actor_id: String) -> Element {
             // actor id), then surface success/failure + audit breadcrumb.
             {
                 let aid = actor_id_for_deactivate.clone();
-                let phrase = device_revoke_phrase(&aid, 4);
+                let phrase = confirmation_suffix(&aid, 4);
                 rsx! {
                     DangerousActionDialog {
                         open: show_deactivate_dialog(),

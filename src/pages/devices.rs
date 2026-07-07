@@ -97,22 +97,28 @@ pub fn DeviceList() -> Element {
                 Button {
                     variant: ButtonVariant::Outline,
                     size: ButtonSize::Sm,
-                    onclick: move |_| {
-                        if let Some(Ok(resp)) = data.read().as_ref() {
-                            let rows: Vec<Vec<String>> = resp.data.iter().map(|d| vec![
+                    onclick: {
+                        let export_visible_ids = visible_ids.clone();
+                        move |_| {
+                            if let Some(Ok(resp)) = data.read().as_ref() {
+                                let rows: Vec<Vec<String>> = resp.data.iter()
+                                    .filter(|d| export_visible_ids.contains(&d.id))
+                                    .map(|d| vec![
                                 d.id.clone(),
                                 d.actor_id.clone().unwrap_or_default(),
                                 d.display_name.clone().unwrap_or_default(),
-                                d.device_type.clone().unwrap_or_default(),
-                                d.verification_status.clone().unwrap_or_default(),
-                                d.last_seen_ts.map(|t| t.to_string()).unwrap_or_default(),
-                            ]).collect();
-                            let csv = build_csv(
-                                &["id", "actor_id", "display_name", "device_type", "verification_status", "last_seen_ts_ms"],
-                                &rows,
-                            );
-                            export_to_csv("devices.csv", &csv);
-                            show_toast(&t("devices.toast_csv_downloaded"), ToastVariant::Success);
+                                d.verification_label().unwrap_or_default().to_string(),
+                                d.created_at.clone().unwrap_or_default(),
+                                d.updated_at.clone().unwrap_or_default(),
+                                d.revoked_at.clone().unwrap_or_default(),
+                                    ]).collect();
+                                let csv = build_csv(
+                                    &["id", "actor_id", "display_name", "verification_state", "created_at", "updated_at", "revoked_at"],
+                                    &rows,
+                                );
+                                export_to_csv("devices.csv", &csv);
+                                show_toast(&t("devices.toast_csv_downloaded"), ToastVariant::Success);
+                            }
                         }
                     },
                     {t("common.export_csv")}
@@ -198,9 +204,10 @@ pub fn DeviceList() -> Element {
                                         TableHead { {t("devices.id")} }
                                         TableHead { {t("devices.actor_id")} }
                                         TableHead { {t("devices.display_name")} }
-                                        TableHead { {t("devices.device_type")} }
                                         TableHead { {t("devices.verification_status")} }
-                                        TableHead { {t("devices.last_seen_ts")} }
+                                        TableHead { "Created" }
+                                        TableHead { "Updated" }
+                                        TableHead { "Revoked" }
                                         TableHead { class: "text-right".to_string(), {t("common.actions")} }
                                     }
                                 }
@@ -217,14 +224,10 @@ pub fn DeviceList() -> Element {
                                                 let id = device.id.clone();
                                                 let actor_id = device.actor_id.clone().unwrap_or_else(|| "-".to_string());
                                                 let display_name = device.display_name.clone().unwrap_or_else(|| "-".to_string());
-                                                let device_type = device.device_type.clone().unwrap_or_else(|| "-".to_string());
-                                                let verification = device.verification_status.clone().unwrap_or_else(|| "-".to_string());
-                                                let last_seen = device.last_seen_ts.map_or_else(|| "-".to_string(), |ts| {
-                                                    let secs = (ts / 1000) as i64;
-                                                    chrono::DateTime::from_timestamp(secs, 0)
-                                                        .map(|dt| dt.format("%Y-%m-%d %H:%M").to_string())
-                                                        .unwrap_or_else(|| "-".to_string())
-                                                });
+                                                let verification = device.verification_label().unwrap_or("-").to_string();
+                                                let created_at = device.created_at.clone().unwrap_or_else(|| "-".to_string());
+                                                let updated_at = device.updated_at.clone().unwrap_or_else(|| "-".to_string());
+                                                let revoked_at = device.revoked_at.clone().unwrap_or_else(|| "-".to_string());
 
                                                 let id_for_revoke = id.clone();
                                                 let id_for_check = id.clone();
@@ -254,9 +257,10 @@ pub fn DeviceList() -> Element {
                                                         TableCell { class: "font-medium".to_string(), "{id}" }
                                                         TableCell { class: "max-w-[200px] truncate".to_string(), "{actor_id}" }
                                                         TableCell { "{display_name}" }
-                                                        TableCell { "{device_type}" }
                                                         TableCell { "{verification}" }
-                                                        TableCell { class: "text-muted-foreground".to_string(), "{last_seen}" }
+                                                        TableCell { class: "text-muted-foreground".to_string(), "{created_at}" }
+                                                        TableCell { class: "text-muted-foreground".to_string(), "{updated_at}" }
+                                                        TableCell { class: "text-muted-foreground".to_string(), "{revoked_at}" }
                                                         TableCell { class: "text-right".to_string(),
                                                             Button {
                                                                 variant: ButtonVariant::Ghost,
@@ -321,7 +325,7 @@ pub fn DeviceList() -> Element {
             let pending = show_revoke_dialog.read().clone();
             let phrase = pending
                 .as_deref()
-                .map(|id| crate::components::dangerous_action_dialog::device_revoke_phrase(id, 4))
+                .map(|id| crate::components::dangerous_action_dialog::confirmation_suffix(id, 4))
                 .unwrap_or_default();
             let pending_id_desc = pending.clone().unwrap_or_default();
             rsx! {

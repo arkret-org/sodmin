@@ -18,10 +18,11 @@ pub fn UpstreamLinksPage() -> Element {
     let mut page = use_signal(|| 1u64);
     let mut show_delete = use_signal(|| None::<String>);
 
+    let mut data = use_resource(move || async move {
+        let page_val = *page.read();
+        coauth::list_upstream_links(page_val, PAGE_SIZE).await
+    });
     let page_val = *page.read();
-
-    let mut data =
-        use_resource(move || async move { coauth::list_upstream_links(page_val, PAGE_SIZE).await });
 
     rsx! {
         div { class: "space-y-6",

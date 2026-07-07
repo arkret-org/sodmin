@@ -2,6 +2,12 @@
 
 This directory holds the Playwright e2e tests for sodmin.
 
+Automated CI runs only `npm run test:smoke`, which is limited to the
+unauthenticated responsive smoke that needs `SODMIN_E2E_BASE_URL` only.
+The authenticated high-risk management specs in this directory are manual
+or seeded-stack checks: they require admin credentials plus account, device,
+or policy ids and are intentionally not reported as automated CI coverage.
+
 ## Q2 — happy-path risk-action
 
 `risk-action.spec.ts` drives the full risk-action approval strand:
@@ -33,9 +39,9 @@ npx playwright install chromium
 npx playwright test -c tests/e2e/playwright.config.ts
 ```
 
-If any of the four env vars is missing, the spec self-skips so a
-plain `playwright test` against this config in CI still passes
-without a wired dev stack.
+If any of the four env vars is missing, the spec self-skips for local
+operator convenience. CI does not invoke this manual spec unless a workflow
+explicitly provisions those variables and seeded backend data.
 
 ## Skip behaviour summary
 

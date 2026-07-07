@@ -72,15 +72,15 @@ pub fn SigningKeysPage(realm_id: String) -> Element {
                         .clone()
                         .unwrap_or_else(|| "-".to_string());
                     let can_rotate = describe.can_rotate();
-                    let is_ephemeral = matches!(origin_typed, SigningKeyOrigin::Ephemeral);
+                    let is_unverified_origin = !matches!(origin_typed, SigningKeyOrigin::Configured);
                     rsx! {
-                        if is_ephemeral {
+                        if is_unverified_origin {
                             // Production-readiness warning: ephemeral keys
                             // disappear on restart and are NEVER suitable
                             // for live workloads. The destructive banner
                             // mirrors the covered_seals lag pattern.
                             div { class: "rounded-md bg-destructive/10 p-3 text-sm text-destructive",
-                                "NotaryWorker is signing with an EPHEMERAL key. This key will be lost on the next worker restart and cannot be rotated in place — redeploy the principal-server with a configured key (PEM / KMS) before promoting to production."
+                                "NotaryWorker signing-key origin is not confirmed by a backend describe endpoint. Rotation is disabled until soland exposes authoritative key origin and persistence metadata."
                             }
                         }
                         Card {
@@ -89,9 +89,9 @@ pub fn SigningKeysPage(realm_id: String) -> Element {
                                 div { class: "space-y-3 text-sm",
                                     div { class: "flex items-center gap-2",
                                         Badge { variant: origin_variant, "{origin_label}" }
-                                        if is_ephemeral {
+                                        if is_unverified_origin {
                                             span { class: "text-xs text-muted-foreground",
-                                                "(read-only — operator must redeploy with a configured key to rotate)"
+                                                "(read-only until key origin is confirmed)"
                                             }
                                         }
                                     }
@@ -216,7 +216,7 @@ pub fn SigningKeysPage(realm_id: String) -> Element {
 pub(crate) fn origin_badge_variant(origin: &SigningKeyOrigin) -> BadgeVariant {
     match origin {
         SigningKeyOrigin::Configured => BadgeVariant::Success,
-        SigningKeyOrigin::Ephemeral => BadgeVariant::Destructive,
+        SigningKeyOrigin::Ephemeral | SigningKeyOrigin::Unknown => BadgeVariant::Destructive,
     }
 }
 
@@ -234,6 +234,10 @@ mod tests {
         // Ephemeral key is a production hazard → destructive.
         assert!(matches!(
             origin_badge_variant(&SigningKeyOrigin::Ephemeral),
+            BadgeVariant::Destructive
+        ));
+        assert!(matches!(
+            origin_badge_variant(&SigningKeyOrigin::Unknown),
             BadgeVariant::Destructive
         ));
     }

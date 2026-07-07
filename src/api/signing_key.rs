@@ -32,13 +32,13 @@ pub async fn get_signing_key(realm_id: &str) -> Result<SigningKeyDescribe, HttpE
         .map(|did| format!("{did}#notary-key"))
         .unwrap_or_else(|| format!("{realm_id}#notary-key"));
     Ok(SigningKeyDescribe {
-        origin: "configured".to_string(),
+        origin: "unknown".to_string(),
         verification_method_id,
         did,
-        kid: Some("notary-key".to_string()),
-        algorithm: Some("Ed25519".to_string()),
+        kid: None,
+        algorithm: None,
         last_rotated_at: None,
-        rotatable: true,
+        rotatable: false,
     })
 }
 

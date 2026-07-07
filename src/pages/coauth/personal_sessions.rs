@@ -28,12 +28,11 @@ pub fn PersonalSessionsPage() -> Element {
     // drop it from memory when the modal closes (never persisted).
     let mut revealed_token = use_signal(|| None::<String>);
 
+    let mut data = use_resource(move || async move {
+        let page_val = *page.read();
+        coauth::list_personal_sessions(page_val, PAGE_SIZE).await
+    });
     let page_val = *page.read();
-
-    let mut data =
-        use_resource(
-            move || async move { coauth::list_personal_sessions(page_val, PAGE_SIZE).await },
-        );
 
     rsx! {
         div { class: "space-y-6",
@@ -251,8 +250,12 @@ pub fn PersonalSessionsPage() -> Element {
                                     let tok = tok.clone();
                                     spawn(async move {
                                         if let Some(clipboard) = web_sys::window().map(|w| w.navigator().clipboard()) {
-                                            let _ = wasm_bindgen_futures::JsFuture::from(clipboard.write_text(&tok)).await;
-                                            show_toast(&t("coauth.personal_sessions.token_copied"), ToastVariant::Success);
+                                            match wasm_bindgen_futures::JsFuture::from(clipboard.write_text(&tok)).await {
+                                                Ok(_) => show_toast(&t("coauth.personal_sessions.token_copied"), ToastVariant::Success),
+                                                Err(_) => show_toast("Failed to copy token", ToastVariant::Error),
+                                            }
+                                        } else {
+                                            show_toast("Clipboard is unavailable", ToastVariant::Error);
                                         }
                                     });
                                 },

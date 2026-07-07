@@ -27,7 +27,7 @@ use crate::components::ui::button::{Button, ButtonSize, ButtonVariant};
 use crate::components::ui::card::*;
 use crate::components::ui::dialog::ConfirmDialog;
 use crate::components::ui::error_banner::ErrorBanner;
-use crate::components::ui::input::{Label, SearchInput};
+use crate::components::ui::input::{Input, Label, SearchInput};
 use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::modal::{DialogActions, Modal};
 use crate::components::ui::page_header::PageHeader;
@@ -49,6 +49,7 @@ pub fn HandleList() -> Element {
     let mut show_revoke = use_signal(|| None::<String>);
     let mut show_reassign = use_signal(|| None::<String>);
     let mut new_subject_id = use_signal(String::new);
+    let mut reassign_reason = use_signal(String::new);
     let mut reassign_loading = use_signal(|| false);
 
     let page_val = *page.read();
@@ -152,6 +153,7 @@ pub fn HandleList() -> Element {
                                                                 let id = id_for_reassign.clone();
                                                                 move |_| {
                                                                     new_subject_id.set(String::new());
+                                                                    reassign_reason.set(String::new());
                                                                     show_reassign.set(Some(id.clone()));
                                                                 }
                                                             },
@@ -179,7 +181,7 @@ pub fn HandleList() -> Element {
 
                     Pagination {
                         page: page_val,
-                        total: resp.total_or_len(),
+                        total: resp.total_or_page_floor(page_val, PAGE_SIZE),
                         per_page: PAGE_SIZE,
                         on_page_change: move |p| page.set(p),
                     }
@@ -231,30 +233,43 @@ pub fn HandleList() -> Element {
                     oninput: move |evt: FormEvent| new_subject_id.set(evt.value()),
                 }
             }
+            div { class: "space-y-1",
+                Label { r#for: "handle-reassign-reason".to_string(), "Reason / ticket" }
+                Input {
+                    id: "handle-reassign-reason".to_string(),
+                    value: reassign_reason.read().clone(),
+                    required: true,
+                    placeholder: "SEC-1234 / support case / incident reason".to_string(),
+                    oninput: move |evt: FormEvent| reassign_reason.set(evt.value()),
+                }
+            }
             {
                 let subject = new_subject_id.read().trim().to_string();
                 let subject_valid = did::is_valid_did(&subject);
+                let reason = reassign_reason.read().trim().to_string();
+                let reason_valid = !reason.is_empty();
                 rsx! {
                     DialogActions {
                         confirm_text: t("handles.reassign"),
                         cancel_text: t("common.cancel"),
-                        confirm_loading: *reassign_loading.read() || !subject_valid,
+                        confirm_loading: *reassign_loading.read() || !subject_valid || !reason_valid,
                         on_cancel: move |_| show_reassign.set(None),
                         on_confirm: move |_| {
                             if let Some(id) = show_reassign.read().clone() {
                                 let subject = new_subject_id.read().trim().to_string();
+                                let reason = reassign_reason.read().trim().to_string();
                                 // Round 4 — never submit a
                                 // DID that fails local
                                 // validation; the SDK would
                                 // reject it on the wire.
-                                if !did::is_valid_did(&subject) {
+                                if !did::is_valid_did(&subject) || reason.is_empty() {
                                     return;
                                 }
                                 reassign_loading.set(true);
                                 spawn(async move {
                                     let req = HandleReassignRequest {
                                         new_subject_id: subject,
-                                        reason: None,
+                                        reason: Some(reason),
                                     };
                                     match handles::reassign_handle(&id, &req).await {
                                         Ok(_) => {
@@ -291,6 +306,7 @@ pub fn HandleShow(handle_id: String) -> Element {
     let mut show_revoke = use_signal(|| false);
     let mut show_reassign = use_signal(|| false);
     let mut new_subject_id = use_signal(String::new);
+    let mut reassign_reason = use_signal(String::new);
     let mut reassign_loading = use_signal(|| false);
 
     let id_revoke = handle_id.clone();
@@ -351,6 +367,7 @@ pub fn HandleShow(handle_id: String) -> Element {
                                         disabled: is_revoked,
                                         onclick: move |_| {
                                             new_subject_id.set(String::new());
+                                            reassign_reason.set(String::new());
                                             show_reassign.set(true);
                                         },
                                         {t("handles.reassign")}
@@ -462,19 +479,31 @@ pub fn HandleShow(handle_id: String) -> Element {
                     oninput: move |evt: FormEvent| new_subject_id.set(evt.value()),
                 }
             }
+            div { class: "space-y-1",
+                Label { r#for: "handle-detail-reassign-reason".to_string(), "Reason / ticket" }
+                Input {
+                    id: "handle-detail-reassign-reason".to_string(),
+                    value: reassign_reason.read().clone(),
+                    required: true,
+                    placeholder: "SEC-1234 / support case / incident reason".to_string(),
+                    oninput: move |evt: FormEvent| reassign_reason.set(evt.value()),
+                }
+            }
             {
                 let subject_valid = did::is_valid_did(new_subject_id.read().trim());
+                let reason_valid = !reassign_reason.read().trim().is_empty();
                 rsx! {
                     DialogActions {
                         confirm_text: t("handles.reassign"),
                         cancel_text: t("common.cancel"),
-                        confirm_loading: *reassign_loading.read() || !subject_valid,
+                        confirm_loading: *reassign_loading.read() || !subject_valid || !reason_valid,
                         on_cancel: move |_| show_reassign.set(false),
                         on_confirm: move |_| {
                             let subject = new_subject_id.read().trim().to_string();
+                            let reason = reassign_reason.read().trim().to_string();
                             // Round 4 — DID must match
                             // `^did:[a-z0-9]+:[^\s]+$`.
-                            if !did::is_valid_did(&subject) {
+                            if !did::is_valid_did(&subject) || reason.is_empty() {
                                 return;
                             }
                             let id = id_reassign.clone();
@@ -482,7 +511,7 @@ pub fn HandleShow(handle_id: String) -> Element {
                             spawn(async move {
                                 let req = HandleReassignRequest {
                                     new_subject_id: subject,
-                                    reason: None,
+                                    reason: Some(reason),
                                 };
                                 match handles::reassign_handle(&id, &req).await {
                                     Ok(_) => {

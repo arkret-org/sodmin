@@ -2,8 +2,8 @@
 //!
 //! Renders the effective `ck.component.realm.media_service.v1` cell for a
 //! single Realm: the media service DID plus each focus in `foci[]`
-//! (`focus_id`, `backend`, `connect_url`, `issuer_kid`, `audience`,
-//! `regions`).
+//! (`focus_id`, `type`, `region`, `token_endpoint`, `connect_url`,
+//! `capabilities`, `health_endpoint`, `cascade_group`).
 //!
 //! This view is **read-only** in sodmin: mutating `media_service` is a
 //! general-management action that strands through events / yougen, not
@@ -24,10 +24,10 @@ use crate::router::Route;
 use crate::types::MediaServiceFocus;
 use crate::utils::i18n::t;
 
-/// The focus backends accepted by the cokret-spec v3 media_service
+/// The focus backend types accepted by the cokret-spec media_service
 /// binding profile (`ck.profile.media_service_binding.v1`). Used only to
-/// flag an unrecognized backend in the read-only view.
-pub const FOCUS_BACKENDS: &[&str] = &[
+/// flag an unrecognized type in the read-only view.
+pub const FOCUS_TYPES: &[&str] = &[
     "livekit",
     "mediasoup",
     "janus",
@@ -144,15 +144,26 @@ pub fn RealmMediaService(realm_id: String) -> Element {
 
 fn render_focus_row(idx: usize, focus: &MediaServiceFocus) -> Element {
     let focus_id = focus.focus_id.clone().unwrap_or_else(|| "-".to_string());
-    let backend = focus.backend.clone().unwrap_or_else(|| "-".to_string());
+    let focus_type = focus.focus_type.clone().unwrap_or_else(|| "-".to_string());
+    let region = focus.region.clone().unwrap_or_else(|| "-".to_string());
+    let token_endpoint = focus
+        .token_endpoint
+        .clone()
+        .unwrap_or_else(|| "-".to_string());
     let connect_url = focus.connect_url.clone().unwrap_or_else(|| "-".to_string());
-    let issuer_kid = focus.issuer_kid.clone().unwrap_or_else(|| "-".to_string());
-    let audience = focus.audience.clone().unwrap_or_else(|| "-".to_string());
-    let regions = focus.regions.clone();
-    let known_backend = focus
-        .backend
+    let health_endpoint = focus
+        .health_endpoint
+        .clone()
+        .unwrap_or_else(|| "-".to_string());
+    let cascade_group = focus
+        .cascade_group
+        .clone()
+        .unwrap_or_else(|| "-".to_string());
+    let capabilities = focus.capabilities.clone();
+    let known_type = focus
+        .focus_type
         .as_deref()
-        .map(|b| FOCUS_BACKENDS.contains(&b))
+        .map(|b| FOCUS_TYPES.contains(&b))
         .unwrap_or(true);
 
     rsx! {
@@ -160,7 +171,7 @@ fn render_focus_row(idx: usize, focus: &MediaServiceFocus) -> Element {
             class: "rounded-md border p-3 space-y-2",
             div { class: "flex items-center justify-between",
                 p { class: "text-xs text-muted-foreground", "focus #{idx + 1}" }
-                if !known_backend {
+                if !known_type {
                     Badge { variant: BadgeVariant::Destructive, {t("media_service.unknown_backend")} }
                 }
             }
@@ -171,32 +182,40 @@ fn render_focus_row(idx: usize, focus: &MediaServiceFocus) -> Element {
                 }
                 div { class: "space-y-1",
                     p { class: "text-xs text-muted-foreground", {t("media_service.focus_backend")} }
-                    p { class: "text-sm font-mono", "{backend}" }
+                    p { class: "text-sm font-mono", "{focus_type}" }
+                }
+                div { class: "space-y-1",
+                    p { class: "text-xs text-muted-foreground", "Region" }
+                    p { class: "text-sm font-mono break-all", "{region}" }
+                }
+                div { class: "space-y-1 md:col-span-2",
+                    p { class: "text-xs text-muted-foreground", "Token endpoint" }
+                    p { class: "text-sm font-mono break-all", "{token_endpoint}" }
                 }
                 div { class: "space-y-1 md:col-span-2",
                     p { class: "text-xs text-muted-foreground", {t("media_service.focus_connect_url")} }
                     p { class: "text-sm font-mono break-all", "{connect_url}" }
                 }
-                div { class: "space-y-1",
-                    p { class: "text-xs text-muted-foreground", {t("media_service.focus_issuer_kid")} }
-                    p { class: "text-sm font-mono break-all", "{issuer_kid}" }
+                div { class: "space-y-1 md:col-span-2",
+                    p { class: "text-xs text-muted-foreground", "Health endpoint" }
+                    p { class: "text-sm font-mono break-all", "{health_endpoint}" }
                 }
                 div { class: "space-y-1",
-                    p { class: "text-xs text-muted-foreground", {t("media_service.focus_audience")} }
-                    p { class: "text-sm font-mono break-all", "{audience}" }
+                    p { class: "text-xs text-muted-foreground", "Cascade group" }
+                    p { class: "text-sm font-mono break-all", "{cascade_group}" }
                 }
                 div { class: "space-y-1 md:col-span-2",
-                    p { class: "text-xs text-muted-foreground", {t("media_service.focus_regions")} }
-                    if regions.is_empty() {
+                    p { class: "text-xs text-muted-foreground", "Capabilities" }
+                    if capabilities.is_empty() {
                         p { class: "text-sm text-muted-foreground", "-" }
                     } else {
                         div { class: "flex flex-wrap gap-1",
-                            for region in regions.iter() {
+                            for capability in capabilities.iter() {
                                 Badge {
-                                    key: "{region}",
+                                    key: "{capability}",
                                     variant: BadgeVariant::Secondary,
                                     class: "font-mono text-xs".to_string(),
-                                    "{region}"
+                                    "{capability}"
                                 }
                             }
                         }

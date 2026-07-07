@@ -402,6 +402,7 @@
   "common.copy": "Copy",
   "common.create": "Create",
   "common.delete": "Delete",
+  "common.disable": "Disable",
   "common.disabled": "Disabled",
   "common.dismiss": "Dismiss",
   "common.edit": "Edit",

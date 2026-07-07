@@ -128,10 +128,23 @@ pub fn MultiSigPage(realm_id: String) -> Element {
                                                                 onclick: move |_| {
                                                                     let pending_seal_id = seal_id_for_btn.clone();
                                                                     let sid = realm_id_for_btn.clone();
+                                                                    let Some(signer_did) = prompt_required("Signer DID") else {
+                                                                        return;
+                                                                    };
+                                                                    let Some(signature_b64) = prompt_required("Partial signature (base64)") else {
+                                                                        return;
+                                                                    };
+                                                                    let Some(kid) = prompt_required("Key ID") else {
+                                                                        return;
+                                                                    };
                                                                     in_flight.set(Some(pending_seal_id.clone()));
                                                                     spawn(async move {
                                                                         let res = multisig::submit_partial(
-                                                                            &sid, &pending_seal_id, None,
+                                                                            &sid,
+                                                                            &pending_seal_id,
+                                                                            &signer_did,
+                                                                            &signature_b64,
+                                                                            &kid,
                                                                         )
                                                                         .await;
                                                                         match res {
@@ -181,6 +194,15 @@ pub fn MultiSigPage(realm_id: String) -> Element {
             }
         }
     }
+}
+
+fn prompt_required(label: &str) -> Option<String> {
+    let value = web_sys::window()?
+        .prompt_with_message(label)
+        .ok()
+        .flatten()?;
+    let trimmed = value.trim().to_owned();
+    (!trimmed.is_empty()).then_some(trimmed)
 }
 
 /// Pick a badge variant for the "collected partials" cell. When the

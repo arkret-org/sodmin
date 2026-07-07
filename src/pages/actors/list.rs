@@ -92,7 +92,7 @@ pub fn ActorList() -> Element {
                     Pagination {
                         page: page(),
                         per_page,
-                        total: resp.total_or_len(),
+                        total: resp.total_or_page_floor(page(), per_page),
                         on_page_change: move |p: u64| page.set(p),
                     }
                 },

@@ -15,6 +15,7 @@ use serde::{Deserialize, Serialize};
 pub enum SigningKeyOrigin {
     Configured,
     Ephemeral,
+    Unknown,
 }
 
 impl SigningKeyOrigin {
@@ -22,6 +23,7 @@ impl SigningKeyOrigin {
         match self {
             SigningKeyOrigin::Configured => "Configured",
             SigningKeyOrigin::Ephemeral => "Ephemeral",
+            SigningKeyOrigin::Unknown => "Unknown",
         }
     }
 
@@ -29,6 +31,7 @@ impl SigningKeyOrigin {
         match s {
             "configured" => Some(SigningKeyOrigin::Configured),
             "ephemeral" => Some(SigningKeyOrigin::Ephemeral),
+            "unknown" => Some(SigningKeyOrigin::Unknown),
             _ => None,
         }
     }
@@ -62,10 +65,10 @@ pub struct SigningKeyDescribe {
 }
 
 impl SigningKeyDescribe {
-    /// Typed origin, falling back to `Ephemeral` for unknown wire values
-    /// so the UI surfaces the safer (more alarming) state by default.
+    /// Typed origin, falling back to `Unknown` for unrecognized wire values
+    /// so the UI does not imply a configured key without backend proof.
     pub fn origin_typed(&self) -> SigningKeyOrigin {
-        SigningKeyOrigin::from_wire(&self.origin).unwrap_or(SigningKeyOrigin::Ephemeral)
+        SigningKeyOrigin::from_wire(&self.origin).unwrap_or(SigningKeyOrigin::Unknown)
     }
 
     /// Whether the `Rotate signing key` button should be enabled. Ephemeral
@@ -98,6 +101,7 @@ mod tests {
         for (wire, expected) in [
             ("configured", SigningKeyOrigin::Configured),
             ("ephemeral", SigningKeyOrigin::Ephemeral),
+            ("unknown", SigningKeyOrigin::Unknown),
         ] {
             let s = SigningKeyOrigin::from_wire(wire).expect("known wire variant");
             assert_eq!(s, expected);
@@ -107,14 +111,14 @@ mod tests {
     }
 
     #[test]
-    fn origin_typed_defaults_to_ephemeral_on_unknown() {
-        // Default to the safer (more-alarming) state so unknown wire data
-        // doesn't silently look like a configured key.
+    fn origin_typed_defaults_to_unknown_on_unrecognized_wire() {
+        // Default to unknown so unrecognized wire data does not silently
+        // look like a configured key.
         let d = SigningKeyDescribe {
             origin: "mystery".into(),
             ..Default::default()
         };
-        assert_eq!(d.origin_typed(), SigningKeyOrigin::Ephemeral);
+        assert_eq!(d.origin_typed(), SigningKeyOrigin::Unknown);
     }
 
     #[test]
@@ -141,11 +145,19 @@ mod tests {
         // Ephemeral keys are never rotatable from the UI — the operator
         // must redeploy with a configured key first.
         assert!(!ephemeral_even_if_rotatable.can_rotate());
+
+        let unknown = SigningKeyDescribe {
+            origin: "unknown".into(),
+            rotatable: true,
+            ..Default::default()
+        };
+        assert!(!unknown.can_rotate());
     }
 
     #[test]
     fn origin_label_is_capitalized_for_display() {
         assert_eq!(SigningKeyOrigin::Configured.label(), "Configured");
         assert_eq!(SigningKeyOrigin::Ephemeral.label(), "Ephemeral");
+        assert_eq!(SigningKeyOrigin::Unknown.label(), "Unknown");
     }
 }

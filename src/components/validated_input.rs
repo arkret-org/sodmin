@@ -7,6 +7,7 @@
 use dioxus::prelude::*;
 
 use crate::components::ui::input::Input;
+use crate::utils::i18n::t;
 use crate::utils::security::did;
 
 /// Validation rule enforced by [`ValidatedInput`].
@@ -25,7 +26,7 @@ impl ValidationKind {
                 if value.is_empty() || did::is_valid_did(value) {
                     Ok(())
                 } else {
-                    Err("DID must match did:<method>:<id> (round-4 grammar)")
+                    Err("did_input.invalid")
                 }
             }
             ValidationKind::Required => {
@@ -65,7 +66,7 @@ pub fn ValidatedInput(
             }
             if show_error {
                 if let Some(msg) = error_msg {
-                    p { class: "text-xs text-destructive font-mono", "{msg}" }
+                    p { class: "text-xs text-destructive font-mono", {t(msg)} }
                 }
             }
         }

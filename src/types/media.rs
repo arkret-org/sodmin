@@ -40,7 +40,7 @@ pub struct MediaRow {
     pub encrypted: bool,
     #[serde(default)]
     pub uploaded_by: Option<String>,
-    #[serde(default)]
+    #[serde(default, alias = "size")]
     pub size_bytes: u64,
     #[serde(default)]
     pub created_at: Option<String>,

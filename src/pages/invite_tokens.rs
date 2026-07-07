@@ -147,7 +147,7 @@ pub fn InviteTokenList() -> Element {
 
                     Pagination {
                         page: page_val,
-                        total: resp.total_or_len(),
+                        total: resp.total_or_page_floor(page_val, PAGE_SIZE),
                         per_page: PAGE_SIZE,
                         on_page_change: move |p| page.set(p),
                     }
@@ -228,7 +228,7 @@ pub fn InviteTokenList() -> Element {
                 if let Some(id) = show_delete_dialog.read().clone() {
                     let id = id.clone();
                     spawn(async move {
-                        match invite_tokens::delete_invite_token(&id).await {
+                        match invite_tokens::revoke_invite_token(&id).await {
                             Ok(_) => {
                                 show_toast(&t("invite_tokens.toast_deleted"), ToastVariant::Success);
                                 data.restart();

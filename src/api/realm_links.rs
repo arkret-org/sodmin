@@ -18,12 +18,11 @@ use crate::utils::net::error::HttpError;
 
 pub type LinkDirection = RealmLinkDirection;
 
-fn direction_query(direction: LinkDirection) -> &'static str {
-    match direction {
-        RealmLinkDirection::Outbound => "outbound",
-        RealmLinkDirection::Inbound => "inbound",
-        RealmLinkDirection::Both => "both",
-    }
+fn direction_query(direction: LinkDirection) -> String {
+    serde_json::to_value(direction)
+        .ok()
+        .and_then(|value| value.as_str().map(ToOwned::to_owned))
+        .unwrap_or_else(|| "both".to_owned())
 }
 
 pub async fn list_realm_links(

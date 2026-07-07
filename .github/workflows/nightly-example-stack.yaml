@@ -112,7 +112,7 @@ jobs:
         working-directory: sodmin
         env:
           SODMIN_E2E_BASE_URL: http://localhost:58200
-        run: npm test -- --reporter=line
+        run: npm run test:smoke -- --reporter=line
 
       - name: Run Lighthouse budget against example stack
         working-directory: sodmin

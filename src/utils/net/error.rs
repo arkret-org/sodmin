@@ -165,6 +165,7 @@ pub fn display_error(errcode: &str, status: u16, message: &str) -> String {
     // from the spec error-code-registry (there is no `ck.error.*`
     // prefix in the registry, and `schema` is registered as
     // `schema_violation`). Match those literal registry codes only.
+    let safe_message = redact_pii(message);
     let fallback = match errcode {
         ERROR_CODE_NOT_FOUND => "Resource not found",
         ERROR_CODE_UNAUTHENTICATED => "Authentication required",
@@ -182,9 +183,8 @@ pub fn display_error(errcode: &str, status: u16, message: &str) -> String {
         ERROR_CODE_CAS_CONFLICT | ERROR_CODE_FAILED_PRECONDITION => {
             "Precondition failed - refresh and retry"
         }
-        _ => message,
+        _ => safe_message.as_str(),
     };
-    let safe_message = redact_pii(message);
     if safe_message.is_empty() || fallback == safe_message {
         format!("{errcode} ({status}): {fallback}")
     } else {
@@ -376,6 +376,21 @@ mod tests {
         let s = display_error("schema_violation", 400, "user bob@example.org rejected");
         assert!(!s.contains("bob@example.org"));
         assert!(s.contains("[email]"));
+    }
+
+    #[test]
+    fn display_error_redacts_unregistered_code_message() {
+        let s = display_error(
+            "sodmin.http_status",
+            502,
+            "proxy leaked alice@example.org from 203.0.113.9 with Bearer abc.def",
+        );
+        assert!(!s.contains("alice@example.org"));
+        assert!(!s.contains("203.0.113.9"));
+        assert!(!s.contains("abc.def"));
+        assert!(s.contains("[email]"));
+        assert!(s.contains("[ip]"));
+        assert!(s.contains("[token]"));
     }
 
     #[test]

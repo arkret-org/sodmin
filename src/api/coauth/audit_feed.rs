@@ -29,6 +29,30 @@ pub struct CoauthAuditEntry {
     pub source_ip: Option<String>,
 }
 
+#[derive(Debug, Clone, Deserialize, Default)]
+struct CoauthAuditFeedOutcome {
+    #[serde(default)]
+    data: Vec<CoauthAuditEntryWire>,
+}
+
+#[derive(Debug, Clone, Deserialize, Default)]
+struct CoauthAuditEntryWire {
+    #[serde(default)]
+    id: String,
+    #[serde(default)]
+    operation: String,
+    #[serde(default)]
+    admin_user_id: Option<String>,
+    #[serde(default)]
+    resource_type: String,
+    #[serde(default)]
+    resource_id: String,
+    #[serde(default)]
+    details: Option<serde_json::Value>,
+    #[serde(default)]
+    created_at: Option<String>,
+}
+
 /// Multi-dimensional filter for `/_coauth/admin/audit-feed` queries. Empty
 /// fields are dropped before encoding so the wire form only carries
 /// what the operator actually filtered on.
@@ -44,13 +68,10 @@ pub struct AuditFeedFilter {
 
 impl AuditFeedFilter {
     fn into_query(self) -> Vec<(&'static str, String)> {
+        let _unsupported = (self.operation, self.target_id, self.since, self.until);
         [
-            ("operation", self.operation),
-            ("actor_user_id", self.actor_user_id),
-            ("target_type", self.target_type),
-            ("target_id", self.target_id),
-            ("since", self.since),
-            ("until", self.until),
+            ("admin_user_id", self.actor_user_id),
+            ("resource_type", self.target_type),
         ]
         .into_iter()
         .filter_map(|(k, v)| {
@@ -63,20 +84,34 @@ impl AuditFeedFilter {
 }
 
 pub async fn list_audit_feed(
-    page: u64,
+    _page: u64,
     per_page: u64,
     filter: AuditFeedFilter,
 ) -> Result<PaginatedResponse<CoauthAuditEntry>, HttpError> {
-    let page_str = page.to_string();
-    let per_page_str = per_page.to_string();
-    let mut params: Vec<(&str, &str)> = vec![
-        ("page", page_str.as_str()),
-        ("per_page", per_page_str.as_str()),
-    ];
+    let limit_str = per_page.max(1).to_string();
+    let mut params: Vec<(&str, &str)> = vec![("limit", limit_str.as_str())];
     let owned = filter.into_query();
     for (k, v) in owned.iter() {
         params.push((k, v.as_str()));
     }
     let url = build_url(AUDIT_FEED_PATH, &params)?;
-    api_client(&url, "GET", NO_BODY).await
+    let resp: CoauthAuditFeedOutcome = api_client(&url, "GET", NO_BODY).await?;
+    let data = resp
+        .data
+        .into_iter()
+        .map(|entry| CoauthAuditEntry {
+            id: entry.id,
+            operation: entry.operation,
+            actor_user_id: entry.admin_user_id,
+            target_type: Some(entry.resource_type).filter(|value| !value.is_empty()),
+            target_id: Some(entry.resource_id).filter(|value| !value.is_empty()),
+            details: entry.details,
+            timestamp: entry.created_at,
+            source_ip: None,
+        })
+        .collect::<Vec<_>>();
+    Ok(PaginatedResponse {
+        total: data.len() as u64,
+        data,
+    })
 }

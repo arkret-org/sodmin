@@ -114,12 +114,12 @@ pub fn phrase_matches(typed: &str, phrase: &str) -> bool {
     typed.trim() == phrase
 }
 
-/// Pure helper: pick the last `n` chars of a device ID for the revoke
-/// gate. If the id is shorter than `n`, the whole id is returned.
-pub fn device_revoke_phrase(device_id: &str, n: usize) -> String {
-    let chars: Vec<char> = device_id.chars().collect();
+/// Pure helper: pick the last `n` chars of a stable identifier for a typed
+/// confirmation gate. If the id is shorter than `n`, the whole id is returned.
+pub fn confirmation_suffix(id: &str, n: usize) -> String {
+    let chars: Vec<char> = id.chars().collect();
     if chars.len() <= n {
-        device_id.to_string()
+        id.to_string()
     } else {
         chars[chars.len() - n..].iter().collect()
     }
@@ -148,10 +148,10 @@ mod tests {
 
     #[test]
     fn device_phrase_picks_last_n_chars() {
-        assert_eq!(device_revoke_phrase("dev_01HXYAB7K9", 4), "B7K9");
+        assert_eq!(confirmation_suffix("dev_01HXYAB7K9", 4), "B7K9");
         // shorter than n -> whole id
-        assert_eq!(device_revoke_phrase("ab", 4), "ab");
+        assert_eq!(confirmation_suffix("ab", 4), "ab");
         // multibyte safe
-        assert_eq!(device_revoke_phrase("dev_\u{4e2d}\u{6587}id", 2), "id");
+        assert_eq!(confirmation_suffix("dev_\u{4e2d}\u{6587}id", 2), "id");
     }
 }

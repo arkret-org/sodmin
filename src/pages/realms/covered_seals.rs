@@ -18,6 +18,7 @@ use crate::components::selection_required::{is_placeholder_resource_id, selectio
 use crate::components::ui::badge::{Badge, BadgeVariant};
 use crate::components::ui::button::{Button, ButtonVariant};
 use crate::components::ui::card::*;
+use crate::components::ui::dialog::ConfirmDialog;
 use crate::components::ui::empty_state::EmptyState;
 use crate::components::ui::error_banner::ErrorBanner;
 use crate::components::ui::loading::PageSkeleton;
@@ -38,6 +39,7 @@ pub fn CoveredSealsPage(realm_id: String) -> Element {
         async move { covered_seals::get_covered_seals(&id).await }
     });
     let mut advancing = use_signal(|| false);
+    let mut show_advance_confirm = use_signal(|| false);
     let header_realm_id = realm_id.clone();
     let realm_id_for_action = realm_id.clone();
 
@@ -78,7 +80,6 @@ pub fn CoveredSealsPage(realm_id: String) -> Element {
                             }
                         }
                     } else {
-                        let realm_id_for_button = realm_id_for_action.clone();
                         let advancing_now = *advancing.read();
                         rsx! {
                             if above_threshold {
@@ -91,28 +92,7 @@ pub fn CoveredSealsPage(realm_id: String) -> Element {
                                     Button {
                                         variant: ButtonVariant::Destructive,
                                         disabled: advancing_now,
-                                        onclick: move |_| {
-                                            let id = realm_id_for_button.clone();
-                                            advancing.set(true);
-                                            spawn(async move {
-                                                let res = covered_seals::advance(&id).await;
-                                                match res {
-                                                    Ok(r) => show_toast(
-                                                        &format!("Advanced covered_seals; new lag = {}", r.lag_count),
-                                                        ToastVariant::Success,
-                                                    ),
-                                                    Err(e) => {
-                                                        let msg = format_optional_endpoint_error(
-                                                            "covered_seals advance",
-                                                            &e,
-                                                        );
-                                                        show_toast(&msg, ToastVariant::Error);
-                                                    }
-                                                }
-                                                advancing.set(false);
-                                                data.restart();
-                                            });
-                                        },
+                                        onclick: move |_| show_advance_confirm.set(true),
                                         if advancing_now { "Advancing…" } else { "Manually advance covered_seals" }
                                     }
                                 }
@@ -172,6 +152,45 @@ pub fn CoveredSealsPage(realm_id: String) -> Element {
                     }
                 },
                 None => rsx! { PageSkeleton {} },
+            }
+
+            ConfirmDialog {
+                open: *show_advance_confirm.read(),
+                title: "Manually advance covered_seals?".to_string(),
+                description: format!(
+                    "This bypasses normal MLS acknowledgement waiting for Realm {} and folds the current governance Seal set into covered_seals.",
+                    realm_id_for_action
+                ),
+                confirm_text: "Advance covered_seals".to_string(),
+                cancel_text: "Cancel".to_string(),
+                destructive: true,
+                on_cancel: move |_| show_advance_confirm.set(false),
+                on_confirm: move |_| {
+                    if *advancing.read() {
+                        return;
+                    }
+                    show_advance_confirm.set(false);
+                    let id = realm_id_for_action.clone();
+                    advancing.set(true);
+                    spawn(async move {
+                        let res = covered_seals::advance(&id).await;
+                        match res {
+                            Ok(r) => show_toast(
+                                &format!("Advanced covered_seals; new lag = {}", r.lag_count),
+                                ToastVariant::Success,
+                            ),
+                            Err(e) => {
+                                let msg = format_optional_endpoint_error(
+                                    "covered_seals advance",
+                                    &e,
+                                );
+                                show_toast(&msg, ToastVariant::Error);
+                            }
+                        }
+                        advancing.set(false);
+                        data.restart();
+                    });
+                },
             }
         }
     }

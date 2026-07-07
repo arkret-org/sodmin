@@ -1,8 +1,7 @@
 //! DTO adapters for the multi-sig partial-signature admin surface.
 //!
 //! Pending rows come from `soland-core`. The partial-submit request/outcome
-//! stays local because the current UI posts an admin-scoped note while the
-//! soland server's lower-level endpoint accepts raw partial signature material.
+//! stays local because soland accepts raw partial signature material.
 
 use serde::{Deserialize, Serialize};
 pub use soland_core::admin::seal::{
@@ -11,8 +10,9 @@ pub use soland_core::admin::seal::{
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct SubmitPartialSignatureRequest {
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub note: Option<String>,
+    pub signer_did: String,
+    pub signature_b64: String,
+    pub kid: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -20,8 +20,10 @@ pub struct SubmitPartialSignatureOutcome {
     #[serde(default)]
     pub seal_id: String,
     #[serde(default)]
+    #[serde(rename = "collected")]
     pub collected_partials: u32,
     #[serde(default)]
+    #[serde(rename = "threshold")]
     pub threshold_k: u32,
     #[serde(default)]
     pub threshold_met: bool,
@@ -59,8 +61,8 @@ mod tests {
     fn partial_submit_outcome_accepts_server_field_names() {
         let response: SubmitPartialSignatureOutcome = serde_json::from_value(serde_json::json!({
             "seal_id": "ck:seal:1",
-            "collected_partials": 2,
-            "threshold_k": 2,
+            "collected": 2,
+            "threshold": 2,
             "status": "aggregated"
         }))
         .expect("response should deserialize");
@@ -72,10 +74,17 @@ mod tests {
     }
 
     #[test]
-    fn submit_partial_request_omits_empty_note() {
-        let request = SubmitPartialSignatureRequest { note: None };
+    fn submit_partial_request_matches_server_field_names() {
+        let request = SubmitPartialSignatureRequest {
+            signer_did: "did:web:admin.example".to_owned(),
+            signature_b64: "abc".to_owned(),
+            kid: "did:web:admin.example#key-1".to_owned(),
+        };
         let encoded = serde_json::to_string(&request).unwrap();
 
-        assert_eq!(encoded, "{}");
+        assert_eq!(
+            encoded,
+            r#"{"signer_did":"did:web:admin.example","signature_b64":"abc","kid":"did:web:admin.example#key-1"}"#
+        );
     }
 }

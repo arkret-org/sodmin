@@ -1,1 +1,192 @@
-#!/usr/bin/env bashEOF# Bring up the sodmin example stack (postgres + coauth + soland + floria + sodmin).EOF#EOF# Usage:EOF#   ./examples/up.sh                 # build images, generate config, bring stack upEOF#   ./examples/up.sh --no-build      # reuse existing imagesEOF#   ./examples/up.sh --regen-config  # regenerate examples/coauth-config.yamlEOF#EOF# Image overrides honour the same env vars the compose file reads:EOF#   COAUTH_IMAGE  SOLAND_IMAGE  FLORIA_IMAGE  SODMIN_IMAGEEOF#EOF# Exit codes:EOF#   0 — every service reported healthy (or started, for soland) within budgetEOF#   2 — invocation / pre-flight errorEOF#   3 — compose up failed; recent logs are dumped to stderrEOFEOFset -euo pipefailEOFEOFEXAMPLES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"EOFCOMPOSE_FILE="${EXAMPLES_DIR}/docker-compose.example-stack.yaml"EOFGENERATED_CONFIG="${EXAMPLES_DIR}/coauth-config.yaml"EOFCOAUTH_IMAGE_REF="${COAUTH_IMAGE:-coauth:dev}"EOFEOFNO_BUILD=0EOFREGEN_CONFIG=0EOFEOFfor arg in "$@"; doEOF    case "${arg}" inEOF        --no-build)     NO_BUILD=1 ;;EOF        --regen-config) REGEN_CONFIG=1 ;;EOF        -h|--help)EOF            sed -n '2,15p' "${BASH_SOURCE[0]}"EOF            exit 0EOF            ;;EOF        *)EOF            echo "[example-stack/up] unknown flag: ${arg}" >&2EOF            exit 2EOF            ;;EOF    esacEOFdoneEOFEOFif [[ ! -f "${COMPOSE_FILE}" ]]; thenEOF    echo "[example-stack/up] missing ${COMPOSE_FILE}" >&2EOF    exit 2EOFfiEOFEOFif ! command -v docker >/dev/null 2>&1; thenEOF    echo "[example-stack/up] docker not on PATH" >&2EOF    exit 2EOFfiEOFEOFif ! docker info >/dev/null 2>&1; thenEOF    echo "[example-stack/up] docker daemon not reachable (start Docker Desktop / dockerd)" >&2EOF    exit 2EOFfiEOFEOFif ! command -v python3 >/dev/null 2>&1; thenEOF    echo "[example-stack/up] python3 not on PATH; required for coauth config rewrite" >&2EOF    exit 2EOFfiEOFEOF# ─────────────────────────────────────────────────────────────────────EOF# Step 0: warn about sibling repos. coauth + soland + sodmin share anEOF# umbrella build context (../..) so the parent dir must contain theEOF# expected sibling checkouts. Pre-empts the cryptic "no such file orEOF# directory" cargo chef cook error fromEOF# ─────────────────────────────────────────────────────────────────────EOFUMBRELLA_DIR="$(cd "${EXAMPLES_DIR}/../.." && pwd)"EOFfor sibling in cokret-rust-sdk coauth soland floria sodmin; doEOF    if [[ ! -d "${UMBRELLA_DIR}/${sibling}" ]]; thenEOF        echo "[example-stack/up] missing sibling ${UMBRELLA_DIR}/${sibling}" >&2EOF        echo "[example-stack/up] umbrella layout expected: cokret/{cokret-rust-sdk,coauth,soland,floria,sodmin}/" >&2EOF        exit 2EOF    fiEOFdoneEOFEOF# ─────────────────────────────────────────────────────────────────────EOF# Step 1: build (unless --no-build).EOF#EOF# We build coauth FIRST and standalone, because step 2 needs to spinEOF# up an ephemeral coauth container to generate a config — and thatEOF# container must exist before the rest of the stack tries to mountEOF# `coauth-config.yaml`. Building everything in one shot would stillEOF# work, but isolating coauth surfaces image build errors before theEOF# slower Rust-heavy soland + sodmin builds start.EOF# ─────────────────────────────────────────────────────────────────────EOFif (( NO_BUILD == 0 )); thenEOF    echo "[example-stack/up] building coauth image first (needed for config gen)"EOF    docker compose -f "${COMPOSE_FILE}" build coauth || {EOF        echo "[example-stack/up] coauth build failed" >&2EOF        exit 3EOF    }EOFfiEOFEOF# ─────────────────────────────────────────────────────────────────────EOF# Step 2: generate coauth config with valid signing keys (idempotent).EOF#EOF# Uses an ephemeral coauth container so we don't need to hand-craftEOF# encryption secrets / RSA + EC keypairs in the repo. The generatedEOF# config is patched via Python (NOT sed — C36.5 found sed-basedEOF# rewrites brittle against multi-listener YAML) to:EOF#   - point database at the compose-internal postgresEOF#   - replace the entire `http.listeners:` block with a singleEOF#     web+health listener bound to 0.0.0.0:7080 (so both /health andEOF#     OAuth surfaces are reachable on one host-published port)EOF#   - set issuer/public_base to the compose-internal coauth URLEOF# ─────────────────────────────────────────────────────────────────────EOFif [[ ! -f "${GENERATED_CONFIG}" ]] || (( REGEN_CONFIG == 1 )); thenEOF    echo "[example-stack/up] generating ${GENERATED_CONFIG} via ephemeral coauth"EOF    docker run --rm "${COAUTH_IMAGE_REF}" config generate > "${GENERATED_CONFIG}.raw" || {EOF        echo "[example-stack/up] coauth config generate failed (image=${COAUTH_IMAGE_REF})" >&2EOF        rm -f "${GENERATED_CONFIG}.raw"EOF        exit 3EOF    }EOFEOF    python3 - "${GENERATED_CONFIG}.raw" "${GENERATED_CONFIG}" <<'PY'EOFimport sys, re, pathlibEOFEOFsrc = pathlib.Path(sys.argv[1]).read_text(encoding="utf-8")EOFout_path = pathlib.Path(sys.argv[2])EOFEOF# 1. database.uri → compose-internal postgresEOFsrc = re.sub(EOF    r'^(\s*uri:).*$',EOF    r'\1 postgresql://cokret:cokret@postgres:5432/cokret',EOF    src, count=1, flags=re.MULTILINE,EOF)EOFEOF# 2. http.public_base + http.issuer → in-cluster coauth URL.EOF#    For the example stack we want sodmin (also in the network) toEOF#    talk to coauth via service DNS — so the issuer claim matches theEOF#    URL the SPA uses through the nginx /auth/ proxy.EOFsrc = re.sub(EOF    r'^(\s*public_base:).*$',EOF    r'\1 http://coauth:7080/',EOF    src, count=1, flags=re.MULTILINE,EOF)EOFsrc = re.sub(EOF    r'^(\s*issuer:).*$',EOF    r'\1 http://coauth:7080/',EOF    src, count=1, flags=re.MULTILINE,EOF)EOFEOF# 3. Replace the entire `http.listeners:` block with ONE web+healthEOF#    listener bound to 0.0.0.0:7080. Default `coauth config generate`EOF#    emits TWO listeners (`web` on `[::]:7080` minus health + `internal`EOF#    on `localhost:8091` health-only). Compose only publishes 7080 toEOF#    the host, so the host /health probe would 404 against `web` andEOF#    the `internal` listener is unreachable.EOF#EOF#    We splice a deterministic block instead of patching in-place soEOF#    multi-listener YAML doesn't break the rewrite.EOFLISTENERS_REPLACEMENT = (EOF    "  listeners:\n"EOF    "  - name: web\n"EOF    "    resources:\n"EOF    "    - name: discovery\n"EOF    "    - name: human\n"EOF    "    - name: oauth\n"EOF    "    - name: compat\n"EOF    "    - name: restapi\n"EOF    "    - name: assets\n"EOF    "    - name: adminapi\n"EOF    "    - name: health\n"EOF    "    binds:\n"EOF    "    - address: '0.0.0.0:7080'\n"EOF    "    proxy_protocol: false\n"EOF)EOFEOFm = re.search(r'^http:\s*$', src, flags=re.MULTILINE)EOFif not m:EOF    sys.exit("FATAL: no `http:` section in generated config")EOFhttp_start = m.end() + 1EOFEOFls = re.search(r'^  listeners:\s*$', src[http_start:], flags=re.MULTILINE)EOFif not ls:EOF    sys.exit("FATAL: no `http.listeners:` key in generated config")EOFls_abs_start = http_start + ls.start()EOFEOF# Find the next sibling `  <key>:` line AFTER the listeners block.EOF# Children of the listeners list begin with `  -` or have deeperEOF# indent — those stay inside the block. A sibling has an identifierEOF# character at column 2 (e.g. `  trusted_proxies:`).EOFlines = src[ls_abs_start:].splitlines(keepends=True)EOFoffset = len(lines[0])  # skip the `  listeners:` line itselfEOFfor line in lines[1:]:EOF    # Top-level key (no leading whitespace) ends the `http:` section.EOF    if line and not line[0].isspace():EOF        breakEOF    if (EOF        len(line) > 2EOF        and line[0] == " "EOF        and line[1] == " "EOF        and line[2].isalpha()EOF    ):EOF        breakEOF    offset += len(line)EOFtail_start = ls_abs_start + offsetEOFEOFsrc = src[:ls_abs_start] + LISTENERS_REPLACEMENT + src[tail_start:]EOFEOFout_path.write_text(src, encoding="utf-8")EOFPYEOF    rm -f "${GENERATED_CONFIG}.raw"EOF    echo "[example-stack/up] wrote $(wc -l < "${GENERATED_CONFIG}") line config"EOFelseEOF    echo "[example-stack/up] reusing existing ${GENERATED_CONFIG} (--regen-config to refresh)"EOFfiEOFEOF# ─────────────────────────────────────────────────────────────────────EOF# Step 3: build the rest (unless --no-build). Done after config genEOF# so a build failure here doesn't block the much faster config step.EOF# ─────────────────────────────────────────────────────────────────────EOFif (( NO_BUILD == 0 )); thenEOF    echo "[example-stack/up] building remaining images via docker compose build"EOF    docker compose -f "${COMPOSE_FILE}" build || {EOF        echo "[example-stack/up] image build failed" >&2EOF        exit 3EOF    }EOFfiEOFEOF# ─────────────────────────────────────────────────────────────────────EOF# Step 4: bring the stack up. `--wait` blocks until every healthcheckEOF# transitions to healthy or budget expires; we then surface log tailsEOF# on failure so CI doesn't have to grep through compose noise.EOF# ─────────────────────────────────────────────────────────────────────EOFecho "[example-stack/up] docker compose up -d --wait"EOFif ! docker compose -f "${COMPOSE_FILE}" up -d --wait; thenEOF    echo "[example-stack/up] compose up failed; dumping recent logs" >&2EOF    docker compose -f "${COMPOSE_FILE}" ps >&2 || trueEOF    docker compose -f "${COMPOSE_FILE}" logs --tail=120 >&2 || trueEOF    exit 3EOFfiEOFEOFcat <<EOFEOF[example-stack/up] stack is up.EOFEOF  postgres : localhost:55432   (user=cokret pass=cokret db=cokret)EOF  coauth   : http://localhost:57080/healthEOF  soland   : http://localhost:58787/healthEOF  floria   : http://localhost:55000/ready  (admin)  +  http://localhost:58000  (data)EOF  sodmin   : http://localhost:58200/healthzEOFEOFRun ./examples/smoke.sh to verify each /health returns 200.EOFRun ./examples/down.sh to tear down + drop volumes.EOFEOFEOF
+#!/usr/bin/env bash
+# Bring up the sodmin example stack (postgres + coauth + soland + floria + sodmin).
+#
+# Usage:
+#   ./examples/up.sh                 # build images, generate config, bring stack up
+#   ./examples/up.sh --no-build      # reuse existing images
+#   ./examples/up.sh --regen-config  # regenerate examples/coauth-config.yaml
+#
+# Image overrides honour the same env vars the compose file reads:
+#   COAUTH_IMAGE  SOLAND_IMAGE  FLORIA_IMAGE  SODMIN_IMAGE
+#
+# Exit codes:
+#   0 - every service reported healthy (or started, for soland) within budget
+#   2 - invocation / pre-flight error
+#   3 - compose up failed; recent logs are dumped to stderr
+
+set -euo pipefail
+
+EXAMPLES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+COMPOSE_FILE="${EXAMPLES_DIR}/docker-compose.example-stack.yaml"
+GENERATED_CONFIG="${EXAMPLES_DIR}/coauth-config.yaml"
+COAUTH_IMAGE_REF="${COAUTH_IMAGE:-coauth:dev}"
+
+NO_BUILD=0
+REGEN_CONFIG=0
+
+for arg in "$@"; do
+    case "${arg}" in
+        --no-build) NO_BUILD=1 ;;
+        --regen-config) REGEN_CONFIG=1 ;;
+        -h|--help)
+            sed -n '2,15p' "${BASH_SOURCE[0]}"
+            exit 0
+            ;;
+        *)
+            echo "[example-stack/up] unknown flag: ${arg}" >&2
+            exit 2
+            ;;
+    esac
+done
+
+if [[ ! -f "${COMPOSE_FILE}" ]]; then
+    echo "[example-stack/up] missing ${COMPOSE_FILE}" >&2
+    exit 2
+fi
+
+if ! command -v docker >/dev/null 2>&1; then
+    echo "[example-stack/up] docker not on PATH" >&2
+    exit 2
+fi
+
+if ! docker info >/dev/null 2>&1; then
+    echo "[example-stack/up] docker daemon not reachable (start Docker Desktop / dockerd)" >&2
+    exit 2
+fi
+
+if ! command -v python3 >/dev/null 2>&1; then
+    echo "[example-stack/up] python3 not on PATH; required for coauth config rewrite" >&2
+    exit 2
+fi
+
+UMBRELLA_DIR="$(cd "${EXAMPLES_DIR}/../.." && pwd)"
+for sibling in cokret-rust-sdk coauth soland floria sodmin; do
+    if [[ ! -d "${UMBRELLA_DIR}/${sibling}" ]]; then
+        echo "[example-stack/up] missing sibling ${UMBRELLA_DIR}/${sibling}" >&2
+        echo "[example-stack/up] umbrella layout expected: cokret/{cokret-rust-sdk,coauth,soland,floria,sodmin}/" >&2
+        exit 2
+    fi
+done
+
+if (( NO_BUILD == 0 )); then
+    echo "[example-stack/up] building coauth image first (needed for config gen)"
+    docker compose -f "${COMPOSE_FILE}" build coauth || {
+        echo "[example-stack/up] coauth build failed" >&2
+        exit 3
+    }
+fi
+
+if [[ ! -f "${GENERATED_CONFIG}" ]] || (( REGEN_CONFIG == 1 )); then
+    echo "[example-stack/up] generating ${GENERATED_CONFIG} via ephemeral coauth"
+    docker run --rm "${COAUTH_IMAGE_REF}" config generate > "${GENERATED_CONFIG}.raw" || {
+        echo "[example-stack/up] coauth config generate failed (image=${COAUTH_IMAGE_REF})" >&2
+        rm -f "${GENERATED_CONFIG}.raw"
+        exit 3
+    }
+
+    python3 - "${GENERATED_CONFIG}.raw" "${GENERATED_CONFIG}" <<'PY'
+import pathlib
+import re
+import sys
+
+src = pathlib.Path(sys.argv[1]).read_text(encoding="utf-8")
+out_path = pathlib.Path(sys.argv[2])
+
+src = re.sub(
+    r"^(\s*uri:).*$",
+    r"\1 postgresql://cokret:cokret@postgres:5432/cokret",
+    src,
+    count=1,
+    flags=re.MULTILINE,
+)
+
+src = re.sub(
+    r"^(\s*public_base:).*$",
+    r"\1 http://coauth:7080/",
+    src,
+    count=1,
+    flags=re.MULTILINE,
+)
+src = re.sub(
+    r"^(\s*issuer:).*$",
+    r"\1 http://coauth:7080/",
+    src,
+    count=1,
+    flags=re.MULTILINE,
+)
+
+listeners_replacement = (
+    "  listeners:\n"
+    "  - name: web\n"
+    "    resources:\n"
+    "    - name: discovery\n"
+    "    - name: human\n"
+    "    - name: oauth\n"
+    "    - name: compat\n"
+    "    - name: restapi\n"
+    "    - name: assets\n"
+    "    - name: adminapi\n"
+    "    - name: health\n"
+    "    binds:\n"
+    "    - address: '0.0.0.0:7080'\n"
+    "    proxy_protocol: false\n"
+)
+
+http_match = re.search(r"^http:\s*$", src, flags=re.MULTILINE)
+if not http_match:
+    sys.exit("FATAL: no `http:` section in generated config")
+http_start = http_match.end() + 1
+
+listeners_match = re.search(r"^  listeners:\s*$", src[http_start:], flags=re.MULTILINE)
+if not listeners_match:
+    sys.exit("FATAL: no `http.listeners:` key in generated config")
+listeners_start = http_start + listeners_match.start()
+
+lines = src[listeners_start:].splitlines(keepends=True)
+offset = len(lines[0])
+for line in lines[1:]:
+    if line and not line[0].isspace():
+        break
+    if len(line) > 2 and line[0] == " " and line[1] == " " and line[2].isalpha():
+        break
+    offset += len(line)
+
+tail_start = listeners_start + offset
+src = src[:listeners_start] + listeners_replacement + src[tail_start:]
+
+out_path.write_text(src, encoding="utf-8")
+PY
+    rm -f "${GENERATED_CONFIG}.raw"
+    echo "[example-stack/up] wrote $(wc -l < "${GENERATED_CONFIG}") line config"
+else
+    echo "[example-stack/up] reusing existing ${GENERATED_CONFIG} (--regen-config to refresh)"
+fi
+
+if (( NO_BUILD == 0 )); then
+    echo "[example-stack/up] building remaining images via docker compose build"
+    docker compose -f "${COMPOSE_FILE}" build || {
+        echo "[example-stack/up] image build failed" >&2
+        exit 3
+    }
+fi
+
+echo "[example-stack/up] docker compose up -d --wait"
+if ! docker compose -f "${COMPOSE_FILE}" up -d --wait; then
+    echo "[example-stack/up] compose up failed; dumping recent logs" >&2
+    docker compose -f "${COMPOSE_FILE}" ps >&2 || true
+    docker compose -f "${COMPOSE_FILE}" logs --tail=120 >&2 || true
+    exit 3
+fi
+
+cat <<'EOF'
+[example-stack/up] stack is up.
+
+  postgres : localhost:55432   (user=cokret pass=cokret db=cokret)
+  coauth   : http://localhost:57080/health
+  soland   : http://localhost:58787/health
+  floria   : http://localhost:55000/ready  (admin)  +  http://localhost:58000  (data)
+  sodmin   : http://localhost:58200/healthz
+
+Run ./examples/smoke.sh to verify each /health returns 200.
+Run ./examples/down.sh to tear down + drop volumes.
+EOF

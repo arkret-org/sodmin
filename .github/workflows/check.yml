@@ -35,20 +35,25 @@ jobs:
           components: rustfmt, clippy
           targets: wasm32-unknown-unknown
 
+      - name: Install nightly rustfmt
+        uses: dtolnay/rust-toolchain@nightly
+        with:
+          components: rustfmt
+
       - name: Cache cargo registry, git, and target
         uses: Swatinem/rust-cache@v2
 
       - name: cargo fmt (host)
-        run: cargo fmt --all -- --check
+        run: cargo +nightly fmt --all -- --check
 
       - name: cargo check (host)
-        run: cargo check --workspace --all-targets --locked
+        run: cargo +stable check --workspace --all-targets --locked
 
       - name: cargo test (host)
-        run: cargo test --workspace --locked --no-fail-fast
+        run: cargo +stable test --workspace --locked --no-fail-fast
 
       - name: cargo clippy (host)
-        run: cargo clippy --workspace --all-targets --locked -- -D warnings
+        run: cargo +stable clippy --workspace --all-targets --locked -- -D warnings
 
   wasm-build:
     name: dx build (release)
@@ -127,7 +132,7 @@ jobs:
       - name: Run Playwright smoke
         env:
           SODMIN_E2E_BASE_URL: http://127.0.0.1:4173
-        run: npm test -- --reporter=line
+        run: npm run test:smoke -- --reporter=line
       - name: Run axe Playwright gate
         env:
           SODMIN_E2E_BASE_URL: http://127.0.0.1:4173

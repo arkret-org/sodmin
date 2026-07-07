@@ -56,7 +56,8 @@ pub struct RecoveryReceiptSummary {
     pub trust_domain: String,
     #[serde(default)]
     pub new_device_id: String,
-    /// `success` / `failure` per the schema outcome enum.
+    /// `completed` / `partial` / `aborted_by_user` / `policy_denied` /
+    /// `evidence_insufficient` / `service_defined` per the schema outcome enum.
     #[serde(default)]
     pub outcome: String,
     #[serde(default)]

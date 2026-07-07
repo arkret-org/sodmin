@@ -29,6 +29,7 @@ pub fn PolicyList() -> Element {
     let mut name = use_signal(String::new);
     let mut policy_type = use_signal(String::new);
     let mut scope = use_signal(String::new);
+    let mut subject_ref = use_signal(|| "*".to_string());
     let mut is_enabled = use_signal(|| true);
     let mut priority = use_signal(|| 0i32);
     let mut dialog_loading = use_signal(|| false);
@@ -58,6 +59,7 @@ pub fn PolicyList() -> Element {
                         name.set(String::new());
                         policy_type.set(String::new());
                         scope.set(String::new());
+                        subject_ref.set("*".to_string());
                         is_enabled.set(true);
                         priority.set(0);
                         selected_policy.set(None);
@@ -87,6 +89,7 @@ pub fn PolicyList() -> Element {
                                         TableHead { {t("policy.name")} }
                                         TableHead { {t("policy.policy_type")} }
                                         TableHead { {t("policy.scope")} }
+                                        TableHead { "Subject" }
                                         TableHead { {t("policy.enabled")} }
                                         TableHead { {t("policy.priority")} }
                                         TableHead { {t("policy.guardrails")} }
@@ -109,6 +112,8 @@ pub fn PolicyList() -> Element {
                                                 let p_type = p.policy_type.clone().unwrap_or_else(|| "-".to_string());
                                                 let p_scope = p.scope.clone().unwrap_or_else(|| "-".to_string());
                                                 let p_scope_for_edit = p.scope.clone().unwrap_or_default();
+                                                let p_subject = p.subject_ref.clone().unwrap_or_else(|| "-".to_string());
+                                                let p_subject_for_edit = p.subject_ref.clone().unwrap_or_else(|| "*".to_string());
                                                 let p_enabled = p.is_enabled;
                                                 let p_priority = p.priority;
                                                 let updated = p.updated_at.clone().unwrap_or_else(|| "-".to_string());
@@ -126,6 +131,7 @@ pub fn PolicyList() -> Element {
                                                         TableCell { "{p_name}" }
                                                         TableCell { "{p_type}" }
                                                         TableCell { class: "max-w-[200px] truncate".to_string(), "{p_scope}" }
+                                                        TableCell { class: "max-w-[200px] truncate font-mono text-xs".to_string(), "{p_subject}" }
                                                         TableCell {
                                                             if p_enabled {
                                                                 Badge { variant: BadgeVariant::Success, {t("common.enabled")} }
@@ -147,6 +153,7 @@ pub fn PolicyList() -> Element {
                                                                         let n = p_name.clone();
                                                                         let t = policy_for_edit.policy_type.clone().unwrap_or_default();
                                                                         let s = p_scope_for_edit.clone();
+                                                                        let sr = p_subject_for_edit.clone();
                                                                         let e = p_enabled;
                                                                         let pr = p_priority;
                                                                         let policy = policy_for_edit.clone();
@@ -155,6 +162,7 @@ pub fn PolicyList() -> Element {
                                                                             name.set(n.clone());
                                                                             policy_type.set(t.clone());
                                                                             scope.set(s.clone());
+                                                                            subject_ref.set(sr.clone());
                                                                             is_enabled.set(e);
                                                                             priority.set(pr);
                                                                             selected_policy.set(Some(policy.clone()));
@@ -266,6 +274,14 @@ pub fn PolicyList() -> Element {
                     }
                 }
                 div { class: "space-y-1",
+                    Label { r#for: "pol-subject".to_string(), "Subject" }
+                    Input {
+                        value: subject_ref.read().clone(),
+                        disabled: *dialog_read_only.read(),
+                        oninput: move |evt: FormEvent| subject_ref.set(evt.value()),
+                    }
+                }
+                div { class: "space-y-1",
                     Label { r#for: "pol-priority".to_string(), {t("policy.priority")} }
                     Input {
                         r#type: "number".to_string(),
@@ -326,6 +342,8 @@ pub fn PolicyList() -> Element {
                             name: name.read().clone(),
                             policy_type: if policy_type.read().is_empty() { None } else { Some(policy_type.read().clone()) },
                             scope: if scope.read().is_empty() { None } else { Some(scope.read().clone()) },
+                            subject_ref: if subject_ref.read().is_empty() { None } else { Some(subject_ref.read().clone()) },
+                            rules: selected_policy.read().as_ref().and_then(|policy| policy.rules.clone()),
                             is_enabled: *is_enabled.read(),
                             priority: *priority.read(),
                             ..Default::default()

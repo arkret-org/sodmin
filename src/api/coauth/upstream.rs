@@ -2,7 +2,8 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::api::client::{NO_BODY, api_client, build_url};
+use super::pagination::{get_jsonapi_first_page, map_single_resource};
+use crate::api::client::{NO_BODY, NoBody, api_client};
 use crate::types::PaginatedResponse;
 use crate::utils::net::error::HttpError;
 
@@ -25,6 +26,47 @@ pub struct CoauthUpstreamProvider {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct CreateUpstreamProviderRequest {
+    pub issuer: String,
+    pub client_id: String,
+}
+
+#[derive(Debug, Clone, Serialize)]
+struct UpstreamProviderRequestBody {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    issuer: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    human_name: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    brand_name: Option<String>,
+    scope: String,
+    token_endpoint_auth_method: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    token_endpoint_signing_alg: Option<String>,
+    id_token_signed_response_alg: String,
+    fetch_userinfo: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    userinfo_signed_response_alg: Option<String>,
+    client_id: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    client_secret: Option<String>,
+    claims_imports: serde_json::Value,
+    discovery_mode: String,
+    pkce_mode: String,
+    on_backchannel_logout: String,
+}
+
+#[derive(Debug, Clone, Deserialize, Default)]
+struct UpstreamProviderWire {
+    #[serde(default)]
+    issuer: Option<String>,
+    #[serde(default)]
+    created_at: Option<String>,
+    #[serde(default)]
+    disabled_at: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 #[non_exhaustive]
 pub struct CoauthUpstreamLink {
     #[serde(default)]
@@ -39,29 +81,53 @@ pub struct CoauthUpstreamLink {
     pub created_at: Option<String>,
 }
 
+#[derive(Debug, Clone, Deserialize, Default)]
+struct UpstreamLinkWire {
+    #[serde(default)]
+    user_id: Option<String>,
+    #[serde(default)]
+    provider_id: String,
+    #[serde(default)]
+    subject: String,
+    #[serde(default)]
+    created_at: Option<String>,
+}
+
 pub async fn list_upstream_providers(
-    page: u64,
+    _page: u64,
     per_page: u64,
 ) -> Result<PaginatedResponse<CoauthUpstreamProvider>, HttpError> {
-    let url = build_url(
+    get_jsonapi_first_page(
         UPSTREAM_OAUTH_PROVIDERS_PATH,
-        &[
-            ("page", &page.to_string()),
-            ("per_page", &per_page.to_string()),
-        ],
-    )?;
-    api_client(&url, "GET", NO_BODY).await
+        per_page,
+        map_upstream_provider,
+    )
+    .await
 }
 
 pub async fn create_upstream_provider(
-    provider: &serde_json::Value,
+    provider: &CreateUpstreamProviderRequest,
 ) -> Result<CoauthUpstreamProvider, HttpError> {
-    api_client(
-        "/_coauth/admin/upstream-oauth-providers",
-        "POST",
-        Some(provider),
-    )
-    .await
+    let body = UpstreamProviderRequestBody {
+        issuer: Some(provider.issuer.clone()).filter(|value| !value.trim().is_empty()),
+        human_name: None,
+        brand_name: None,
+        scope: "openid".to_owned(),
+        token_endpoint_auth_method: "none".to_owned(),
+        token_endpoint_signing_alg: None,
+        id_token_signed_response_alg: "RS256".to_owned(),
+        fetch_userinfo: false,
+        userinfo_signed_response_alg: None,
+        client_id: provider.client_id.clone(),
+        client_secret: None,
+        claims_imports: serde_json::json!({}),
+        discovery_mode: "oidc".to_owned(),
+        pkce_mode: "auto".to_owned(),
+        on_backchannel_logout: "do_nothing".to_owned(),
+    };
+    let resp: coauth_admin_types::SingleOutcome<UpstreamProviderWire> =
+        api_client(UPSTREAM_OAUTH_PROVIDERS_PATH, "POST", Some(&body)).await?;
+    Ok(map_single_resource(resp, map_upstream_provider))
 }
 
 pub async fn delete_upstream_provider(id: &str) -> Result<(), HttpError> {
@@ -69,7 +135,8 @@ pub async fn delete_upstream_provider(id: &str) -> Result<(), HttpError> {
         "/_coauth/admin/upstream-oauth-providers/{}",
         urlencoding::encode(id)
     );
-    api_client(&url, "DELETE", NO_BODY).await
+    let _: NoBody = api_client(&url, "DELETE", NO_BODY).await?;
+    Ok(())
 }
 
 pub async fn toggle_upstream_provider(id: &str, enable: bool) -> Result<(), HttpError> {
@@ -79,21 +146,15 @@ pub async fn toggle_upstream_provider(id: &str, enable: bool) -> Result<(), Http
         urlencoding::encode(id),
         action
     );
-    api_client(&url, "POST", NO_BODY).await
+    let _: NoBody = api_client(&url, "POST", NO_BODY).await?;
+    Ok(())
 }
 
 pub async fn list_upstream_links(
-    page: u64,
+    _page: u64,
     per_page: u64,
 ) -> Result<PaginatedResponse<CoauthUpstreamLink>, HttpError> {
-    let url = build_url(
-        UPSTREAM_OAUTH_LINKS_PATH,
-        &[
-            ("page", &page.to_string()),
-            ("per_page", &per_page.to_string()),
-        ],
-    )?;
-    api_client(&url, "GET", NO_BODY).await
+    get_jsonapi_first_page(UPSTREAM_OAUTH_LINKS_PATH, per_page, map_upstream_link).await
 }
 
 pub async fn delete_upstream_link(id: &str) -> Result<(), HttpError> {
@@ -101,5 +162,32 @@ pub async fn delete_upstream_link(id: &str) -> Result<(), HttpError> {
         "/_coauth/admin/upstream-oauth-links/{}",
         urlencoding::encode(id)
     );
-    api_client(&url, "DELETE", NO_BODY).await
+    let _: NoBody = api_client(&url, "DELETE", NO_BODY).await?;
+    Ok(())
+}
+
+fn map_upstream_provider(
+    resource: coauth_admin_types::SingleResource<UpstreamProviderWire>,
+) -> CoauthUpstreamProvider {
+    let attrs = resource.attributes;
+    CoauthUpstreamProvider {
+        id: resource.id,
+        issuer: attrs.issuer,
+        client_id: None,
+        is_enabled: attrs.disabled_at.is_none(),
+        created_at: attrs.created_at,
+    }
+}
+
+fn map_upstream_link(
+    resource: coauth_admin_types::SingleResource<UpstreamLinkWire>,
+) -> CoauthUpstreamLink {
+    let attrs = resource.attributes;
+    CoauthUpstreamLink {
+        id: resource.id,
+        user_id: attrs.user_id,
+        provider_id: Some(attrs.provider_id).filter(|value| !value.is_empty()),
+        subject: Some(attrs.subject).filter(|value| !value.is_empty()),
+        created_at: attrs.created_at,
+    }
 }

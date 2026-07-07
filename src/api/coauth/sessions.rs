@@ -2,7 +2,8 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::api::client::{NO_BODY, api_client, build_url};
+use super::pagination::{get_jsonapi_first_page, map_single_resource};
+use crate::api::client::{NO_BODY, api_client};
 use crate::types::PaginatedResponse;
 use crate::utils::net::error::HttpError;
 
@@ -54,18 +55,43 @@ pub struct CoauthPersonalSessionOneShot {
     pub access_token: Option<String>,
 }
 
+#[derive(Debug, Clone, Deserialize, Default)]
+struct OAuth2SessionWire {
+    #[serde(default)]
+    user_id: Option<String>,
+    #[serde(default)]
+    client_id: String,
+    #[serde(default)]
+    scope: String,
+    #[serde(default)]
+    human_name: Option<String>,
+    #[serde(default)]
+    created_at: Option<String>,
+    #[serde(default)]
+    finished_at: Option<String>,
+}
+
+#[derive(Debug, Clone, Deserialize, Default)]
+struct PersonalSessionWire {
+    #[serde(default)]
+    owner_user_id: Option<String>,
+    #[serde(default)]
+    actor_user_id: String,
+    #[serde(default)]
+    human_name: String,
+    #[serde(default)]
+    created_at: Option<String>,
+    #[serde(default)]
+    last_active_at: Option<String>,
+    #[serde(default)]
+    access_token: Option<String>,
+}
+
 pub async fn list_oauth2_sessions(
-    page: u64,
+    _page: u64,
     per_page: u64,
 ) -> Result<PaginatedResponse<CoauthOAuth2Session>, HttpError> {
-    let url = build_url(
-        OAUTH2_SESSIONS_PATH,
-        &[
-            ("page", &page.to_string()),
-            ("per_page", &per_page.to_string()),
-        ],
-    )?;
-    api_client(&url, "GET", NO_BODY).await
+    get_jsonapi_first_page(OAUTH2_SESSIONS_PATH, per_page, map_oauth2_session).await
 }
 
 pub async fn finish_oauth2_session(id: &str) -> Result<(), HttpError> {
@@ -77,24 +103,19 @@ pub async fn finish_oauth2_session(id: &str) -> Result<(), HttpError> {
 }
 
 pub async fn list_personal_sessions(
-    page: u64,
+    _page: u64,
     per_page: u64,
 ) -> Result<PaginatedResponse<CoauthPersonalSession>, HttpError> {
-    let url = build_url(
-        PERSONAL_SESSIONS_PATH,
-        &[
-            ("page", &page.to_string()),
-            ("per_page", &per_page.to_string()),
-        ],
-    )?;
-    api_client(&url, "GET", NO_BODY).await
+    get_jsonapi_first_page(PERSONAL_SESSIONS_PATH, per_page, map_personal_session).await
 }
 
 pub async fn create_personal_session(
     name: &str,
 ) -> Result<CoauthPersonalSessionOneShot, HttpError> {
     let body = serde_json::json!({ "name": name });
-    api_client("/_coauth/admin/personal-sessions", "POST", Some(&body)).await
+    let resp: coauth_admin_types::SingleOutcome<PersonalSessionWire> =
+        api_client(PERSONAL_SESSIONS_PATH, "POST", Some(&body)).await?;
+    Ok(map_single_resource(resp, map_personal_session_oneshot))
 }
 
 pub async fn revoke_personal_session(id: &str) -> Result<(), HttpError> {
@@ -112,7 +133,52 @@ pub async fn regenerate_personal_session(
         "/_coauth/admin/personal-sessions/{}/regenerate",
         urlencoding::encode(id)
     );
-    api_client(&url, "POST", NO_BODY).await
+    let resp: coauth_admin_types::SingleOutcome<PersonalSessionWire> =
+        api_client(&url, "POST", NO_BODY).await?;
+    Ok(map_single_resource(resp, map_personal_session_oneshot))
+}
+
+fn map_oauth2_session(
+    resource: coauth_admin_types::SingleResource<OAuth2SessionWire>,
+) -> CoauthOAuth2Session {
+    let attrs = resource.attributes;
+    CoauthOAuth2Session {
+        id: resource.id,
+        user_id: attrs.user_id,
+        client_id: Some(attrs.client_id).filter(|value| !value.is_empty()),
+        scope: Some(attrs.scope).filter(|value| !value.is_empty()),
+        human_name: attrs.human_name,
+        created_at: attrs.created_at,
+        finished_at: attrs.finished_at,
+    }
+}
+
+fn map_personal_session(
+    resource: coauth_admin_types::SingleResource<PersonalSessionWire>,
+) -> CoauthPersonalSession {
+    let attrs = resource.attributes;
+    CoauthPersonalSessionRow {
+        id: resource.id,
+        user_id: attrs
+            .actor_user_id
+            .is_empty()
+            .then(|| attrs.owner_user_id.clone())
+            .flatten()
+            .or_else(|| Some(attrs.actor_user_id).filter(|value| !value.is_empty())),
+        name: Some(attrs.human_name).filter(|value| !value.is_empty()),
+        created_at: attrs.created_at,
+        last_active_at: attrs.last_active_at,
+    }
+}
+
+fn map_personal_session_oneshot(
+    resource: coauth_admin_types::SingleResource<PersonalSessionWire>,
+) -> CoauthPersonalSessionOneShot {
+    let access_token = resource.attributes.access_token.clone();
+    CoauthPersonalSessionOneShot {
+        session: map_personal_session(resource),
+        access_token,
+    }
 }
 
 #[cfg(test)]

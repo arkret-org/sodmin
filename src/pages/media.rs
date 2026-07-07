@@ -16,13 +16,15 @@ pub fn MediaList() -> Element {
     let mut search = use_signal(String::new);
     let mut page = use_signal(|| 1u64);
     let page_val = *page.read();
-    let needle = search.read().to_ascii_lowercase();
+    let search_val = search.read().clone();
 
     let mut stats_data = use_resource(move || async move { media::get_media_statistics().await });
     let mut actor_media_data =
         use_resource(move || async move { media::list_media_by_actor().await });
-    let mut media_data =
-        use_resource(move || async move { media::list_media(page_val, PAGE_SIZE).await });
+    let mut media_data = use_resource(move || {
+        let search = search_val.clone();
+        async move { media::list_media(page_val, PAGE_SIZE, &search).await }
+    });
 
     rsx! {
         div { class: "space-y-6",
@@ -83,12 +85,6 @@ pub fn MediaList() -> Element {
 
             match &*media_data.read() {
                 Some(Ok(data)) => {
-                    let rows = data
-                        .data
-                        .iter()
-                        .filter(|row| media_row_matches(row, &needle))
-                        .cloned()
-                        .collect::<Vec<_>>();
                     rsx! {
                         div { class: "rounded-md border",
                             Table {
@@ -104,14 +100,14 @@ pub fn MediaList() -> Element {
                                     }
                                 }
                                 TableBody {
-                                    if rows.is_empty() {
+                                    if data.data.is_empty() {
                                         TableRow {
                                             TableCell { class: "text-center text-muted-foreground py-8".to_string(), colspan: 99,
                                                 {t("media.no_media")}
                                             }
                                         }
                                     } else {
-                                        for row in rows.iter() {
+                                        for row in data.data.iter() {
                                             {
                                                 let filename = row.filename.clone().unwrap_or_else(|| "-".to_string());
                                                 let media_type = row.media_type.clone().unwrap_or_else(|| "-".to_string());
@@ -140,7 +136,7 @@ pub fn MediaList() -> Element {
 
                         Pagination {
                             page: page_val,
-                            total: data.total_or_len(),
+                            total: data.total_or_page_floor(page_val, PAGE_SIZE),
                             per_page: PAGE_SIZE,
                             on_page_change: move |p| page.set(p),
                         }
@@ -214,19 +210,4 @@ fn actor_media_section(
             }
         }
     }
-}
-
-fn media_row_matches(row: &crate::types::MediaRow, needle: &str) -> bool {
-    if needle.trim().is_empty() {
-        return true;
-    }
-    [
-        row.filename.as_deref(),
-        row.media_type.as_deref(),
-        row.realm_id.as_deref(),
-        row.uploaded_by.as_deref(),
-    ]
-    .into_iter()
-    .flatten()
-    .any(|value| value.to_ascii_lowercase().contains(needle))
 }

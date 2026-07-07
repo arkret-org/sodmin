@@ -190,7 +190,7 @@ jobs:
             [ -n "$image" ] || continue
             while IFS= read -r suffix; do
               [ -n "$suffix" ] || continue
-              tags+=("${image}:${suffix}-arm64" "${image}:${suffix}")
+              tags+=("${image}:${suffix}-arm64")
             done <<< "$SUFFIXES"
           done <<< "$IMAGES"
 

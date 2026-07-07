@@ -26,17 +26,11 @@ pub fn AccountsPage() -> Element {
     let mut handle_filter = use_signal(String::new);
     let mut display_name_filter = use_signal(String::new);
 
-    // Pull a stable snapshot of cursor + filters into the resource closure
-    // so the request fires whenever any of these change.
-    let cursor_snapshot = cursor_stack.read().last().cloned().unwrap_or(None);
-    let search_snapshot = search.read().clone();
-    let handle_snapshot = handle_filter.read().clone();
-    let display_name_snapshot = display_name_filter.read().clone();
     let mut data = use_resource(move || {
-        let cursor = cursor_snapshot.clone();
-        let search = search_snapshot.clone();
-        let handle = handle_snapshot.clone();
-        let display_name = display_name_snapshot.clone();
+        let cursor = cursor_stack.read().last().cloned().unwrap_or(None);
+        let search = search.read().clone();
+        let handle = handle_filter.read().clone();
+        let display_name = display_name_filter.read().clone();
         async move {
             let filter = AccountListFilter {
                 handle,
@@ -121,7 +115,6 @@ pub fn AccountsPage() -> Element {
                                         TableHead { "Account ID" }
                                         TableHead { "Handle" }
                                         TableHead { "Display Name" }
-                                        TableHead { "Email" }
                                         TableHead { "Status" }
                                         TableHead { "Primary DID" }
                                         TableHead { "Bridge" }
@@ -141,23 +134,15 @@ pub fn AccountsPage() -> Element {
                                                 let account_id = account.id.clone();
                                                 let handle = account.username.clone().unwrap_or_else(|| "-".to_string());
                                                 let display_name = account.display_name.clone().unwrap_or_else(|| "-".to_string());
-                                                let email = account.email.clone().unwrap_or_else(|| "-".to_string());
                                                 let primary_did = account.primary_did.clone().unwrap_or_else(|| "-".to_string());
                                                 let bridge_status = account.bridge_status.clone();
-                                                let status = if account.is_deactivated {
-                                                    "Deactivated"
-                                                } else if account.is_locked {
-                                                    "Locked"
-                                                } else {
-                                                    "Active"
-                                                };
+                                                let status = account.lifecycle_label();
 
                                                 rsx! {
                                                     TableRow {
                                                         TableCell { class: "font-medium".to_string(), "{account_id}" }
                                                         TableCell { "{handle}" }
                                                         TableCell { "{display_name}" }
-                                                        TableCell { "{email}" }
                                                         TableCell { "{status}" }
                                                         TableCell { "{primary_did}" }
                                                         TableCell { class: "font-mono text-xs".to_string(), "{bridge_status}" }
