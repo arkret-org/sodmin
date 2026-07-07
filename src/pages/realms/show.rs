@@ -49,11 +49,11 @@ pub fn RealmShow(realm_id: String) -> Element {
                                     div { class: "space-y-3",
                                     {field_row(t("realms.id"), realm.id.clone())}
                                     {field_row(t("realms.type"), realm_type_label(realm))}
-                                    {field_row(t("realms.discoverability"), realm.discoverability.as_deref().unwrap_or("-").to_string())}
+                                    {field_row(t("realms.discoverability"), realm.discoverability_label().unwrap_or_else(|| "-".to_string()))}
                                     {field_row(t("realms.creator"), realm.created_by.as_deref().unwrap_or("-").to_string())}
                                     {field_row(t("realms.members"), realm.member_count.to_string())}
                                     {field_row(t("realms.encrypted"), if realm.is_encrypted { t("common.yes") } else { t("common.no") })}
-                                    {field_row(t("realms.join_rule"), realm.join_rule.as_deref().unwrap_or("-").to_string())}
+                                    {field_row(t("realms.join_rule"), realm.join_rule_label().unwrap_or_else(|| "-".to_string()))}
                                     {field_row(t("realms.status"), if realm.is_blocked { t("realms.blocked") } else { t("realms.active") })}
                                     {field_row(t("realms.created_at"), realm.created_at.as_deref().unwrap_or("-").to_string())}
                                         if let Some(ref topic) = realm.topic {

@@ -1,12 +1,14 @@
 use std::collections::BTreeSet;
 
+use cokret_core::PolicyEffect;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 
 use crate::api::client::{NO_BODY, NoBody, api_client, build_url};
 use crate::types::policy::{
     AdminPolicy, AdminPolicyListOutcome, CreatePolicyRequest, PinPolicySummary, PolicyAuditEntry,
-    PolicyEvidenceItem, PolicyGuardrailSummary, PolicySafetySummary,
+    PolicyDocumentPayload, PolicyEvidenceItem, PolicyGuardrailSummary, PolicyObligation,
+    PolicyResource, PolicyRuleSet, PolicySafetySummary,
 };
 use crate::utils::net::error::HttpError;
 
@@ -27,7 +29,7 @@ struct PolicyDocumentDto {
     #[serde(default)]
     policy_type: String,
     #[serde(default)]
-    payload: Value,
+    payload: PolicyDocumentPayload,
     #[serde(default)]
     active: bool,
     #[serde(default)]
@@ -41,10 +43,10 @@ struct UpsertPolicyDocumentRequestBody {
     scope: String,
     subject_ref: String,
     policy_type: String,
-    effect: String,
+    effect: PolicyEffect,
     actions: Vec<String>,
-    resource: Value,
-    obligations: Vec<Value>,
+    resource: PolicyResource,
+    obligations: Vec<PolicyObligation>,
     active: bool,
 }
 
@@ -120,14 +122,23 @@ fn upsert_body(
     }
 }
 
-fn payload_parts(req: &CreatePolicyRequest) -> (String, Vec<String>, Value, Vec<Value>) {
-    let rules = req.rules.clone().unwrap_or_else(|| json!({}));
+fn payload_parts(
+    req: &CreatePolicyRequest,
+) -> (
+    PolicyEffect,
+    Vec<String>,
+    PolicyResource,
+    Vec<PolicyObligation>,
+) {
+    let rules = req.rules.clone().unwrap_or_default();
+    let rules_value = rules.as_value();
     let effect = rules
+        .as_value()
         .get("effect")
         .and_then(Value::as_str)
-        .unwrap_or("allow")
-        .to_string();
-    let actions = rules
+        .and_then(policy_effect_from_wire)
+        .unwrap_or(PolicyEffect::Allow);
+    let actions = rules_value
         .get("actions")
         .and_then(Value::as_array)
         .map(|values| {
@@ -139,29 +150,46 @@ fn payload_parts(req: &CreatePolicyRequest) -> (String, Vec<String>, Value, Vec<
         })
         .filter(|values| !values.is_empty())
         .unwrap_or_else(|| vec!["*".to_string()]);
-    let obligations = rules
+    let obligations = rules_value
         .get("obligations")
         .and_then(Value::as_array)
-        .cloned()
+        .map(|items| {
+            items
+                .iter()
+                .cloned()
+                .map(PolicyObligation::from)
+                .collect::<Vec<_>>()
+        })
         .unwrap_or_default();
-    let resource = json!({
+    let resource = PolicyResource::from(json!({
         "name": req.name,
         "description": req.description,
         "priority": req.priority,
-        "rules": rules,
-    });
+        "rules": rules.into_value(),
+    }));
     (effect, actions, resource, obligations)
 }
 
+fn policy_effect_from_wire(value: &str) -> Option<PolicyEffect> {
+    match value {
+        "allow" => Some(PolicyEffect::Allow),
+        "deny" => Some(PolicyEffect::Deny),
+        "quarantine" => Some(PolicyEffect::Quarantine),
+        "require_review" => Some(PolicyEffect::RequireReview),
+        _ => None,
+    }
+}
+
 fn policy_from_document(doc: PolicyDocumentDto) -> AdminPolicy {
-    let guardrails = policy_guardrails_from_payload(&doc.payload);
+    let payload = doc.payload.as_value();
+    let guardrails = policy_guardrails_from_payload(payload);
     let safety = policy_safety_from_document(&doc);
     let rules = if safety.pin_summary.is_some() {
-        Some(pin_policy_public_rules(&safety))
+        Some(PolicyRuleSet::from(pin_policy_public_rules(&safety)))
     } else {
-        Some(doc.payload.clone())
+        Some(PolicyRuleSet::from(payload.clone()))
     };
-    let resource = doc.payload.get("resource").cloned().unwrap_or(Value::Null);
+    let resource = payload.get("resource").cloned().unwrap_or(Value::Null);
     let name = resource
         .get("name")
         .and_then(Value::as_str)
@@ -196,7 +224,10 @@ pub fn request_targets_pin_policy(req: &CreatePolicyRequest) -> bool {
     req.policy_type
         .as_deref()
         .is_some_and(text_targets_pin_policy)
-        || req.rules.as_ref().is_some_and(value_targets_pin_policy)
+        || req
+            .rules
+            .as_ref()
+            .is_some_and(|rules| value_targets_pin_policy(rules.as_value()))
 }
 
 fn pin_policy_unavailable_error() -> HttpError {
@@ -216,15 +247,18 @@ fn policy_safety_from_document(doc: &PolicyDocumentDto) -> PolicySafetySummary {
             "pin policy summary standard surface unavailable; raw private fields are redacted"
                 .to_owned(),
         ),
-        pin_summary: Some(pin_summary_from_payload(&doc.policy_type, &doc.payload)),
-        redacted_private_categories: private_pin_categories(&doc.payload),
+        pin_summary: Some(pin_summary_from_payload(
+            &doc.policy_type,
+            doc.payload.as_value(),
+        )),
+        redacted_private_categories: private_pin_categories(doc.payload.as_value()),
     }
 }
 
 fn policy_document_targets_pin(doc: &PolicyDocumentDto) -> bool {
     text_targets_pin_policy(&doc.policy_type)
         || text_targets_pin_policy(&doc.policy_id)
-        || value_targets_pin_policy(&doc.payload)
+        || value_targets_pin_policy(doc.payload.as_value())
 }
 
 fn text_targets_pin_policy(value: &str) -> bool {
@@ -496,7 +530,13 @@ fn policy_guardrails_from_payload(payload: &Value) -> PolicyGuardrailSummary {
         obligations: payload
             .get("obligations")
             .and_then(Value::as_array)
-            .cloned()
+            .map(|items| {
+                items
+                    .iter()
+                    .cloned()
+                    .map(PolicyObligation::from)
+                    .collect::<Vec<_>>()
+            })
             .unwrap_or_default(),
     };
 
@@ -657,7 +697,8 @@ mod tests {
                     "priority": 3,
                     "audit_trail": [{"action": "policy.create"}]
                 }
-            }),
+            })
+            .into(),
             active: true,
             updated_at: None,
         };
@@ -684,7 +725,8 @@ mod tests {
                     "account_data_key": "ck.search.index_manifest.v1:secret-realm-key",
                     "search_index": {"shard_key": "super-secret-token"}
                 }
-            }),
+            })
+            .into(),
             active: true,
             updated_at: None,
         };
@@ -727,14 +769,14 @@ mod tests {
         assert!(request_targets_pin_policy(&pin_by_type));
 
         let pin_by_rules = CreatePolicyRequest {
-            rules: Some(json!({"actions": ["ck.pin.reorder"]})),
+            rules: Some(json!({"actions": ["ck.pin.reorder"]}).into()),
             ..Default::default()
         };
         assert!(request_targets_pin_policy(&pin_by_rules));
 
         let ordinary = CreatePolicyRequest {
             policy_type: Some("ck.message.create".to_owned()),
-            rules: Some(json!({"actions": ["ck.message.create"]})),
+            rules: Some(json!({"actions": ["ck.message.create"]}).into()),
             ..Default::default()
         };
         assert!(!request_targets_pin_policy(&ordinary));

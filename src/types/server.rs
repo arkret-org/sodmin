@@ -6,6 +6,8 @@
 //! `identity_registry_resolver`, `admin_audience`, …) are captured in a
 //! flattened `extra` envelope and read by the view layer on demand.
 
+use std::collections::BTreeMap;
+
 // (The `ClaimedProfileEntry` / `VerifiedProfileEntry` /
 // `CompatSurfaceEntry` element types are reachable through the SDK
 // directly; sodmin views consume them via the `ServerDescription`
@@ -45,7 +47,28 @@ pub struct ServerDescribeDocument {
     pub description: ServerDescription,
     /// Top-level keys not consumed by [`ServerDescription`].
     #[serde(flatten)]
-    pub extra: serde_json::Value,
+    pub extra: ServerDescribeExtensions,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct ServerDescribeExtensions {
+    #[serde(flatten)]
+    fields: BTreeMap<String, serde_json::Value>,
+}
+
+impl ServerDescribeExtensions {
+    pub fn str_path(&self, path: &[&str]) -> Option<String> {
+        let mut current = path.first().and_then(|key| self.fields.get(*key))?;
+        for key in &path[1..] {
+            current = current.get(*key)?;
+        }
+        current.as_str().map(ToOwned::to_owned)
+    }
+
+    #[cfg(test)]
+    pub fn contains_key(&self, key: &str) -> bool {
+        self.fields.contains_key(key)
+    }
 }
 
 impl std::ops::Deref for ServerDescribeDocument {
@@ -60,11 +83,7 @@ impl ServerDescribeDocument {
     /// Walk `path` inside the extension envelope and return the string
     /// leaf, if any.
     pub fn extra_str(&self, path: &[&str]) -> Option<String> {
-        let mut current = &self.extra;
-        for key in path {
-            current = current.get(*key)?;
-        }
-        current.as_str().map(ToOwned::to_owned)
+        self.extra.str_path(path)
     }
 
     /// Round 4 — render-time check used by the ServerDescribe v2 admin
@@ -239,6 +258,6 @@ mod tests {
             Some("urn:coauth:admin".to_string())
         );
         // Spec fields must NOT leak into the extension envelope.
-        assert!(describe.extra.get("service_did").is_none());
+        assert!(!describe.extra.contains_key("service_did"));
     }
 }

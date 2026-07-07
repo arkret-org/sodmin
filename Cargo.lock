@@ -595,6 +595,7 @@ dependencies = [
  "chrono",
  "coauth-iana",
  "coauth-jose",
+ "coauth-oauth-types",
  "cokret-core",
  "crc",
  "diesel",
@@ -604,7 +605,6 @@ dependencies = [
  "ipnetwork",
  "language-tags",
  "lettre",
- "oauth-types",
  "opentelemetry",
  "opentelemetry-semantic-conventions",
  "rand 0.8.6",
@@ -665,6 +665,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "coauth-oauth-types"
+version = "0.3.0"
+dependencies = [
+ "base64ct",
+ "chrono",
+ "coauth-iana",
+ "coauth-jose",
+ "indexmap 2.14.0",
+ "language-tags",
+ "serde",
+ "serde_json",
+ "serde_with",
+ "sha2 0.10.9",
+ "thiserror 2.0.18",
+ "url",
+]
+
+[[package]]
 name = "cokret-core"
 version = "0.3.0"
 dependencies = [
@@ -676,6 +694,7 @@ dependencies = [
  "cokret-identifiers",
  "getrandom 0.4.2",
  "hex",
+ "hmac 0.13.0",
  "regex",
  "serde",
  "serde_json",
@@ -3322,24 +3341,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5c7398b9c8b70908f6371f47ed36737907c87c52af34c268fed0bf0ceb92ead9"
 dependencies = [
  "libc",
-]
-
-[[package]]
-name = "oauth-types"
-version = "0.3.0"
-dependencies = [
- "base64ct",
- "chrono",
- "coauth-iana",
- "coauth-jose",
- "indexmap 2.14.0",
- "language-tags",
- "serde",
- "serde_json",
- "serde_with",
- "sha2 0.10.9",
- "thiserror 2.0.18",
- "url",
 ]
 
 [[package]]
@@ -6097,6 +6098,7 @@ dependencies = [
  "dioxus-icons",
  "dioxus-primitives",
  "gloo-timers 0.4.0",
+ "serde_json",
  "tokio",
 ]
 
