@@ -83,7 +83,7 @@ name = "sodmin-smoke"
 path = "src/bin/sodmin_smoke.rs"
 
 # cokret fork of DioxusLabs/dioxus, branched off the v0.7.9 tag (same patch
-# set as yougen; build.rs checks the patch block so it cannot drift). The only delta is
+# set as inkson; build.rs checks the patch block so it cannot drift). The only delta is
 # `Callback::__point_to` in `packages/core/src/events.rs`: upstream 0.7.9
 # calls `.unwrap()` on `point_to`, which aborts the entire wasm instance
 # (white screen) when an `Option<EventHandler>` prop's owner scope is

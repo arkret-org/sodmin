@@ -6,7 +6,7 @@
 //! `capabilities`, `health_endpoint`, `cascade_group`).
 //!
 //! This view is **read-only** in sodmin: mutating `media_service` is a
-//! general-management action that strands through events / yougen, not
+//! general-management action that strands through events / inkson, not
 //! the operations console. The page therefore only pulls the effective
 //! cell via `GET /_soland/admin/realms/{id}/media-service` and renders it.
 
@@ -68,7 +68,7 @@ pub fn RealmMediaService(realm_id: String) -> Element {
             }
 
             // Read-only operations view. Realm media_service writes strand
-            // through events / yougen, not sodmin.
+            // through events / inkson, not sodmin.
             div {
                 class: "rounded-md border bg-muted/40 px-3 py-2 text-sm text-muted-foreground",
                 role: "note",

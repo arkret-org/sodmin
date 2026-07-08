@@ -3,7 +3,7 @@
 //! Renders the effective `delivery_binding_policy` cell for a single
 //! Realm (the security boundary). This view is **read-only** in sodmin:
 //! mutating `allowed_recipient_services` / `binding_source_policy` is a
-//! general-management action that strands through events / yougen, not the
+//! general-management action that strands through events / inkson, not the
 //! operations console. `policy_frontier` is reducer-owned.
 //!
 //! Below the policy summary the page lists each Realm member with their

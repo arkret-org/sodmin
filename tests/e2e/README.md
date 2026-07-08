@@ -58,7 +58,7 @@ explicitly provisions those variables and seeded backend data.
 the server-ops surfaces (dashboard, actors, spaces, federation,
 deactivation, audit, policy, server status). Governance pages
 (moderation/applets/agents/directory/circles) were removed from sodmin
-in the P3 ops-level consolidation and now live in yougen, so they are no
+in the P3 ops-level consolidation and now live in inkson, so they are no
 longer smoked here. These tests use the shared `SODMIN_E2E_BASE_URL`,
 `SODMIN_E2E_ADMIN_EMAIL`, and `SODMIN_E2E_ADMIN_PASSWORD` env vars and
 self-skip when the local stack is not configured.

@@ -316,7 +316,7 @@ pub fn AuditLog() -> Element {
 }
 
 /// P3A.5 — render the audit entry's effective scope. Circle and Realm
-/// scopes render as plain text; the Circle governance UI moved to yougen
+/// scopes render as plain text; the Circle governance UI moved to inkson
 /// (P3 consolidation) so there is no in-sodmin `/circles/:id` deep link
 /// target anymore.
 fn render_effective_scope(kind: &AuditScopeKind) -> Element {
