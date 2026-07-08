@@ -13,7 +13,7 @@
 //! (`cokret_core::identity::primary_handle`, SOD-05-001 / SPEC-CR-019),
 //! and `cokret_core::models::{HandleClaim, HandleBindingState, Handle}`
 //! are the exact types the admin DTOs already re-export. We simply
-//! re-export the core helpers so yougen / soland / cotest / sodmin all
+//! re-export the core helpers so inkson / soland / cotest / sodmin all
 //! agree on which claim wins from a single source of truth.
 //!
 //! The selection is a pure function of an explicit six-tuple:

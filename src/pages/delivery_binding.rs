@@ -79,7 +79,7 @@ pub fn DeliveryBindingPolicy(realm_id: String) -> Element {
                                 div { class: "space-y-4",
                                     // Read-only operations view. Realm
                                     // delivery-binding policy writes strand
-                                    // through events / yougen, not sodmin.
+                                    // through events / inkson, not sodmin.
                                     div { class: "grid gap-3 sm:grid-cols-2",
                                         div {
                                             p { class: "text-xs text-muted-foreground", {t("delivery_binding.policy_frontier")} }

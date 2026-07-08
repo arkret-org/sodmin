@@ -4,7 +4,7 @@
 //! `GET /_soland/admin/realms/{id}/media-service`, which projects the
 //! effective `ck.component.realm.media_service.v1` cell. This surface is
 //! read-only in sodmin: media_service writes strand through events /
-//! yougen, not the operations console.
+//! inkson, not the operations console.
 
 use serde::{Deserialize, Serialize};
 

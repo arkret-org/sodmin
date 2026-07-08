@@ -3,7 +3,7 @@
 //! The cell lives at `ck.component.realm.media_service.v1` and is
 //! projected per Realm. This surface is **read-only** in sodmin:
 //! media_service writes are a general-management action that strands
-//! through events / yougen, not the operations console. sodmin only
+//! through events / inkson, not the operations console. sodmin only
 //! renders the effective `foci[]` set plus the service DID.
 //!
 //! The admin endpoint is `/_soland/admin/realms/{id}/media-service`
