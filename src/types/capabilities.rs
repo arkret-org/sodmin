@@ -60,7 +60,7 @@ fn display_resource_selector(value: &serde_json::Value) -> String {
 mod tests {
     use super::{CapabilityGrant, CapabilityGrantExt};
 
-    const CAPABILITY_GRANT_SCHEMA: &str = "ck.schema.capability.v1";
+    const CAPABILITY_GRANT_SCHEMA: &str = "ak.schema.capability.v1";
 
     #[test]
     fn sdk_capability_grant_parses_spec_wire_shape() {
@@ -69,7 +69,7 @@ mod tests {
             "schema": CAPABILITY_GRANT_SCHEMA,
             "issuer": "did:web:issuer.example",
             "subject": "did:web:subject.example",
-            "actions": ["ck.message.create"],
+            "actions": ["ak.message.create"],
             "resources": [{ "kind": "*" }],
             "issued_at": "2026-06-07T00:00:00Z",
             "proofs": []
@@ -78,7 +78,7 @@ mod tests {
 
         assert_eq!(grant.issuer.as_str(), "did:web:issuer.example");
         assert_eq!(grant.subject_display(), "did:web:subject.example");
-        assert_eq!(grant.actions_display(), "ck.message.create");
+        assert_eq!(grant.actions_display(), "ak.message.create");
         assert_eq!(grant.resources_display(), "*");
         assert!(!grant.is_revoked());
     }

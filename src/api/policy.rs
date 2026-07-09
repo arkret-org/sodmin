@@ -278,10 +278,10 @@ fn policy_document_targets_pin(doc: &PolicyDocumentDto) -> bool {
 
 fn text_targets_pin_policy(value: &str) -> bool {
     let value = value.trim().to_ascii_lowercase();
-    value == "ck.pin"
-        || value == "ck.pin.*"
-        || value.starts_with("ck.pin.")
-        || value.contains("ck.profile.pinned_items")
+    value == "ak.pin"
+        || value == "ak.pin.*"
+        || value.starts_with("ak.pin.")
+        || value.contains("ak.profile.pinned_items")
         || value.contains("pinned_items")
         || value.contains("pin_policy")
         || value.contains("pin.policy")
@@ -348,7 +348,7 @@ fn structural_pin_key(key: &str) -> bool {
 
 fn pin_summary_from_payload(policy_type: &str, payload: &Value) -> PinPolicySummary {
     let mut actions = BTreeSet::new();
-    if text_targets_pin_policy(policy_type) && policy_type.starts_with("ck.pin.") {
+    if text_targets_pin_policy(policy_type) && policy_type.starts_with("ak.pin.") {
         actions.insert(policy_type.to_owned());
     }
     collect_pin_actions(payload, &mut actions);
@@ -371,7 +371,7 @@ fn pin_summary_from_payload(policy_type: &str, payload: &Value) -> PinPolicySumm
 fn collect_pin_actions(value: &Value, actions: &mut BTreeSet<String>) {
     match value {
         Value::String(s) => {
-            if s == "ck.pin.*" || s.starts_with("ck.pin.") {
+            if s == "ak.pin.*" || s.starts_with("ck.pin.") {
                 actions.insert(s.to_owned());
             }
         }
@@ -535,9 +535,9 @@ fn add_private_category_for_text(value: &str, categories: &mut BTreeSet<String>)
     let normalized = value.to_ascii_lowercase().replace('-', "_");
     if normalized.contains("account_data")
         || normalized.contains("accountdata")
-        || normalized.contains("ck.search.index_manifest")
-        || normalized.contains("ck.saved")
-        || normalized.contains("ck.reminders")
+        || normalized.contains("ak.search.index_manifest")
+        || normalized.contains("ak.saved")
+        || normalized.contains("ak.reminders")
     {
         categories.insert("private account-data".to_owned());
     }
@@ -705,7 +705,7 @@ mod tests {
     fn policy_guardrails_extract_approval_evidence_and_audit_trail() {
         let payload = json!({
             "effect": "require_review",
-            "actions": ["ck.realm.policy.update"],
+            "actions": ["ak.realm.policy.update"],
             "resource": {
                 "required_scope": "ak:scope:realm:01HXY/admin.write",
                 "approval_evidence": [{
@@ -749,7 +749,7 @@ mod tests {
             policy_id: "ak:policy:01HXY".to_owned(),
             scope: "ak:realm:01HXY".to_owned(),
             subject_ref: "did:web:admin.example".to_owned(),
-            policy_type: "ck.realm.policy.update".to_owned(),
+            policy_type: "ak.realm.policy.update".to_owned(),
             payload: json!({
                 "resource": {
                     "name": "Realm policy",
@@ -775,11 +775,11 @@ mod tests {
             name: "Targeted deny".to_owned(),
             scope: Some("ak:realm:01HXY".to_owned()),
             subject_ref: Some("did:web:bob.example".to_owned()),
-            policy_type: Some("ck.message.send".to_owned()),
+            policy_type: Some("ak.message.send".to_owned()),
             rules: Some(
                 json!({
                     "effect": "hard_deny",
-                    "actions": ["ck.message.send"]
+                    "actions": ["ak.message.send"]
                 })
                 .into(),
             ),
@@ -792,7 +792,7 @@ mod tests {
 
         assert_eq!(encoded["subject_ref"], "did:web:bob.example");
         assert_eq!(encoded["effect"], "hard_deny");
-        assert_eq!(encoded["actions"], json!(["ck.message.send"]));
+        assert_eq!(encoded["actions"], json!(["ak.message.send"]));
     }
 
     #[test]
@@ -812,15 +812,15 @@ mod tests {
             policy_id: "ak:policy:pins".to_owned(),
             scope: "ak:realm:01HXY".to_owned(),
             subject_ref: "*".to_owned(),
-            policy_type: "ck.profile.pinned_items.v1".to_owned(),
+            policy_type: "ak.profile.pinned_items.v1".to_owned(),
             payload: json!({
-                "actions": ["ck.pin.add", "ck.pin.reorder"],
+                "actions": ["ak.pin.add", "ck.pin.reorder"],
                 "resource": {
                     "name": "Realm pins",
                     "pin_scope": {"kind": "realm", "id": "ak:realm:01HXY"},
                     "quota": {"max_pins_per_scope": 5, "period": "PT1H"},
                     "note_visibility": "encrypted",
-                    "account_data_key": "ck.search.index_manifest.v1:secret-realm-key",
+                    "account_data_key": "ak.search.index_manifest.v1:secret-realm-key",
                     "search_index": {"shard_key": "super-secret-token"}
                 }
             })
@@ -842,7 +842,7 @@ mod tests {
 
         let summary = policy.safety.pin_summary.as_ref().unwrap();
         assert!(!summary.standard_surface_available);
-        assert!(summary.actions.iter().any(|v| v == "ck.pin.add"));
+        assert!(summary.actions.iter().any(|v| v == "ak.pin.add"));
         assert!(
             summary
                 .quota_limits
@@ -861,26 +861,26 @@ mod tests {
     #[test]
     fn pin_policy_mutation_requests_fail_closed_before_network() {
         let pin_by_type = CreatePolicyRequest {
-            policy_type: Some("ck.pin.add".to_owned()),
+            policy_type: Some("ak.pin.add".to_owned()),
             ..Default::default()
         };
         assert!(request_targets_pin_policy(&pin_by_type));
 
         let pin_by_rules = CreatePolicyRequest {
-            rules: Some(json!({"actions": ["ck.pin.reorder"]}).into()),
+            rules: Some(json!({"actions": ["ak.pin.reorder"]}).into()),
             ..Default::default()
         };
         assert!(request_targets_pin_policy(&pin_by_rules));
 
         let ordinary = CreatePolicyRequest {
-            policy_type: Some("ck.message.create".to_owned()),
-            rules: Some(json!({"actions": ["ck.message.create"]}).into()),
+            policy_type: Some("ak.message.create".to_owned()),
+            rules: Some(json!({"actions": ["ak.message.create"]}).into()),
             ..Default::default()
         };
         assert!(!request_targets_pin_policy(&ordinary));
 
         let ordinary_with_free_text = CreatePolicyRequest {
-            policy_type: Some("ck.message.create".to_owned()),
+            policy_type: Some("ak.message.create".to_owned()),
             rules: Some(
                 json!({"resource": {"description": "mentions pin policy in prose"}}).into(),
             ),

@@ -761,15 +761,15 @@ fn r3_profile_status_section(profiles: &[String]) -> Element {
     // (wire profile id, i18n key for the description copy).
     let known: &[(&str, &str)] = &[
         (
-            "ck.profile.media_service_binding.v1",
+            "ak.profile.media_service_binding.v1",
             "server_status.profile.media_service_binding",
         ),
         (
-            "ck.profile.accountable_principals.strict_reject.v1",
+            "ak.profile.accountable_principals.strict_reject.v1",
             "server_status.profile.accountable_principals_strict_reject",
         ),
         (
-            "ck.profile.key_backup.memory_hard.v1",
+            "ak.profile.key_backup.memory_hard.v1",
             "server_status.profile.key_backup_memory_hard",
         ),
     ];

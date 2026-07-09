@@ -433,7 +433,7 @@ fn conformance_rows(describe: Option<&ServerDescribeDocument>) -> Vec<Conformanc
     let checks = [
         (
             "core_event_store",
-            &["events.", "ck.events", "event_store", "events_api_minimal"][..],
+            &["events.", "ak.events", "event_store", "events_api_minimal"][..],
         ),
         ("chat_mvp", &["chat", "messages."][..]),
         ("kanban_mvp", &["kanban", "card.", "container."][..]),

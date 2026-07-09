@@ -169,8 +169,8 @@ mod tests {
             "trust_domain": "ak:trust_domain:soland.local",
             "service_type": "principal_server",
             "protocol_version": "1.0",
-            "supported_profiles": ["ck.profile.principal_server.v1"],
-            "supported_operations": ["ck.self.events.command.submit"],
+            "supported_profiles": ["ak.profile.principal_server.v1"],
+            "supported_operations": ["ak.self.events.command.submit"],
             "supported_bindings": [],
             "supported_features": ["events.describe", "events.submit"],
             "auth_metadata": { "mode": "production" },
@@ -183,7 +183,7 @@ mod tests {
             "plaintext_visibility": { "max_visibility": "private_plaintext", "data_classes": ["message_content"] },
             "implemented_features": ["events.describe"],
             "claimed_profiles": [{
-                "profile_id": "ck.profile.principal_server.v1",
+                "profile_id": "ak.profile.principal_server.v1",
                 "claim_kind": "self_claimed"
             }],
             "verified_profiles": [],
@@ -210,7 +210,7 @@ mod tests {
         assert!(!describe.development_mode);
         assert_eq!(
             describe.claimed_profiles[0].profile_id,
-            "ck.profile.principal_server.v1"
+            "ak.profile.principal_server.v1"
         );
         assert_eq!(describe.compat_surfaces[0].name, "federation.bridge");
         assert_eq!(

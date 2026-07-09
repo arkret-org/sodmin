@@ -248,7 +248,7 @@ mod tests {
             supported_methods: vec!["did:webvh".into(), "did:web".into()],
             supported_receipts: vec!["starid-local-sha256-v1".into()],
             protocol_version: "1.0".into(),
-            profiles: vec!["ck.identity.webvh.v1".into()],
+            profiles: vec!["ak.identity.webvh.v1".into()],
             head_version_id: Some("42-zABCDEF".into()),
             witness_count: 3,
             freshness: Some(

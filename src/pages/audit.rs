@@ -160,14 +160,14 @@ pub fn AuditLog() -> Element {
                                 draft.write().event_kind = evt.value();
                             },
                             option { value: "", "—" }
-                            option { value: "ck.circle.create", {t("audit.filter_event_kind_circle_create")} }
-                            option { value: "ck.circle.update", {t("audit.filter_event_kind_circle_update")} }
-                            option { value: "ck.circle.archive", {t("audit.filter_event_kind_circle_archive")} }
-                            option { value: "ck.circle.restore", {t("audit.filter_event_kind_circle_restore")} }
-                            option { value: "ck.circle.tombstone", {t("audit.filter_event_kind_circle_tombstone")} }
-                            option { value: "ck.circle.member.state", {t("audit.filter_event_kind_circle_member_state")} }
-                            option { value: "ck.capability.grant", {t("audit.filter_event_kind_capability_grant")} }
-                            option { value: "ck.capability.revoke", {t("audit.filter_event_kind_capability_revoke")} }
+                            option { value: "ak.circle.create", {t("audit.filter_event_kind_circle_create")} }
+                            option { value: "ak.circle.update", {t("audit.filter_event_kind_circle_update")} }
+                            option { value: "ak.circle.archive", {t("audit.filter_event_kind_circle_archive")} }
+                            option { value: "ak.circle.restore", {t("audit.filter_event_kind_circle_restore")} }
+                            option { value: "ak.circle.tombstone", {t("audit.filter_event_kind_circle_tombstone")} }
+                            option { value: "ak.circle.member.state", {t("audit.filter_event_kind_circle_member_state")} }
+                            option { value: "ak.capability.grant", {t("audit.filter_event_kind_capability_grant")} }
+                            option { value: "ak.capability.revoke", {t("audit.filter_event_kind_capability_revoke")} }
                         }
                     }
                 }
