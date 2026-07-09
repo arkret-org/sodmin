@@ -1,7 +1,7 @@
 [package]
 name = "sodmin"
 version = "0.3.0"
-authors = ["Cokret Authors"]
+authors = ["Arkret Authors"]
 license = "AGPL-3.0-or-later"
 edition = "2024"
 
@@ -13,8 +13,8 @@ edition = "2024"
 base64 = {workspace = true,default-features = false,features = ["alloc"]}
 chrono = {workspace = true,features = ["serde", "wasmbind"]}
 coauth-admin-types = {workspace = true}
-cokret-core = {workspace = true,default-features = false}
-cokret-identifiers = {workspace = true,default-features = false}
+arkret-core = {workspace = true,default-features = false}
+arkret-identifiers = {workspace = true,default-features = false}
 dioxus = {workspace = true,features = ["web", "router"]}
 dioxus-logger = {workspace = true}
 futures-util = {workspace = true,default-features = false,features = ["alloc"]}
@@ -82,7 +82,7 @@ path = "src/main.rs"
 name = "sodmin-smoke"
 path = "src/bin/sodmin_smoke.rs"
 
-# cokret fork of DioxusLabs/dioxus, branched off the v0.7.9 tag (same patch
+# arkret fork of DioxusLabs/dioxus, branched off the v0.7.9 tag (same patch
 # set as inkson; build.rs checks the patch block so it cannot drift). The only delta is
 # `Callback::__point_to` in `packages/core/src/events.rs`: upstream 0.7.9
 # calls `.unwrap()` on `point_to`, which aborts the entire wasm instance
@@ -97,21 +97,21 @@ path = "src/bin/sodmin_smoke.rs"
 # same crate would exist under two sources and `GenerationalBox<T>` would
 # mismatch across the registry `dioxus-signals`/`dioxus-web` and the patched
 # core.
-# See https://github.com/cokret/dioxus/commit/e59f9f24a5c27c9303cd61edd0452b44161374ab.
+# See https://github.com/arkret/dioxus/commit/e59f9f24a5c27c9303cd61edd0452b44161374ab.
 #
 # yoface depends on dioxus-primitives from the components fork. `[patch]`
 # entries are not inherited from dependencies, so sodmin, as the workspace
 # root, carries yoface README §2's components patch explicitly. build.rs
 # enforces the expected fork URL and rev.
 [patch."https://github.com/DioxusLabs/components"]
-dioxus-primitives = { git = "https://github.com/cokret/dioxus-components", rev = "3510aeee2d14f0ca2c11682c9b826650cb557d2f" }
+dioxus-primitives = { git = "https://github.com/arkret/dioxus-components", rev = "3510aeee2d14f0ca2c11682c9b826650cb557d2f" }
 
 [patch.crates-io]
-dioxus-core       = { git = "https://github.com/cokret/dioxus", rev = "e59f9f24a5c27c9303cd61edd0452b44161374ab" }
-dioxus-core-types = { git = "https://github.com/cokret/dioxus", rev = "e59f9f24a5c27c9303cd61edd0452b44161374ab" }
-generational-box  = { git = "https://github.com/cokret/dioxus", rev = "e59f9f24a5c27c9303cd61edd0452b44161374ab" }
-subsecond         = { git = "https://github.com/cokret/dioxus", rev = "e59f9f24a5c27c9303cd61edd0452b44161374ab" }
-subsecond-types   = { git = "https://github.com/cokret/dioxus", rev = "e59f9f24a5c27c9303cd61edd0452b44161374ab" }
+dioxus-core       = { git = "https://github.com/arkret/dioxus", rev = "e59f9f24a5c27c9303cd61edd0452b44161374ab" }
+dioxus-core-types = { git = "https://github.com/arkret/dioxus", rev = "e59f9f24a5c27c9303cd61edd0452b44161374ab" }
+generational-box  = { git = "https://github.com/arkret/dioxus", rev = "e59f9f24a5c27c9303cd61edd0452b44161374ab" }
+subsecond         = { git = "https://github.com/arkret/dioxus", rev = "e59f9f24a5c27c9303cd61edd0452b44161374ab" }
+subsecond-types   = { git = "https://github.com/arkret/dioxus", rev = "e59f9f24a5c27c9303cd61edd0452b44161374ab" }
 
 [workspace]
 resolver = "3"
@@ -120,8 +120,8 @@ resolver = "3"
 base64 = {version = "0.22",default-features = false}
 chrono = "0.4.45"
 coauth-admin-types = {path = "../coauth/crates/admin-types"}
-cokret-core = {path = "../cokret-rust-sdk/crates/core",default-features = false}
-cokret-identifiers = {path = "../cokret-rust-sdk/crates/identifiers",default-features = false}
+arkret-core = {path = "../arkret-rust-sdk/crates/core",default-features = false}
+arkret-identifiers = {path = "../arkret-rust-sdk/crates/identifiers",default-features = false}
 dioxus = "0.7.9"
 dioxus-logger = "0.7.9"
 futures-util = {version = "0.3.32",default-features = false}

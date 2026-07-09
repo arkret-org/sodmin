@@ -397,7 +397,7 @@ mod tests {
 
     #[test]
     fn build_realm_url_strips_trailing_base_slash() {
-        let url = build_realm_url("https://soland.example.com/", "ck:realm:demo", "notary");
+        let url = build_realm_url("https://soland.example.com/", "ak:realm:demo", "notary");
         assert_eq!(
             url,
             "https://soland.example.com/_soland/admin/realms/ck:realm:demo/notary"
@@ -408,7 +408,7 @@ mod tests {
     fn build_realm_url_handles_compound_suffix() {
         let url = build_realm_url(
             "https://soland.example.com",
-            "ck:realm:demo",
+            "ak:realm:demo",
             "seal-dag/compact",
         );
         assert_eq!(
@@ -421,7 +421,7 @@ mod tests {
     fn urlencoding_encode_preserves_colon_and_alnum() {
         // `ck:realm:01J9` is the typical id shape — colons MUST stay
         // unescaped or the URL becomes unreadable in logs.
-        assert_eq!(urlencoding_encode("ck:realm:01J9"), "ck:realm:01J9");
+        assert_eq!(urlencoding_encode("ak:realm:01J9"), "ak:realm:01J9");
         assert_eq!(urlencoding_encode("abc-123_~."), "abc-123_~.");
     }
 

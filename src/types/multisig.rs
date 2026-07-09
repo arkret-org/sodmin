@@ -44,14 +44,14 @@ mod tests {
     #[test]
     fn pending_row_helpers_come_from_shared_type() {
         let row = PendingMultisigSeal {
-            seal_id: "ck:seal:1".to_owned(),
+            seal_id: "ak:seal:1".to_owned(),
             threshold_k: 3,
             threshold_n: 5,
             collected_partials: 1,
             ..Default::default()
         };
 
-        assert_eq!(row.seal_id, "ck:seal:1");
+        assert_eq!(row.seal_id, "ak:seal:1");
         assert_eq!(row.remaining(), 2);
         assert_eq!(row.threshold_label(), "3 of 5");
         assert!(!row.is_threshold_met());
@@ -60,14 +60,14 @@ mod tests {
     #[test]
     fn partial_submit_outcome_accepts_server_field_names() {
         let response: SubmitPartialSignatureOutcome = serde_json::from_value(serde_json::json!({
-            "seal_id": "ck:seal:1",
+            "seal_id": "ak:seal:1",
             "collected": 2,
             "threshold": 2,
             "status": "aggregated"
         }))
         .expect("response should deserialize");
 
-        assert_eq!(response.seal_id, "ck:seal:1");
+        assert_eq!(response.seal_id, "ak:seal:1");
         assert_eq!(response.collected_partials, 2);
         assert_eq!(response.threshold_k, 2);
         assert!(response.threshold_met());

@@ -35,7 +35,7 @@ mod tests {
     #[test]
     fn reconfigure_body_omits_unused_shape_fields() {
         let request = NotaryReconfigRequestBody {
-            realm_id: "ck:realm:demo".to_owned(),
+            realm_id: "ak:realm:demo".to_owned(),
             kind: "single_did".to_owned(),
             single_did: Some("did:web:operator.example".to_owned()),
             ..Default::default()
@@ -51,10 +51,10 @@ mod tests {
     #[test]
     fn seal_dag_deserializes_current_field_names() {
         let snapshot: SealDagSnapshot = serde_json::from_value(serde_json::json!({
-            "realm_id": "ck:realm:demo",
-            "covered_event_digests": ["ck:event:1"],
+            "realm_id": "ak:realm:demo",
+            "covered_event_digests": ["ak:event:1"],
             "leaves": [{
-                "seal_id": "ck:seal:1",
+                "seal_id": "ak:seal:1",
                 "control_event_count": 1
             }]
         }))
@@ -62,20 +62,20 @@ mod tests {
 
         assert_eq!(
             snapshot.covered_event_digests,
-            vec!["ck:event:1".to_owned()]
+            vec!["ak:event:1".to_owned()]
         );
-        assert_eq!(snapshot.leaves[0].seal_id, "ck:seal:1");
+        assert_eq!(snapshot.leaves[0].seal_id, "ak:seal:1");
     }
 
     #[test]
     fn compaction_outcome_uses_seal_id() {
         let response: CompactionOutcome = serde_json::from_value(serde_json::json!({
-            "seal_id": "ck:seal:compact",
+            "seal_id": "ak:seal:compact",
             "control_event_count": 3
         }))
         .expect("response should deserialize");
 
-        assert_eq!(response.seal_id, "ck:seal:compact");
+        assert_eq!(response.seal_id, "ak:seal:compact");
         assert_eq!(response.control_event_count, 3);
     }
 

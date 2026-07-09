@@ -159,7 +159,7 @@ if [ -n "$COAUTH_URL" ]; then
     # (no `oauth2` prefix, no separate refresh route — refresh reuses the
     # token endpoint with grant_type=refresh_token). Auth / session
     # endpoints also live under the `gate` trust circle (`/_cokret/gate/...`),
-    # per cokret-spec service-http-binding.md §2.2.
+    # per arkret-spec service-http-binding.md §2.2.
     if can_resolve_url_host "$COAUTH_URL"; then
         write_proxy_location "/auth/" "$COAUTH_URL"
         write_proxy_location "/_cokret/gate/" "$COAUTH_URL"
@@ -197,7 +197,7 @@ if can_resolve_url_host "$SOLAND_URL"; then
     # it win over `/_cokret/gate/` regardless of declaration order.
     write_proxy_location "/_cokret/gate/account/logout" "$SOLAND_URL"
     # All other `/_cokret/*` trust-circle traffic (self/root/find/peer/open/edge)
-    # terminates on soland, per cokret-spec service-http-binding.md §2.2. The
+    # terminates on soland, per arkret-spec service-http-binding.md §2.2. The
     # `/_cokret/gate/` coauth override above is a longer prefix and wins for
     # auth endpoints.
     write_proxy_location "/_cokret/" "$SOLAND_URL"

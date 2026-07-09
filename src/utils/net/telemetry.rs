@@ -9,7 +9,7 @@
 //!
 //! * `errcode` (e.g. `capability_denied`)
 //! * `status` HTTP status code
-//! * `request_id` from the `X-Cokret-Request-Id` header
+//! * `request_id` from the `X-Arkret-Request-Id` header
 //! * `path` (the request path, query string stripped)
 //! * `ts` ISO-8601 timestamp
 //!

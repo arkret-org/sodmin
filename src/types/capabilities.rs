@@ -65,7 +65,7 @@ mod tests {
     #[test]
     fn sdk_capability_grant_parses_spec_wire_shape() {
         let grant: CapabilityGrant = serde_json::from_value(serde_json::json!({
-            "id": "ck:grant:01964137-0000-7000-8000-000000000001",
+            "id": "ak:grant:01964137-0000-7000-8000-000000000001",
             "schema": CAPABILITY_GRANT_SCHEMA,
             "issuer": "did:web:issuer.example",
             "subject": "did:web:subject.example",

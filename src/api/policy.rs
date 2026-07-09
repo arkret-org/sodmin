@@ -707,10 +707,10 @@ mod tests {
             "effect": "require_review",
             "actions": ["ck.realm.policy.update"],
             "resource": {
-                "required_scope": "ck:scope:realm:01HXY/admin.write",
+                "required_scope": "ak:scope:realm:01HXY/admin.write",
                 "approval_evidence": [{
                     "kind": "human_approval",
-                    "evidence_ref": "ck:approval:01HXY",
+                    "evidence_ref": "ak:approval:01HXY",
                     "approved_by": "did:web:admin.example",
                     "decision": "approved",
                     "request_canonical_digest": "sha256:abc",
@@ -730,7 +730,7 @@ mod tests {
         let guardrails = policy_guardrails_from_payload(&payload);
         assert_eq!(
             guardrails.required_scope.as_deref(),
-            Some("ck:scope:realm:01HXY/admin.write")
+            Some("ak:scope:realm:01HXY/admin.write")
         );
         assert_eq!(guardrails.approval_evidence.len(), 1);
         assert_eq!(guardrails.approval_evidence[0].kind, "human_approval");
@@ -746,8 +746,8 @@ mod tests {
     #[test]
     fn policy_from_document_carries_guardrail_summary() {
         let doc = PolicyDocumentDto {
-            policy_id: "ck:policy:01HXY".to_owned(),
-            scope: "ck:realm:01HXY".to_owned(),
+            policy_id: "ak:policy:01HXY".to_owned(),
+            scope: "ak:realm:01HXY".to_owned(),
             subject_ref: "did:web:admin.example".to_owned(),
             policy_type: "ck.realm.policy.update".to_owned(),
             payload: json!({
@@ -773,7 +773,7 @@ mod tests {
     fn upsert_body_preserves_subject_ref_and_hard_deny_effect() {
         let req = CreatePolicyRequest {
             name: "Targeted deny".to_owned(),
-            scope: Some("ck:realm:01HXY".to_owned()),
+            scope: Some("ak:realm:01HXY".to_owned()),
             subject_ref: Some("did:web:bob.example".to_owned()),
             policy_type: Some("ck.message.send".to_owned()),
             rules: Some(
@@ -787,7 +787,7 @@ mod tests {
             ..Default::default()
         };
 
-        let body = upsert_body(Some("ck:policy:deny-bob".to_owned()), &req).unwrap();
+        let body = upsert_body(Some("ak:policy:deny-bob".to_owned()), &req).unwrap();
         let encoded = serde_json::to_value(body).unwrap();
 
         assert_eq!(encoded["subject_ref"], "did:web:bob.example");
@@ -809,15 +809,15 @@ mod tests {
     #[test]
     fn pin_policy_document_is_read_only_and_redacts_private_material() {
         let doc = PolicyDocumentDto {
-            policy_id: "ck:policy:pins".to_owned(),
-            scope: "ck:realm:01HXY".to_owned(),
+            policy_id: "ak:policy:pins".to_owned(),
+            scope: "ak:realm:01HXY".to_owned(),
             subject_ref: "*".to_owned(),
             policy_type: "ck.profile.pinned_items.v1".to_owned(),
             payload: json!({
                 "actions": ["ck.pin.add", "ck.pin.reorder"],
                 "resource": {
                     "name": "Realm pins",
-                    "pin_scope": {"kind": "realm", "id": "ck:realm:01HXY"},
+                    "pin_scope": {"kind": "realm", "id": "ak:realm:01HXY"},
                     "quota": {"max_pins_per_scope": 5, "period": "PT1H"},
                     "note_visibility": "encrypted",
                     "account_data_key": "ck.search.index_manifest.v1:secret-realm-key",

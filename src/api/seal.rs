@@ -75,7 +75,7 @@ mod tests {
     #[test]
     fn reconfig_request_body_renders_threshold_shape() {
         let req = NotaryReconfigRequestBody {
-            realm_id: "ck:realm:0196419b-0000-7000-8000-000000000000".into(),
+            realm_id: "ak:realm:0196419b-0000-7000-8000-000000000000".into(),
             kind: "threshold".into(),
             threshold_k: Some(2),
             threshold_n: Some(3),
@@ -107,33 +107,33 @@ mod tests {
         let req = BottomRepairRequestBody {
             strategy: BottomRepairStrategy::HeadInWinner {
                 head: BottomCandidateHead {
-                    event_id: "ck:event:0196419b-0000-7000-8000-000000000000".into(),
+                    event_id: "ak:event:0196419b-0000-7000-8000-000000000000".into(),
                     issuer: Some("did:web:alice.example".into()),
                     hlc: None,
                     summary: None,
                 },
-                recovery_capability_ref: "ck:grant:recovery".into(),
-                state_witness_ref: format!("ck:seal:sha256:{}", "11".repeat(32)),
-                state_witness_inclusion_proof_ref: Some("ck:proof:state-witness".into()),
+                recovery_capability_ref: "ak:grant:recovery".into(),
+                state_witness_ref: format!("ak:seal:sha256:{}", "11".repeat(32)),
+                state_witness_inclusion_proof_ref: Some("ak:proof:state-witness".into()),
             },
         };
         let encoded = serde_json::to_string(&req).unwrap();
 
         assert!(encoded.contains("\"strategy\":\"head_in_winner\""));
-        assert!(encoded.contains("\"event_id\":\"ck:event:0196419b-0000-7000-8000-000000000000\""));
-        assert!(encoded.contains("\"recovery_capability_ref\":\"ck:grant:recovery\""));
-        assert!(encoded.contains("\"state_witness_ref\":\"ck:seal:sha256:"));
+        assert!(encoded.contains("\"event_id\":\"ak:event:0196419b-0000-7000-8000-000000000000\""));
+        assert!(encoded.contains("\"recovery_capability_ref\":\"ak:grant:recovery\""));
+        assert!(encoded.contains("\"state_witness_ref\":\"ak:seal:sha256:"));
     }
 
     #[test]
     fn compaction_request_body_default_omits_max_control_moves() {
         let req = CompactionRequestBody {
-            realm_id: "ck:realm:demo".into(),
+            realm_id: "ak:realm:demo".into(),
             max_control_moves: None,
         };
         let encoded = serde_json::to_string(&req).unwrap();
 
-        assert!(encoded.contains("\"realm_id\":\"ck:realm:demo\""));
+        assert!(encoded.contains("\"realm_id\":\"ak:realm:demo\""));
         assert!(!encoded.contains("max_control_moves"));
     }
 }

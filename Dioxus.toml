@@ -3,7 +3,7 @@ name = "sodmin"
 default_platform = "web"
 
 [web.app]
-title = "Cokret Admin"
+title = "Arkret Admin"
 
 # Production deployments set Content-Security-Policy at the web server
 # or CDN tier before the WASM bootstrap runs.

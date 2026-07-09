@@ -322,11 +322,11 @@ mod tests {
     fn cursor_reset_only_for_active_cursor_errors() {
         assert!(should_reset_cursor_pagination(
             &err_with_code(410, "cursor_expired"),
-            Some("ck:cursor:abc")
+            Some("ak:cursor:abc")
         ));
         assert!(should_reset_cursor_pagination(
             &err_with_code(400, "invalid_param"),
-            Some("ck:cursor:abc")
+            Some("ak:cursor:abc")
         ));
         assert!(!should_reset_cursor_pagination(
             &err_with_code(400, "invalid_param"),
@@ -334,7 +334,7 @@ mod tests {
         ));
         assert!(!should_reset_cursor_pagination(
             &err_with_code(500, "cursor_expired"),
-            Some("ck:cursor:abc")
+            Some("ak:cursor:abc")
         ));
     }
 
@@ -398,12 +398,12 @@ mod tests {
         use super::AdminErrorEnvelope;
         // Canonical spec/SDK envelope: bare registry code under
         // `error.code`, required_scope nested in `error.details`.
-        let raw = r#"{"ok":false,"error":{"code":"capability_denied","message":"denied","details":{"required_scope":"ck:scope:realm:01HXY/admin.write"}},"request_id":"req_1"}"#;
+        let raw = r#"{"ok":false,"error":{"code":"capability_denied","message":"denied","details":{"required_scope":"ak:scope:realm:01HXY/admin.write"}},"request_id":"req_1"}"#;
         let env = AdminErrorEnvelope::from_wire(raw).expect("parse");
         assert_eq!(env.errcode, "capability_denied");
         assert_eq!(
             env.required_scope.as_deref(),
-            Some("ck:scope:realm:01HXY/admin.write")
+            Some("ak:scope:realm:01HXY/admin.write")
         );
     }
 

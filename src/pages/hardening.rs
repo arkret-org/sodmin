@@ -1,6 +1,6 @@
 //! T8.3 — aggregate production hardening dashboard.
 //!
-//! Every Cokret service (`soland`, `coauth`, `floria`, `starid`,
+//! Every Arkret service (`soland`, `coauth`, `floria`, `starid`,
 //! `teabay`) exposes a non-sensitive `hardening` block on its
 //! `/health` endpoint. This page fans out across whichever services
 //! the operator has wired (via `coauth_public_url` /

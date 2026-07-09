@@ -1,6 +1,6 @@
 # sodmin Admin Onboarding
 
-This guide walks a new Cokret server administrator from a clean
+This guide walks a new Arkret server administrator from a clean
 deployment to a working sodmin session with the right capabilities to
 do real work. The strand is:
 
@@ -89,7 +89,7 @@ refuses to load the admin surface. Mark the account admin via the
 ## 4. Capability Grant Strand
 
 Being signed in as an admin does NOT, by itself, grant the right to
-drive every admin operation. The Cokret model is capability-based:
+drive every admin operation. The Arkret model is capability-based:
 each admin action is gated by a specific `ck.*` capability scope,
 and the operator must hold that scope (or a covering parent scope)
 before the backend will accept the request.

@@ -1,8 +1,8 @@
 # sodmin
 
-> **Spec target**: [cokret-spec @ c2848a4](../cokret-spec) (R3.4 sync 2026-05-31)
+> **Spec target**: [arkret-spec @ c2848a4](../arkret-spec) (R3.4 sync 2026-05-31)
 
-Cokret administrator web UI for Principal Server and coauth deployments. The app is built with Dioxus and compiled to WebAssembly.
+Arkret administrator web UI for Principal Server and coauth deployments. The app is built with Dioxus and compiled to WebAssembly.
 
 ## Pre-commit hook setup
 
@@ -15,7 +15,7 @@ git config core.hooksPath .githooks
 The hook runs `cargo fmt --all -- --check` and `cargo clippy --no-deps -- -D
 warnings` on staged Rust changes. If `.githooks/pre-commit` is missing on
 a branch, copy it from
-[`cokret-rust-sdk`](https://github.com/cokret/cokret-rust-sdk) and
+[`arkret-rust-sdk`](https://github.com/arkret/arkret-rust-sdk) and
 adapt to your local toolchain.
 
 ## Scope
@@ -28,7 +28,7 @@ adapt to your local toolchain.
 - **Blob/media**: quota, metadata, retention and anti-enumeration diagnostics.
 - **coauth**: accounts, sessions, upstream providers, OAuth2 clients, registration tokens, notification channels and audit logs.
 
-`sodmin` does not implement Cokret reducers or authorization decisions. It consumes stable admin API contracts from `soland` and `coauth`.
+`sodmin` does not implement Arkret reducers or authorization decisions. It consumes stable admin API contracts from `soland` and `coauth`.
 
 ## Architecture
 
@@ -39,7 +39,7 @@ flowchart LR
   Nginx --> Soland["soland Principal Server admin API"]
   Nginx --> Coauth["coauth auth/account admin API"]
   Coauth --> OAuth["OAuth2 / PKCE session"]
-  Soland --> Reducers["Cokret reducers + admin projections"]
+  Soland --> Reducers["Arkret reducers + admin projections"]
   Soland --> Audit["Audit feed"]
 ```
 
@@ -55,7 +55,7 @@ The admin pages drive Realm boundary state through `/realms/:id/...`. The
 
 ## Round R4 (protocol review closures)
 
-Spec round 4 (`cokret-spec` range `2a4d39b..a77b995`, 8 commits) lands
+Spec round 4 (`arkret-spec` range `2a4d39b..a77b995`, 8 commits) lands
 fresh admin surfaces on top of R2/R3. See [`CHANGELOG.md`](CHANGELOG.md)
 `[Unreleased]` and [`../_sodmin_soland_todos.md`](../_sodmin_soland_todos.md) for the canonical
 wire-breaking list. New admin views:
@@ -79,7 +79,7 @@ wire-breaking list. New admin views:
 
 Spec rounds 2+3 (2026-05-20) added several operator surfaces — see
 [`CHANGELOG.md`](CHANGELOG.md) `[Unreleased]` and
-[`../cokret-spec`](../cokret-spec) for the
+[`../arkret-spec`](../arkret-spec) for the
 normative source. The new admin pages:
 
 - **Deactivation review** (`/deactivations/review`) — 7-domain fanout
@@ -160,13 +160,13 @@ party auth), edit `connect-src` in `docker-entrypoint.sh` accordingly.
 
 `coauth-admin-types` is consumed directly via the workspace path dependency,
 and soland DTOs remain in the typed facade until a `soland-admin-types` crate
-exists. API client code must preserve Cokret error envelopes, reject URL query
-credentials, propagate `X-Cokret-Request-Id`, send `Idempotency-Key` for
+exists. API client code must preserve Arkret error envelopes, reject URL query
+credentials, propagate `X-Arkret-Request-Id`, send `Idempotency-Key` for
 mutations, and redact sensitive diagnostics.
 
 ## Dashboard Discovery
 
-The dashboard reads native Cokret discovery metadata from `/_cokret/describe` and `/_soland/admin/server/info`. Discovery-backed fields currently rendered include service DID, coauth issuer DID, delegated/public DID resolver endpoint, supported profiles, reducer/schema profiles, event-kind registry version, OpenAPI version, health summary, and conformance declarations.
+The dashboard reads native Arkret discovery metadata from `/_cokret/describe` and `/_soland/admin/server/info`. Discovery-backed fields currently rendered include service DID, coauth issuer DID, delegated/public DID resolver endpoint, supported profiles, reducer/schema profiles, event-kind registry version, OpenAPI version, health summary, and conformance declarations.
 
 If discovery is unavailable or an older backend omits a field, the UI renders `-` or `Unknown` and does not treat the profile as implemented.
 
@@ -174,13 +174,13 @@ If discovery is unavailable or an older backend omits a field, the UI renders `-
 
 ```text
 src/
-  api/          Cokret/coauth admin API clients
+  api/          Arkret/coauth admin API clients
   components/   Shared UI components
   pages/        Route pages
   types/        Shared response/request DTOs
   utils/        i18n, storage, config, errors and diagnostics
 e2e/            Playwright smoke and stack tests
-examples/       Local deployment examples, pending Cokret stack refresh
+examples/       Local deployment examples, pending Arkret stack refresh
 ```
 
 ## Current Gaps
@@ -191,5 +191,5 @@ See the cross-project [`../_sodmin_soland_todos.md`](../_sodmin_soland_todos.md)
 
 <!-- circle-rollout milestone pointer -->
 > **Active milestone tracking** (local-only, gitignored): see
-> `_sodmin_soland_todos.md` in the parent `cokret/` directory for the
+> `_sodmin_soland_todos.md` in the parent `arkret/` directory for the
 > circle-rollout (CKP-0007) work item list and per-stage checkpoints.

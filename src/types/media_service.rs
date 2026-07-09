@@ -16,7 +16,7 @@ pub struct MediaServiceFocus {
     #[serde(default)]
     pub focus_id: Option<String>,
     /// SFU backend kind, e.g. `livekit` / `mediasoup` / `janus` /
-    /// `cokret-native` / `moq-relay`.
+    /// `arkret-native` / `moq-relay`.
     #[serde(default, rename = "type")]
     pub focus_type: Option<String>,
     #[serde(default)]

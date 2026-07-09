@@ -26,7 +26,7 @@ spec:
           # Gitea workflow publishes architecture-suffixed ARM64 tags only;
           # replace the repository with your configured registry and pin a
           # digest for production rollouts.
-          image: registry.example.com/cokret/sodmin:latest-arm64
+          image: registry.example.com/arkret/sodmin:latest-arm64
           imagePullPolicy: IfNotPresent
           ports:
             - name: http

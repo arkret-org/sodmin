@@ -166,7 +166,7 @@ mod tests {
     fn base_describe() -> serde_json::Value {
         json!({
             "service_did": "did:web:soland.local",
-            "trust_domain": "ck:trust_domain:soland.local",
+            "trust_domain": "ak:trust_domain:soland.local",
             "service_type": "principal_server",
             "protocol_version": "1.0",
             "supported_profiles": ["ck.profile.principal_server.v1"],
@@ -204,7 +204,7 @@ mod tests {
         assert_eq!(describe.service_did.as_str(), "did:web:soland.local");
         assert_eq!(
             describe.trust_domain.as_str(),
-            "ck:trust_domain:soland.local"
+            "ak:trust_domain:soland.local"
         );
         assert_eq!(describe.service_type, "principal_server");
         assert!(!describe.development_mode);

@@ -60,10 +60,10 @@ if ! command -v python3 >/dev/null 2>&1; then
 fi
 
 UMBRELLA_DIR="$(cd "${EXAMPLES_DIR}/../.." && pwd)"
-for sibling in cokret-rust-sdk coauth soland floria sodmin; do
+for sibling in arkret-rust-sdk coauth soland floria sodmin; do
     if [[ ! -d "${UMBRELLA_DIR}/${sibling}" ]]; then
         echo "[example-stack/up] missing sibling ${UMBRELLA_DIR}/${sibling}" >&2
-        echo "[example-stack/up] umbrella layout expected: cokret/{cokret-rust-sdk,coauth,soland,floria,sodmin}/" >&2
+        echo "[example-stack/up] umbrella layout expected: arkret/{arkret-rust-sdk,coauth,soland,floria,sodmin}/" >&2
         exit 2
     fi
 done
@@ -94,7 +94,7 @@ out_path = pathlib.Path(sys.argv[2])
 
 src = re.sub(
     r"^(\s*uri:).*$",
-    r"\1 postgresql://cokret:cokret@postgres:5432/cokret",
+    r"\1 postgresql://arkret:arkret@postgres:5432/arkret",
     src,
     count=1,
     flags=re.MULTILINE,
@@ -181,7 +181,7 @@ fi
 cat <<'EOF'
 [example-stack/up] stack is up.
 
-  postgres : localhost:55432   (user=cokret pass=cokret db=cokret)
+  postgres : localhost:55432   (user=arkret pass=arkret db=arkret)
   coauth   : http://localhost:57080/health
   soland   : http://localhost:58787/health
   floria   : http://localhost:55000/ready  (admin)  +  http://localhost:58000  (data)

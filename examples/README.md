@@ -23,15 +23,15 @@ for the full mapping.
 
 The compose file references sibling repos via relative build contexts.
 Coauth + sodmin both use an **umbrella build context** (`../..` →
-`cokret/`) so the workspace `Cargo.toml` path-deps
-`../cokret-rust-sdk/...` and `../coauth/crates/admin-types` resolve
+`arkret/`) so the workspace `Cargo.toml` path-deps
+`../arkret-rust-sdk/...` and `../coauth/crates/admin-types` resolve
 inside the build sandbox. Soland uses a **named additional context**
-(`additional_contexts.cokret-rust-sdk: ../../cokret-rust-sdk`)
-because its Dockerfile copies the SDK via `COPY --from=cokret-rust-sdk`.
+(`additional_contexts.arkret-rust-sdk: ../../arkret-rust-sdk`)
+because its Dockerfile copies the SDK via `COPY --from=arkret-rust-sdk`.
 
 ```
-cokret/
-  cokret-rust-sdk/                      <-- required (path-dep target)
+arkret/
+  arkret-rust-sdk/                      <-- required (path-dep target)
   coauth/                                 <-- required (path-dep + image)
   soland/
   floria/
@@ -54,7 +54,7 @@ The compose stack expects:
   `coauth-config.yaml` deterministically — sed-based YAML edits proved
   brittle against the multi-listener default config in C36.5).
 - `curl` on PATH (`smoke.sh` probes each `/health` endpoint).
-- All four sibling repos checked out at `../{cokret-rust-sdk,coauth,soland,floria}`.
+- All four sibling repos checked out at `../{arkret-rust-sdk,coauth,soland,floria}`.
 
 Before the first `up.sh` invocation on a new machine, confirm Docker is
 reachable and the sibling repos exist. `up.sh` and `smoke.sh` perform the
@@ -157,5 +157,5 @@ regression doesn't require local docker reproduction.
 | `sodmin: never returned 200`            | The Dioxus build inside the image is large. Re-run `smoke.sh` with `SMOKE_ATTEMPT_BUDGET=120`. |
 | Build context error: `../../coauth` not found | Sibling repos aren't checked out. Either clone them next to `sodmin/` or override every `*_IMAGE` env var. |
 | `502 Bad Gateway` during apt-get      | Docker Desktop proxy or upstream Debian mirror flake. Floria/coauth wrap apt in a 5-attempt retry loop (added C37.3); just re-run `up.sh` if it surfaces. |
-| `cargo chef cook: failed to read /cokret-rust-sdk/...` | Sibling `cokret-rust-sdk` missing from umbrella checkout. Confirm the sibling checkout exists before rerunning. |
-| `cargo fetch --locked: ../cokret-rust-sdk not found` | Same as above. The sodmin/coauth Dockerfiles need cokret-rust-sdk side-by-side at the umbrella context root. |
+| `cargo chef cook: failed to read /arkret-rust-sdk/...` | Sibling `arkret-rust-sdk` missing from umbrella checkout. Confirm the sibling checkout exists before rerunning. |
+| `cargo fetch --locked: ../arkret-rust-sdk not found` | Same as above. The sodmin/coauth Dockerfiles need arkret-rust-sdk side-by-side at the umbrella context root. |

@@ -14,7 +14,7 @@ on:
   schedule:
     # 07:30 UTC daily — late enough for upstream caches to warm but
     # early enough that a regression is triaged before the workday in
-    # the +08 timezone where most of cokret is maintained.
+    # the +08 timezone where most of arkret is maintained.
     - cron: "30 7 * * *"
   workflow_dispatch:
   pull_request:
@@ -43,7 +43,7 @@ jobs:
       # The compose file references ../../{coauth,soland,floria} as
       # build contexts so we need sibling checkouts on disk. Pinning to
       # `main` keeps nightly bring-up reproducible against the umbrella
-      # `cokret` layout described in examples/README.md.
+      # `arkret` layout described in examples/README.md.
       - name: Check out coauth
         uses: actions/checkout@v4
         with:

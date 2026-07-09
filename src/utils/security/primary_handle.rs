@@ -1,4 +1,4 @@
-//! R3.2 (cokret-spec @ b56cab1, UI-SOD-3) — §3.2.1 primary handle
+//! R3.2 (arkret-spec @ b56cab1, UI-SOD-3) — §3.2.1 primary handle
 //! selection, admin-SPA surface.
 //!
 //! `MemberIdentity` no longer carries `primary_handle` / `handles[]`;
@@ -9,7 +9,7 @@
 //! field.
 //!
 //! This module no longer carries its own copy of the algorithm: the
-//! authoritative, wasm-safe implementation now lives in `cokret-core`
+//! authoritative, wasm-safe implementation now lives in `arkret-core`
 //! (`cokret_core::identity::primary_handle`, SOD-05-001 / SPEC-CR-019),
 //! and `cokret_core::models::{HandleClaim, HandleBindingState, Handle}`
 //! are the exact types the admin DTOs already re-export. We simply

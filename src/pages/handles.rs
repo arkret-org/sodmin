@@ -9,7 +9,7 @@
 //!   force-reassign actions.
 //!
 //! R3.1 (HDLREN-1) — the canonical wire form is `<localpart>:<domain>`;
-//! the retired `cokret://` URI form is gone. Both columns here render
+//! the retired `arkret://` URI form is gone. Both columns here render
 //! the soland-supplied `canonical_uri` verbatim (which is already
 //! `<localpart>:<domain>` post-R3.1); the operator-facing display
 //! sigil `@<localpart>:<domain>` is rendered alongside via

@@ -24,14 +24,14 @@ use crate::router::Route;
 use crate::types::MediaServiceFocus;
 use crate::utils::i18n::t;
 
-/// The focus backend types accepted by the cokret-spec media_service
+/// The focus backend types accepted by the arkret-spec media_service
 /// binding profile (`ck.profile.media_service_binding.v1`). Used only to
 /// flag an unrecognized type in the read-only view.
 pub const FOCUS_TYPES: &[&str] = &[
     "livekit",
     "mediasoup",
     "janus",
-    "cokret-native",
+    "arkret-native",
     "moq-relay",
 ];
 

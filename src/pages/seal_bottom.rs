@@ -390,11 +390,11 @@ mod tests {
     #[test]
     fn default_strategy_uses_manual_even_for_conflict_with_candidates() {
         let entry = BottomEntry {
-            realm_id: "ck:realm:demo".into(),
-            cell_id: "ck:cell:ck.component.profile.v1:ck:space:demo".into(),
+            realm_id: "ak:realm:demo".into(),
+            cell_id: "ak:cell:ck.component.profile.v1:ck:space:demo".into(),
             kind: "conflict".into(),
             candidate_heads: vec![BottomCandidateHead {
-                event_id: "ck:event:abc".into(),
+                event_id: "ak:event:abc".into(),
                 ..Default::default()
             }],
             ..Default::default()
@@ -411,7 +411,7 @@ mod tests {
     #[test]
     fn format_head_option_truncates_long_event_ids() {
         let head = BottomCandidateHead {
-            event_id: "ck:event:aaaabbbbccccddddeeeeffff".into(),
+            event_id: "ak:event:aaaabbbbccccddddeeeeffff".into(),
             ..Default::default()
         };
         let label = format_head_option(0, &head);
@@ -424,33 +424,33 @@ mod tests {
     #[test]
     fn format_head_option_includes_summary_when_present() {
         let head = BottomCandidateHead {
-            event_id: "ck:event:abc".into(),
+            event_id: "ak:event:abc".into(),
             summary: Some("set value=42".into()),
             ..Default::default()
         };
         let label = format_head_option(2, &head);
         assert!(label.starts_with("3: "));
-        assert!(label.contains("ck:event:abc"));
+        assert!(label.contains("ak:event:abc"));
         assert!(label.contains("set value=42"));
     }
 
     #[test]
     fn repair_strategy_picker_requires_manual_payload() {
         let entry = BottomEntry {
-            realm_id: "ck:realm:demo".into(),
-            cell_id: "ck:cell:ck.component.profile.v1:ck:space:demo".into(),
+            realm_id: "ak:realm:demo".into(),
+            cell_id: "ak:cell:ck.component.profile.v1:ck:space:demo".into(),
             kind: "conflict".into(),
             candidate_heads: vec![
                 BottomCandidateHead {
-                    event_id: "ck:event:1".into(),
+                    event_id: "ak:event:1".into(),
                     ..Default::default()
                 },
                 BottomCandidateHead {
-                    event_id: "ck:event:2".into(),
+                    event_id: "ak:event:2".into(),
                     ..Default::default()
                 },
                 BottomCandidateHead {
-                    event_id: "ck:event:3".into(),
+                    event_id: "ak:event:3".into(),
                     ..Default::default()
                 },
             ],
@@ -468,11 +468,11 @@ mod tests {
     #[test]
     fn repair_strategy_picker_falls_back_when_index_out_of_bounds() {
         let entry = BottomEntry {
-            realm_id: "ck:realm:demo".into(),
-            cell_id: "ck:cell:ck.component.profile.v1:ck:space:demo".into(),
+            realm_id: "ak:realm:demo".into(),
+            cell_id: "ak:cell:ck.component.profile.v1:ck:space:demo".into(),
             kind: "conflict".into(),
             candidate_heads: vec![BottomCandidateHead {
-                event_id: "ck:event:first".into(),
+                event_id: "ak:event:first".into(),
                 ..Default::default()
             }],
             ..Default::default()
@@ -489,7 +489,7 @@ mod tests {
     #[test]
     fn head_metadata_is_none_when_no_optional_fields_populated() {
         let head = BottomCandidateHead {
-            event_id: "ck:event:1".into(),
+            event_id: "ak:event:1".into(),
             ..Default::default()
         };
         assert!(format_head_metadata(&head).is_none());
@@ -500,7 +500,7 @@ mod tests {
         // All three populated: ordering is issuer · hlc · summary so the
         // operator gets a stable, predictable line.
         let head = BottomCandidateHead {
-            event_id: "ck:event:1".into(),
+            event_id: "ak:event:1".into(),
             issuer: Some("did:web:alice.example".into()),
             hlc: Some("01J9-0001-abcd".into()),
             summary: Some("set value=42".into()),
@@ -513,7 +513,7 @@ mod tests {
         // sometimes serializes "" instead of `null` and we must not show
         // a bare "issuer=" key.
         let head = BottomCandidateHead {
-            event_id: "ck:event:1".into(),
+            event_id: "ak:event:1".into(),
             issuer: Some(String::new()),
             hlc: None,
             summary: Some("only this".into()),
@@ -527,8 +527,8 @@ mod tests {
     fn default_strategy_falls_back_to_manual_when_no_candidates() {
         // Non-conflict bottom kind with no candidate heads → manual.
         let entry = BottomEntry {
-            realm_id: "ck:realm:demo".into(),
-            cell_id: "ck:cell:ck.component.member.state.v1:did:web:alice.example".into(),
+            realm_id: "ak:realm:demo".into(),
+            cell_id: "ak:cell:ck.component.member.state.v1:did:web:alice.example".into(),
             kind: "schema_error".into(),
             ..Default::default()
         };
@@ -543,8 +543,8 @@ mod tests {
         // Conflict but candidate_heads empty → still manual (operator
         // must hand-craft because nothing to pick).
         let entry = BottomEntry {
-            realm_id: "ck:realm:demo".into(),
-            cell_id: "ck:cell:ck.component.profile.v1:ck:space:demo".into(),
+            realm_id: "ak:realm:demo".into(),
+            cell_id: "ak:cell:ck.component.profile.v1:ck:space:demo".into(),
             kind: "conflict".into(),
             candidate_heads: vec![],
             ..Default::default()

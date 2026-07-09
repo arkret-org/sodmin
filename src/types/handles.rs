@@ -70,7 +70,7 @@ mod tests {
     fn handle_record_round_trip() {
         let record: HandleRecord = serde_json::from_value(json!({
             "id": "h-1",
-            "canonical_uri": "ck:handle:@alice",
+            "canonical_uri": "ak:handle:@alice",
             "aliases": ["@alice", "@alice.example"],
             "issuer_did": "did:web:auth.example.com",
             "subject_id": "did:key:zABC",
@@ -78,7 +78,7 @@ mod tests {
         }))
         .expect("handle record should deserialize");
 
-        assert_eq!(record.canonical_uri, "ck:handle:@alice");
+        assert_eq!(record.canonical_uri, "ak:handle:@alice");
         assert_eq!(record.aliases.len(), 2);
         assert_eq!(record.status.as_deref(), Some("active"));
     }

@@ -62,7 +62,7 @@ pub fn LoginPage() -> Element {
                             class: "h-8 w-8 text-primary".to_string(),
                         }
                     }
-                    h1 { class: "text-2xl font-bold tracking-tight", "Cokret Admin" }
+                    h1 { class: "text-2xl font-bold tracking-tight", "Arkret Admin" }
                     p { class: "text-muted-foreground", {t("auth.sign_in_subtitle")} }
                 }
 

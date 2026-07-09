@@ -68,10 +68,10 @@ impl AuditEntry {
             return AuditScopeKind::Circle(s.clone());
         }
         if let Some(ref s) = self.effective_scope {
-            if s.starts_with("ck:circle:") {
+            if s.starts_with("ak:circle:") {
                 return AuditScopeKind::Circle(s.clone());
             }
-            if s.starts_with("ck:realm:") {
+            if s.starts_with("ak:realm:") {
                 return AuditScopeKind::Realm(s.clone());
             }
         }
