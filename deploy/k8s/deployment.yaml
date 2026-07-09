@@ -17,12 +17,16 @@ spec:
         app.kubernetes.io/name: sodmin
         app.kubernetes.io/component: admin-spa
     spec:
+      nodeSelector:
+        kubernetes.io/arch: arm64
       containers:
         - name: nginx
           # The sodmin container is a single nginx serving the Dioxus / WASM
-          # SPA plus reverse-proxy locations for soland + coauth. Replace
-          # with your pipeline's pinned digest.
-          image: ghcr.io/cokret/sodmin:latest
+          # SPA plus reverse-proxy locations for soland + coauth. The current
+          # Gitea workflow publishes architecture-suffixed ARM64 tags only;
+          # replace the repository with your configured registry and pin a
+          # digest for production rollouts.
+          image: registry.example.com/cokret/sodmin:latest-arm64
           imagePullPolicy: IfNotPresent
           ports:
             - name: http

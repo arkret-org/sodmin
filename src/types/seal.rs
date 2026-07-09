@@ -4,9 +4,9 @@
 //! sodmin admin UI use the same type definitions.
 
 pub use soland_core::admin::seal::{
-    BottomCandidateHead, BottomEntry, BottomKind, BottomKindExt, BottomRepairRequestBody,
-    BottomRepairStrategy, CompactionOutcome, CompactionRequestBody, NotaryKind,
-    NotaryReconfigRequestBody, NotaryValue, SealDagSnapshot, SubmitControlMoveOutcome,
+    AdminNotaryValue, BottomCandidateHead, BottomEntry, BottomKind, BottomKindExt,
+    BottomRepairRequestBody, BottomRepairStrategy, CompactionOutcome, CompactionRequestBody,
+    NotaryKind, NotaryReconfigRequestBody, SealDagSnapshot, SubmitControlMoveOutcome,
     bottom_kind_from_wire,
 };
 
@@ -16,7 +16,7 @@ mod tests {
 
     #[test]
     fn notary_value_summary_threshold() {
-        let value = NotaryValue {
+        let value = AdminNotaryValue {
             kind_raw: "threshold".to_owned(),
             threshold_k: Some(2),
             threshold_n: Some(3),

@@ -48,6 +48,8 @@ test.describe("Q9 device-revoke happy-path", () => {
   test("revokes a device, surfaces Revoked badge + cascade audit entries", async ({
     page,
   }) => {
+    const revokeReason = `e2e-device-revoke-${Date.now()}`;
+
     // 1. Navigate to login
     await page.goto(`${BASE_URL}/login`);
     await expect(page).toHaveURL(/\/login/);
@@ -97,7 +99,7 @@ test.describe("Q9 device-revoke happy-path", () => {
     await expect(confirmBtn).toBeVisible({ timeout: 5_000 });
     await page
       .getByLabel(/reason|ticket|原因|工单/i)
-      .fill(`e2e-device-revoke-${Date.now()}`);
+      .fill(revokeReason);
     await confirmBtn.click();
 
     // 10. Toast surfaces the mutation result. An unwired backend endpoint
@@ -119,6 +121,9 @@ test.describe("Q9 device-revoke happy-path", () => {
     //     the soland-side cascade-revoke landed on the canonical audit
     //     pipeline, not just the local UI mutation.
     await page.goto(`${BASE_URL}/coauth/audit-log`);
+    await expect(page.getByText(revokeReason).first()).toBeVisible({
+      timeout: 15_000,
+    });
     await expect(
       page.getByText(/device.*revoke|revoke.*device/i).first(),
     ).toBeVisible({ timeout: 15_000 });

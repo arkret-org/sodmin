@@ -3,13 +3,13 @@
 
 use crate::api::client::{NO_BODY, api_client, build_url};
 use crate::types::seal::{
-    BottomEntry, BottomRepairRequestBody, BottomRepairStrategy, CompactionOutcome,
-    CompactionRequestBody, NotaryReconfigRequestBody, NotaryValue, SealDagSnapshot,
+    AdminNotaryValue, BottomEntry, BottomRepairRequestBody, BottomRepairStrategy,
+    CompactionOutcome, CompactionRequestBody, NotaryReconfigRequestBody, SealDagSnapshot,
     SubmitControlMoveOutcome,
 };
 use crate::utils::net::error::HttpError;
 
-pub async fn get_notary_value(realm_id: &str) -> Result<NotaryValue, HttpError> {
+pub async fn get_notary_value(realm_id: &str) -> Result<AdminNotaryValue, HttpError> {
     let url = format!(
         "/_soland/admin/realms/{}/notary",
         urlencoding::encode(realm_id)

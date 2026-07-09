@@ -168,6 +168,7 @@ pub fn AuditLogPage() -> Element {
                                     TableHead { {t("coauth.audit_log.actor")} }
                                     TableHead { {t("coauth.audit_log.target_type")} }
                                     TableHead { {t("coauth.audit_log.target_id")} }
+                                    TableHead { {t("coauth.audit_log.col_detail")} }
                                     TableHead { {t("coauth.audit_log.timestamp")} }
                                     TableHead { {t("coauth.audit_log.source_ip")} }
                                 }
@@ -187,6 +188,7 @@ pub fn AuditLogPage() -> Element {
                                             let actor = entry.actor_user_id.clone().unwrap_or_else(|| "-".to_string());
                                             let target_type = entry.target_type.clone().unwrap_or_else(|| "-".to_string());
                                             let target_id = entry.target_id.clone().unwrap_or_else(|| "-".to_string());
+                                            let details = audit_details_text(&entry.details);
                                             let ts = entry.timestamp.clone().unwrap_or_else(|| "-".to_string());
                                             let ip = entry.source_ip.clone().unwrap_or_else(|| "-".to_string());
 
@@ -198,6 +200,7 @@ pub fn AuditLogPage() -> Element {
                                                     TableCell { class: "max-w-[150px] truncate".to_string(), "{actor}" }
                                                     TableCell { "{target_type}" }
                                                     TableCell { class: "max-w-[150px] truncate".to_string(), "{target_id}" }
+                                                    TableCell { class: "max-w-[280px] whitespace-pre-wrap break-all text-xs text-muted-foreground".to_string(), "{details}" }
                                                     TableCell { class: "text-muted-foreground".to_string(), "{ts}" }
                                                     TableCell { "{ip}" }
                                                 }
@@ -225,5 +228,14 @@ pub fn AuditLogPage() -> Element {
                 None => rsx! { PageSkeleton {} },
             }
         }
+    }
+}
+
+fn audit_details_text(details: &Option<serde_json::Value>) -> String {
+    match details {
+        Some(value) if !value.is_null() => {
+            serde_json::to_string(value).unwrap_or_else(|_| "-".to_string())
+        }
+        _ => "-".to_string(),
     }
 }

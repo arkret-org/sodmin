@@ -1,6 +1,7 @@
 # sodmin Deployment
 
-This document covers local/container deployment only. The project does not push images, create tags, or publish release assets as part of the local readiness workflow.
+This document covers local/container deployment and the image contract used by
+the Gitea workflow.
 
 ## Runtime Model
 
@@ -57,6 +58,23 @@ docker run --rm -p 9090:80 \
   -e SODMIN_PORT=80 \
   sodmin:local
 ```
+
+## Published Images
+
+The Gitea Docker workflow currently builds and publishes ARM64 images only.
+It never publishes an unsuffixed `latest` tag or a multi-architecture manifest.
+Use an architecture-suffixed tag until an amd64 build and manifest job exists.
+
+| Registry configuration | Published repository | Published tags |
+| --- | --- | --- |
+| `REGISTRY_USER` + `REGISTRY_TOKEN` | `<gitea-host>/<owner>/sodmin` | `sha-<sha>-arm64`, `<branch>-arm64`, `latest-arm64` on `main`, version suffixes with `-arm64` on `v*` tags |
+| `DOCKERHUB_USER` + `DOCKERHUB_TOKEN` | `<DOCKERHUB_NAMESPACE-or-user>/sodmin` | Same architecture-suffixed tags |
+| Pull requests or missing registry credentials | local build only | Not pushed |
+
+The Kubernetes example in `deploy/k8s/deployment.yaml` is therefore pinned to
+`kubernetes.io/arch=arm64` and uses `latest-arm64` as the example tag. Replace
+the repository with the registry configured for your deployment and pin the
+image by digest in production.
 
 ## Security Headers
 

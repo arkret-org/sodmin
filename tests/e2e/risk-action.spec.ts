@@ -32,6 +32,10 @@ test.describe("Q2 risk-action happy-path", () => {
   });
 
   test("approves a risk-action and surfaces an audit entry", async ({ page }) => {
+    const auditNonce = Date.now();
+    const riskReason = `e2e-risk-action-reason-${auditNonce}`;
+    const riskTicket = `e2e-risk-action-ticket-${auditNonce}`;
+
     // 1. Navigate to login
     await page.goto(`${BASE_URL}/login`);
     await expect(page).toHaveURL(/\/login/);
@@ -58,6 +62,8 @@ test.describe("Q2 risk-action happy-path", () => {
       name: /approve risk action|批准风控操作/i,
     });
     await expect(approveBtn).toBeVisible({ timeout: 10_000 });
+    await page.getByLabel(/^reason$/i).fill(riskReason);
+    await page.getByLabel(/^ticket$/i).fill(riskTicket);
     await approveBtn.click();
 
     // 7. Confirm the destructive ConfirmDialog
@@ -71,11 +77,13 @@ test.describe("Q2 risk-action happy-path", () => {
       page.getByText(/risk action recorded|approved/i),
     ).toBeVisible({ timeout: 10_000 });
 
-    // 9. Navigate to the audit log and expect the entry. The
-    //    risk-action approval should leave a row whose action contains
-    //    "risk_action".
-    await page.goto(`${BASE_URL}/coauth/audit`);
-    await expect(page.getByText(/risk_action/i).first()).toBeVisible({
+    // 9. Navigate to the audit log and expect the entry bound to this
+    //    operation's unique ticket, not a historical risk_action row.
+    await page.goto(`${BASE_URL}/coauth/audit-log`);
+    await expect(page.getByText(riskTicket).first()).toBeVisible({
+      timeout: 15_000,
+    });
+    await expect(page.getByText(riskReason).first()).toBeVisible({
       timeout: 15_000,
     });
   });

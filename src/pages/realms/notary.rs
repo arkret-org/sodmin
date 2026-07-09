@@ -24,7 +24,7 @@ use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::toast::{ToastVariant, show_toast};
 use crate::types::seal::{
-    NotaryKind, NotaryReconfigRequestBody, NotaryValue, SubmitControlMoveOutcome,
+    AdminNotaryValue, NotaryKind, NotaryReconfigRequestBody, SubmitControlMoveOutcome,
 };
 use crate::utils::net::session;
 
@@ -349,7 +349,7 @@ pub fn NotaryPage(realm_id: String) -> Element {
     }
 }
 
-fn render_value_detail(v: &NotaryValue) -> Element {
+fn render_value_detail(v: &AdminNotaryValue) -> Element {
     match v.kind() {
         None => {
             let raw = v.kind_raw.clone();
