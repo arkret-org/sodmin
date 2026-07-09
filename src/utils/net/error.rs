@@ -2,7 +2,7 @@ use std::collections::BTreeMap;
 use std::fmt;
 use std::sync::OnceLock;
 
-use cokret_core::error::{
+use arkret_core::error::{
     ERROR_CODE_AUTH_EXPIRED, ERROR_CODE_CAPABILITY_DENIED, ERROR_CODE_CAS_CONFLICT,
     ERROR_CODE_CONFLICT, ERROR_CODE_CURSOR_EXPIRED, ERROR_CODE_CURSOR_INVALID,
     ERROR_CODE_DUPLICATE_CONFLICT, ERROR_CODE_FAILED_PRECONDITION, ERROR_CODE_INVALID_PARAM,
@@ -15,7 +15,7 @@ use serde::{Deserialize, Serialize};
 
 /// Admin-side projection of the spec/SDK canonical error envelope
 /// (`{ok, error:{code, message, retry_after_ms?, details?}, request_id}`,
-/// see `cokret_core::models::api::ErrorEnvelope`). We keep a flattened local
+/// see `arkret_core::models::api::ErrorEnvelope`). We keep a flattened local
 /// shape — the wire envelope is parsed in [`from_wire`] — so the existing
 /// call sites (`body.errcode`, `required_scope`) keep working while the
 /// parse path reads the authoritative `error.code`.
@@ -47,7 +47,7 @@ impl AdminErrorEnvelope {
     /// body is not a canonical envelope (e.g. an opaque HTML 502 from the
     /// proxy), so callers fall back to a status-only message.
     pub fn from_wire(text: &str) -> Option<Self> {
-        let env: cokret_core::models::ErrorEnvelope = serde_json::from_str(text).ok()?;
+        let env: arkret_core::models::ErrorEnvelope = serde_json::from_str(text).ok()?;
         let required_scope = env
             .error
             .details
@@ -131,13 +131,13 @@ pub fn display_error(errcode: &str, status: u16, message: &str) -> String {
     // English literal so brand-new codes still surface usefully.
     // Global report #10 (candidate 8) — the three CKP-0007 reason codes
     // the SDK ships as public constants are matched against
-    // `cokret_core::error::REASON_CIRCLE_*` rather than hand-copied
+    // `arkret_core::error::REASON_CIRCLE_*` rather than hand-copied
     // literals, so a wire rename in the SDK breaks the build here. The
     // remaining three (`circle_already_terminal`,
     // `circle_capability_denied`, `circle_scope_rotation_in_progress`)
     // are sodmin/soland-local admin reasons not yet promoted to a core
     // constant, so they stay as literals.
-    use cokret_core::error::{
+    use arkret_core::error::{
         REASON_CIRCLE_MEMBER_MUST_BE_REALM_MEMBER, REASON_CIRCLE_NOT_ACTIVE,
         REASON_CIRCLE_REALM_MISMATCH,
     };

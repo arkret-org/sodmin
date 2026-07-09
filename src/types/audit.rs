@@ -55,7 +55,7 @@ pub struct AuditEntry {
     /// so unknown/non-registry values fail instead of being rendered as
     /// arbitrary strings.
     #[serde(default)]
-    pub actor_kind: Option<cokret_core::models::ActorKind>,
+    pub actor_kind: Option<arkret_core::models::ActorKind>,
 }
 
 impl AuditEntry {

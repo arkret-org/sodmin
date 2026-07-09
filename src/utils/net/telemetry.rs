@@ -233,9 +233,9 @@ mod tests {
 
     #[test]
     fn redact_path_strips_query_and_fragment() {
-        assert_eq!(redact_path("/_cokret/self/x?cursor=c1"), "/_cokret/self/x");
-        assert_eq!(redact_path("/_cokret/self/x"), "/_cokret/self/x");
-        assert_eq!(redact_path("/_cokret/self/x?q=1#frag"), "/_cokret/self/x");
+        assert_eq!(redact_path("/_arkret/self/x?cursor=c1"), "/_arkret/self/x");
+        assert_eq!(redact_path("/_arkret/self/x"), "/_arkret/self/x");
+        assert_eq!(redact_path("/_arkret/self/x?q=1#frag"), "/_arkret/self/x");
     }
 
     #[test]

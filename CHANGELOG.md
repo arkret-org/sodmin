@@ -29,7 +29,7 @@ the SDK pins down its 1.0 contract.
 - UI-1 / UI-2: Agent list status badges (`active` / `paused` / `deactivated`) with pause / resume / deactivate / rotate-key / grants actions wired to `/agents/{id}/deactivate`; draft / action_request / approve / reject lifecycle stubbed.
 - UI-3: Realm settings page `/realms/:realm_id/media-service` for editing `media_service.foci[]` (livekit / mediasoup / janus / arkret-native / moq-relay).
 - UI-4 / UI-5: Key-backup recovery policy and receipt data is rendered through `/key-backup`; handle homograph inline NFC + script-mixed warning on `/actors/create`.
-- UI-6: Server profile chip surface at `/server-status` showing declared / absent state for `accountable_principals.strict_reject.v1`, `media_service_binding.v1` (+ livekit / cokret_native), and `key_backup.memory_hard.v1`.
+- UI-6: Server profile chip surface at `/server-status` showing declared / absent state for `accountable_principals.strict_reject.v1`, `media_service_binding.v1` (+ livekit / arkret_native), and `key_backup.memory_hard.v1`.
 - UI-7: localized en + zh-CN strings for the new errcodes (`pairing_request_expired`, `proof_invalid`, `agent_paused`, `agent_deactivated`, `accountability_grant_missing`, `handle_homograph_forbidden`, `participant_binding_invalid`) rendered via `ErrorBanner`.
 
 > No version tag, no crates.io / Docker Hub / npm publish — git commit only.

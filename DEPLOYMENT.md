@@ -11,8 +11,8 @@ the Gitea workflow.
 
 | Variable | Required | Purpose |
 | --- | --- | --- |
-| `SOLAND_URL` | yes | Internal URL for the soland Principal Server upstream. Requests to `/_cokret/` and the `/_soland/admin/` operator surface proxy here. |
-| `COAUTH_URL` | recommended | Internal URL for coauth admin/auth endpoints. Enables `/auth/`, `/_cokret/gate/`, the coauth `/_soland/admin/*` resource roots, `/authorize`, `/oauth2/`, and `/.well-known/` proxy locations. |
+| `SOLAND_URL` | yes | Internal URL for the soland Principal Server upstream. Requests to `/_arkret/` and the `/_soland/admin/` operator surface proxy here. |
+| `COAUTH_URL` | recommended | Internal URL for coauth admin/auth endpoints. Enables `/auth/`, `/_arkret/gate/`, the coauth `/_soland/admin/*` resource roots, `/authorize`, `/oauth2/`, and `/.well-known/` proxy locations. |
 | `COAUTH_PUBLIC_URL` | recommended | Browser-facing coauth origin written to `/config.json` for OAuth2 PKCE redirects. |
 | `SODMIN_PORT` | no | nginx listen port. Defaults to `80`. |
 | `SODMIN_TELEMETRY_ENDPOINT` | no | P5 — opt-in browser-error telemetry sink. When set, `/config.json` exposes the URL and `utils::telemetry` POSTs structured (no-PII) error events. Operator must also flip `localStorage.sodmin_telemetry_opt_in=1`. |
@@ -30,13 +30,13 @@ CSP header and the routing table below.
 | `/healthz` | sodmin nginx | Static liveness probe — serves `index.html` so missing bundle returns 503. |
 | `/healthz/deep` | sodmin nginx → `${SOLAND_URL}/healthz` | P5 — readiness probe; returns 503 if soland is unreachable within 2s. |
 | `/config.json` | sodmin nginx | Runtime config rendered at boot from env. |
-| `/_cokret/self/events/` | `${SOLAND_URL}` | Event ingestion. |
-| `/_cokret/self/sync/` | `${SOLAND_URL}` | Sync long-poll. |
-| `/_cokret/find/directory/` | `${SOLAND_URL}` | Directory queries. |
-| `/_cokret/` (other trust circles) | `${SOLAND_URL}` | Remaining self/root/find/peer/open/edge surface. |
+| `/_arkret/self/events/` | `${SOLAND_URL}` | Event ingestion. |
+| `/_arkret/self/sync/` | `${SOLAND_URL}` | Sync long-poll. |
+| `/_arkret/find/directory/` | `${SOLAND_URL}` | Directory queries. |
+| `/_arkret/` (other trust circles) | `${SOLAND_URL}` | Remaining self/root/find/peer/open/edge surface. |
 | coauth `/_soland/admin/*` resource roots (accounts, claims, oauth2-sessions, personal-sessions, upstream-oauth-*, user-registration-tokens, connector-health, notification-*, audit-feed, bridge) | `${COAUTH_URL}` | coauth admin endpoints (RBAC enforced server-side); longest-prefix match wins over soland. |
 | `/_soland/admin/` (everything else) | `${SOLAND_URL}` | soland operator surface (spaces, moderation, federation, server, media, etc.). |
-| `/auth/` and `/_cokret/gate/` | `${COAUTH_URL}` | Token + session endpoints. |
+| `/auth/` and `/_arkret/gate/` | `${COAUTH_URL}` | Token + session endpoints. |
 | `/authorize`, `/oauth2/`, `/.well-known/` | `${COAUTH_URL}` | OAuth2 PKCE strand + discovery. |
 | `*.wasm`, `*.js`, `*.css`, images | sodmin nginx (`Cache-Control: public, immutable`) | Bundle assets. |
 
@@ -106,7 +106,7 @@ action.
 
 ## CKP-0007 Circle administration
 
-Sodmin's `/circles/*` surfaces (P3A.3) call into soland's `/_cokret/self/circles/*`
+Sodmin's `/circles/*` surfaces (P3A.3) call into soland's `/_arkret/self/circles/*`
 admin layer. Before an operator can use those pages, coauth must have
 issued the matching `ck.circle.*` capability grants to the operator's
 admin DID — typically via the Coauth Capabilities admin page at

@@ -3,7 +3,7 @@ use crate::types::*;
 use crate::utils::net::error::HttpError;
 
 const SERVER_INFO_PATH: &str = "/_soland/admin/server/info";
-const SERVER_DESCRIBE_PATH: &str = "/_cokret/describe";
+const SERVER_DESCRIBE_PATH: &str = "/_arkret/describe";
 const SERVER_STATUS_PATH: &str = "/_soland/admin/server/status";
 const SERVER_STATS_PATH: &str = "/_soland/admin/server/stats";
 
@@ -17,8 +17,8 @@ pub async fn get_server_describe() -> Result<ServerDescribeDocument, HttpError> 
 
 pub async fn get_coauth_server_describe() -> Result<ServerDescribeDocument, HttpError> {
     let url = crate::utils::net::session::coauth_public_url()
-        .map(|base| format!("{}/_cokret/describe", base.trim_end_matches('/')))
-        .unwrap_or_else(|| "/_cokret/describe".to_string());
+        .map(|base| format!("{}/_arkret/describe", base.trim_end_matches('/')))
+        .unwrap_or_else(|| "/_arkret/describe".to_string());
     api_client(&url, "GET", NO_BODY).await
 }
 

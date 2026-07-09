@@ -346,8 +346,8 @@ fn render_effective_scope(kind: &AuditScopeKind) -> Element {
     }
 }
 
-fn actor_kind_label(kind: &cokret_core::models::ActorKind) -> &'static str {
-    use cokret_core::models::ActorKind;
+fn actor_kind_label(kind: &arkret_core::models::ActorKind) -> &'static str {
+    use arkret_core::models::ActorKind;
     match kind {
         ActorKind::User => "user",
         ActorKind::Org => "org",

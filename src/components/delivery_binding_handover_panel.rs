@@ -10,7 +10,7 @@
 //! - Distinguish a fresh failure from a `historical_only` cached replay — the latter is diagnostic
 //!   only and MUST NOT be presented as a "fresh action" indicator.
 
-use cokret_core::ErrorCode;
+use arkret_core::ErrorCode;
 use dioxus::prelude::*;
 
 use crate::components::ui::badge::{Badge, BadgeVariant};

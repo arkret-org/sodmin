@@ -1,6 +1,6 @@
 //! DTO shapes for the Realm admin surface.
 
-use cokret_core::{Discoverability, HistoryVisibility, JoinRule};
+use arkret_core::{Discoverability, HistoryVisibility, JoinRule};
 use serde::{Deserialize, Serialize};
 
 use crate::types::HandleClaim;

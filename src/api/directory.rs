@@ -16,8 +16,8 @@ use crate::api::client::api_client;
 use crate::types::{DirectorySubjectHandleList, ListHandlesForSubjectRequest};
 use crate::utils::net::error::HttpError;
 
-/// `POST /_cokret/find/directory/list-handles-for-subject`.
-pub const LIST_HANDLES_FOR_SUBJECT: &str = "/_cokret/find/directory/list-handles-for-subject";
+/// `POST /_arkret/find/directory/list-handles-for-subject`.
+pub const LIST_HANDLES_FOR_SUBJECT: &str = "/_arkret/find/directory/list-handles-for-subject";
 
 /// Call `ck.find.directory.query.list_handles_for_subject`. The directory applies
 /// disclosure / issuer-trust / audience / intent filtering server-side; callers

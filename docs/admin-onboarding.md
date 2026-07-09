@@ -237,7 +237,7 @@ Notes:
     ▼
 [add a focus]
     │  "Add focus" button
-    │  - choose backend (livekit / mediasoup / janus / cokret_native / moq_relay)
+    │  - choose backend (livekit / mediasoup / janus / arkret_native / moq_relay)
     │  - paste connect_url (the SFU/relay control endpoint)
     │  - choose issuer_kid (from soland's active kid set)
     │  - sodmin synthesizes focus_id using the canonical rules:

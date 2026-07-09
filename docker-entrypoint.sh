@@ -153,16 +153,16 @@ EOF
 
 if [ -n "$COAUTH_URL" ]; then
     # coauth owns its own admin namespace `/_coauth/admin/*` (renamed from
-    # `/_cokret/local/admin` in coauth bc06024); a single `/_coauth/`
+    # `/_arkret/local/admin` in coauth bc06024); a single `/_coauth/`
     # location forwards the whole surface (proxy_pass passes the path
     # through unchanged). OAuth endpoints are `/oauth/token`, `/oauth/revoke`
     # (no `oauth2` prefix, no separate refresh route — refresh reuses the
     # token endpoint with grant_type=refresh_token). Auth / session
-    # endpoints also live under the `gate` trust circle (`/_cokret/gate/...`),
+    # endpoints also live under the `gate` trust circle (`/_arkret/gate/...`),
     # per arkret-spec service-http-binding.md §2.2.
     if can_resolve_url_host "$COAUTH_URL"; then
         write_proxy_location "/auth/" "$COAUTH_URL"
-        write_proxy_location "/_cokret/gate/" "$COAUTH_URL"
+        write_proxy_location "/_arkret/gate/" "$COAUTH_URL"
         write_proxy_location "/_coauth/" "$COAUTH_URL" "\$http_authorization"
         write_proxy_location "/authorize" "$COAUTH_URL"
         write_proxy_location "/oauth/" "$COAUTH_URL"
@@ -174,7 +174,7 @@ if [ -n "$COAUTH_URL" ]; then
     set \$coauth_backend ${COAUTH_URL};
 EOF
         write_dynamic_proxy_location "/auth/" "coauth_backend"
-        write_dynamic_proxy_location "/_cokret/gate/" "coauth_backend"
+        write_dynamic_proxy_location "/_arkret/gate/" "coauth_backend"
         write_dynamic_proxy_location "/_coauth/" "coauth_backend" "\$http_authorization"
         write_dynamic_proxy_location "/authorize" "coauth_backend"
         write_dynamic_proxy_location "/oauth/" "coauth_backend"
@@ -183,24 +183,24 @@ EOF
 fi
 
 if can_resolve_url_host "$SOLAND_URL"; then
-    write_proxy_location "/_cokret/self/events/" "$SOLAND_URL"
-    write_proxy_location "/_cokret/self/sync/" "$SOLAND_URL"
-    write_proxy_location "/_cokret/find/directory/" "$SOLAND_URL"
+    write_proxy_location "/_arkret/self/events/" "$SOLAND_URL"
+    write_proxy_location "/_arkret/self/sync/" "$SOLAND_URL"
+    write_proxy_location "/_arkret/find/directory/" "$SOLAND_URL"
     # `gate/account/*` is a shared auth/admission surface (service-http-binding
     # §2.1: served by clients AND the Principal Server — the path segment is an
     # attack-surface classifier, NOT a single backing service). coauth owns most
     # of it (session-grants issue/refresh/logout/introspect, password-recovery,
-    # email-auth, passkey/oidc, register) via the `/_cokret/gate/` rule above,
+    # email-auth, passkey/oidc, register) via the `/_arkret/gate/` rule above,
     # but `ck.gate.account.command.logout` is a Principal-Server op (revoke
     # bearer + device session record + to-device) that coauth does not serve.
     # Route that one longer prefix to soland; nginx longest-prefix match makes
-    # it win over `/_cokret/gate/` regardless of declaration order.
-    write_proxy_location "/_cokret/gate/account/logout" "$SOLAND_URL"
-    # All other `/_cokret/*` trust-circle traffic (self/root/find/peer/open/edge)
+    # it win over `/_arkret/gate/` regardless of declaration order.
+    write_proxy_location "/_arkret/gate/account/logout" "$SOLAND_URL"
+    # All other `/_arkret/*` trust-circle traffic (self/root/find/peer/open/edge)
     # terminates on soland, per arkret-spec service-http-binding.md §2.2. The
-    # `/_cokret/gate/` coauth override above is a longer prefix and wins for
+    # `/_arkret/gate/` coauth override above is a longer prefix and wins for
     # auth endpoints.
-    write_proxy_location "/_cokret/" "$SOLAND_URL"
+    write_proxy_location "/_arkret/" "$SOLAND_URL"
     # soland's deployment-local operator + product surface (`/_soland/*`):
     # admin operator API plus the product-surface self/root extensions
     # (e.g. /_soland/self/circles, /_soland/root/identity/recovery-*). coauth
@@ -216,15 +216,15 @@ EOF
     cat >> /etc/nginx/conf.d/default.conf <<EOF
     set \$soland_backend ${SOLAND_URL};
 EOF
-    write_dynamic_proxy_location "/_cokret/self/events/" "soland_backend"
-    write_dynamic_proxy_location "/_cokret/self/sync/" "soland_backend"
-    write_dynamic_proxy_location "/_cokret/find/directory/" "soland_backend"
+    write_dynamic_proxy_location "/_arkret/self/events/" "soland_backend"
+    write_dynamic_proxy_location "/_arkret/self/sync/" "soland_backend"
+    write_dynamic_proxy_location "/_arkret/find/directory/" "soland_backend"
     # Principal-Server device logout (see the resolvable branch above): a
-    # longer prefix than `/_cokret/gate/` so it wins to soland.
-    write_dynamic_proxy_location "/_cokret/gate/account/logout" "soland_backend"
-    # All other `/_cokret/*` trust-circle traffic terminates on soland
+    # longer prefix than `/_arkret/gate/` so it wins to soland.
+    write_dynamic_proxy_location "/_arkret/gate/account/logout" "soland_backend"
+    # All other `/_arkret/*` trust-circle traffic terminates on soland
     # (see the resolvable branch above for rationale).
-    write_dynamic_proxy_location "/_cokret/" "soland_backend"
+    write_dynamic_proxy_location "/_arkret/" "soland_backend"
     # soland operator + product surface at `/_soland/*`.
     write_dynamic_proxy_location "/_soland/" "soland_backend"
 fi

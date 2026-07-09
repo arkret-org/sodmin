@@ -7,7 +7,7 @@
 //!      requires a principal-signed `auth_data` transcript the admin UI cannot mint).
 //!   3. Recovery receipt history.
 
-use cokret_core::models::{KeyBackupSummary, RecoveryPolicySummary};
+use arkret_core::models::{KeyBackupSummary, RecoveryPolicySummary};
 use dioxus::prelude::*;
 
 use crate::api::key_backup;

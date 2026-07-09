@@ -489,8 +489,8 @@ pub async fn logout() -> Result<(), HttpError> {
 
     // Principal-Server device logout, spec `ck.gate.account.command.logout`.
     // The gateway routes this longer prefix to soland (the rest of
-    // `/_cokret/gate/*` goes to coauth), so it clears the soland-side session.
-    let _ = Request::post("/_cokret/gate/account/logout")
+    // `/_arkret/gate/*` goes to coauth), so it clears the soland-side session.
+    let _ = Request::post("/_arkret/gate/account/logout")
         .header("Accept", "application/json")
         .credentials(RequestCredentials::Include)
         .send()

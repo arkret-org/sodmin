@@ -3,7 +3,7 @@
 //! These structures are operator-view projections built **on top of** the
 //! canonical SDK types — they never re-define protocol semantics. The verified
 //! relationship rows reuse [`RealmOrganizationPayload`] and its enums verbatim
-//! (`cokret_core::models`); coauth principal-control rows reuse the same
+//! (`arkret_core::models`); coauth principal-control rows reuse the same
 //! issuer-role / scope vocabulary plus coauth delegation metadata.
 //!
 //! Real data is not yet available:
@@ -12,7 +12,7 @@
 //! Until those land, the `api::realm_organization` layer returns mock rows
 //! constructed from these DTOs (see the TODO markers there).
 
-pub use cokret_core::models::{
+pub use arkret_core::models::{
     RealmOrganizationControlScope, RealmOrganizationIssuerRole, RealmOrganizationRelationship,
 };
 use serde::{Deserialize, Serialize};
@@ -71,7 +71,7 @@ pub struct VerifiedOrgRelationship {
 /// SOD-ORG-01 panel payload: declared-only set + verified rows.
 ///
 /// `declared_owning_organizations` is the Realm's self-declared
-/// `owning_organizations` (`cokret_core::models::Realm.owning_organizations`),
+/// `owning_organizations` (`arkret_core::models::Realm.owning_organizations`),
 /// which carries **no** organization consent on its own. The panel diffs it
 /// against `verified` so the operator can see "who claims the organization" vs
 /// "did the organization actually agree".

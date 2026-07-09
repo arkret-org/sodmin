@@ -1,8 +1,8 @@
-pub use cokret_core::models::{
+pub use arkret_core::models::{
     DirectoryListHandlesForSubjectRequestBody as ListHandlesForSubjectRequest,
     DirectorySubjectHandleList, HandleBindingState, HandleClaim,
 };
-pub use cokret_core::ops::HardeningStatus;
+pub use arkret_core::ops::HardeningStatus;
 use serde::{Deserialize, Serialize};
 
 // ── Pagination ──

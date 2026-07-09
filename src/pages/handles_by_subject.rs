@@ -22,7 +22,7 @@
 //! [`crate::utils::security::primary_handle::select_primary_handle`].
 
 use chrono::Utc;
-use cokret_core::Did;
+use arkret_core::Did;
 use dioxus::prelude::*;
 
 use crate::api::directory;

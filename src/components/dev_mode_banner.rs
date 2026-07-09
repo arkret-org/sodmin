@@ -1,6 +1,6 @@
 //! T1.4 — Development-mode warning banner.
 //!
-//! Polls the admin describe surface (`GET /_cokret/describe`) for the
+//! Polls the admin describe surface (`GET /_arkret/describe`) for the
 //! `development_mode` field surfaced by soland. When the connected server
 //! reports `development_mode == true`, the layout renders a red,
 //! non-dismissible top banner so operators can never mistake a dev

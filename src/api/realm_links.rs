@@ -30,7 +30,7 @@ pub async fn list_realm_links(
     direction: LinkDirection,
 ) -> Result<RealmLinkList, HttpError> {
     let url = format!(
-        "/_cokret/self/realms/{}/links?direction={}",
+        "/_arkret/self/realms/{}/links?direction={}",
         urlencoding::encode(realm_id),
         direction_query(direction),
     );

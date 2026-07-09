@@ -136,7 +136,7 @@ Required and optional environment variables:
 | Variable | Required | Purpose |
 | --- | --- | --- |
 | `SOLAND_URL` | yes | Internal URL of the soland Principal Server reached by the proxy. |
-| `COAUTH_URL` | recommended | Internal URL of the coauth admin service. Enables the `/auth/`, `/_cokret/gate/`, `/_coauth/*`, `/authorize`, `/oauth/`, and `/.well-known/` proxy locations. |
+| `COAUTH_URL` | recommended | Internal URL of the coauth admin service. Enables the `/auth/`, `/_arkret/gate/`, `/_coauth/*`, `/authorize`, `/oauth/`, and `/.well-known/` proxy locations. |
 | `COAUTH_PUBLIC_URL` | recommended | Browser-facing coauth origin. Written to `/config.json` for the OAuth2 PKCE redirect. |
 | `SODMIN_PORT` | no | nginx listen port (default `80`). |
 
@@ -166,7 +166,7 @@ mutations, and redact sensitive diagnostics.
 
 ## Dashboard Discovery
 
-The dashboard reads native Arkret discovery metadata from `/_cokret/describe` and `/_soland/admin/server/info`. Discovery-backed fields currently rendered include service DID, coauth issuer DID, delegated/public DID resolver endpoint, supported profiles, reducer/schema profiles, event-kind registry version, OpenAPI version, health summary, and conformance declarations.
+The dashboard reads native Arkret discovery metadata from `/_arkret/describe` and `/_soland/admin/server/info`. Discovery-backed fields currently rendered include service DID, coauth issuer DID, delegated/public DID resolver endpoint, supported profiles, reducer/schema profiles, event-kind registry version, OpenAPI version, health summary, and conformance declarations.
 
 If discovery is unavailable or an older backend omits a field, the UI renders `-` or `Unknown` and does not treat the profile as implemented.
 

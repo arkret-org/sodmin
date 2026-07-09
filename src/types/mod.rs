@@ -51,7 +51,7 @@ pub mod realm_links;
 pub use realm_links::*;
 
 /// SOD-ORG-01..03 — Realm organization control / principal delegation view
-/// DTOs (built on `cokret_core` `RealmOrganization*` types).
+/// DTOs (built on `arkret_core` `RealmOrganization*` types).
 pub mod realm_organization;
 pub use realm_organization::*;
 

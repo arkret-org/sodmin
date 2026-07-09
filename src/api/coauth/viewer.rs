@@ -3,9 +3,9 @@
 use crate::api::client::{NO_BODY, api_client};
 use crate::utils::net::error::HttpError;
 
-const VIEWER_PATH: &str = "/_cokret/self/account/viewer";
+const VIEWER_PATH: &str = "/_arkret/self/account/viewer";
 
-pub type CoauthViewer = cokret_core::models::AccountView;
+pub type CoauthViewer = arkret_core::models::AccountView;
 
 pub async fn get_viewer() -> Result<CoauthViewer, HttpError> {
     api_client(VIEWER_PATH, "GET", NO_BODY).await

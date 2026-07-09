@@ -1,15 +1,15 @@
 //! B-C key-backup admin surface — talks to the soland endpoints
-//! shipped in P2 (aa76b91): `GET /_cokret/self/keys/backups?series_id=...`
+//! shipped in P2 (aa76b91): `GET /_arkret/self/keys/backups?series_id=...`
 //! plus the soland identity recovery extension endpoints.
 
-use cokret_core::models::{KeysBackupsList, RecoveryPolicySummary};
+use arkret_core::models::{KeysBackupsList, RecoveryPolicySummary};
 
 use crate::api::client::{NO_BODY, api_client, build_url};
 use crate::types::{ListResponse, RecoveryReceiptSummary};
 use crate::utils::net::error::HttpError;
 
 // Recovery policy / receipt browse is a soland identity extension on the
-// product surface (`/_soland/root/identity/*`); it is NOT a `/_cokret`
+// product surface (`/_soland/root/identity/*`); it is NOT a `/_arkret`
 // protocol operation (the protocol surface only has describe/resolve/
 // document/log/receipts/submit-did-operation/recovery-sessions).
 const RECOVERY_POLICIES_PATH: &str = "/_soland/root/identity/recovery-policies";
@@ -35,7 +35,7 @@ struct RecoveryReceiptsEnvelope {
     total: Option<u64>,
 }
 
-/// `GET /_cokret/self/keys/backups?series_id=&backup_class=` — list backup
+/// `GET /_arkret/self/keys/backups?series_id=&backup_class=` — list backup
 /// envelopes grouped by series. Empty `series_id` returns the per-series
 /// frontier roll-up.
 pub async fn list_backups(
@@ -49,7 +49,7 @@ pub async fn list_backups(
     if let Some(c) = backup_class {
         params.push(("backup_class", c));
     }
-    let url = build_url("/_cokret/self/keys/backups", &params)?;
+    let url = build_url("/_arkret/self/keys/backups", &params)?;
     api_client(&url, "GET", NO_BODY).await
 }
 

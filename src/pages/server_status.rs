@@ -267,7 +267,7 @@ fn describe_body(describe: &ServerDescribeDocument) -> Element {
 
     // T1.4 — surface the runtime posture. These are soland extension
     // fields (emitted on `/health`), so they come from the extension envelope and usually render
-    // as "-" on the spec-shaped `/_cokret/describe`. `development_mode`
+    // as "-" on the spec-shaped `/_arkret/describe`. `development_mode`
     // is rendered separately below (with red styling) so the operator
     // can't miss it.
     let proof_verifier_mode = describe
