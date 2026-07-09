@@ -330,7 +330,7 @@ fn DeactivationReview() -> Element {
 
 #[component]
 fn RealmDestroy(realm_id: String) -> Element {
-    rsx! { pages::realm_destroy::RealmDestroyPage { realm_id } }
+    rsx! { pages::realms::destroy::DestroyPage { realm_id } }
 }
 
 #[component]
@@ -365,27 +365,27 @@ fn HandleShow(handle_id: String) -> Element {
 
 #[component]
 fn RealmDeliveryBinding(realm_id: String) -> Element {
-    rsx! { pages::delivery_binding::DeliveryBindingPolicy { realm_id } }
+    rsx! { pages::realms::delivery_binding::DeliveryBindingPage { realm_id } }
 }
 
 #[component]
 fn RealmLinks(realm_id: String) -> Element {
-    rsx! { pages::realm_links::RealmLinks { realm_id } }
+    rsx! { pages::realms::links::LinksPage { realm_id } }
 }
 
 #[component]
 fn RealmMediaService(realm_id: String) -> Element {
-    rsx! { pages::realm_media_service::RealmMediaService { realm_id } }
+    rsx! { pages::realms::media_service::MediaServicePage { realm_id } }
 }
 
 #[component]
 fn RealmOrganization(realm_id: String) -> Element {
-    rsx! { pages::realm_organization::RealmOrganization { realm_id } }
+    rsx! { pages::realms::organization::OrganizationPage { realm_id } }
 }
 
 #[component]
 fn RealmIdentityAudit(realm_id: String) -> Element {
-    rsx! { pages::realm_identity_audit::RealmIdentityAudit { realm_id } }
+    rsx! { pages::realms::identity_audit::IdentityAuditPage { realm_id } }
 }
 
 #[component]

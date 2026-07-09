@@ -1,9 +1,9 @@
 use dioxus::prelude::*;
 
 use crate::api::coauth;
+use crate::components::dangerous_action_dialog::{DangerousActionDialog, confirmation_suffix};
 use crate::components::ui::badge::{Badge, BadgeVariant};
 use crate::components::ui::button::{Button, ButtonSize, ButtonVariant};
-use crate::components::ui::dialog::ConfirmDialog;
 use crate::components::ui::error_banner::ErrorBanner;
 use crate::components::ui::input::{Input, Label};
 use crate::components::ui::loading::PageSkeleton;
@@ -180,12 +180,13 @@ pub fn RegistrationTokensPage() -> Element {
             }
         }
 
-        ConfirmDialog {
+        DangerousActionDialog {
             open: show_revoke.read().is_some(),
             title: t("coauth.registration_tokens.revoke"),
             description: t("coauth.registration_tokens.revoke_confirm"),
+            confirmation_phrase: confirmation_suffix(show_revoke.read().as_deref().unwrap_or(""), 4),
             confirm_text: t("coauth.registration_tokens.revoke"),
-            destructive: true,
+            cancel_text: t("common.cancel"),
             on_confirm: move |_| {
                 if let Some(id) = show_revoke.read().clone() {
                     let id = id.clone();

@@ -17,9 +17,10 @@ use crate::components::realm_destroy_dialog::RealmDestroyDialog;
 use crate::components::ui::button::{Button, ButtonVariant};
 use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::toast::{ToastVariant, show_toast};
+use crate::utils::i18n::t;
 
 #[component]
-pub fn RealmDestroyPage(realm_id: String) -> Element {
+pub fn DestroyPage(realm_id: String) -> Element {
     let mut dialog_open = use_signal(|| false);
     let mut destroyed = use_signal(|| false);
 
@@ -29,12 +30,12 @@ pub fn RealmDestroyPage(realm_id: String) -> Element {
     rsx! {
         div { class: "space-y-6",
             PageHeader {
-                title: "Destroy Realm".to_string(),
-                description: format!("Irreversible — confirms five normative bullets + the literal `DESTROY` phrase. Round R2/R3 T07. Realm: {realm_id}"),
+                title: t("realm_destroy.title"),
+                description: t("realm_destroy.description").replace("{realm_id}", &realm_id),
                 Button {
                     variant: ButtonVariant::Destructive,
                     onclick: move |_| dialog_open.set(true),
-                    "Open destroy dialog"
+                    {t("realm_destroy.open_dialog")}
                 }
             }
 
@@ -55,10 +56,8 @@ pub fn RealmDestroyPage(realm_id: String) -> Element {
                             snapshot: snap,
                             on_retry: move |domain: FanoutDomain| {
                                 show_toast(
-                                    &format!(
-                                        "Per-domain retry for `{}` is not exposed by soland yet; refusing to replay whole-Realm destroy.",
-                                        domain.slug()
-                                    ),
+                                    &t("realm_destroy.retry_unsupported")
+                                        .replace("{domain}", &domain.slug().to_string()),
                                     ToastVariant::Error,
                                 );
                             }
@@ -67,7 +66,7 @@ pub fn RealmDestroyPage(realm_id: String) -> Element {
                 }
             } else {
                 p { class: "text-sm text-muted-foreground",
-                    "Open the destroy dialog to begin. The 7-domain fanout + erasure receipt panel appears after the Seal lands."
+                    {t("realm_destroy.intro")}
                 }
             }
 
@@ -86,15 +85,14 @@ pub fn RealmDestroyPage(realm_id: String) -> Element {
                                 dialog_open.set(false);
                                 destroyed.set(true);
                                 show_toast(
-                                    &format!(
-                                        "ck.realm.destroy queued for {} (deleted={}).",
-                                        outcome.realm_id, outcome.deleted
-                                    ),
+                                    &t("realm_destroy.toast_queued")
+                                        .replace("{realm}", &outcome.realm_id)
+                                        .replace("{deleted}", &outcome.deleted.to_string()),
                                     ToastVariant::Success,
                                 );
                             }
                             Err(err) => show_toast(
-                                &format!("Realm destroy failed: {err}"),
+                                &t("realm_destroy.toast_failed").replace("{err}", &err.to_string()),
                                 ToastVariant::Error,
                             ),
                         }

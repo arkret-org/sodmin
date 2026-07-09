@@ -21,8 +21,8 @@
 //! re-derives the primary handle locally via the SDK-mirror
 //! [`crate::utils::security::primary_handle::select_primary_handle`].
 
-use chrono::Utc;
 use arkret_core::Did;
+use chrono::Utc;
 use dioxus::prelude::*;
 
 use crate::api::directory;

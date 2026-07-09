@@ -17,11 +17,11 @@
 use dioxus::prelude::*;
 
 use crate::api::signing_key;
+use crate::components::dangerous_action_dialog::DangerousActionDialog;
 use crate::components::selection_required::{is_placeholder_resource_id, selection_required_state};
 use crate::components::ui::badge::{Badge, BadgeVariant};
 use crate::components::ui::button::{Button, ButtonVariant};
 use crate::components::ui::card::*;
-use crate::components::ui::dialog::ConfirmDialog;
 use crate::components::ui::error_banner::ErrorBanner;
 use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
@@ -157,13 +157,13 @@ pub fn SigningKeysPage(realm_id: String) -> Element {
                             };
                             let realm_id = realm_id_for_rotate.clone();
                             rsx! {
-                                ConfirmDialog {
+                                DangerousActionDialog {
                                     open,
+                                    confirmation_phrase: "ROTATE".to_string(),
                                     title: "Rotate NotaryWorker signing key?".to_string(),
                                     description: "This generates a fresh key and rebinds the NotaryWorker. Existing in-flight Seals will be re-signed with the new key. Audit-logged. Continue?".to_string(),
                                     confirm_text,
                                     cancel_text: "Cancel".to_string(),
-                                    destructive: true,
                                     on_cancel: move |_| confirming.set(false),
                                     on_confirm: move |_| {
                                         if *submitting.read() { return; }

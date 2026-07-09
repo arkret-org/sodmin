@@ -1,8 +1,8 @@
 use dioxus::prelude::*;
 
 use crate::api::coauth;
+use crate::components::dangerous_action_dialog::{DangerousActionDialog, confirmation_suffix};
 use crate::components::ui::button::{Button, ButtonSize, ButtonVariant};
-use crate::components::ui::dialog::ConfirmDialog;
 use crate::components::ui::error_banner::ErrorBanner;
 use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
@@ -108,12 +108,13 @@ pub fn UpstreamLinksPage() -> Element {
             }
         }
 
-        ConfirmDialog {
+        DangerousActionDialog {
             open: show_delete.read().is_some(),
             title: t("common.delete"),
             description: "Are you sure you want to delete this link?".to_string(),
+            confirmation_phrase: confirmation_suffix(show_delete.read().as_deref().unwrap_or(""), 4),
             confirm_text: t("common.delete"),
-            destructive: true,
+            cancel_text: t("common.cancel"),
             on_confirm: move |_| {
                 if let Some(id) = show_delete.read().clone() {
                     let id = id.clone();

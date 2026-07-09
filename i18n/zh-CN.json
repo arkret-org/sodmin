@@ -1204,5 +1204,22 @@
   "unwired.badge": "N/A(dev 快照)",
   "unwired.badge_critical": "未知(未接线)",
   "unwired.column_note": "未接线",
-  "unwired.tooltip": "该字段未由 soland 的 dev-only 快照端点下发,无真实值可用。此处显示为「不可用」而非确定值(绝非可信的 false/0)。接入生产端点属治本 backlog。"
+  "unwired.tooltip": "该字段未由 soland 的 dev-only 快照端点下发,无真实值可用。此处显示为「不可用」而非确定值(绝非可信的 false/0)。接入生产端点属治本 backlog。",
+  "dangerous_action.type_prefix": "请输入 ",
+  "dangerous_action.type_suffix": " 以确认:",
+  "selection_required.title": "请选择 {kind}",
+  "selection_required.description": "请从具体的 {kind} 详情页进入本页,或将 URL 中的 `_` 替换为真实标识符。",
+  "media_service.focus_region": "区域",
+  "media_service.focus_token_endpoint": "令牌端点",
+  "media_service.focus_health_endpoint": "健康检查端点",
+  "media_service.focus_cascade_group": "级联组",
+  "media_service.focus_capabilities": "能力",
+  "media_service.focus_index": "焦点 #{n}",
+  "realm_destroy.title": "销毁 Realm",
+  "realm_destroy.description": "不可逆 —— 需确认五条规范条款并逐字输入 `DESTROY`。Realm:{realm_id}",
+  "realm_destroy.open_dialog": "打开销毁对话框",
+  "realm_destroy.intro": "打开销毁对话框以开始。Seal 落定后将显示 7 域扇出与擦除回执面板。",
+  "realm_destroy.retry_unsupported": "soland 尚未暴露对 `{domain}` 域的单域重试;拒绝重放整个 Realm 的销毁。",
+  "realm_destroy.toast_queued": "已为 {realm} 排队 ck.realm.destroy(deleted={deleted})。",
+  "realm_destroy.toast_failed": "Realm 销毁失败:{err}"
 }

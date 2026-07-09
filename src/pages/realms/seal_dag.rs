@@ -7,11 +7,11 @@
 use dioxus::prelude::*;
 
 use crate::api::seal;
+use crate::components::dangerous_action_dialog::DangerousActionDialog;
 use crate::components::selection_required::{is_placeholder_resource_id, selection_required_state};
 use crate::components::ui::badge::{Badge, BadgeVariant};
 use crate::components::ui::button::{Button, ButtonVariant};
 use crate::components::ui::card::*;
-use crate::components::ui::dialog::ConfirmDialog;
 use crate::components::ui::empty_state::EmptyState;
 use crate::components::ui::error_banner::ErrorBanner;
 use crate::components::ui::loading::PageSkeleton;
@@ -185,8 +185,9 @@ pub fn SealDagPage(realm_id: String) -> Element {
                 None => rsx! { PageSkeleton {} },
             }
 
-            ConfirmDialog {
+            DangerousActionDialog {
                 open: *show_compact_confirm.read(),
+                confirmation_phrase: "COMPACT".to_string(),
                 title: "Trigger Seal DAG compaction?".to_string(),
                 description: format!(
                     "This requests Seal DAG compaction for Realm {}. Continue only after checking the current leaves and state_root.",
@@ -194,7 +195,6 @@ pub fn SealDagPage(realm_id: String) -> Element {
                 ),
                 confirm_text: "Trigger compaction".to_string(),
                 cancel_text: "Cancel".to_string(),
-                destructive: true,
                 on_cancel: move |_| show_compact_confirm.set(false),
                 on_confirm: move |_| {
                     if *compacting.read() {

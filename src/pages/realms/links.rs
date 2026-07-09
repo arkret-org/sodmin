@@ -46,7 +46,7 @@ fn link_kind_label(link_kind: &RealmLinkKind) -> String {
 }
 
 #[component]
-pub fn RealmLinks(realm_id: String) -> Element {
+pub fn LinksPage(realm_id: String) -> Element {
     if is_placeholder_resource_id(&realm_id) {
         return selection_required_state("Realm");
     }

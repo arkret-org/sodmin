@@ -1,8 +1,8 @@
 use dioxus::prelude::*;
 
 use crate::api::coauth;
+use crate::components::dangerous_action_dialog::{DangerousActionDialog, confirmation_suffix};
 use crate::components::ui::button::{Button, ButtonVariant};
-use crate::components::ui::dialog::ConfirmDialog;
 use crate::components::ui::error_banner::ErrorBanner;
 use crate::components::ui::input::{Input, Label};
 use crate::components::ui::loading::PageSkeleton;
@@ -173,12 +173,13 @@ pub fn PersonalSessionsPage() -> Element {
             }
         }
 
-        ConfirmDialog {
+        DangerousActionDialog {
             open: show_revoke.read().is_some(),
             title: t("coauth.personal_sessions.revoke"),
             description: t("coauth.personal_sessions.revoke_confirm"),
+            confirmation_phrase: confirmation_suffix(show_revoke.read().as_deref().unwrap_or(""), 4),
             confirm_text: t("coauth.personal_sessions.revoke"),
-            destructive: true,
+            cancel_text: t("common.cancel"),
             on_confirm: move |_| {
                 if let Some(id) = show_revoke.read().clone() {
                     let id = id.clone();
@@ -197,12 +198,13 @@ pub fn PersonalSessionsPage() -> Element {
             on_cancel: move |_| show_revoke.set(None),
         }
 
-        ConfirmDialog {
+        DangerousActionDialog {
             open: show_regenerate.read().is_some(),
             title: t("coauth.personal_sessions.regenerate"),
             description: t("coauth.personal_sessions.regenerate_confirm"),
+            confirmation_phrase: confirmation_suffix(show_regenerate.read().as_deref().unwrap_or(""), 4),
             confirm_text: t("coauth.personal_sessions.regenerate"),
-            destructive: true,
+            cancel_text: t("common.cancel"),
             on_confirm: move |_| {
                 if let Some(id) = show_regenerate.read().clone() {
                     let id = id.clone();

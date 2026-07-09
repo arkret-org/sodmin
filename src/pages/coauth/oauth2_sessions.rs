@@ -1,8 +1,8 @@
 use dioxus::prelude::*;
 
 use crate::api::coauth;
+use crate::components::dangerous_action_dialog::{DangerousActionDialog, confirmation_suffix};
 use crate::components::ui::button::{Button, ButtonSize, ButtonVariant};
-use crate::components::ui::dialog::ConfirmDialog;
 use crate::components::ui::error_banner::ErrorBanner;
 use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
@@ -117,13 +117,13 @@ pub fn OAuth2SessionsPage() -> Element {
                 None => rsx! { PageSkeleton {} },
             }
 
-            ConfirmDialog {
+            DangerousActionDialog {
                 open: pending_finish.read().is_some(),
                 title: t("coauth.oauth2_sessions.finish"),
                 description: "Finish this OAuth2 session now? This can interrupt the third-party client using it.".to_string(),
+                confirmation_phrase: confirmation_suffix(pending_finish.read().as_deref().unwrap_or(""), 4),
                 confirm_text: t("coauth.oauth2_sessions.finish"),
                 cancel_text: t("common.cancel"),
-                destructive: true,
                 on_cancel: move |_| pending_finish.set(None),
                 on_confirm: move |_| {
                     if let Some(id) = pending_finish.read().clone() {

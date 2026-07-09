@@ -36,7 +36,7 @@ pub const FOCUS_TYPES: &[&str] = &[
 ];
 
 #[component]
-pub fn RealmMediaService(realm_id: String) -> Element {
+pub fn MediaServicePage(realm_id: String) -> Element {
     if is_placeholder_resource_id(&realm_id) {
         return selection_required_state("Realm");
     }
@@ -170,7 +170,7 @@ fn render_focus_row(idx: usize, focus: &MediaServiceFocus) -> Element {
         div {
             class: "rounded-md border p-3 space-y-2",
             div { class: "flex items-center justify-between",
-                p { class: "text-xs text-muted-foreground", "focus #{idx + 1}" }
+                p { class: "text-xs text-muted-foreground", {t("media_service.focus_index").replace("{n}", &(idx + 1).to_string())} }
                 if !known_type {
                     Badge { variant: BadgeVariant::Destructive, {t("media_service.unknown_backend")} }
                 }
@@ -185,11 +185,11 @@ fn render_focus_row(idx: usize, focus: &MediaServiceFocus) -> Element {
                     p { class: "text-sm font-mono", "{focus_type}" }
                 }
                 div { class: "space-y-1",
-                    p { class: "text-xs text-muted-foreground", "Region" }
+                    p { class: "text-xs text-muted-foreground", {t("media_service.focus_region")} }
                     p { class: "text-sm font-mono break-all", "{region}" }
                 }
                 div { class: "space-y-1 md:col-span-2",
-                    p { class: "text-xs text-muted-foreground", "Token endpoint" }
+                    p { class: "text-xs text-muted-foreground", {t("media_service.focus_token_endpoint")} }
                     p { class: "text-sm font-mono break-all", "{token_endpoint}" }
                 }
                 div { class: "space-y-1 md:col-span-2",
@@ -197,15 +197,15 @@ fn render_focus_row(idx: usize, focus: &MediaServiceFocus) -> Element {
                     p { class: "text-sm font-mono break-all", "{connect_url}" }
                 }
                 div { class: "space-y-1 md:col-span-2",
-                    p { class: "text-xs text-muted-foreground", "Health endpoint" }
+                    p { class: "text-xs text-muted-foreground", {t("media_service.focus_health_endpoint")} }
                     p { class: "text-sm font-mono break-all", "{health_endpoint}" }
                 }
                 div { class: "space-y-1",
-                    p { class: "text-xs text-muted-foreground", "Cascade group" }
+                    p { class: "text-xs text-muted-foreground", {t("media_service.focus_cascade_group")} }
                     p { class: "text-sm font-mono break-all", "{cascade_group}" }
                 }
                 div { class: "space-y-1 md:col-span-2",
-                    p { class: "text-xs text-muted-foreground", "Capabilities" }
+                    p { class: "text-xs text-muted-foreground", {t("media_service.focus_capabilities")} }
                     if capabilities.is_empty() {
                         p { class: "text-sm text-muted-foreground", "-" }
                     } else {

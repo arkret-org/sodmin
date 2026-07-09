@@ -38,7 +38,7 @@ use crate::utils::security::primary_handle::{
 };
 
 #[component]
-pub fn RealmIdentityAudit(realm_id: String) -> Element {
+pub fn IdentityAuditPage(realm_id: String) -> Element {
     // TODO: replace with a `use_resource` against the soland admin
     // endpoint. The stub rows below are intentionally empty so the
     // operator sees the "data pending" affordance rather than a fake

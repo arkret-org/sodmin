@@ -21,11 +21,11 @@
 use dioxus::prelude::*;
 
 use crate::api::handles;
+use crate::components::dangerous_action_dialog::{DangerousActionDialog, confirmation_suffix};
 use crate::components::did_input::DidInput;
 use crate::components::ui::badge::{Badge, BadgeVariant};
 use crate::components::ui::button::{Button, ButtonSize, ButtonVariant};
 use crate::components::ui::card::*;
-use crate::components::ui::dialog::ConfirmDialog;
 use crate::components::ui::error_banner::ErrorBanner;
 use crate::components::ui::input::{Input, Label, SearchInput};
 use crate::components::ui::loading::PageSkeleton;
@@ -196,12 +196,13 @@ pub fn HandleList() -> Element {
             }
         }
 
-        ConfirmDialog {
+        DangerousActionDialog {
             open: show_revoke.read().is_some(),
             title: t("handles.revoke_title"),
             description: t("handles.revoke_body"),
+            confirmation_phrase: confirmation_suffix(show_revoke.read().as_deref().unwrap_or(""), 4),
             confirm_text: t("handles.revoke"),
-            destructive: true,
+            cancel_text: t("common.cancel"),
             on_confirm: move |_| {
                 if let Some(id) = show_revoke.read().clone() {
                     spawn(async move {
@@ -442,12 +443,13 @@ pub fn HandleShow(handle_id: String) -> Element {
             }
         }
 
-        ConfirmDialog {
+        DangerousActionDialog {
             open: *show_revoke.read(),
             title: t("handles.revoke_title"),
             description: t("handles.revoke_body"),
+            confirmation_phrase: confirmation_suffix(&id_revoke, 4),
             confirm_text: t("handles.revoke"),
-            destructive: true,
+            cancel_text: t("common.cancel"),
             on_confirm: move |_| {
                 let id = id_revoke.clone();
                 spawn(async move {

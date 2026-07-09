@@ -12,8 +12,8 @@
 use dioxus::prelude::*;
 
 use crate::api::coauth::{self, CoauthDidBindingKind, CoauthManagedDidBinding};
+use crate::components::dangerous_action_dialog::{DangerousActionDialog, confirmation_suffix};
 use crate::components::ui::button::{Button, ButtonVariant};
-use crate::components::ui::dialog::ConfirmDialog;
 use crate::components::ui::input::Label;
 use crate::components::validated_input::{ValidatedInput, ValidationKind};
 use crate::utils::net::error::HttpError;
@@ -202,8 +202,9 @@ pub fn DidBindingPanel(
                 }
             }
 
-            ConfirmDialog {
+            DangerousActionDialog {
                 open: pending_remove.read().is_some(),
+                confirmation_phrase: confirmation_suffix(pending_remove.read().as_deref().unwrap_or(""), 4),
                 title: "Remove DID binding?".to_string(),
                 description: pending_remove
                     .read()
@@ -215,7 +216,6 @@ pub fn DidBindingPanel(
                     .unwrap_or_default(),
                 confirm_text: if *remove_in_flight.read() { "Removing...".to_string() } else { "Remove".to_string() },
                 cancel_text: "Cancel".to_string(),
-                destructive: true,
                 on_confirm: {
                     let account_id = account_id.clone();
                     move |_| {

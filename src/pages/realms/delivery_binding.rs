@@ -25,7 +25,7 @@ use crate::components::ui::table::*;
 use crate::utils::i18n::t;
 
 #[component]
-pub fn DeliveryBindingPolicy(realm_id: String) -> Element {
+pub fn DeliveryBindingPage(realm_id: String) -> Element {
     if is_placeholder_resource_id(&realm_id) {
         return selection_required_state("Realm");
     }

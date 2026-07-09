@@ -1,8 +1,8 @@
 use dioxus::prelude::*;
 
 use crate::api::invite_tokens;
+use crate::components::dangerous_action_dialog::{DangerousActionDialog, confirmation_suffix};
 use crate::components::ui::button::{Button, ButtonSize, ButtonVariant};
-use crate::components::ui::dialog::ConfirmDialog;
 use crate::components::ui::error_banner::ErrorBanner;
 use crate::components::ui::input::{Input, Label};
 use crate::components::ui::loading::PageSkeleton;
@@ -218,12 +218,13 @@ pub fn InviteTokenList() -> Element {
             }
         }
 
-        ConfirmDialog {
+        DangerousActionDialog {
             open: show_delete_dialog.read().is_some(),
             title: t("common.delete"),
             description: t("invite_tokens.delete_confirm"),
+            confirmation_phrase: confirmation_suffix(show_delete_dialog.read().as_deref().unwrap_or(""), 4),
             confirm_text: t("common.delete"),
-            destructive: true,
+            cancel_text: t("common.cancel"),
             on_confirm: move |_| {
                 if let Some(id) = show_delete_dialog.read().clone() {
                     let id = id.clone();

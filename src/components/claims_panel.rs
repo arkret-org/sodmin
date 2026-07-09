@@ -9,8 +9,8 @@
 use dioxus::prelude::*;
 
 use crate::api::coauth::{self, CoauthAccountClaim};
+use crate::components::dangerous_action_dialog::{DangerousActionDialog, confirmation_suffix};
 use crate::components::ui::button::{Button, ButtonVariant};
-use crate::components::ui::dialog::ConfirmDialog;
 use crate::utils::net::error::HttpError;
 
 #[component]
@@ -92,8 +92,9 @@ pub fn ClaimsPanel(
                 }
             }
 
-            ConfirmDialog {
+            DangerousActionDialog {
                 open: pending_revoke.read().is_some(),
+                confirmation_phrase: confirmation_suffix(pending_revoke.read().as_deref().unwrap_or(""), 4),
                 title: "Revoke claim?".to_string(),
                 description: pending_revoke
                     .read()
@@ -106,7 +107,6 @@ pub fn ClaimsPanel(
                     .unwrap_or_default(),
                 confirm_text: if *revoke_in_flight.read() { "Revoking...".to_string() } else { "Revoke".to_string() },
                 cancel_text: "Cancel".to_string(),
-                destructive: true,
                 on_confirm: {
                     move |_| {
                         let claim_id = match pending_revoke.read().clone() {

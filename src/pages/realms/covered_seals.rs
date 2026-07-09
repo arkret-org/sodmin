@@ -14,11 +14,11 @@
 use dioxus::prelude::*;
 
 use crate::api::covered_seals;
+use crate::components::dangerous_action_dialog::DangerousActionDialog;
 use crate::components::selection_required::{is_placeholder_resource_id, selection_required_state};
 use crate::components::ui::badge::{Badge, BadgeVariant};
 use crate::components::ui::button::{Button, ButtonVariant};
 use crate::components::ui::card::*;
-use crate::components::ui::dialog::ConfirmDialog;
 use crate::components::ui::empty_state::EmptyState;
 use crate::components::ui::error_banner::ErrorBanner;
 use crate::components::ui::loading::PageSkeleton;
@@ -154,8 +154,9 @@ pub fn CoveredSealsPage(realm_id: String) -> Element {
                 None => rsx! { PageSkeleton {} },
             }
 
-            ConfirmDialog {
+            DangerousActionDialog {
                 open: *show_advance_confirm.read(),
+                confirmation_phrase: "ADVANCE".to_string(),
                 title: "Manually advance covered_seals?".to_string(),
                 description: format!(
                     "This bypasses normal MLS acknowledgement waiting for Realm {} and folds the current governance Seal set into covered_seals.",
@@ -163,7 +164,6 @@ pub fn CoveredSealsPage(realm_id: String) -> Element {
                 ),
                 confirm_text: "Advance covered_seals".to_string(),
                 cancel_text: "Cancel".to_string(),
-                destructive: true,
                 on_cancel: move |_| show_advance_confirm.set(false),
                 on_confirm: move |_| {
                     if *advancing.read() {

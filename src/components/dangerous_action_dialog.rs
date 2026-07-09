@@ -18,6 +18,7 @@ use dioxus::prelude::*;
 use crate::components::ui::button::{Button, ButtonVariant};
 use crate::components::ui::input::Input;
 use crate::components::ui::modal::ModalOverlay;
+use crate::utils::i18n::t;
 
 #[derive(Props, Clone, PartialEq)]
 pub struct DangerousActionDialogProps {
@@ -69,9 +70,9 @@ pub fn DangerousActionDialog(props: DangerousActionDialogProps) -> Element {
 
                 div { class: "space-y-1",
                     label { class: "text-sm font-medium",
-                        "Type "
+                        {t("dangerous_action.type_prefix")}
                         span { class: "font-mono", "{phrase}" }
-                        " to confirm:"
+                        {t("dangerous_action.type_suffix")}
                     }
                     Input {
                         r#type: "text".to_string(),

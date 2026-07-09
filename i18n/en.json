@@ -1204,5 +1204,22 @@
   "unwired.badge": "N/A (dev snapshot)",
   "unwired.badge_critical": "Unknown — not wired",
   "unwired.column_note": "not wired",
-  "unwired.tooltip": "This field is not emitted by soland's dev-only snapshot endpoint, so no real value is available. It is shown as unavailable instead of a definite value (never a trustworthy false/0). Wiring the production endpoint is tracked in the backlog."
+  "unwired.tooltip": "This field is not emitted by soland's dev-only snapshot endpoint, so no real value is available. It is shown as unavailable instead of a definite value (never a trustworthy false/0). Wiring the production endpoint is tracked in the backlog.",
+  "dangerous_action.type_prefix": "Type ",
+  "dangerous_action.type_suffix": " to confirm:",
+  "selection_required.title": "Select a {kind}",
+  "selection_required.description": "Open this page from a concrete {kind} detail view, or replace `_` in the URL with a real identifier.",
+  "media_service.focus_region": "Region",
+  "media_service.focus_token_endpoint": "Token endpoint",
+  "media_service.focus_health_endpoint": "Health endpoint",
+  "media_service.focus_cascade_group": "Cascade group",
+  "media_service.focus_capabilities": "Capabilities",
+  "media_service.focus_index": "focus #{n}",
+  "realm_destroy.title": "Destroy Realm",
+  "realm_destroy.description": "Irreversible — confirms five normative bullets plus the literal `DESTROY` phrase. Realm: {realm_id}",
+  "realm_destroy.open_dialog": "Open destroy dialog",
+  "realm_destroy.intro": "Open the destroy dialog to begin. The 7-domain fanout and erasure-receipt panel appears after the Seal lands.",
+  "realm_destroy.retry_unsupported": "Per-domain retry for `{domain}` is not exposed by soland yet; refusing to replay whole-Realm destroy.",
+  "realm_destroy.toast_queued": "ck.realm.destroy queued for {realm} (deleted={deleted}).",
+  "realm_destroy.toast_failed": "Realm destroy failed: {err}"
 }
