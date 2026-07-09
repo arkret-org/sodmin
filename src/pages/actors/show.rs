@@ -8,6 +8,7 @@ use crate::components::ui::error_banner::ErrorBanner;
 use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::{BreadcrumbItem, Breadcrumbs, PageHeader};
 use crate::components::ui::toast::{ToastVariant, show_toast};
+use crate::components::ui::unwired::unwired_field_row;
 use crate::router::Route;
 use crate::utils::i18n::t;
 use crate::utils::net::audit::{AdminAuditOutcome, emit_admin_audit_server};
@@ -69,27 +70,23 @@ pub fn ActorShow(actor_id: String) -> Element {
                                     {field_row(t("actors.did"), actor.did.clone())}
                                     {field_row(t("actors.handle"), actor.handle.as_deref().unwrap_or("-").to_string())}
                                     {field_row(t("actors.display_name"), actor.display_name.as_deref().unwrap_or("-").to_string())}
-                                    {field_row(
-                                        t("actors.status"),
-                                        if actor.is_suspended {
-                                            t("actors.suspended")
-                                        } else if actor.is_deactivated && actor.deactivation_federation_incomplete {
-                                            // Round 4 — DO NOT silently
-                                            // collapse to "Deactivated" while
-                                            // the federation fanout is still
-                                            // in-flight.
-                                            t("actors.deactivation_federation_incomplete")
-                                        } else if actor.is_deactivated {
-                                            t("actors.deactivated")
-                                        } else {
-                                            t("actors.active")
-                                        },
-                                    )}
-                                    {field_row(t("actors.is_admin"), if actor.is_admin { t("common.yes") } else { t("common.no") })}
+                                    // Review D14 — status/is_admin derive from
+                                    // `is_suspended`/`is_deactivated`/`is_admin`,
+                                    // which the dev-only actor snapshot never
+                                    // emits (they default to `false`). Rendering
+                                    // "Active"/"No" here would confidently assert
+                                    // a security posture the server never
+                                    // confirmed, so mark these as unwired instead.
+                                    {unwired_field_row(t("actors.status"), true)}
+                                    {unwired_field_row(t("actors.is_admin"), true)}
                                     {field_row(t("actors.created_at"), actor.created_at.as_deref().unwrap_or("-").to_string())}
-                                    {field_row(t("actors.last_active"), actor.last_active_at.as_deref().unwrap_or("-").to_string())}
-                                    {field_row(t("actors.device_count"), actor.device_count.to_string())}
-                                    {field_row(t("actors.realm_count"), actor.realm_count.to_string())}
+                                    // Review D14 — last_active_at/device_count/
+                                    // realm_count are likewise absent from the dev
+                                    // snapshot; "-"/"0" would masquerade as real
+                                    // zeroes. Non-security, so neutral variant.
+                                    {unwired_field_row(t("actors.last_active"), false)}
+                                    {unwired_field_row(t("actors.device_count"), false)}
+                                    {unwired_field_row(t("actors.realm_count"), false)}
                                     }
                                 }
                             }

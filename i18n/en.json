@@ -479,6 +479,7 @@
   "dashboard.avg_api_response": "Avg API response time",
   "dashboard.coauth_issuer_did": "coauth issuer DID",
   "dashboard.conformance_desc": "Declared surfaces are shown from service discovery; missing entries remain unavailable until the server advertises them.",
+  "dashboard.conformance_heuristic_note": "Heuristic inference: per-surface status is derived by substring-matching the server's advertised discovery strings, not read from an authoritative conformance field. Treat as an approximation.",
   "dashboard.conformance_status": "Conformance Status",
   "dashboard.declared": "Declared",
   "dashboard.delegated_resolver": "delegated/public DID resolver",
@@ -1199,5 +1200,9 @@
   "starid_resolver.status_pending": "Pending witnesses",
   "starid_resolver.subtitle": "Read-only view of the upstream did:webvh writer — head version, witness count, and freshness.",
   "starid_resolver.title": "Starid resolver",
-  "starid_resolver.witness_count": "Witness count"
+  "starid_resolver.witness_count": "Witness count",
+  "unwired.badge": "N/A (dev snapshot)",
+  "unwired.badge_critical": "Unknown — not wired",
+  "unwired.column_note": "not wired",
+  "unwired.tooltip": "This field is not emitted by soland's dev-only snapshot endpoint, so no real value is available. It is shown as unavailable instead of a definite value (never a trustworthy false/0). Wiring the production endpoint is tracked in the backlog."
 }

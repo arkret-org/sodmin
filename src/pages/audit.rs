@@ -8,6 +8,7 @@ use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::pagination::Pagination;
 use crate::components::ui::table::*;
+use crate::components::ui::unwired::unwired_header_note;
 use crate::types::AuditScopeKind;
 use crate::utils::i18n::t;
 
@@ -104,7 +105,10 @@ pub fn AuditLog() -> Element {
                         }
                     }
                     div { class: "space-y-1",
-                        Label { class: "text-xs text-muted-foreground".to_string(), {t("audit.filter_target_type")} }
+                        // Review D14 — this filter targets an unwired snapshot
+                        // field, so it will never match; mark it so operators do
+                        // not read empty results as "no matching rows".
+                        Label { class: "text-xs text-muted-foreground".to_string(), {t("audit.filter_target_type")} {unwired_header_note()} }
                         Input {
                             placeholder: t("audit.filter_target_type_placeholder"),
                             value: draft.read().target_type.clone(),
@@ -114,7 +118,8 @@ pub fn AuditLog() -> Element {
                         }
                     }
                     div { class: "space-y-1",
-                        Label { class: "text-xs text-muted-foreground".to_string(), {t("audit.filter_target_id")} }
+                        // Review D14 — unwired filter field (see target_type).
+                        Label { class: "text-xs text-muted-foreground".to_string(), {t("audit.filter_target_id")} {unwired_header_note()} }
                         Input {
                             placeholder: t("audit.filter_target_id_placeholder"),
                             value: draft.read().target_id.clone(),
@@ -196,9 +201,15 @@ pub fn AuditLog() -> Element {
                                     TableHead { {t("audit.id")} }
                                     TableHead { {t("audit.action")} }
                                     TableHead { {t("audit.actor_id")} }
-                                    TableHead { {t("audit.target_type")} }
-                                    TableHead { {t("audit.target_id")} }
-                                    TableHead { {t("audit.effective_scope")} }
+                                    // Review D14 — target_type/target_id/
+                                    // effective_scope/source_ip are not top-level
+                                    // fields of the current dev snapshot, so every
+                                    // cell renders the "-" placeholder. Flag the
+                                    // columns as unwired so the dashes are not read
+                                    // as "no target" / "no scope".
+                                    TableHead { {t("audit.target_type")} {unwired_header_note()} }
+                                    TableHead { {t("audit.target_id")} {unwired_header_note()} }
+                                    TableHead { {t("audit.effective_scope")} {unwired_header_note()} }
                                     // CKP-0008 — new envelope columns:
                                     // executed_by / authorization_ref /
                                     // actor_kind (reducer-stamped).
@@ -206,7 +217,7 @@ pub fn AuditLog() -> Element {
                                     TableHead { "authz_ref" }
                                     TableHead { "actor_kind" }
                                     TableHead { {t("audit.timestamp")} }
-                                    TableHead { {t("audit.source_ip")} }
+                                    TableHead { {t("audit.source_ip")} {unwired_header_note()} }
                                 }
                             }
                             TableBody {

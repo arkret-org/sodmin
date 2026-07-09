@@ -479,6 +479,7 @@
   "dashboard.avg_api_response": "平均 API 响应时间",
   "dashboard.coauth_issuer_did": "coauth 签发者 DID",
   "dashboard.conformance_desc": "已声明的接口来自服务发现；缺失项在服务声明前保持不可用。",
+  "dashboard.conformance_heuristic_note": "启发式推断:各接口状态是通过对服务器发现字符串做子串匹配得出的,并非读取权威的一致性字段,仅供参考。",
   "dashboard.conformance_status": "一致性状态",
   "dashboard.declared": "已声明",
   "dashboard.delegated_resolver": "委派/公开 DID 解析器",
@@ -1199,5 +1200,9 @@
   "starid_resolver.status_pending": "等待见证",
   "starid_resolver.subtitle": "上游 did:webvh 写入端的只读视图——头版本、见证数量与最近活跃时间。",
   "starid_resolver.title": "Starid 解析器",
-  "starid_resolver.witness_count": "见证数量"
+  "starid_resolver.witness_count": "见证数量",
+  "unwired.badge": "N/A(dev 快照)",
+  "unwired.badge_critical": "未知(未接线)",
+  "unwired.column_note": "未接线",
+  "unwired.tooltip": "该字段未由 soland 的 dev-only 快照端点下发,无真实值可用。此处显示为「不可用」而非确定值(绝非可信的 false/0)。接入生产端点属治本 backlog。"
 }

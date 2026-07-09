@@ -97,6 +97,7 @@ pub fn RealmOrganization(realm_id: String) -> Element {
             div {
                 class: "rounded-md border border-amber-600 bg-amber-600/10 px-3 py-2 text-sm space-y-1",
                 role: "alert",
+                "data-testid": "realm-organization-stub-banner",
                 p { class: "font-semibold text-amber-700 dark:text-amber-200",
                     span { class: "mr-2", "\u{2139}" }
                     {t("realm_organization.stub_title")}

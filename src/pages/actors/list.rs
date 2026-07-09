@@ -2,12 +2,12 @@ use dioxus::prelude::*;
 
 use crate::api::actors;
 use crate::components::ui::error_banner::ErrorBanner;
-use crate::components::ui::icons::Icon;
 use crate::components::ui::input::SearchInput;
 use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::pagination::Pagination;
 use crate::components::ui::table::*;
+use crate::components::ui::unwired::{unwired_badge, unwired_header_note};
 use crate::router::Route;
 use crate::utils::i18n::t;
 
@@ -46,8 +46,12 @@ pub fn ActorList() -> Element {
                                     TableHead { {t("actors.id")} }
                                     TableHead { {t("actors.handle")} }
                                     TableHead { {t("actors.display_name")} }
-                                    TableHead { {t("actors.status")} }
-                                    TableHead { {t("actors.is_admin")} }
+                                    // Review D14 — Status/Admin derive from
+                                    // snapshot fields the dev-only endpoint never
+                                    // emits, so every cell is a placeholder. Flag
+                                    // the whole column as unwired at the header.
+                                    TableHead { {t("actors.status")} {unwired_header_note()} }
+                                    TableHead { {t("actors.is_admin")} {unwired_header_note()} }
                                     TableHead { {t("actors.created_at")} }
                                 }
                             }
@@ -67,20 +71,13 @@ pub fn ActorList() -> Element {
                                                 }
                                                 TableCell { {actor.handle.as_deref().unwrap_or("-")} }
                                                 TableCell { {actor.display_name.as_deref().unwrap_or("-")} }
-                                                TableCell {
-                                                    if actor.is_suspended {
-                                                        {t("actors.suspended")}
-                                                    } else if actor.is_deactivated {
-                                                        {t("actors.deactivated")}
-                                                    } else {
-                                                        {t("actors.active")}
-                                                    }
-                                                }
-                                                TableCell {
-                                                    if actor.is_admin {
-                                                        Icon { name: "check".to_string(), class: "h-4 w-4 text-green-500".to_string() }
-                                                    }
-                                                }
+                                                // Review D14 — do NOT render a
+                                                // confident "Active" / absent
+                                                // admin check from unwired
+                                                // defaults; show the unwired
+                                                // marker instead.
+                                                TableCell { {unwired_badge(true)} }
+                                                TableCell { {unwired_badge(true)} }
                                                 TableCell { {actor.created_at.as_deref().unwrap_or("-")} }
                                             }
                                         }

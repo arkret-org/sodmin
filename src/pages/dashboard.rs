@@ -244,6 +244,16 @@ pub fn Dashboard() -> Element {
                             {conformance_cell(row)}
                         }
                     }
+                    // Review D14 — the per-surface Declared/Not-declared states
+                    // come from `has_any_declared_surface` substring matching,
+                    // not an authoritative conformance field. Label them as a
+                    // heuristic so operators do not treat them as ground truth.
+                    p {
+                        class: "mt-3 text-xs text-amber-700 dark:text-amber-300",
+                        "data-testid": "conformance-heuristic-note",
+                        span { class: "mr-1", "\u{2139}" }
+                        {t("dashboard.conformance_heuristic_note")}
+                    }
                 }
             }
         }
