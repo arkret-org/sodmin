@@ -7,7 +7,7 @@
 //!      requires a principal-signed `auth_data` transcript the admin UI cannot mint).
 //!   3. Recovery receipt history.
 
-use cokret_core::models::KeyBackupSummary;
+use cokret_core::models::{KeyBackupSummary, RecoveryPolicySummary};
 use dioxus::prelude::*;
 
 use crate::api::key_backup;
@@ -18,7 +18,6 @@ use crate::components::ui::input::{Input, Label};
 use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::table::*;
-use crate::types::RecoveryPolicySummary;
 use crate::utils::i18n::t;
 
 #[component]
@@ -311,18 +310,28 @@ fn render_policy_row(p: &RecoveryPolicySummary) -> Element {
         // recovery is disabled under this policy.
         "(revoked)".to_string()
     } else {
-        p.allowed_proof_kinds.join(", ")
+        p.allowed_proof_kinds
+            .iter()
+            .map(|kind| kind.as_wire_str())
+            .collect::<Vec<_>>()
+            .join(", ")
     };
-    let issued_at = p.issued_at.clone().unwrap_or_else(|| "-".into());
-    let expires_at = p.expires_at.clone().unwrap_or_else(|| "-".into());
+    let policy_id = p.policy_id.as_str();
+    let issued_at = p.issued_at.to_rfc3339();
+    let expires_at = p
+        .expires_at
+        .as_ref()
+        .map(|expires_at| expires_at.to_rfc3339())
+        .unwrap_or_else(|| "-".to_string());
+    let trust_domain = p.trust_domain.as_str();
     rsx! {
         TableRow {
-            key: "{p.policy_id}",
-            TableCell { class: "font-mono text-xs".to_string(), "{p.policy_id}" }
+            key: "{policy_id}",
+            TableCell { class: "font-mono text-xs".to_string(), "{policy_id}" }
             TableCell {
                 Badge { variant: BadgeVariant::Secondary, "v{p.version}" }
             }
-            TableCell { class: "font-mono text-xs max-w-[160px] truncate".to_string(), "{p.trust_domain}" }
+            TableCell { class: "font-mono text-xs max-w-[160px] truncate".to_string(), "{trust_domain}" }
             TableCell { class: "text-xs".to_string(), "{proof_kinds}" }
             TableCell { class: "text-xs".to_string(), "{issued_at}" }
             TableCell { class: "text-xs".to_string(), "{expires_at}" }
