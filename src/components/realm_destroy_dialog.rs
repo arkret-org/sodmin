@@ -119,7 +119,7 @@ pub fn RealmDestroyDialog(props: RealmDestroyDialogProps) -> Element {
                                 props.on_confirm.call(());
                             }
                         },
-                        "Seal ck.realm.destroy"
+                        "Seal ak.realm.destroy"
                     }
                 }
             }

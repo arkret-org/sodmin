@@ -814,7 +814,7 @@ mod tests {
             subject_ref: "*".to_owned(),
             policy_type: "ak.profile.pinned_items.v1".to_owned(),
             payload: json!({
-                "actions": ["ak.pin.add", "ck.pin.reorder"],
+                "actions": ["ak.pin.add", "ak.pin.reorder"],
                 "resource": {
                     "name": "Realm pins",
                     "pin_scope": {"kind": "realm", "id": "ak:realm:01HXY"},

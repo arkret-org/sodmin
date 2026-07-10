@@ -146,7 +146,7 @@ read on-call without rendering.
     │  - generate key pair (browser-side; private key never leaves the wizard)
     │  - paste accountable_principal_ids chain (defaults to the operator's own grant)
     │  - submit
-    │     → POST ck.gate.account.command.pair_agent_key to coauth
+    │     → POST ak.gate.account.command.pair_agent_key to coauth
     │     → soland materializes the agent_state cell (Active)
     ▼
 [Active]   (agent serves traffic; appears in /agents/personal listing)
@@ -211,7 +211,7 @@ Notes:
     │  - if green, "Submit" enables
     ▼
 [submit]
-    │  - POST ck.recovery.policy.create to soland
+    │  - POST ak.recovery.policy.create to soland
     │  - soland writes the policy row + audit
     │  - policy stack now shows the new version as active
     ▼
