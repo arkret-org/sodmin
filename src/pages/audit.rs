@@ -149,7 +149,7 @@ pub fn AuditLog() -> Element {
                         }
                     }
                     // P3A.5 — AKP-0007 event-kind filter dropdown.
-                    // The ck.circle.* event kinds match the SDK's
+                    // The ak.circle.* event kinds match the SDK's
                     // event-kind registry exactly.
                     div { class: "space-y-1",
                         Label { class: "text-xs text-muted-foreground".to_string(), {t("audit.filter_event_kind")} }

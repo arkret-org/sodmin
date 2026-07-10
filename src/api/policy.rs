@@ -371,7 +371,7 @@ fn pin_summary_from_payload(policy_type: &str, payload: &Value) -> PinPolicySumm
 fn collect_pin_actions(value: &Value, actions: &mut BTreeSet<String>) {
     match value {
         Value::String(s) => {
-            if s == "ak.pin.*" || s.starts_with("ck.pin.") {
+            if s == "ak.pin.*" || s.starts_with("ak.pin.") {
                 actions.insert(s.to_owned());
             }
         }

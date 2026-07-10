@@ -7,7 +7,7 @@ do real work. The strand is:
 1. **DID setup** — the admin's own controller DID is bound to a coauth account.
 2. **SSO config** — coauth knows the upstream identity provider so the admin can sign in.
 3. **First login** — the admin opens sodmin in a browser and completes the OAuth2 PKCE strand.
-4. **Capability grant strand** — coauth issues the `ck.*` admin scopes the admin needs to drive sodmin.
+4. **Capability grant strand** — coauth issues the `ak.*` admin scopes the admin needs to drive sodmin.
 
 P5 — until an admin has both a bound DID **and** the right capability
 grants, sodmin will surface every destructive action with a "not in
@@ -90,7 +90,7 @@ refuses to load the admin surface. Mark the account admin via the
 
 Being signed in as an admin does NOT, by itself, grant the right to
 drive every admin operation. The Arkret model is capability-based:
-each admin action is gated by a specific `ck.*` capability scope,
+each admin action is gated by a specific `ak.*` capability scope,
 and the operator must hold that scope (or a covering parent scope)
 before the backend will accept the request.
 

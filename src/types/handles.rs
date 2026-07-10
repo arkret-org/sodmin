@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 
 // ── Handle management (T6.2 §2) ──
 
-/// One row in `GET /_soland/admin/handles`. Mirrors the `ck.handle.*` cell
+/// One row in `GET /_soland/admin/handles`. Mirrors the `ak.handle.*` cell
 /// projection — `canonical_uri` is the cell subject, `aliases` is the
 /// projected handle set, `issuer_did` is the principal that signed the
 /// most recent assignment Control Move.

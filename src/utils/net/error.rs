@@ -162,7 +162,7 @@ pub fn display_error(errcode: &str, status: u16, message: &str) -> String {
     }
 
     // soland's error envelope carries bare snake_case errcodes straight
-    // from the spec error-code-registry (there is no `ck.error.*`
+    // from the spec error-code-registry (there is no `ak.error.*`
     // prefix in the registry, and `schema` is registered as
     // `schema_violation`). Match those literal registry codes only.
     let safe_message = redact_pii(message);
@@ -259,7 +259,7 @@ pub fn should_reset_cursor_pagination(error: &HttpError, cursor: Option<&str>) -
     }
 
     let errcode = error.body.as_ref().map(|body| body.errcode.as_str());
-    // Registry codes are bare snake_case (no `ck.error.*` prefix exists in
+    // Registry codes are bare snake_case (no `ak.error.*` prefix exists in
     // the error-code-registry).
     matches!(
         (error.status, errcode),

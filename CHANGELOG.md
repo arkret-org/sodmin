@@ -47,12 +47,12 @@ soland P2A + coauth P2B.
   `/_soland/self/circles/*` routes added to `build.rs` REQUIRED_SOLAND so a
   missing route fails the wasm build at contract-check time.
 - **Added** Capability grant dialog (P3A.4) gains a quick-select for the
-  six `ck.circle.*` actions and an `allowed_circle_ids` CSV input
+  six `ak.circle.*` actions and an `allowed_circle_ids` CSV input
   that emits the GrantConstraint server-side.
 - **Added** Audit log (P3A.5) renders the new `effective_scope` field
   with a deep link into `/circles/:id` for Circle-scoped events, and
   the filter row grows an event-kind dropdown covering the seven
-  `ck.circle.*` event kinds.
+  `ak.circle.*` event kinds.
 - **Added** Realm classification badges (P3A.6): new
   `RealmClassificationBadge` component renders the Principal
   Control / Collaboration / unknown distinction. The Realm/Space

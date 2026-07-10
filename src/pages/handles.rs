@@ -2,7 +2,7 @@
 //!
 //! Two screens:
 //!
-//! - [`HandleList`] is a paginated table of `ck.handle.*` cells with issuer / expiry /
+//! - [`HandleList`] is a paginated table of `ak.handle.*` cells with issuer / expiry /
 //!   last-reassignment columns and inline revoke + reassign affordances.
 //! - [`HandleShow`] is the per-handle detail page; it pulls the audit trail from
 //!   `/_soland/admin/handles/{id}/audit` (T3.2's audit table) and exposes the revoke +

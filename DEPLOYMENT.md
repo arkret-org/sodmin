@@ -108,7 +108,7 @@ action.
 
 Sodmin's `/circles/*` surfaces (P3A.3) call into soland's `/_arkret/self/circles/*`
 admin layer. Before an operator can use those pages, coauth must have
-issued the matching `ck.circle.*` capability grants to the operator's
+issued the matching `ak.circle.*` capability grants to the operator's
 admin DID — typically via the Coauth Capabilities admin page at
 `/coauth/capabilities`, or by running the bootstrap migration that
 seeds the six actions:
