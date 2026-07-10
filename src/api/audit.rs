@@ -1,154 +1,82 @@
+//! Audit admin API — D14 production endpoint.
+//!
+//! `GET /_soland/admin/audit` is the typed production query (SDK
+//! `AdminAuditList`, newest first). All filtering happens server-side via
+//! `filter[...]` / `since` / `until`; the old fetch-everything-then-filter
+//! client loop is gone. `target_type` / `target_id` / `source_ip` /
+//! `effective_scope` are not part of the durable audit record and are no
+//! longer query dimensions.
+
+use arkret_core::models::AdminAuditList;
 use chrono::{DateTime, NaiveDateTime, TimeZone, Utc};
 
 use crate::api::client::{NO_BODY, api_client, build_url};
-use crate::types::*;
 use crate::utils::net::error::HttpError;
 
-const FILTERED_AUDIT_FETCH_LIMIT: u64 = 1000;
-
-/// Multi-dimensional filter for `/_soland/admin/audit` queries. Empty fields
-/// are dropped before encoding so the wire form only carries what the
-/// operator actually filtered on.
+/// Server-side filter set for `/_soland/admin/audit`. Empty fields are
+/// dropped before encoding so the wire form only carries what the operator
+/// actually filtered on.
 #[derive(Debug, Clone, Default)]
 pub struct AuditFilter {
     pub action: Option<String>,
     pub actor_id: Option<String>,
-    pub target_type: Option<String>,
-    pub target_id: Option<String>,
+    pub realm_id: Option<String>,
+    /// AKP-0007 (P3A.5) — event-kind filter (`ak.circle.create`, ...);
+    /// matches the action or the payload `kind`/`type` server-side.
+    pub kind: Option<String>,
     pub since: Option<String>,
     pub until: Option<String>,
-    /// AKP-0007 (P3A.5) — server-side filter on event kind. When set,
-    /// soland constrains the audit feed to the matching `ak.*` kind
-    /// strings (e.g. `ak.circle.create`).
-    pub event_kind: Option<String>,
-    /// AKP-0007 (P3A.5) — server-side filter on effective scope (a
-    /// `ak:realm:...` or `ak:circle:...` id).
-    pub effective_scope: Option<String>,
 }
 
 impl AuditFilter {
     fn into_query(self) -> Vec<(&'static str, String)> {
-        [
-            ("action", self.action),
-            ("actor_id", self.actor_id),
-            ("target_type", self.target_type),
-            ("target_id", self.target_id),
-            ("since", self.since),
-            ("until", self.until),
-            ("event_kind", self.event_kind),
-            ("effective_scope", self.effective_scope),
-        ]
-        .into_iter()
-        .filter_map(|(k, v)| {
-            v.map(|s| s.trim().to_string())
-                .filter(|s| !s.is_empty())
-                .map(|s| (k, s))
-        })
-        .collect()
+        let field = |value: Option<String>| {
+            value
+                .map(|value| value.trim().to_string())
+                .filter(|value| !value.is_empty())
+        };
+        let mut query = Vec::new();
+        for (key, value) in [
+            ("filter[action]", field(self.action)),
+            ("filter[actor_id]", field(self.actor_id)),
+            ("filter[realm_id]", field(self.realm_id)),
+            ("filter[kind]", field(self.kind)),
+        ] {
+            if let Some(value) = value {
+                query.push((key, value));
+            }
+        }
+        for (key, value) in [("since", field(self.since)), ("until", field(self.until))] {
+            // The endpoint takes RFC3339 only; normalize the
+            // datetime-local input forms the filter UI produces.
+            if let Some(value) = value.as_deref().and_then(parse_audit_time) {
+                query.push((key, value.to_rfc3339()));
+            }
+        }
+        query
     }
 }
 
 pub async fn list_audit_entries(
-    page: u64,
-    per_page: u64,
-    filter: AuditFilter,
-) -> Result<ListResponse<AuditEntry>, HttpError> {
-    let limit = per_page.max(1);
-    let cursor = page.saturating_sub(1).saturating_mul(limit).to_string();
-    let filters = filter.into_query();
-    if filters.is_empty() {
-        return fetch_audit_page(Some(&cursor), limit).await;
-    }
-    list_filtered_audit_entries(page, limit, &filters).await
-}
-
-async fn fetch_audit_page(
     cursor: Option<&str>,
     limit: u64,
-) -> Result<ListResponse<AuditEntry>, HttpError> {
+    filter: AuditFilter,
+) -> Result<AdminAuditList, HttpError> {
     let limit_str = limit.max(1).to_string();
+    let query = filter.into_query();
     let mut params: Vec<(&str, &str)> = vec![("limit", limit_str.as_str())];
-    if let Some(cursor) = cursor.filter(|c| !c.is_empty()) {
+    if let Some(cursor) = cursor.filter(|cursor| !cursor.is_empty()) {
         params.push(("cursor", cursor));
+    }
+    for (key, value) in &query {
+        params.push((key, value.as_str()));
     }
     let url = build_url("/_soland/admin/audit", &params)?;
     api_client(&url, "GET", NO_BODY).await
 }
 
-async fn list_filtered_audit_entries(
-    page: u64,
-    per_page: u64,
-    filters: &[(&'static str, String)],
-) -> Result<ListResponse<AuditEntry>, HttpError> {
-    let mut cursor = None::<String>;
-    let mut matched = Vec::new();
-
-    loop {
-        let resp = fetch_audit_page(cursor.as_deref(), FILTERED_AUDIT_FETCH_LIMIT).await?;
-        matched.extend(
-            resp.data
-                .into_iter()
-                .filter(|entry| audit_entry_matches(entry, filters)),
-        );
-        match resp.next_cursor {
-            Some(next) if !next.is_empty() && cursor.as_deref() != Some(next.as_str()) => {
-                cursor = Some(next);
-            }
-            _ => break,
-        }
-    }
-
-    let total = matched.len() as u64;
-    let start = page.saturating_sub(1).saturating_mul(per_page) as usize;
-    let data: Vec<AuditEntry> = matched
-        .into_iter()
-        .skip(start)
-        .take(per_page as usize)
-        .collect();
-    let next_cursor = if (start as u64).saturating_add(data.len() as u64) < total {
-        Some(page.saturating_add(1).to_string())
-    } else {
-        None
-    };
-    Ok(ListResponse {
-        data,
-        total: Some(total),
-        next_cursor,
-    })
-}
-
-fn audit_entry_matches(entry: &AuditEntry, filters: &[(&'static str, String)]) -> bool {
-    filters.iter().all(|(key, value)| {
-        if matches!(*key, "since" | "until") {
-            return audit_timestamp_matches(entry.timestamp.as_deref(), key, value);
-        }
-        let needle = value.to_ascii_lowercase();
-        let haystack = match *key {
-            "action" | "event_kind" => entry.action.as_str(),
-            "actor_id" => entry.actor_id.as_deref().unwrap_or_default(),
-            "target_type" => entry.target_type.as_deref().unwrap_or_default(),
-            "target_id" => entry.target_id.as_deref().unwrap_or_default(),
-            "effective_scope" => entry.effective_scope.as_deref().unwrap_or_default(),
-            _ => return true,
-        };
-        haystack.to_ascii_lowercase().contains(&needle)
-    })
-}
-
-fn audit_timestamp_matches(timestamp: Option<&str>, key: &str, value: &str) -> bool {
-    let Some(filter_at) = parse_audit_time(value) else {
-        return true;
-    };
-    let Some(entry_at) = timestamp.and_then(parse_audit_time) else {
-        return false;
-    };
-    match key {
-        "since" => entry_at >= filter_at,
-        "until" => entry_at <= filter_at,
-        _ => true,
-    }
-}
-
+/// Parse the filter UI's time inputs: RFC3339, or the two
+/// `datetime-local` shapes (`%Y-%m-%dT%H:%M[:%S]`, treated as UTC).
 fn parse_audit_time(value: &str) -> Option<DateTime<Utc>> {
     let value = value.trim();
     if value.is_empty() {
@@ -173,32 +101,35 @@ fn parse_audit_time(value: &str) -> Option<DateTime<Utc>> {
 mod tests {
     use super::*;
 
-    fn entry_at(timestamp: &str) -> AuditEntry {
-        AuditEntry {
-            action: "login".to_owned(),
-            timestamp: Some(timestamp.to_owned()),
+    #[test]
+    fn filter_normalizes_datetime_local_bounds_to_rfc3339() {
+        let query = AuditFilter {
+            since: Some("2026-06-21T10:00".to_owned()),
+            until: Some("2026-06-21T11:00:30".to_owned()),
             ..Default::default()
         }
+        .into_query();
+        assert_eq!(
+            query,
+            vec![
+                ("since", "2026-06-21T10:00:00+00:00".to_owned()),
+                ("until", "2026-06-21T11:00:30+00:00".to_owned()),
+            ]
+        );
     }
 
     #[test]
-    fn audit_date_filters_keep_entries_inside_window() {
-        let entry = entry_at("2026-06-21T10:30:00Z");
-        let filters = vec![
-            ("since", "2026-06-21T10:00".to_owned()),
-            ("until", "2026-06-21T11:00".to_owned()),
-        ];
-        assert!(audit_entry_matches(&entry, &filters));
-    }
-
-    #[test]
-    fn audit_date_filters_reject_entries_outside_window() {
-        let entry = entry_at("2026-06-21T09:59:59Z");
-        let filters = vec![("since", "2026-06-21T10:00".to_owned())];
-        assert!(!audit_entry_matches(&entry, &filters));
-
-        let entry = entry_at("2026-06-21T11:00:01Z");
-        let filters = vec![("until", "2026-06-21T11:00".to_owned())];
-        assert!(!audit_entry_matches(&entry, &filters));
+    fn filter_drops_empty_fields_and_unparsable_times() {
+        let query = AuditFilter {
+            action: Some("  ".to_owned()),
+            kind: Some("ak.circle.create".to_owned()),
+            since: Some("yesterday".to_owned()),
+            ..Default::default()
+        }
+        .into_query();
+        assert_eq!(
+            query,
+            vec![("filter[kind]", "ak.circle.create".to_owned())]
+        );
     }
 }

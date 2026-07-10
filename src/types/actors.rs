@@ -1,43 +1,29 @@
-//! DTO shapes for the actor admin surface.
+//! Actor admin surface — SDK-authoritative types plus thin display helpers.
+//!
+//! The row is the SDK `arkret_core::models::AdminActor` (D14 production
+//! projection). sodmin keeps no wire mirror; security-relevant fields are
+//! `Option` on the wire and rendered as their answered values (the old
+//! "unwired" placeholder rendering is gone with the dev snapshot).
 
-use serde::{Deserialize, Serialize};
+pub use arkret_core::models::{AccountStatus, AdminActor};
 
-// ── Actor types ──
+/// Display helpers for the SDK [`AdminActor`].
+pub trait AdminActorExt {
+    fn is_deactivated(&self) -> bool;
+    /// Wire status string (`active` / `suspended` / ...), `-` when the
+    /// server reported the lifecycle as unknown.
+    fn status_display(&self) -> &'static str;
+}
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct Actor {
-    #[serde(default)]
-    pub id: String,
-    #[serde(default)]
-    pub account_id: Option<String>,
-    #[serde(default)]
-    pub did: String,
-    #[serde(default)]
-    pub handle: Option<String>,
-    #[serde(default)]
-    pub display_name: Option<String>,
-    #[serde(default)]
-    pub avatar_url: Option<String>,
-    #[serde(default)]
-    pub status: Option<String>,
-    #[serde(default)]
-    pub is_admin: bool,
-    #[serde(default)]
-    pub is_suspended: bool,
-    #[serde(default)]
-    pub is_deactivated: bool,
-    /// Round 4 — `true` when the local 7-domain fanout completed but at
-    /// least one federated peer has NOT yet confirmed the deactivation.
-    /// The admin UI MUST NOT silently treat this principal as fully
-    /// deactivated — surface the incomplete state explicitly.
-    #[serde(default)]
-    pub deactivation_federation_incomplete: bool,
-    #[serde(default)]
-    pub created_at: Option<String>,
-    #[serde(default)]
-    pub last_active_at: Option<String>,
-    #[serde(default)]
-    pub device_count: u64,
-    #[serde(default)]
-    pub realm_count: u64,
+impl AdminActorExt for AdminActor {
+    fn is_deactivated(&self) -> bool {
+        matches!(
+            self.status,
+            Some(AccountStatus::Deactivated | AccountStatus::ErasurePending)
+        )
+    }
+
+    fn status_display(&self) -> &'static str {
+        self.status.map(AccountStatus::as_str).unwrap_or("-")
+    }
 }

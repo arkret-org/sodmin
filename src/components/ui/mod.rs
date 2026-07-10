@@ -15,4 +15,3 @@ pub mod page_header;
 pub mod pagination;
 pub mod table;
 pub mod toast;
-pub mod unwired;

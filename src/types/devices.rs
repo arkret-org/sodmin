@@ -1,35 +1,34 @@
-//! DTO shapes for the device admin surface.
+//! Device admin surface — SDK-authoritative types plus thin display helpers.
+//!
+//! The row is the SDK `arkret_core::models::AdminDevice` (D14 production
+//! projection); sodmin keeps no wire mirror or field aliases.
 
-use serde::{Deserialize, Serialize};
+pub use arkret_core::models::AdminDevice;
 
-// ── Device types ──
-
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct Device {
-    #[serde(default, alias = "device_id")]
-    pub id: String,
-    #[serde(default, alias = "actor")]
-    pub actor_id: Option<String>,
-    #[serde(default)]
-    pub display_name: Option<String>,
-    #[serde(default)]
-    pub verification_status: Option<String>,
-    #[serde(default, alias = "verification", alias = "verification_state")]
-    pub verification_state: Option<String>,
-    #[serde(default)]
-    pub payload: Option<serde_json::Value>,
-    #[serde(default)]
-    pub created_at: Option<String>,
-    #[serde(default)]
-    pub updated_at: Option<String>,
-    #[serde(default)]
-    pub revoked_at: Option<String>,
+/// Display helpers for the SDK [`AdminDevice`].
+pub trait AdminDeviceExt {
+    fn verification_label(&self) -> Option<&str>;
+    /// RFC3339 rendering for the optional timestamps (`-` handled by the
+    /// caller).
+    fn created_at_display(&self) -> Option<String>;
+    fn updated_at_display(&self) -> Option<String>;
+    fn revoked_at_display(&self) -> Option<String>;
 }
 
-impl Device {
-    pub fn verification_label(&self) -> Option<&str> {
-        self.verification_state
-            .as_deref()
-            .or(self.verification_status.as_deref())
+impl AdminDeviceExt for AdminDevice {
+    fn verification_label(&self) -> Option<&str> {
+        self.verification_state.as_deref()
+    }
+
+    fn created_at_display(&self) -> Option<String> {
+        self.created_at.map(|ts| ts.to_rfc3339())
+    }
+
+    fn updated_at_display(&self) -> Option<String> {
+        self.updated_at.map(|ts| ts.to_rfc3339())
+    }
+
+    fn revoked_at_display(&self) -> Option<String> {
+        self.revoked_at.map(|ts| ts.to_rfc3339())
     }
 }

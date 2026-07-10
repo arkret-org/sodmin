@@ -1,93 +1,41 @@
-//! DTO shapes for the audit admin surface.
+//! Audit admin surface — SDK-authoritative types plus thin display helpers.
+//!
+//! The row is the SDK `arkret_core::models::AdminAuditEntry` (D14
+//! production projection, mirroring the durable audit record). AKP-0008
+//! attribution (`executed_by` / `authorization_ref` / `actor_kind`) travels
+//! inside `payload`; the helpers below surface it for the table columns.
 
-use serde::{Deserialize, Serialize};
+pub use arkret_core::models::AdminAuditEntry;
 
-// ── Audit types ──
-
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct AuditEntry {
-    #[serde(default, alias = "audit_id")]
-    pub id: String,
-    #[serde(default)]
-    pub action: String,
-    #[serde(default, alias = "actor")]
-    pub actor_id: Option<String>,
-    #[serde(default)]
-    pub target_type: Option<String>,
-    #[serde(default)]
-    pub target_id: Option<String>,
-    #[serde(default, alias = "payload")]
-    pub details: Option<serde_json::Value>,
-    #[serde(default, alias = "created_at")]
-    pub timestamp: Option<String>,
-    #[serde(default)]
-    pub source_ip: Option<String>,
-    /// AKP-0007 — the effective scope at which the action took effect
-    /// (`ak:realm:...` or `ak:circle:...`). Distinct from the audited
-    /// `target_id` because Circle actions surface inside a Realm
-    /// envelope but get pinned to the Circle for replay-locality.
-    /// `None` when the source row omits the field.
-    #[serde(default)]
-    pub effective_scope: Option<String>,
-    /// AKP-0007 — when `effective_scope` points at a Circle, this is
-    /// the parent realm id so the audit row can render a "jump to
-    /// Realm" link without an extra round trip.
-    #[serde(default)]
-    pub scope_realm_id: Option<String>,
-    /// AKP-0007 — convenience copy of `effective_scope` when it is a
-    /// `ak:circle:...` id; saves the row a string-prefix sniff on
-    /// the rendering path.
-    #[serde(default)]
-    pub scope_circle_id: Option<String>,
-    /// AKP-0008 — when the envelope was signed/executed on behalf of
-    /// the principal, this records the executing DID (e.g. a personal
-    /// agent acting on behalf of the controller). Conditional: present
-    /// only on agent-attributed envelopes.
-    #[serde(default)]
-    pub executed_by: Option<String>,
-    /// AKP-0008 — typed id of the `accountability_grant` or capability
-    /// grant whose validity authorized the action. Lets the audit row
-    /// link back to the grant ledger row.
-    #[serde(default)]
-    pub authorization_ref: Option<String>,
-    /// AKP-0008 — reducer-stamped projection of the actor classification
-    /// at the moment of admission. Parsed with the SDK `ActorKind` enum,
-    /// so unknown/non-registry values fail instead of being rendered as
-    /// arbitrary strings.
-    #[serde(default)]
-    pub actor_kind: Option<arkret_core::models::ActorKind>,
+/// Display helpers for the SDK [`AdminAuditEntry`].
+pub trait AdminAuditEntryExt {
+    fn payload_str(&self, key: &str) -> Option<String>;
+    /// AKP-0008 — executing DID for agent-attributed envelopes.
+    fn executed_by(&self) -> Option<String>;
+    /// AKP-0008 — authorizing grant reference.
+    fn authorization_ref(&self) -> Option<String>;
+    /// AKP-0008 — actor classification stamped at admission.
+    fn actor_kind(&self) -> Option<String>;
 }
 
-impl AuditEntry {
-    /// Classify the audit entry's effective scope for badge / link
-    /// rendering. Pure helper so the rule stays unit-testable.
-    pub fn scope_kind(&self) -> AuditScopeKind {
-        if let Some(ref s) = self.scope_circle_id
-            && !s.is_empty()
-        {
-            return AuditScopeKind::Circle(s.clone());
-        }
-        if let Some(ref s) = self.effective_scope {
-            if s.starts_with("ak:circle:") {
-                return AuditScopeKind::Circle(s.clone());
-            }
-            if s.starts_with("ak:realm:") {
-                return AuditScopeKind::Realm(s.clone());
-            }
-        }
-        if let Some(ref r) = self.scope_realm_id
-            && !r.is_empty()
-        {
-            return AuditScopeKind::Realm(r.clone());
-        }
-        AuditScopeKind::Unknown
+impl AdminAuditEntryExt for AdminAuditEntry {
+    fn payload_str(&self, key: &str) -> Option<String> {
+        self.payload
+            .as_ref()
+            .and_then(|payload| payload.get(key))
+            .and_then(serde_json::Value::as_str)
+            .map(ToOwned::to_owned)
     }
-}
 
-/// Discriminated effective-scope value for the audit views.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum AuditScopeKind {
-    Realm(String),
-    Circle(String),
-    Unknown,
+    fn executed_by(&self) -> Option<String> {
+        self.payload_str("executed_by")
+    }
+
+    fn authorization_ref(&self) -> Option<String> {
+        self.payload_str("authorization_ref")
+    }
+
+    fn actor_kind(&self) -> Option<String> {
+        self.payload_str("actor_kind")
+    }
 }

@@ -14,6 +14,7 @@ use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::pagination::CursorPagination;
 use crate::components::ui::table::*;
 use crate::components::ui::toast::{ToastVariant, show_toast};
+use crate::types::AdminDeviceExt;
 use crate::utils::fmt::csv::{build_csv, export_to_csv};
 use crate::utils::fmt::search::matches_name_or_id;
 use crate::utils::futures::join_all as futures_join_all;
@@ -71,7 +72,7 @@ pub fn DeviceList() -> Element {
     // "select all" semantics.
     let visible_ids_memo = use_memo(move || match &*data.read() {
         Some(Ok(resp)) => resp
-            .data
+            .devices
             .iter()
             .filter(|d| {
                 matches_name_or_id(search.read().as_str(), &d.id, d.display_name.as_deref())
@@ -101,16 +102,16 @@ pub fn DeviceList() -> Element {
                         let export_visible_ids = visible_ids.clone();
                         move |_| {
                             if let Some(Ok(resp)) = data.read().as_ref() {
-                                let rows: Vec<Vec<String>> = resp.data.iter()
+                                let rows: Vec<Vec<String>> = resp.devices.iter()
                                     .filter(|d| export_visible_ids.contains(&d.id))
                                     .map(|d| vec![
                                 d.id.clone(),
                                 d.actor_id.clone().unwrap_or_default(),
                                 d.display_name.clone().unwrap_or_default(),
                                 d.verification_label().unwrap_or_default().to_string(),
-                                d.created_at.clone().unwrap_or_default(),
-                                d.updated_at.clone().unwrap_or_default(),
-                                d.revoked_at.clone().unwrap_or_default(),
+                                d.created_at_display().unwrap_or_default(),
+                                d.updated_at_display().unwrap_or_default(),
+                                d.revoked_at_display().unwrap_or_default(),
                                     ]).collect();
                                 let csv = build_csv(
                                     &["id", "actor_id", "display_name", "verification_state", "created_at", "updated_at", "revoked_at"],
@@ -219,15 +220,15 @@ pub fn DeviceList() -> Element {
                                             }
                                         }
                                     } else {
-                                        for device in resp.data.iter().filter(|d| visible_ids.contains(&d.id)) {
+                                        for device in resp.devices.iter().filter(|d| visible_ids.contains(&d.id)) {
                                             {
                                                 let id = device.id.clone();
                                                 let actor_id = device.actor_id.clone().unwrap_or_else(|| "-".to_string());
                                                 let display_name = device.display_name.clone().unwrap_or_else(|| "-".to_string());
                                                 let verification = device.verification_label().unwrap_or("-").to_string();
-                                                let created_at = device.created_at.clone().unwrap_or_else(|| "-".to_string());
-                                                let updated_at = device.updated_at.clone().unwrap_or_else(|| "-".to_string());
-                                                let revoked_at = device.revoked_at.clone().unwrap_or_else(|| "-".to_string());
+                                                let created_at = device.created_at_display().unwrap_or_else(|| "-".to_string());
+                                                let updated_at = device.updated_at_display().unwrap_or_else(|| "-".to_string());
+                                                let revoked_at = device.revoked_at_display().unwrap_or_else(|| "-".to_string());
 
                                                 let id_for_revoke = id.clone();
                                                 let id_for_check = id.clone();

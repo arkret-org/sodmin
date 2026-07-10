@@ -8,8 +8,8 @@ use crate::components::ui::error_banner::ErrorBanner;
 use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::{BreadcrumbItem, Breadcrumbs, PageHeader};
 use crate::components::ui::toast::{ToastVariant, show_toast};
-use crate::components::ui::unwired::unwired_field_row;
 use crate::router::Route;
+use crate::types::AdminActorExt;
 use crate::utils::i18n::t;
 use crate::utils::net::audit::{AdminAuditOutcome, emit_admin_audit_server};
 
@@ -47,7 +47,7 @@ pub fn ActorShow(actor_id: String) -> Element {
                         // explicitly. Silently rendering "Deactivated"
                         // here would mislead operators into believing
                         // the principal is fully gone everywhere.
-                        if actor.is_deactivated && actor.deactivation_federation_incomplete {
+                        if actor.is_deactivated() && actor.deactivation_federation_incomplete == Some(true) {
                             div {
                                 class: "rounded-md border-2 border-amber-600 bg-amber-600/10 px-3 py-2 text-sm space-y-1",
                                 role: "alert",
@@ -67,26 +67,19 @@ pub fn ActorShow(actor_id: String) -> Element {
                                 CardContent {
                                     div { class: "space-y-3",
                                     {field_row(t("actors.id"), actor.id.clone())}
-                                    {field_row(t("actors.did"), actor.did.clone())}
+                                    {field_row(t("actors.did"), actor.did.to_string())}
                                     {field_row(t("actors.handle"), actor.handle.as_deref().unwrap_or("-").to_string())}
                                     {field_row(t("actors.display_name"), actor.display_name.as_deref().unwrap_or("-").to_string())}
-                                    // Review D14 — status/is_admin derive from
-                                    // `is_suspended`/`is_deactivated`/`is_admin`,
-                                    // which the dev-only actor snapshot never
-                                    // emits (they default to `false`). Rendering
-                                    // "Active"/"No" here would confidently assert
-                                    // a security posture the server never
-                                    // confirmed, so mark these as unwired instead.
-                                    {unwired_field_row(t("actors.status"), true)}
-                                    {unwired_field_row(t("actors.is_admin"), true)}
-                                    {field_row(t("actors.created_at"), actor.created_at.as_deref().unwrap_or("-").to_string())}
-                                    // Review D14 — last_active_at/device_count/
-                                    // realm_count are likewise absent from the dev
-                                    // snapshot; "-"/"0" would masquerade as real
-                                    // zeroes. Non-security, so neutral variant.
-                                    {unwired_field_row(t("actors.last_active"), false)}
-                                    {unwired_field_row(t("actors.device_count"), false)}
-                                    {unwired_field_row(t("actors.realm_count"), false)}
+                                    {field_row(t("actors.status"), actor.status_display().to_string())}
+                                    {field_row(t("actors.is_admin"), match actor.is_admin {
+                                        Some(true) => t("common.yes"),
+                                        Some(false) => t("common.no"),
+                                        None => "-".to_string(),
+                                    })}
+                                    {field_row(t("actors.created_at"), actor.created_at.map(|ts| ts.to_rfc3339()).unwrap_or_else(|| "-".to_string()))}
+                                    {field_row(t("actors.last_active"), actor.last_active_at.map(|ts| ts.to_rfc3339()).unwrap_or_else(|| "-".to_string()))}
+                                    {field_row(t("actors.device_count"), actor.device_count.map(|count| count.to_string()).unwrap_or_else(|| "-".to_string()))}
+                                    {field_row(t("actors.realm_count"), actor.realm_count.map(|count| count.to_string()).unwrap_or_else(|| "-".to_string()))}
                                     }
                                 }
                             }
@@ -95,7 +88,7 @@ pub fn ActorShow(actor_id: String) -> Element {
                                 CardHeader { CardTitle { {t("actors.actions")} } }
                                 CardContent {
                                     div { class: "space-y-2",
-                                        if !actor.is_deactivated && actor.account_id.is_some() {
+                                        if !actor.is_deactivated() {
                                             Button {
                                                 variant: ButtonVariant::Destructive,
                                                 class: "w-full".to_string(),
@@ -104,7 +97,7 @@ pub fn ActorShow(actor_id: String) -> Element {
                                             }
                                         } else {
                                             p { class: "text-sm text-muted-foreground",
-                                                "Actor lifecycle writes are available only when the admin actor snapshot carries an account_id."
+                                                {t("actors.already_deactivated")}
                                             }
                                         }
                                     }
@@ -137,25 +130,16 @@ pub fn ActorShow(actor_id: String) -> Element {
                             let aid = aid.clone();
                             show_deactivate_dialog.set(false);
                             spawn(async move {
-                                let account_id = match actors::get_actor(&aid).await {
-                                    Ok(actor) => actor.account_id.unwrap_or_default(),
-                                    Err(e) => {
-                                        show_toast(&e.message, ToastVariant::Error);
-                                        return;
-                                    }
-                                };
-                                if account_id.is_empty() {
-                                    show_toast(&t("actors.toast_no_account_id"), ToastVariant::Error);
-                                    return;
-                                }
-                                match actors::deactivate_account(&account_id).await {
+                                // Account-lifecycle endpoints address accounts by
+                                // DID — the route's actor id IS the DID.
+                                match actors::deactivate_account(&aid).await {
                                     Ok(_) => {
                                         show_toast(&t("actors.deactivated"), ToastVariant::Success);
-                                        emit_admin_audit_server("account", &account_id, "deactivate", AdminAuditOutcome::Accepted, None);
+                                        emit_admin_audit_server("account", &aid, "deactivate", AdminAuditOutcome::Accepted, None);
                                     }
                                     Err(e) => {
                                         show_toast(&e.message, ToastVariant::Error);
-                                        emit_admin_audit_server("account", &account_id, "deactivate", AdminAuditOutcome::Rejected, Some(&e.message));
+                                        emit_admin_audit_server("account", &aid, "deactivate", AdminAuditOutcome::Rejected, Some(&e.message));
                                     }
                                 }
                                 data.restart();

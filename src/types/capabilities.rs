@@ -1,34 +1,19 @@
 //! Capability grant admin surface — SDK-authoritative types plus thin
 //! display helpers.
 //!
-//! The grant itself is the SDK `arkret_core::models::CapabilityGrant`
-//! (`GrantId` / `Did` / `DateTime<Utc>` strong types, field set per
-//! `ak.schema.capability.v1`). sodmin adds no wire mirror or field aliases;
-//! display-only conveniences live in
-//! [`CapabilityGrantExt`].
+//! The row is the SDK `arkret_core::models::CapabilitySummary` (D14
+//! production projection of the authz read-index grant). sodmin adds no
+//! wire mirror; display-only conveniences live in [`CapabilitySummaryExt`].
 
-pub use arkret_core::models::{CapabilityGrant, CapabilitySubject};
+pub use arkret_core::models::CapabilitySummary;
 
-/// Display helpers for the SDK [`CapabilityGrant`].
-pub trait CapabilityGrantExt {
-    fn is_revoked(&self) -> bool;
-    fn subject_display(&self) -> String;
+/// Display helpers for the SDK [`CapabilitySummary`].
+pub trait CapabilitySummaryExt {
     fn actions_display(&self) -> String;
-    fn resources_display(&self) -> String;
+    fn resource_display(&self) -> String;
 }
 
-impl CapabilityGrantExt for CapabilityGrant {
-    fn is_revoked(&self) -> bool {
-        self.revoked_at.is_some()
-    }
-
-    fn subject_display(&self) -> String {
-        match &self.subject {
-            CapabilitySubject::Did(did) => did.to_string(),
-            CapabilitySubject::Selector(value) => value.to_string(),
-        }
-    }
-
+impl CapabilitySummaryExt for CapabilitySummary {
     fn actions_display(&self) -> String {
         if self.actions.is_empty() {
             "-".to_string()
@@ -37,49 +22,32 @@ impl CapabilityGrantExt for CapabilityGrant {
         }
     }
 
-    fn resources_display(&self) -> String {
-        if self.resources.is_empty() {
-            return "-".to_string();
-        }
-        self.resources
-            .iter()
-            .map(display_resource_selector)
-            .collect::<Vec<_>>()
-            .join(", ")
+    fn resource_display(&self) -> String {
+        self.resource.clone().unwrap_or_else(|| "-".to_string())
     }
-}
-
-fn display_resource_selector(value: &serde_json::Value) -> String {
-    if value == &serde_json::json!({ "kind": "*" }) {
-        return "*".to_string();
-    }
-    serde_json::to_string(value).unwrap_or_else(|_| "-".to_string())
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{CapabilityGrant, CapabilityGrantExt};
-
-    const CAPABILITY_GRANT_SCHEMA: &str = "ak.schema.capability.v1";
+    use super::{CapabilitySummary, CapabilitySummaryExt};
 
     #[test]
-    fn sdk_capability_grant_parses_spec_wire_shape() {
-        let grant: CapabilityGrant = serde_json::from_value(serde_json::json!({
-            "id": "ak:grant:01964137-0000-7000-8000-000000000001",
-            "schema": CAPABILITY_GRANT_SCHEMA,
+    fn summary_parses_production_wire_shape() {
+        let summary: CapabilitySummary = serde_json::from_value(serde_json::json!({
+            "grant_id": "ak:grant:01964137-0000-7000-8000-000000000001",
+            "realm_id": "ak:realm:01964137-0000-7000-8000-0000000000aa",
             "issuer": "did:web:issuer.example",
             "subject": "did:web:subject.example",
+            "resource": "realm",
             "actions": ["ak.message.create"],
-            "resources": [{ "kind": "*" }],
-            "issued_at": "2026-06-07T00:00:00Z",
-            "proofs": []
+            "revoked": false,
+            "created_at": "2026-06-07T00:00:00Z"
         }))
-        .expect("spec-shaped grant should deserialize");
+        .expect("production-shaped grant summary should deserialize");
 
-        assert_eq!(grant.issuer.as_str(), "did:web:issuer.example");
-        assert_eq!(grant.subject_display(), "did:web:subject.example");
-        assert_eq!(grant.actions_display(), "ak.message.create");
-        assert_eq!(grant.resources_display(), "*");
-        assert!(!grant.is_revoked());
+        assert_eq!(summary.issuer, "did:web:issuer.example");
+        assert_eq!(summary.actions_display(), "ak.message.create");
+        assert_eq!(summary.resource_display(), "realm");
+        assert!(!summary.revoked);
     }
 }

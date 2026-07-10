@@ -130,7 +130,40 @@ pub fn Dashboard() -> Element {
         .and_then(conformance_level)
         .unwrap_or_else(|| t("common.unknown"));
     let health_state = health_summary(status_data.as_ref());
-    let conformance_rows = conformance_rows(describe_data.as_ref());
+    // SOD-01-004 — typed conformance buckets straight off the SDK
+    // `ServerDescription` (same source as the server-status page); the old
+    // substring-needle heuristic over supported_* lists is gone.
+    let verified_profiles = describe_data
+        .as_ref()
+        .map(|d| {
+            d.verified_profiles
+                .iter()
+                .map(|entry| entry.profile_id.clone())
+                .collect::<Vec<_>>()
+        })
+        .unwrap_or_default();
+    let claimed_profiles = describe_data
+        .as_ref()
+        .map(|d| {
+            d.claimed_profiles
+                .iter()
+                .map(|entry| entry.profile_id.clone())
+                .collect::<Vec<_>>()
+        })
+        .unwrap_or_default();
+    let compat_surfaces = describe_data
+        .as_ref()
+        .map(|d| {
+            d.compat_surfaces
+                .iter()
+                .map(|entry| entry.name.clone())
+                .collect::<Vec<_>>()
+        })
+        .unwrap_or_default();
+    let experimental_features = describe_data
+        .as_ref()
+        .map(|d| d.experimental_features.clone())
+        .unwrap_or_default();
 
     rsx! {
         div { class: "space-y-6",
@@ -239,20 +272,11 @@ pub fn Dashboard() -> Element {
                         {metadata_cell(t("dashboard.overall_conformance"), conformance)}
                         {metadata_cell(t("dashboard.health"), health_state)}
                     }
-                    div { class: "grid gap-3 md:grid-cols-2 xl:grid-cols-3",
-                        for row in conformance_rows.iter() {
-                            {conformance_cell(row)}
-                        }
-                    }
-                    // Review D14 — the per-surface Declared/Not-declared states
-                    // come from `has_any_declared_surface` substring matching,
-                    // not an authoritative conformance field. Label them as a
-                    // heuristic so operators do not treat them as ground truth.
-                    p {
-                        class: "mt-3 text-xs text-amber-700 dark:text-amber-300",
-                        "data-testid": "conformance-heuristic-note",
-                        span { class: "mr-1", "\u{2139}" }
-                        {t("dashboard.conformance_heuristic_note")}
+                    div { class: "grid gap-3 md:grid-cols-2 xl:grid-cols-4",
+                        {metadata_cell(t("dashboard.verified_profiles"), join_or_dash(&verified_profiles))}
+                        {metadata_cell(t("dashboard.claimed_profiles"), join_or_dash(&claimed_profiles))}
+                        {metadata_cell(t("dashboard.compat_surfaces"), join_or_dash(&compat_surfaces))}
+                        {metadata_cell(t("dashboard.experimental_features"), join_or_dash(&experimental_features))}
                     }
                 }
             }
@@ -307,54 +331,11 @@ fn stat_cell(
     }
 }
 
-struct ConformanceRow {
-    label: &'static str,
-    state: &'static str,
-    detail: String,
-}
-
 fn metadata_cell(label: String, value: String) -> Element {
     rsx! {
         div { class: "min-w-0 rounded-md border border-border/50 p-3",
             p { class: "text-xs font-medium uppercase text-muted-foreground", "{label}" }
             p { class: "mt-1 break-words text-sm font-semibold", "{value}" }
-        }
-    }
-}
-
-fn conformance_cell(row: &ConformanceRow) -> Element {
-    let label = row.label;
-    let state = row.state;
-    let detail = row.detail.clone();
-
-    rsx! {
-        div { class: "min-w-0 rounded-md border border-border/50 p-3",
-            div { class: "flex items-start justify-between gap-3",
-                div { class: "min-w-0",
-                    p { class: "text-sm font-medium", "{label}" }
-                    p { class: "mt-1 text-xs text-muted-foreground break-words", "{detail}" }
-                }
-                {status_pill(state)}
-            }
-        }
-    }
-}
-
-fn status_pill(state: &str) -> Element {
-    let class = match state {
-        "Declared" => "border-green-500/30 bg-green-500/10 text-green-700 dark:text-green-300",
-        "Not declared" => "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300",
-        _ => "border-border bg-muted text-muted-foreground",
-    };
-    let display = match state {
-        "Declared" => t("dashboard.declared"),
-        "Not declared" => t("dashboard.not_declared"),
-        _ => t("common.unknown"),
-    };
-
-    rsx! {
-        span { class: "shrink-0 rounded-full border px-2 py-0.5 text-[11px] font-semibold {class}",
-            "{display}"
         }
     }
 }
@@ -429,55 +410,6 @@ fn health_summary(status: Option<&ServerStatusOutcome>) -> String {
     }
 }
 
-fn conformance_rows(describe: Option<&ServerDescribeDocument>) -> Vec<ConformanceRow> {
-    let checks = [
-        (
-            "core_event_store",
-            &["events.", "ak.events", "event_store", "events_api_minimal"][..],
-        ),
-        ("chat_mvp", &["chat", "messages."][..]),
-        ("kanban_mvp", &["kanban", "card.", "container."][..]),
-        ("principal_server", &["principal_server"][..]),
-        ("identity_registry", &["identity_registry"][..]),
-        ("push_gateway", &["push."][..]),
-    ];
-
-    checks
-        .iter()
-        .map(|(label, needles)| {
-            let state = match describe {
-                Some(describe) if has_any_declared_surface(describe, needles) => "Declared",
-                Some(_) => "Not declared",
-                None => "Unknown",
-            };
-            ConformanceRow {
-                label,
-                state,
-                detail: needles.join(" | "),
-            }
-        })
-        .collect()
-}
-
-fn has_any_declared_surface(describe: &ServerDescribeDocument, needles: &[&str]) -> bool {
-    let implemented_surfaces = json_strings(
-        &describe.limits,
-        &["profile_status", "implemented_surfaces"],
-    );
-    describe
-        .supported_profiles
-        .iter()
-        .chain(describe.supported_features.iter())
-        .chain(describe.supported_operations.iter())
-        .chain(describe.supported_reducer_profiles.iter())
-        .chain(describe.supported_schema_profiles.iter())
-        .chain(implemented_surfaces.iter())
-        .any(|value| {
-            let value = value.to_ascii_lowercase();
-            needles.iter().any(|needle| value.contains(*needle))
-        })
-}
-
 fn json_string(value: &serde_json::Value, path: &[&str]) -> Option<String> {
     let mut current = value;
     for key in path {
@@ -486,21 +418,3 @@ fn json_string(value: &serde_json::Value, path: &[&str]) -> Option<String> {
     current.as_str().map(ToOwned::to_owned)
 }
 
-fn json_strings(value: &serde_json::Value, path: &[&str]) -> Vec<String> {
-    let mut current = value;
-    for key in path {
-        match current.get(*key) {
-            Some(next) => current = next,
-            None => return Vec::new(),
-        }
-    }
-    current
-        .as_array()
-        .map(|items| {
-            items
-                .iter()
-                .filter_map(|item| item.as_str().map(ToOwned::to_owned))
-                .collect()
-        })
-        .unwrap_or_default()
-}

@@ -1,22 +1,25 @@
+//! Device admin API — D14 production endpoint.
+//!
+//! `GET /_soland/admin/devices` is the typed cursor-paginated production
+//! query (SDK `AdminDeviceList`); `filter[name_or_id]` is applied
+//! server-side.
+
+use arkret_core::models::AdminDeviceList;
+
 use crate::api::client::{NO_BODY, NoBody, api_client, build_url};
-use crate::types::*;
 use crate::utils::net::error::HttpError;
 
-/// Cursor-paginated device list. `cursor` is the opaque token returned
-/// by the previous page (or `None` for the first page). `search` is a
-/// best-effort `name_or_id` filter — backends that don't yet plumb it
-/// just return the unfiltered page and the page does its own
-/// client-side filter (`utils::fmt::search::matches_name_or_id`).
 pub async fn list_devices(
     cursor: Option<&str>,
     limit: u64,
     search: &str,
-) -> Result<ListResponse<Device>, HttpError> {
+) -> Result<AdminDeviceList, HttpError> {
     let limit_str = limit.max(1).to_string();
     let mut params: Vec<(&str, &str)> = vec![("limit", limit_str.as_str())];
-    if let Some(c) = cursor.filter(|c| !c.is_empty()) {
-        params.push(("cursor", c));
+    if let Some(cursor) = cursor.filter(|cursor| !cursor.is_empty()) {
+        params.push(("cursor", cursor));
     }
+    let search = search.trim();
     if !search.is_empty() {
         params.push(("filter[name_or_id]", search));
     }

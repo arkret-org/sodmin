@@ -6,10 +6,9 @@ use crate::components::ui::error_banner::ErrorBanner;
 use crate::components::ui::input::{Input, Label};
 use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
-use crate::components::ui::pagination::Pagination;
+use crate::components::ui::pagination::CursorPagination;
 use crate::components::ui::table::*;
-use crate::components::ui::unwired::unwired_header_note;
-use crate::types::AuditScopeKind;
+use crate::types::AdminAuditEntryExt;
 use crate::utils::i18n::t;
 
 const PAGE_SIZE: u64 = 25;
@@ -18,12 +17,11 @@ const PAGE_SIZE: u64 = 25;
 struct DraftFilter {
     action: String,
     actor_id: String,
-    target_type: String,
-    target_id: String,
+    realm_id: String,
     since: String,
     until: String,
     /// P3A.5 — AKP-0007 event kind filter. Empty = no filter.
-    event_kind: String,
+    kind: String,
 }
 
 impl DraftFilter {
@@ -31,23 +29,20 @@ impl DraftFilter {
         audit::AuditFilter {
             action: trim_to_option(&self.action),
             actor_id: trim_to_option(&self.actor_id),
-            target_type: trim_to_option(&self.target_type),
-            target_id: trim_to_option(&self.target_id),
+            realm_id: trim_to_option(&self.realm_id),
+            kind: trim_to_option(&self.kind),
             since: trim_to_option(&self.since),
             until: trim_to_option(&self.until),
-            event_kind: trim_to_option(&self.event_kind),
-            effective_scope: None,
         }
     }
 
     fn is_empty(&self) -> bool {
         self.action.trim().is_empty()
             && self.actor_id.trim().is_empty()
-            && self.target_type.trim().is_empty()
-            && self.target_id.trim().is_empty()
+            && self.realm_id.trim().is_empty()
             && self.since.trim().is_empty()
             && self.until.trim().is_empty()
-            && self.event_kind.trim().is_empty()
+            && self.kind.trim().is_empty()
     }
 }
 
@@ -62,17 +57,18 @@ fn trim_to_option(s: &str) -> Option<String> {
 
 #[component]
 pub fn AuditLog() -> Element {
-    let mut page = use_signal(|| 1u64);
+    let mut cursor_stack = use_signal(|| vec![None::<String>]);
     let mut expanded = use_signal(|| None::<String>);
     let mut draft = use_signal(DraftFilter::default);
     let mut applied = use_signal(DraftFilter::default);
 
-    let page_val = *page.read();
+    let cursor_snapshot = cursor_stack.read().last().cloned().unwrap_or(None);
     let applied_filter = applied.read().clone();
 
     let mut data = use_resource(move || {
         let filter = applied_filter.clone();
-        async move { audit::list_audit_entries(page_val, PAGE_SIZE, filter.to_query()).await }
+        let cursor = cursor_snapshot.clone();
+        async move { audit::list_audit_entries(cursor.as_deref(), PAGE_SIZE, filter.to_query()).await }
     });
 
     rsx! {
@@ -105,26 +101,12 @@ pub fn AuditLog() -> Element {
                         }
                     }
                     div { class: "space-y-1",
-                        // Review D14 — this filter targets an unwired snapshot
-                        // field, so it will never match; mark it so operators do
-                        // not read empty results as "no matching rows".
-                        Label { class: "text-xs text-muted-foreground".to_string(), {t("audit.filter_target_type")} {unwired_header_note()} }
+                        Label { class: "text-xs text-muted-foreground".to_string(), {t("audit.filter_realm")} }
                         Input {
-                            placeholder: t("audit.filter_target_type_placeholder"),
-                            value: draft.read().target_type.clone(),
+                            placeholder: t("audit.filter_realm_placeholder"),
+                            value: draft.read().realm_id.clone(),
                             oninput: move |evt: FormEvent| {
-                                draft.write().target_type = evt.value();
-                            },
-                        }
-                    }
-                    div { class: "space-y-1",
-                        // Review D14 — unwired filter field (see target_type).
-                        Label { class: "text-xs text-muted-foreground".to_string(), {t("audit.filter_target_id")} {unwired_header_note()} }
-                        Input {
-                            placeholder: t("audit.filter_target_id_placeholder"),
-                            value: draft.read().target_id.clone(),
-                            oninput: move |evt: FormEvent| {
-                                draft.write().target_id = evt.value();
+                                draft.write().realm_id = evt.value();
                             },
                         }
                     }
@@ -155,9 +137,9 @@ pub fn AuditLog() -> Element {
                         Label { class: "text-xs text-muted-foreground".to_string(), {t("audit.filter_event_kind")} }
                         select {
                             class: "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm",
-                            value: draft.read().event_kind.clone(),
+                            value: draft.read().kind.clone(),
                             onchange: move |evt| {
-                                draft.write().event_kind = evt.value();
+                                draft.write().kind = evt.value();
                             },
                             option { value: "", "—" }
                             option { value: "ak.circle.create", {t("audit.filter_event_kind_circle_create")} }
@@ -174,7 +156,7 @@ pub fn AuditLog() -> Element {
                 div { class: "mt-4 flex flex-wrap items-center gap-2",
                     Button {
                         onclick: move |_| {
-                            page.set(1);
+                            cursor_stack.set(vec![None::<String>]);
                             applied.set(draft.read().clone());
                         },
                         {t("audit.filter_apply")}
@@ -185,7 +167,7 @@ pub fn AuditLog() -> Element {
                         onclick: move |_| {
                             draft.set(DraftFilter::default());
                             applied.set(DraftFilter::default());
-                            page.set(1);
+                            cursor_stack.set(vec![None::<String>]);
                         },
                         {t("audit.filter_reset")}
                     }
@@ -193,107 +175,91 @@ pub fn AuditLog() -> Element {
             }
 
             match &*data.read() {
-                Some(Ok(resp)) => rsx! {
-                    div { class: "rounded-md border",
-                        Table {
-                            TableHeader {
-                                TableRow {
-                                    TableHead { {t("audit.id")} }
-                                    TableHead { {t("audit.action")} }
-                                    TableHead { {t("audit.actor_id")} }
-                                    // Review D14 — target_type/target_id/
-                                    // effective_scope/source_ip are not top-level
-                                    // fields of the current dev snapshot, so every
-                                    // cell renders the "-" placeholder. Flag the
-                                    // columns as unwired so the dashes are not read
-                                    // as "no target" / "no scope".
-                                    TableHead { {t("audit.target_type")} {unwired_header_note()} }
-                                    TableHead { {t("audit.target_id")} {unwired_header_note()} }
-                                    TableHead { {t("audit.effective_scope")} {unwired_header_note()} }
-                                    // AKP-0008 — new envelope columns:
-                                    // executed_by / authorization_ref /
-                                    // actor_kind (reducer-stamped).
-                                    TableHead { "executed_by" }
-                                    TableHead { "authz_ref" }
-                                    TableHead { "actor_kind" }
-                                    TableHead { {t("audit.timestamp")} }
-                                    TableHead { {t("audit.source_ip")} {unwired_header_note()} }
-                                }
-                            }
-                            TableBody {
-                                if resp.data.is_empty() {
+                Some(Ok(resp)) => {
+                    let next_cursor = resp.next_cursor.clone();
+                    let stack_depth = cursor_stack.read().len();
+                    rsx! {
+                        div { class: "rounded-md border",
+                            Table {
+                                TableHeader {
                                     TableRow {
-                                        TableCell { class: "text-center text-muted-foreground py-8".to_string(), colspan: 99,
-                                            {t("audit.no_entries")}
-                                        }
+                                        TableHead { {t("audit.id")} }
+                                        TableHead { {t("audit.action")} }
+                                        TableHead { {t("audit.actor_id")} }
+                                        TableHead { {t("audit.realm_id")} }
+                                        TableHead { {t("audit.outcome")} }
+                                        // AKP-0008 — envelope attribution columns
+                                        // (wire keys, surfaced from `payload`):
+                                        // executed_by / authorization_ref /
+                                        // actor_kind (reducer-stamped).
+                                        TableHead { "executed_by" }
+                                        TableHead { "authz_ref" }
+                                        TableHead { "actor_kind" }
+                                        TableHead { {t("audit.timestamp")} }
                                     }
-                                } else {
-                                    for entry in resp.data.iter() {
-                                        {
-                                            let id = entry.id.clone();
-                                            let action = entry.action.clone();
-                                            let actor_id = entry.actor_id.clone().unwrap_or_else(|| "-".to_string());
-                                            let target_type = entry.target_type.clone().unwrap_or_else(|| "-".to_string());
-                                            let target_id = entry.target_id.clone().unwrap_or_else(|| "-".to_string());
-                                            let timestamp = entry.timestamp.clone().unwrap_or_else(|| "-".to_string());
-                                            let source_ip = entry.source_ip.clone().unwrap_or_else(|| "-".to_string());
-                                            let executed_by = entry.executed_by.clone().unwrap_or_else(|| "-".to_string());
-                                            let authorization_ref = entry.authorization_ref.clone().unwrap_or_else(|| "-".to_string());
-                                            let actor_kind = entry
-                                                .actor_kind
-                                                .as_ref()
-                                                .map(actor_kind_label)
-                                                .unwrap_or("-")
-                                                .to_string();
-                                            let details = entry.details.clone();
-                                            let is_expanded = expanded.read().as_ref() == Some(&id);
-                                            // P3A.5 — render the
-                                            // effective scope (Realm
-                                            // vs Circle) with a deep
-                                            // link when it is a
-                                            // Circle id.
-                                            let scope_kind = entry.scope_kind();
+                                }
+                                TableBody {
+                                    if resp.entries.is_empty() {
+                                        TableRow {
+                                            TableCell { class: "text-center text-muted-foreground py-8".to_string(), colspan: 99,
+                                                {t("audit.no_entries")}
+                                            }
+                                        }
+                                    } else {
+                                        for entry in resp.entries.iter() {
+                                            {
+                                                let id = entry.id.clone();
+                                                let action = entry.action.clone();
+                                                let actor_id = entry.actor_id.clone().unwrap_or_else(|| "-".to_string());
+                                                let realm_id = entry.realm_id.clone().unwrap_or_else(|| "-".to_string());
+                                                let outcome = entry.outcome.clone().unwrap_or_else(|| "-".to_string());
+                                                let timestamp = entry
+                                                    .created_at
+                                                    .map(|ts| ts.to_rfc3339())
+                                                    .unwrap_or_else(|| "-".to_string());
+                                                let executed_by = entry.executed_by().unwrap_or_else(|| "-".to_string());
+                                                let authorization_ref = entry.authorization_ref().unwrap_or_else(|| "-".to_string());
+                                                let actor_kind = entry.actor_kind().unwrap_or_else(|| "-".to_string());
+                                                let payload = entry.payload.clone();
+                                                let is_expanded = expanded.read().as_ref() == Some(&id);
 
-                                            rsx! {
-                                                TableRow {
-                                                    key: "{id}",
-                                                    TableCell { class: "font-medium".to_string(),
-                                                        button {
-                                                            class: "text-left w-full cursor-pointer",
-                                                            onclick: {
-                                                                let id = id.clone();
-                                                                move |_| {
-                                                                    if expanded.read().as_ref() == Some(&id) {
-                                                                        expanded.set(None);
-                                                                    } else {
-                                                                        expanded.set(Some(id.clone()));
-                                                                    }
-                                                                }
-                                                            },
-                                                            "{id}"
-                                                        }
-                                                    }
-                                                    TableCell { "{action}" }
-                                                    TableCell { class: "max-w-[150px] truncate".to_string(), "{actor_id}" }
-                                                    TableCell { "{target_type}" }
-                                                    TableCell { class: "max-w-[150px] truncate".to_string(), "{target_id}" }
-                                                    TableCell { class: "font-mono text-xs".to_string(),
-                                                        {render_effective_scope(&scope_kind)}
-                                                    }
-                                                    TableCell { class: "font-mono text-xs max-w-[160px] truncate".to_string(), "{executed_by}" }
-                                                    TableCell { class: "font-mono text-xs max-w-[160px] truncate".to_string(), "{authorization_ref}" }
-                                                    TableCell { class: "text-xs".to_string(), "{actor_kind}" }
-                                                    TableCell { class: "text-muted-foreground".to_string(), "{timestamp}" }
-                                                    TableCell { "{source_ip}" }
-                                                }
-                                                if is_expanded {
+                                                rsx! {
                                                     TableRow {
-                                                        key: "{id}-details",
-                                                        TableCell { colspan: 99, class: "p-0".to_string(),
-                                                            div { class: "p-4 bg-muted/50",
-                                                                p { class: "text-xs font-medium mb-2", "Details" }
-                                                                pre { class: "text-xs font-mono bg-muted p-3 rounded overflow-auto max-h-64",
-                                                                    {details.map(|d| serde_json::to_string_pretty(&d).unwrap_or_else(|_| "{}".to_string())).unwrap_or_else(|| "No details".to_string())}
+                                                        key: "{id}",
+                                                        TableCell { class: "font-medium".to_string(),
+                                                            button {
+                                                                class: "text-left w-full cursor-pointer",
+                                                                onclick: {
+                                                                    let id = id.clone();
+                                                                    move |_| {
+                                                                        if expanded.read().as_ref() == Some(&id) {
+                                                                            expanded.set(None);
+                                                                        } else {
+                                                                            expanded.set(Some(id.clone()));
+                                                                        }
+                                                                    }
+                                                                },
+                                                                "{id}"
+                                                            }
+                                                        }
+                                                        TableCell { "{action}" }
+                                                        TableCell { class: "max-w-[150px] truncate".to_string(), "{actor_id}" }
+                                                        TableCell { class: "font-mono text-xs max-w-[160px] truncate".to_string(), "{realm_id}" }
+                                                        TableCell { class: "text-xs".to_string(), "{outcome}" }
+                                                        TableCell { class: "font-mono text-xs max-w-[160px] truncate".to_string(), "{executed_by}" }
+                                                        TableCell { class: "font-mono text-xs max-w-[160px] truncate".to_string(), "{authorization_ref}" }
+                                                        TableCell { class: "text-xs".to_string(), "{actor_kind}" }
+                                                        TableCell { class: "text-muted-foreground".to_string(), "{timestamp}" }
+                                                    }
+                                                    if is_expanded {
+                                                        TableRow {
+                                                            key: "{id}-details",
+                                                            TableCell { colspan: 99, class: "p-0".to_string(),
+                                                                div { class: "p-4 bg-muted/50",
+                                                                    p { class: "text-xs font-medium mb-2", {t("audit.details")} }
+                                                                    pre { class: "text-xs font-mono bg-muted p-3 rounded overflow-auto max-h-64",
+                                                                        {payload.map(|d| serde_json::to_string_pretty(&d).unwrap_or_else(|_| "{}".to_string())).unwrap_or_else(|| t("audit.no_details"))}
+                                                                    }
                                                                 }
                                                             }
                                                         }
@@ -305,13 +271,25 @@ pub fn AuditLog() -> Element {
                                 }
                             }
                         }
-                    }
 
-                    Pagination {
-                        page: page_val,
-                        total: resp.total_or_page_floor(page_val, PAGE_SIZE),
-                        per_page: PAGE_SIZE,
-                        on_page_change: move |p| page.set(p),
+                        CursorPagination {
+                            depth: stack_depth,
+                            has_next: next_cursor.is_some(),
+                            on_prev: move |_| {
+                                let mut new_stack = cursor_stack.read().clone();
+                                if new_stack.len() > 1 {
+                                    new_stack.pop();
+                                    cursor_stack.set(new_stack);
+                                }
+                            },
+                            on_next: move |_| {
+                                if let Some(c) = next_cursor.clone() {
+                                    let mut new_stack = cursor_stack.read().clone();
+                                    new_stack.push(Some(c));
+                                    cursor_stack.set(new_stack);
+                                }
+                            },
+                        }
                     }
                 },
                 Some(Err(e)) => rsx! {
@@ -323,37 +301,5 @@ pub fn AuditLog() -> Element {
                 None => rsx! { PageSkeleton {} },
             }
         }
-    }
-}
-
-/// P3A.5 — render the audit entry's effective scope. Circle and Realm
-/// scopes render as plain text; the Circle governance UI moved to inkson
-/// (P3 consolidation) so there is no in-sodmin `/circles/:id` deep link
-/// target anymore.
-fn render_effective_scope(kind: &AuditScopeKind) -> Element {
-    match kind {
-        AuditScopeKind::Circle(id) => rsx! {
-            span { class: "text-muted-foreground",
-                {format!("{}: {}", t("audit.scope_circle"), id)}
-            }
-        },
-        AuditScopeKind::Realm(id) => rsx! {
-            span { class: "text-muted-foreground",
-                {format!("{}: {}", t("audit.scope_realm"), id)}
-            }
-        },
-        AuditScopeKind::Unknown => rsx! { span { class: "text-muted-foreground", "-" } },
-    }
-}
-
-fn actor_kind_label(kind: &arkret_core::models::ActorKind) -> &'static str {
-    use arkret_core::models::ActorKind;
-    match kind {
-        ActorKind::User => "user",
-        ActorKind::Org => "org",
-        ActorKind::Team => "team",
-        ActorKind::Agent => "agent",
-        ActorKind::Service => "service",
-        ActorKind::Integration => "integration",
     }
 }
