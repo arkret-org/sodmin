@@ -112,7 +112,7 @@ fn build_nav_sections() -> Vec<NavSection> {
                 "shield",
             ),
             // R5.2 — Realm link-graph (outbound / inbound
-            // `ck.realm.link` rows). Sits next to delivery binding
+            // `ak.realm.link` rows). Sits next to delivery binding
             // so the operator can pivot from a single Realm's
             // routing policy to its boundary topology.
             NavItem::new(

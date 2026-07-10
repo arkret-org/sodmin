@@ -17,12 +17,12 @@ pub struct AuditFilter {
     pub target_id: Option<String>,
     pub since: Option<String>,
     pub until: Option<String>,
-    /// CKP-0007 (P3A.5) — server-side filter on event kind. When set,
+    /// AKP-0007 (P3A.5) — server-side filter on event kind. When set,
     /// soland constrains the audit feed to the matching `ck.*` kind
-    /// strings (e.g. `ck.circle.create`).
+    /// strings (e.g. `ak.circle.create`).
     pub event_kind: Option<String>,
-    /// CKP-0007 (P3A.5) — server-side filter on effective scope (a
-    /// `ck:realm:...` or `ck:circle:...` id).
+    /// AKP-0007 (P3A.5) — server-side filter on effective scope (a
+    /// `ak:realm:...` or `ak:circle:...` id).
     pub effective_scope: Option<String>,
 }
 

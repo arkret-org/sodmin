@@ -487,7 +487,7 @@ pub async fn logout() -> Result<(), HttpError> {
     let body = format!("client_id={OAUTH_CLIENT_ID}");
     let _ = send_oauth_form_request("/oauth/revoke", &body).await;
 
-    // Principal-Server device logout, spec `ck.gate.account.command.logout`.
+    // Principal-Server device logout, spec `ak.gate.account.command.logout`.
     // The gateway routes this longer prefix to soland (the rest of
     // `/_arkret/gate/*` goes to coauth), so it clears the soland-side session.
     let _ = Request::post("/_arkret/gate/account/logout")
@@ -536,7 +536,7 @@ mod tests {
         let scope = build_oauth_scope();
         assert!(scope.contains("urn:coauth:admin"));
         assert!(scope.contains("urn:arkret:admin:*"));
-        assert!(!scope.contains("urn:ck:admin"));
+        assert!(!scope.contains("urn:ak:admin"));
     }
 
     #[test]

@@ -11,7 +11,7 @@
 //! SODMIN_SMOKE_TOKEN=$SOLAND_ADMIN_TOKEN \
 //! cargo run --bin sodmin-smoke -- \
 //!     --base-url https://soland.example.com \
-//!     --realm-id ck:realm:demo
+//!     --realm-id ak:realm:demo
 //! ```
 //!
 //! A `--token` flag exists for ad-hoc local use only; prefer the env var
@@ -177,7 +177,7 @@ fn urlencoding_encode(s: &str) -> String {
             }
             b':' => {
                 // Colon is allowed in URI path segments per RFC 3986
-                // (pchar) and `ck:realm:...` ids depend on it. Leaving
+                // (pchar) and `ak:realm:...` ids depend on it. Leaving
                 // it un-encoded keeps the smoke output readable.
                 out.push(':');
             }
@@ -400,7 +400,7 @@ mod tests {
         let url = build_realm_url("https://soland.example.com/", "ak:realm:demo", "notary");
         assert_eq!(
             url,
-            "https://soland.example.com/_soland/admin/realms/ck:realm:demo/notary"
+            "https://soland.example.com/_soland/admin/realms/ak:realm:demo/notary"
         );
     }
 
@@ -413,13 +413,13 @@ mod tests {
         );
         assert_eq!(
             url,
-            "https://soland.example.com/_soland/admin/realms/ck:realm:demo/seal-dag/compact"
+            "https://soland.example.com/_soland/admin/realms/ak:realm:demo/seal-dag/compact"
         );
     }
 
     #[test]
     fn urlencoding_encode_preserves_colon_and_alnum() {
-        // `ck:realm:01J9` is the typical id shape — colons MUST stay
+        // `ak:realm:01J9` is the typical id shape — colons MUST stay
         // unescaped or the URL becomes unreadable in logs.
         assert_eq!(urlencoding_encode("ak:realm:01J9"), "ak:realm:01J9");
         assert_eq!(urlencoding_encode("abc-123_~."), "abc-123_~.");

@@ -71,7 +71,7 @@ pub async fn list_recovery_policies(
 }
 
 // NOTE: `POST /_soland/root/identity/recovery-policy` requires the full
-// `ck.schema.recovery_policy.v1` object carrying a principal-signed
+// `ak.schema.recovery_policy.v1` object carrying a principal-signed
 // `auth_data` transcript (REC-1) — the admin UI cannot sign on the
 // principal's behalf, so sodmin exposes the recovery surface read-only.
 

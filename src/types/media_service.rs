@@ -2,7 +2,7 @@
 //!
 //! Mirrors the soland read-only endpoint
 //! `GET /_soland/admin/realms/{id}/media-service`, which projects the
-//! effective `ck.component.realm.media_service.v1` cell. This surface is
+//! effective `ak.component.realm.media_service.v1` cell. This surface is
 //! read-only in sodmin: media_service writes strand through events /
 //! inkson, not the operations console.
 
@@ -33,7 +33,7 @@ pub struct MediaServiceFocus {
     pub cascade_group: Option<String>,
 }
 
-/// Effective `ck.component.realm.media_service.v1` cell for a Realm,
+/// Effective `ak.component.realm.media_service.v1` cell for a Realm,
 /// surfaced read-only for sodmin. `service_id`,
 /// `e2ee_key_sources_allowed` and `foci` are all reducer-projected;
 /// nothing here is operator-mutable.

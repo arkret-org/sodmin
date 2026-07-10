@@ -13,7 +13,7 @@ P5 — until an admin has both a bound DID **and** the right capability
 grants, sodmin will surface every destructive action with a "not in
 your grant list" hint via the `GrantedCapabilitiesView` component,
 and the backend will reject any forged request with
-`ck.error.capability_denied`.
+`ak.error.capability_denied`.
 
 ## 1. Admin DID Setup
 
@@ -98,10 +98,10 @@ For sodmin administration the recommended starter grant set is:
 
 | Capability | Why |
 | --- | --- |
-| `ck.agent.manage` | Meta-scope for the 11 personal-agent admin endpoints. |
-| `ck.circle.create` / `ck.circle.manage` | Create and administer Circles (P3A.4). |
-| `ck.realm.admin` | Destroy / classify Realms. |
-| `ck.audit.read` | Read the audit log on `/audit`. |
+| `ak.agent.manage` | Meta-scope for the 11 personal-agent admin endpoints. |
+| `ak.circle.create` / `ak.circle.manage` | Create and administer Circles (P3A.4). |
+| `ak.realm.admin` | Destroy / classify Realms. |
+| `ak.audit.read` | Read the audit log on `/audit`. |
 
 Grant capabilities via **Capabilities** (`/capabilities`) — click
 **Grant capability**, fill in the grantee DID (the admin's bound
@@ -116,7 +116,7 @@ destructive form (e.g. **Provision new agent** on `/agents/personal`).
 The `GrantedCapabilitiesView` panel at the top of the wizard will
 list the operator's current grants and highlight whether the action's
 required capability is present. If not, the **Submit** click will
-fail with `ck.error.capability_denied` — request the missing grant
+fail with `ak.error.capability_denied` — request the missing grant
 from a higher-privileged admin or via the coauth bootstrap migration.
 
 ## Troubleshooting
@@ -124,7 +124,7 @@ from a higher-privileged admin or via the coauth bootstrap migration.
 * **403 on every admin call** — capability grant missing; check `/capabilities`.
 * **Session expired immediately after sign-in** — cookie domain mismatch between sodmin and coauth; check `COAUTH_PUBLIC_URL` in `docker-entrypoint.sh`.
 * **`/healthz/deep` returns 503** — soland is unreachable from sodmin; check `SOLAND_URL` and the network policy between the two containers.
-* **`ck.error.capability_denied` on a button that's visible** — UI hiding is cosmetic only; the backend is the source of truth. Request the grant.
+* **`ak.error.capability_denied` on a button that's visible** — UI hiding is cosmetic only; the backend is the source of truth. Request the grant.
 
 For deployment topology and the full port / path routing table see
 [DEPLOYMENT.md](../DEPLOYMENT.md).
@@ -241,7 +241,7 @@ Notes:
     │  - paste connect_url (the SFU/relay control endpoint)
     │  - choose issuer_kid (from soland's active kid set)
     │  - sodmin synthesizes focus_id using the canonical rules:
-    │      ck:focus:<backend>:<region>:<disambiguator>
+    │      ak:focus:<backend>:<region>:<disambiguator>
     │  - validate (region matches [a-z0-9-]+, length checks)
     │  - save draft
     ▼

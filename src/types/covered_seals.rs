@@ -3,7 +3,7 @@
 //!
 //! Read from `GET /_soland/admin/realms/{id}/mls/covered-seals` —
 //! soland projects the covered-seals state for the
-//! `ck:cell:ck.component.covered_seals.v1:<realm_id>` cell. The cell
+//! `ak:cell:ak.component.covered_seals.v1:<realm_id>` cell. The cell
 //! records which governance Seals the MLS group has acknowledged. We compare
 //! the current governance Seal set against the covered set to compute a lag
 //! count.

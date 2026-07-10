@@ -2,7 +2,7 @@
 //! (those that back DID issuance / recovery / cross-signing) from
 //! ordinary "Collaboration" Realms.
 //!
-//! Per CKP-0007 the classification is set at create time and is
+//! Per AKP-0007 the classification is set at create time and is
 //! immutable afterwards. Most Realm surfaces in sodmin (member panels,
 //! delivery-binding editor, audit drilldown) should render this badge
 //! so operators can tell at a glance whether an action will touch
@@ -13,7 +13,7 @@ use dioxus::prelude::*;
 use crate::components::ui::badge::{Badge, BadgeVariant};
 use crate::utils::i18n::t;
 
-/// The two CKP-0007 Realm classes. Carried as a free-form string on
+/// The two AKP-0007 Realm classes. Carried as a free-form string on
 /// the wire (`"principal_control"` / `"collaboration"`) so newer
 /// values (e.g. a future `"federation"` class) keep deserialising;
 /// anything unknown falls back to a muted outline badge.

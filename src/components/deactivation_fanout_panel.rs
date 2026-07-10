@@ -1,6 +1,6 @@
 //! Round R2/R3 — 7-domain deactivation fanout panel (T07).
 //!
-//! When an admin runs `ck.self.agent.deactivate` (or `ck.realm.destroy`),
+//! When an admin runs `ak.self.agent.deactivate` (or `ak.realm.destroy`),
 //! the principal server cascades the deactivation across seven
 //! independent local domains. This panel renders the per-domain result
 //! so the operator can spot a partial fanout and retry the failing
@@ -16,7 +16,7 @@
 //! 6. `to_device`     — queued to-device messages drained
 //! 7. `capability`    — capability-cache invalidation
 //!
-//! For `ck.realm.destroy` the same panel is reused; in addition the
+//! For `ak.realm.destroy` the same panel is reused; in addition the
 //! caller wires an "erasure receipt" cross-PS bar.
 
 use dioxus::prelude::*;
@@ -114,12 +114,12 @@ impl FanoutState {
 }
 
 /// Top-level snapshot of all seven domains for one
-/// `ck.self.agent.deactivate` (or `ck.realm.destroy`) invocation.
+/// `ak.self.agent.deactivate` (or `ak.realm.destroy`) invocation.
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct FanoutSnapshot {
     pub subject_id: String,
     pub domains: Vec<FanoutDomainResult>,
-    /// Only present on `ck.realm.destroy`. For `ck.self.agent.deactivate`
+    /// Only present on `ak.realm.destroy`. For `ak.self.agent.deactivate`
     /// this is `None`.
     pub erasure_receipt: Option<ErasureReceiptStatus>,
 }
@@ -279,7 +279,7 @@ pub fn DeactivationFanoutPanel(props: DeactivationFanoutPanelProps) -> Element {
                     }
                 }
 
-                // Erasure receipt — only present for `ck.realm.destroy`.
+                // Erasure receipt — only present for `ak.realm.destroy`.
                 if let Some(r) = receipt {
                     {erasure_receipt_block(&r)}
                 }

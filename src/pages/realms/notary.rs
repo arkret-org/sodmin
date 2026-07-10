@@ -1,6 +1,6 @@
 //! Notary cell admin page (Stream H', H'2).
 //!
-//! Renders the current `ck:cell:ck.component.notary.v1:<realm_id>` cell
+//! Renders the current `ak:cell:ak.component.notary.v1:<realm_id>` cell
 //! value (single_did / threshold / open_set / mixed) and exposes a form
 //! that constructs a notary reconfig Control Move. The submit path posts to
 //! soland's `/_soland/admin/realms/{realm_id}/notary/reconfigure` endpoint;

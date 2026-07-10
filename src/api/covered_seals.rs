@@ -4,7 +4,7 @@
 //! Endpoints:
 //!
 //! - `GET /_soland/admin/realms/{realm_id}/mls/covered-seals` — soland projects the covered-seals
-//!   state for the `ck:cell:ck.component.covered_seals.v1:<realm_id>` cell along with the current
+//!   state for the `ak:cell:ak.component.covered_seals.v1:<realm_id>` cell along with the current
 //!   governance Seal set so the admin can compute lag.
 //! - `POST /_soland/admin/realms/{realm_id}/mls/covered-seals/advance` — admin override that asks
 //!   the principal-server to manually fold the current governance Seal set into the covered_seals

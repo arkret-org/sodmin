@@ -103,7 +103,7 @@ fn render_row(row: &DeliveryBindingHandoverRow) -> Element {
         .unwrap_or_else(|| "-".to_string());
     let observed_at = row.observed_at.clone().unwrap_or_else(|| "-".to_string());
     // Round 4 — render the handover_frontier vector as a chip strip;
-    // each entry is a `ck:event:*` ref. Long vectors are common, so
+    // each entry is a `ak:event:*` ref. Long vectors are common, so
     // a compact pill list reads better than an inline string.
     let frontier = row.handover_frontier.clone();
 

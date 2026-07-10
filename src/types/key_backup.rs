@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 // ── Key-backup admin types (B-C) ──
 
 /// REC-1 — recovery receipt history row. Field names follow spec
-/// `recovery-receipt.schema.json` (`ck.schema.recovery_receipt.v1`):
+/// `recovery-receipt.schema.json` (`ak.schema.recovery_receipt.v1`):
 /// `receipt_id` / `recovery_session_id` / `policy_id` / `policy_version`
 /// / `trust_domain` / `new_device_id` / `outcome` / `completed_at`, plus
 /// the acceptance timestamp and the full `receipt` object soland's
@@ -32,7 +32,7 @@ pub struct RecoveryReceiptSummary {
     pub completed_at: Option<String>,
     #[serde(default)]
     pub accepted_at: Option<String>,
-    /// Full `ck.schema.recovery_receipt.v1` object.
+    /// Full `ak.schema.recovery_receipt.v1` object.
     #[serde(default)]
     pub receipt: Option<serde_json::Value>,
 }

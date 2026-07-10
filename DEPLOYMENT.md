@@ -93,7 +93,7 @@ UI "hiding" of buttons and links is a usability affordance, **never** a
 security boundary. The backend (soland for admin endpoints, coauth for
 auth/identity endpoints) MUST enforce capability checks on every
 admin-scoped route, and MUST reject disallowed actions with
-`ck.error.capability_denied`. If a sodmin operator forges a request
+`ak.error.capability_denied`. If a sodmin operator forges a request
 through DevTools or curl with a stale token, the server-side RBAC layer
 is the one that says no.
 
@@ -104,7 +104,7 @@ operator's current grant list before submission to reduce the
 visible regardless: only the backend can authoritatively reject the
 action.
 
-## CKP-0007 Circle administration
+## AKP-0007 Circle administration
 
 Sodmin's `/circles/*` surfaces (P3A.3) call into soland's `/_arkret/self/circles/*`
 admin layer. Before an operator can use those pages, coauth must have
@@ -113,15 +113,15 @@ admin DID — typically via the Coauth Capabilities admin page at
 `/coauth/capabilities`, or by running the bootstrap migration that
 seeds the six actions:
 
-* `ck.circle.create` (medium risk, no constraints)
-* `ck.circle.manage` (medium risk, requires `allowed_circle_ids`)
-* `ck.circle.member.add` (low risk, no constraints)
-* `ck.circle.member.manage` (medium risk, requires `allowed_circle_ids`)
-* `ck.circle.member.add.others` (high risk, requires `allowed_circle_ids`)
-* `ck.circle.audit` (high risk, paired with `audit_pair_required` check)
+* `ak.circle.create` (medium risk, no constraints)
+* `ak.circle.manage` (medium risk, requires `allowed_circle_ids`)
+* `ak.circle.member.add` (low risk, no constraints)
+* `ak.circle.member.manage` (medium risk, requires `allowed_circle_ids`)
+* `ak.circle.member.add.others` (high risk, requires `allowed_circle_ids`)
+* `ak.circle.audit` (high risk, paired with `audit_pair_required` check)
 
 Without these grants every Circle admin call returns 403 with
-`ck.error.capability_denied`. The sodmin UI surfaces that as
+`ak.error.capability_denied`. The sodmin UI surfaces that as
 "Administrator capability denied" — coauth side fix.
 
 `connect-src` in `docker-entrypoint.sh` MUST include the soland,

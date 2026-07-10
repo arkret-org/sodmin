@@ -77,7 +77,7 @@ pub fn RealmShow(realm_id: String) -> Element {
                                             class: "inline-flex w-full items-center justify-center rounded-md border border-border px-4 py-2 text-sm font-medium hover:bg-muted",
                                             {t("realm_organization.title")}
                                         }
-                                        // `ck.realm.destroy` is irreversible at the principal
+                                        // `ak.realm.destroy` is irreversible at the principal
                                         // server. Route through the dedicated destroy page
                                         // (five normative-bullet checkboxes + typed `DESTROY`)
                                         // instead of a one-click delete — the bare button

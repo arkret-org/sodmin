@@ -3,8 +3,8 @@
 //! Route: `/handles/by-subject?subject=did:...`
 //!
 //! Given a known holder/principal DID the operator can look up the
-//! currently visible signed `ck.schema.handle_claim.v1` evidence via
-//! `ck.find.directory.query.list_handles_for_subject` (the inverse of
+//! currently visible signed `ak.schema.handle_claim.v1` evidence via
+//! `ak.find.directory.query.list_handles_for_subject` (the inverse of
 //! `resolve_handle`). The directory applies disclosure policy / issuer
 //! trust / audience / Realm-intent filtering server-side; this page
 //! renders the visible claims plus the §3.2.1 primary handle.

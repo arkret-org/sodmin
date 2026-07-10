@@ -1,6 +1,6 @@
 //! HTTP client for the soland Realm `media_service` admin surface.
 //!
-//! The cell lives at `ck.component.realm.media_service.v1` and is
+//! The cell lives at `ak.component.realm.media_service.v1` and is
 //! projected per Realm. This surface is **read-only** in sodmin:
 //! media_service writes are a general-management action that strands
 //! through events / inkson, not the operations console. sodmin only

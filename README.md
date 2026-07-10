@@ -51,7 +51,7 @@ flowchart LR
   Lives inside a Realm.
 
 The admin pages drive Realm boundary state through `/realms/:id/...`. The
-**Realm links** page exposes typed `ck.realm.link` edges between boundaries.
+**Realm links** page exposes typed `ak.realm.link` edges between boundaries.
 
 ## Round R4 (protocol review closures)
 
@@ -192,4 +192,4 @@ See the cross-project [`../_sodmin_soland_todos.md`](../_sodmin_soland_todos.md)
 <!-- circle-rollout milestone pointer -->
 > **Active milestone tracking** (local-only, gitignored): see
 > `_sodmin_soland_todos.md` in the parent `arkret/` directory for the
-> circle-rollout (CKP-0007) work item list and per-stage checkpoints.
+> circle-rollout (AKP-0007) work item list and per-stage checkpoints.

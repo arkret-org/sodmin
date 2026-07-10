@@ -37,7 +37,7 @@ pub struct AdminRealm {
     pub join_rule: Option<JoinRule>,
     #[serde(default)]
     pub history_visibility: Option<HistoryVisibility>,
-    /// CKP-0007 (P3A.6) — `principal_control` vs `collaboration`.
+    /// AKP-0007 (P3A.6) — `principal_control` vs `collaboration`.
     #[serde(default)]
     pub realm_class: Option<String>,
 }
@@ -71,7 +71,7 @@ where
 
 /// MID-3 — read-only row in the per-Realm identity-audit diagnostic
 /// page. One row per actor; lists the current effective
-/// `ck.member.identity.update` event ids + the projection digest the
+/// `ak.member.identity.update` event ids + the projection digest the
 /// SPA computed. Used to triage cross-actor identity drift without
 /// hitting the soland audit log directly.
 #[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq)]

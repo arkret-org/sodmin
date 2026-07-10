@@ -3,7 +3,7 @@
 //!
 //! `MemberIdentity` no longer carries `primary_handle` / `handles[]`;
 //! handle lifecycle has moved entirely onto signed
-//! `ck.schema.handle_claim.v1` evidence. Any admin view that wants to
+//! `ak.schema.handle_claim.v1` evidence. Any admin view that wants to
 //! show "the" handle for a subject MUST run the deterministic §3.2.1
 //! selection over the visible claim set rather than reading a roster
 //! field.

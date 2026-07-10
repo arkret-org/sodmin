@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 // ── Delivery binding policy (T6.2 §3) ──
 
-/// Effective `ck.component.realm.delivery_binding_policy.v1` for a Realm.
+/// Effective `ak.component.realm.delivery_binding_policy.v1` for a Realm.
 /// `allowed_recipient_services` and `binding_source_policy` are
 /// operator-mutable; `policy_frontier` is written by the soland
 /// reducer and is therefore read-only on the admin surface.
@@ -60,7 +60,7 @@ pub struct DeliveryBindingHandoverRow {
     /// `delivery_binding_handed_over` 409 body.
     #[serde(default)]
     pub new_recipient_service_did: Option<String>,
-    /// `handover_frontier` — the frontier (vector of `ck:event:*` refs)
+    /// `handover_frontier` — the frontier (vector of `ak:event:*` refs)
     /// at/after which the new recipient takes effect.
     #[serde(default)]
     pub handover_frontier: Vec<String>,

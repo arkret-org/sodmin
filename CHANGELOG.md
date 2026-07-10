@@ -7,13 +7,13 @@ the SDK pins down its 1.0 contract.
 
 ## R3.4 — Spec sync 2026-05-31 (arkret-spec @ c2848a4)
 
-- Synced protocol-facing names and fixtures to `c2848a4`: event envelope schema naming, `_ids` grant constraints, accountability principal vocabulary, `ck:rtc_participant:` media participants, agent session start fields, and key-backup signature algorithm naming where applicable.
+- Synced protocol-facing names and fixtures to `c2848a4`: event envelope schema naming, `_ids` grant constraints, accountability principal vocabulary, `ak:rtc_participant:` media participants, agent session start fields, and key-backup signature algorithm naming where applicable.
 
 > No version tag, no crates.io / Docker Hub / npm publish — git commit only.
 
 ## R3.3 — Spec sync 2026-05-28 (arkret-spec @ cced4b8)
 
-- R3.3 spec sync — pin to arkret-spec @ cced4b8 (CKP-0011). `resolve_target` operator diagnostic page deferred to R3.3.1.
+- R3.3 spec sync — pin to arkret-spec @ cced4b8 (AKP-0011). `resolve_target` operator diagnostic page deferred to R3.3.1.
 
 > No version tag, no crates.io / Docker Hub / npm publish — git commit only.
 ## R3.2 — Spec sync 2026-05-28 (arkret-spec @ b56cab1)
@@ -36,7 +36,7 @@ the SDK pins down its 1.0 contract.
 
 ## [Unreleased]
 
-### CKP-0007 Circle rollout (P3A)
+### AKP-0007 Circle rollout (P3A)
 
 UI surfaces for the encrypted-sub-boundary primitive shipped by
 soland P2A + coauth P2B.
@@ -58,7 +58,7 @@ soland P2A + coauth P2B.
   Control / Collaboration / unknown distinction. The Realm/Space
   create form now requires the immutable classification at create
   time (defaults to `collaboration`).
-- **Added** CKP-0007 reason-code i18n (P3A.8): six reducer
+- **Added** AKP-0007 reason-code i18n (P3A.8): six reducer
   rejection reasons (`circle_realm_mismatch`,
   `circle_member_must_be_realm_member`, `circle_not_active`,
   `circle_already_terminal`, `circle_capability_denied`,
@@ -99,12 +99,12 @@ See [`../_sodmin_soland_todos.md`](../_sodmin_soland_todos.md) for the workstrea
 
 - **Deactivation 7-domain fanout panel (T07)** — new
   `components::deactivation_fanout_panel` renders the local-PS fanout result
-  for `ck.self.agent.deactivate` across the seven cascade domains (`session`,
+  for `ak.self.agent.deactivate` across the seven cascade domains (`session`,
   `device`, `applet`, `keypackage`, `push`, `to_device`, `capability`). Failed
   rows render red with a per-domain Retry button. Wired into a new
   `/deactivations/review` page and reused on the realm destroy page below.
 - **Realm destroy confirmation dialog (T07)** — new
-  `components::realm_destroy_dialog` gates `ck.realm.destroy` behind five
+  `components::realm_destroy_dialog` gates `ak.realm.destroy` behind five
   explicit normative checkboxes (no further ordinary writes, snapshots /
   backfill / GC will run, no successor Realm, erasure receipt + legal hold
   precedence, 30-day federation fanout window) plus a typed-`DESTROY`

@@ -1,6 +1,6 @@
 //! Realm `media_service` read-only operations view.
 //!
-//! Renders the effective `ck.component.realm.media_service.v1` cell for a
+//! Renders the effective `ak.component.realm.media_service.v1` cell for a
 //! single Realm: the media service DID plus each focus in `foci[]`
 //! (`focus_id`, `type`, `region`, `token_endpoint`, `connect_url`,
 //! `capabilities`, `health_endpoint`, `cascade_group`).
@@ -25,7 +25,7 @@ use crate::types::MediaServiceFocus;
 use crate::utils::i18n::t;
 
 /// The focus backend types accepted by the arkret-spec media_service
-/// binding profile (`ck.profile.media_service_binding.v1`). Used only to
+/// binding profile (`ak.profile.media_service_binding.v1`). Used only to
 /// flag an unrecognized type in the read-only view.
 pub const FOCUS_TYPES: &[&str] = &[
     "livekit",

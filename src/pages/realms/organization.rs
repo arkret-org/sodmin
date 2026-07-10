@@ -410,7 +410,7 @@ fn SecurityOperationsCard() -> Element {
 
                     // TODO(SOD-ORG-03): each action MUST be routed through the
                     // coauth / soland standard authorization API so the emitted
-                    // event verifies as a standard `ck.realm.organization`
+                    // event verifies as a standard `ak.realm.organization`
                     // flow (cotest acceptance). sodmin MUST NOT mutate the DB or
                     // emit product-private events directly. Buttons are disabled
                     // until those endpoints exist (COA-ORG-05 / SOL-ORG-06).

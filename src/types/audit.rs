@@ -22,35 +22,35 @@ pub struct AuditEntry {
     pub timestamp: Option<String>,
     #[serde(default)]
     pub source_ip: Option<String>,
-    /// CKP-0007 — the effective scope at which the action took effect
-    /// (`ck:realm:...` or `ck:circle:...`). Distinct from the audited
+    /// AKP-0007 — the effective scope at which the action took effect
+    /// (`ak:realm:...` or `ak:circle:...`). Distinct from the audited
     /// `target_id` because Circle actions surface inside a Realm
     /// envelope but get pinned to the Circle for replay-locality.
     /// `None` when the source row omits the field.
     #[serde(default)]
     pub effective_scope: Option<String>,
-    /// CKP-0007 — when `effective_scope` points at a Circle, this is
+    /// AKP-0007 — when `effective_scope` points at a Circle, this is
     /// the parent realm id so the audit row can render a "jump to
     /// Realm" link without an extra round trip.
     #[serde(default)]
     pub scope_realm_id: Option<String>,
-    /// CKP-0007 — convenience copy of `effective_scope` when it is a
-    /// `ck:circle:...` id; saves the row a string-prefix sniff on
+    /// AKP-0007 — convenience copy of `effective_scope` when it is a
+    /// `ak:circle:...` id; saves the row a string-prefix sniff on
     /// the rendering path.
     #[serde(default)]
     pub scope_circle_id: Option<String>,
-    /// CKP-0008 — when the envelope was signed/executed on behalf of
+    /// AKP-0008 — when the envelope was signed/executed on behalf of
     /// the principal, this records the executing DID (e.g. a personal
     /// agent acting on behalf of the controller). Conditional: present
     /// only on agent-attributed envelopes.
     #[serde(default)]
     pub executed_by: Option<String>,
-    /// CKP-0008 — typed id of the `accountability_grant` or capability
+    /// AKP-0008 — typed id of the `accountability_grant` or capability
     /// grant whose validity authorized the action. Lets the audit row
     /// link back to the grant ledger row.
     #[serde(default)]
     pub authorization_ref: Option<String>,
-    /// CKP-0008 — reducer-stamped projection of the actor classification
+    /// AKP-0008 — reducer-stamped projection of the actor classification
     /// at the moment of admission. Parsed with the SDK `ActorKind` enum,
     /// so unknown/non-registry values fail instead of being rendered as
     /// arbitrary strings.

@@ -391,7 +391,7 @@ mod tests {
     fn default_strategy_uses_manual_even_for_conflict_with_candidates() {
         let entry = BottomEntry {
             realm_id: "ak:realm:demo".into(),
-            cell_id: "ak:cell:ck.component.profile.v1:ck:space:demo".into(),
+            cell_id: "ak:cell:ak.component.profile.v1:ak:space:demo".into(),
             kind: "conflict".into(),
             candidate_heads: vec![BottomCandidateHead {
                 event_id: "ak:event:abc".into(),
@@ -438,7 +438,7 @@ mod tests {
     fn repair_strategy_picker_requires_manual_payload() {
         let entry = BottomEntry {
             realm_id: "ak:realm:demo".into(),
-            cell_id: "ak:cell:ck.component.profile.v1:ck:space:demo".into(),
+            cell_id: "ak:cell:ak.component.profile.v1:ak:space:demo".into(),
             kind: "conflict".into(),
             candidate_heads: vec![
                 BottomCandidateHead {
@@ -469,7 +469,7 @@ mod tests {
     fn repair_strategy_picker_falls_back_when_index_out_of_bounds() {
         let entry = BottomEntry {
             realm_id: "ak:realm:demo".into(),
-            cell_id: "ak:cell:ck.component.profile.v1:ck:space:demo".into(),
+            cell_id: "ak:cell:ak.component.profile.v1:ak:space:demo".into(),
             kind: "conflict".into(),
             candidate_heads: vec![BottomCandidateHead {
                 event_id: "ak:event:first".into(),
@@ -528,7 +528,7 @@ mod tests {
         // Non-conflict bottom kind with no candidate heads → manual.
         let entry = BottomEntry {
             realm_id: "ak:realm:demo".into(),
-            cell_id: "ak:cell:ck.component.member.state.v1:did:web:alice.example".into(),
+            cell_id: "ak:cell:ak.component.member.state.v1:did:web:alice.example".into(),
             kind: "schema_error".into(),
             ..Default::default()
         };
@@ -544,7 +544,7 @@ mod tests {
         // must hand-craft because nothing to pick).
         let entry = BottomEntry {
             realm_id: "ak:realm:demo".into(),
-            cell_id: "ak:cell:ck.component.profile.v1:ck:space:demo".into(),
+            cell_id: "ak:cell:ak.component.profile.v1:ak:space:demo".into(),
             kind: "conflict".into(),
             candidate_heads: vec![],
             ..Default::default()
