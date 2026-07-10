@@ -146,20 +146,20 @@ pub fn DeviceList() -> Element {
             if selected_count > 0 {
                 div { class: "flex items-center justify-between rounded-md border bg-accent/40 px-3 py-2",
                     div { class: "text-sm text-foreground",
-                        "{selected_count} selected"
+                        {t("devices.selected_count").replace("{count}", &selected_count.to_string())}
                     }
                     div { class: "flex items-center gap-2",
                         Button {
                             variant: ButtonVariant::Outline,
                             size: ButtonSize::Sm,
                             onclick: move |_| selected.set(HashSet::new()),
-                            "Clear"
+                            {t("devices.clear")}
                         }
                         Button {
                             variant: ButtonVariant::Destructive,
                             size: ButtonSize::Sm,
                             onclick: move |_| show_bulk_dialog.set(true),
-                            {format!("Bulk Revoke ({} selected)", selected_count)}
+                            {t("devices.bulk_revoke_selected").replace("{count}", &selected_count.to_string())}
                         }
                     }
                 }
@@ -205,9 +205,9 @@ pub fn DeviceList() -> Element {
                                         TableHead { {t("devices.actor_id")} }
                                         TableHead { {t("devices.display_name")} }
                                         TableHead { {t("devices.verification_status")} }
-                                        TableHead { "Created" }
-                                        TableHead { "Updated" }
-                                        TableHead { "Revoked" }
+                                        TableHead { {t("devices.col_created")} }
+                                        TableHead { {t("devices.col_updated")} }
+                                        TableHead { {t("devices.col_revoked")} }
                                         TableHead { class: "text-right".to_string(), {t("common.actions")} }
                                     }
                                 }
@@ -315,7 +315,7 @@ pub fn DeviceList() -> Element {
 
             if let Some((done, total)) = *bulk_progress.read() {
                 div { class: "rounded-md border bg-muted/40 px-3 py-2 text-sm",
-                    "Bulk revoke in progress: {done} / {total}"
+                    {t("devices.bulk_progress").replace("{done}", &done.to_string()).replace("{total}", &total.to_string())}
                 }
             }
         }
@@ -331,13 +331,10 @@ pub fn DeviceList() -> Element {
             rsx! {
                 DangerousActionDialog {
                     open: pending.is_some(),
-                    title: "Revoke device".to_string(),
-                    description: format!(
-                        "Revoke device {}? This signs out the session, drops device keys, and cannot be undone.",
-                        pending_id_desc
-                    ),
+                    title: t("devices.revoke_title"),
+                    description: t("devices.revoke_description").replace("{id}", &pending_id_desc),
                     confirmation_phrase: phrase,
-                    confirm_text: "Revoke".to_string(),
+                    confirm_text: t("common.revoke"),
                     cancel_text: t("common.cancel"),
                     on_confirm: move |_| {
                         if let Some(id) = show_revoke_dialog.read().clone() {
@@ -348,7 +345,10 @@ pub fn DeviceList() -> Element {
                                         show_toast(&t("devices.toast_revoked"), ToastVariant::Success);
                                         data.restart();
                                     }
-                                    Err(e) => show_toast(&format!("Failed: {}", e.message), ToastVariant::Error),
+                                    Err(e) => show_toast(
+                                        &t("devices.toast_failed").replace("{message}", &e.message),
+                                        ToastVariant::Error,
+                                    ),
                                 }
                             });
                         }
@@ -368,10 +368,10 @@ pub fn DeviceList() -> Element {
             rsx! {
                 DangerousActionDialog {
                     open,
-                    title: format!("Bulk revoke {} devices?", count),
-                    description: "All selected devices will be signed out and their keys dropped. Each failure is reported individually; successful revokes are not rolled back.".to_string(),
+                    title: t("devices.bulk_revoke_title").replace("{count}", &count.to_string()),
+                    description: t("devices.bulk_revoke_description"),
                     confirmation_phrase: "REVOKE".to_string(),
-                    confirm_text: "Bulk Revoke".to_string(),
+                    confirm_text: t("devices.bulk_revoke_confirm"),
                     cancel_text: t("common.cancel"),
                     on_cancel: move |_| show_bulk_dialog.set(false),
                     on_confirm: move |_| {
@@ -397,23 +397,23 @@ pub fn DeviceList() -> Element {
                                     .map(|(id, msg)| format!("{}: {}", id, msg))
                                     .collect();
                                 let suffix = if failed.len() > 3 {
-                                    format!(" (+{} more)", failed.len() - 3)
+                                    t("devices.bulk_revoke_more_suffix")
+                                        .replace("{count}", &(failed.len() - 3).to_string())
                                 } else {
                                     String::new()
                                 };
                                 show_toast(
-                                    &format!(
-                                        "Revoked {} / {}. Failed: {}{}",
-                                        ok,
-                                        total,
-                                        preview.join("; "),
-                                        suffix
-                                    ),
+                                    &t("devices.bulk_revoke_failed_toast")
+                                        .replace("{ok}", &ok.to_string())
+                                        .replace("{total}", &total.to_string())
+                                        .replace("{failures}", &preview.join("; "))
+                                        .replace("{suffix}", &suffix),
                                     ToastVariant::Error,
                                 );
                             } else {
                                 show_toast(
-                                    &format!("Revoked {} device(s)", ok),
+                                    &t("devices.bulk_revoke_success_toast")
+                                        .replace("{count}", &ok.to_string()),
                                     ToastVariant::Success,
                                 );
                             }

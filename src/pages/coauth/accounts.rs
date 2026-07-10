@@ -8,6 +8,7 @@ use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::table::*;
 use crate::router::Route;
+use crate::utils::i18n::t;
 
 const PAGE_SIZE: u64 = 25;
 
@@ -50,23 +51,23 @@ pub fn AccountsPage() -> Element {
     rsx! {
         div { class: "space-y-6",
             PageHeader {
-                title: "coauth Accounts".to_string(),
-                description: "Cursor-paginated account view backed by /accounts. Use the filter inputs to narrow by free text, handle, or display name; the server's links.next is the only way to advance.".to_string(),
+                title: t("coauth_accounts.title"),
+                description: t("coauth_accounts.description"),
                 Button {
                     variant: ButtonVariant::Outline,
                     onclick: move |_| data.restart(),
-                    "Refresh"
+                    {t("common.refresh")}
                 }
             }
 
             div { class: "rounded-lg border p-4 space-y-3",
                 div { class: "text-sm text-muted-foreground",
-                    "Filters apply server-side via filter[search], filter[handle], filter[display_name]. Pagination uses the JSON:API cursor model (cursor=base64url, limit=N)."
+                    {t("coauth_accounts.filters_hint")}
                 }
                 div { class: "grid gap-3 md:grid-cols-3",
                     Input {
                         value: search.read().clone(),
-                        placeholder: "Search (any field)".to_string(),
+                        placeholder: t("coauth_accounts.search_placeholder"),
                         oninput: move |evt: FormEvent| {
                             reset_to_first_page();
                             search.set(evt.value());
@@ -74,7 +75,7 @@ pub fn AccountsPage() -> Element {
                     }
                     Input {
                         value: handle_filter.read().clone(),
-                        placeholder: "Filter by handle".to_string(),
+                        placeholder: t("coauth_accounts.filter_handle_placeholder"),
                         oninput: move |evt: FormEvent| {
                             reset_to_first_page();
                             handle_filter.set(evt.value());
@@ -82,7 +83,7 @@ pub fn AccountsPage() -> Element {
                     }
                     Input {
                         value: display_name_filter.read().clone(),
-                        placeholder: "Filter by display name".to_string(),
+                        placeholder: t("coauth_accounts.filter_display_name_placeholder"),
                         oninput: move |evt: FormEvent| {
                             reset_to_first_page();
                             display_name_filter.set(evt.value());
@@ -94,38 +95,38 @@ pub fn AccountsPage() -> Element {
             match &*data.read() {
                 Some(Ok(page)) => {
                     let count_label = match page.total {
-                        Some(n) => format!("{} matching accounts on the server", n),
-                        None => "server did not include a total count".to_string(),
+                        Some(n) => t("coauth_accounts.count_matching").replace("{count}", &n.to_string()),
+                        None => t("coauth_accounts.count_unknown"),
                     };
                     let next_cursor = page.next_cursor.clone();
                     let row_count = page.data.len();
                     let stack_depth = cursor_stack.read().len();
                     rsx! {
                         div { class: "rounded-lg border p-4 text-sm text-muted-foreground",
-                            "Loaded "
+                            {t("coauth_accounts.loaded_prefix")}
                             span { class: "font-medium text-foreground", "{row_count}" }
-                            " account records this page. "
+                            {t("coauth_accounts.loaded_suffix")}
                             span { class: "font-medium text-foreground", "{count_label}" }
-                            "."
+                            {t("coauth_accounts.sentence_end")}
                         }
                         div { class: "rounded-md border",
                             Table {
                                 TableHeader {
                                     TableRow {
-                                        TableHead { "Account ID" }
-                                        TableHead { "Handle" }
-                                        TableHead { "Display Name" }
-                                        TableHead { "Status" }
-                                        TableHead { "Primary DID" }
-                                        TableHead { "Bridge" }
-                                        TableHead { class: "text-right".to_string(), "Actions" }
+                                        TableHead { {t("coauth_account_detail.account_id")} }
+                                        TableHead { {t("coauth_account_detail.handle")} }
+                                        TableHead { {t("coauth_accounts.display_name")} }
+                                        TableHead { {t("common.status")} }
+                                        TableHead { {t("coauth_account_detail.primary_did")} }
+                                        TableHead { {t("coauth_accounts.bridge")} }
+                                        TableHead { class: "text-right".to_string(), {t("common.actions")} }
                                     }
                                 }
                                 TableBody {
                                     if page.data.is_empty() {
                                         TableRow {
                                             TableCell { class: "py-8 text-center text-muted-foreground".to_string(), colspan: 99,
-                                                "No accounts match the current filter."
+                                                {t("coauth_accounts.empty")}
                                             }
                                         }
                                     } else {
@@ -150,7 +151,7 @@ pub fn AccountsPage() -> Element {
                                                             Link {
                                                                 to: Route::CoauthAccountShow { account_id: account_id.clone() },
                                                                 class: "inline-flex h-9 items-center rounded-md border px-3 text-sm font-medium transition-colors hover:bg-accent".to_string(),
-                                                                "Open"
+                                                                {t("common.open")}
                                                             }
                                                         }
                                                     }
@@ -164,12 +165,12 @@ pub fn AccountsPage() -> Element {
 
                         div { class: "flex items-center justify-between px-2 py-4",
                             div { class: "text-sm text-muted-foreground",
-                                "Page "
+                                {t("coauth_accounts.page_prefix")}
                                 span { class: "font-medium text-foreground", "{stack_depth}" }
                                 if next_cursor.is_some() {
-                                    " (more available)"
+                                    {t("coauth_accounts.page_more")}
                                 } else {
-                                    " (last page)"
+                                    {t("coauth_accounts.page_last")}
                                 }
                             }
                             div { class: "flex items-center space-x-2",
@@ -184,7 +185,7 @@ pub fn AccountsPage() -> Element {
                                             cursor_stack.set(new_stack);
                                         }
                                     },
-                                    "Previous"
+                                    {t("common.previous")}
                                 }
                                 Button {
                                     variant: ButtonVariant::Outline,
@@ -197,7 +198,7 @@ pub fn AccountsPage() -> Element {
                                             cursor_stack.set(new_stack);
                                         }
                                     },
-                                    "Next"
+                                    {t("common.next")}
                                 }
                             }
                         }

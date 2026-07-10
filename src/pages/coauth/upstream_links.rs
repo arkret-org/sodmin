@@ -111,7 +111,7 @@ pub fn UpstreamLinksPage() -> Element {
         DangerousActionDialog {
             open: show_delete.read().is_some(),
             title: t("common.delete"),
-            description: "Are you sure you want to delete this link?".to_string(),
+            description: t("coauth.upstream_links.delete_description"),
             confirmation_phrase: confirmation_suffix(show_delete.read().as_deref().unwrap_or(""), 4),
             confirm_text: t("common.delete"),
             cancel_text: t("common.cancel"),

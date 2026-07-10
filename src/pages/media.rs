@@ -36,10 +36,10 @@ pub fn MediaList() -> Element {
             match &*stats_data.read() {
                 Some(Ok(stats)) => rsx! {
                     div { class: "grid gap-3 md:grid-cols-4",
-                        {metric_tile("Blobs", stats.total_blobs.to_string())}
-                        {metric_tile("Stored", yoface::utils::format::format_bytes(stats.total_size))}
-                        {metric_tile("Encrypted", stats.encrypted_count.to_string())}
-                        {metric_tile("Quarantined", stats.quarantined_count.to_string())}
+                        {metric_tile(&t("media.blobs"), stats.total_blobs.to_string())}
+                        {metric_tile(&t("media.stored"), yoface::utils::format::format_bytes(stats.total_size))}
+                        {metric_tile(&t("media.encrypted"), stats.encrypted_count.to_string())}
+                        {metric_tile(&t("media.quarantined"), stats.quarantined_count.to_string())}
                     }
                 },
                 Some(Err(e)) => rsx! {
@@ -90,13 +90,13 @@ pub fn MediaList() -> Element {
                             Table {
                                 TableHeader {
                                     TableRow {
-                                        TableHead { "Filename" }
-                                        TableHead { "Type" }
-                                        TableHead { "Realm" }
-                                        TableHead { "Uploaded by" }
-                                        TableHead { "Size" }
-                                        TableHead { "Encrypted" }
-                                        TableHead { "Created" }
+                                        TableHead { {t("media.col_filename")} }
+                                        TableHead { {t("media.col_type")} }
+                                        TableHead { {t("media.col_realm")} }
+                                        TableHead { {t("media.col_uploaded_by")} }
+                                        TableHead { {t("media.col_size")} }
+                                        TableHead { {t("media.encrypted")} }
+                                        TableHead { {t("media.col_created")} }
                                     }
                                 }
                                 TableBody {
@@ -114,7 +114,11 @@ pub fn MediaList() -> Element {
                                                 let realm_id = row.realm_id.clone().unwrap_or_else(|| "-".to_string());
                                                 let uploaded_by = row.uploaded_by.clone().unwrap_or_else(|| "-".to_string());
                                                 let size = yoface::utils::format::format_bytes(row.size_bytes);
-                                                let encrypted = if row.encrypted { "yes" } else { "no" };
+                                                let encrypted = if row.encrypted {
+                                                    t("media.encrypted_yes")
+                                                } else {
+                                                    t("media.encrypted_no")
+                                                };
                                                 let created = row.created_at.clone().unwrap_or_else(|| "-".to_string());
                                                 rsx! {
                                                     TableRow {
@@ -174,10 +178,10 @@ fn actor_media_section(
             Table {
                 TableHeader {
                     TableRow {
-                        TableHead { "Actor" }
-                        TableHead { "Display name" }
-                        TableHead { "Blobs" }
-                        TableHead { "Stored" }
+                        TableHead { {t("media.col_actor")} }
+                        TableHead { {t("media.col_display_name")} }
+                        TableHead { {t("media.blobs")} }
+                        TableHead { {t("media.stored")} }
                     }
                 }
                 TableBody {

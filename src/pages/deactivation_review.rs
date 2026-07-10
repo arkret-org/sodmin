@@ -11,18 +11,19 @@ use dioxus::prelude::*;
 use crate::components::ui::button::{Button, ButtonVariant};
 use crate::components::ui::empty_state::EmptyState;
 use crate::components::ui::page_header::PageHeader;
+use crate::utils::i18n::t;
 
 #[component]
 pub fn DeactivationReviewPage() -> Element {
     rsx! {
         div { class: "space-y-6",
             PageHeader {
-                title: "Deactivation review".to_string(),
-                description: "Per-subject 7-domain fanout result. Failed domains can be retried independently. Round R2/R3 T07.".to_string(),
+                title: t("deactivation_review.title"),
+                description: t("deactivation_review.description"),
                 Button {
                     variant: ButtonVariant::Outline,
                     disabled: true,
-                    "Refresh"
+                    {t("common.refresh")}
                 }
             }
 
@@ -30,17 +31,17 @@ pub fn DeactivationReviewPage() -> Element {
                 class: "rounded-md border border-amber-600 bg-amber-600/10 px-3 py-2 text-sm",
                 role: "alert",
                 p { class: "font-semibold text-amber-700 dark:text-amber-200",
-                    "Deactivation fanout describe endpoint is not available yet."
+                    {t("deactivation_review.endpoint_unavailable")}
                 }
                 p { class: "text-xs text-amber-700/90 dark:text-amber-200/90",
-                    "This page no longer renders synthetic fanout data. Wire `/_soland/admin/identity/deactivations/<id>/describe` before enabling refresh or retry."
+                    {t("deactivation_review.endpoint_unavailable_detail")}
                 }
             }
 
             EmptyState {
                 icon_name: "alert-triangle".to_string(),
-                title: "No deactivation selected".to_string(),
-                description: "Open this workflow from an actual account or Realm deactivation record once the backend describe endpoint is published.".to_string(),
+                title: t("deactivation_review.empty_title"),
+                description: t("deactivation_review.empty_description"),
             }
         }
     }

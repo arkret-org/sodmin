@@ -18,18 +18,20 @@ use dioxus::prelude::*;
 use crate::components::ui::button::{Button, ButtonVariant};
 use crate::components::ui::input::Input;
 use crate::components::ui::modal::ModalOverlay;
+use crate::utils::i18n::t;
 
 /// The exact string the admin must type into the confirmation field.
 pub const CONFIRMATION_PHRASE: &str = "DESTROY";
 
 /// Five normative bullets the admin must explicitly tick. Phrasing
-/// taken verbatim from the round 2+3 spec.
-const NORMATIVE_RULES: [&str; 5] = [
-    "No further ordinary writes accepted after destroy is sealed.",
-    "Snapshots, backfill, and GC schedules will run to finalize the destroy.",
-    "No successor Realm — use a tombstone if continuity is required.",
-    "Erasure receipts and legal holds take precedence over backfill.",
-    "Federation fanout uses a 30-day window before remote PSes finalize.",
+/// (the dictionary values behind these keys) taken verbatim from the
+/// round 2+3 spec.
+const NORMATIVE_RULE_KEYS: [&str; 5] = [
+    "realm_destroy_dialog.rule_no_ordinary_writes",
+    "realm_destroy_dialog.rule_finalize_schedules",
+    "realm_destroy_dialog.rule_no_successor_realm",
+    "realm_destroy_dialog.rule_erasure_precedence",
+    "realm_destroy_dialog.rule_federation_window",
 ];
 
 #[derive(Props, Clone, PartialEq)]
@@ -58,19 +60,19 @@ pub fn RealmDestroyDialog(props: RealmDestroyDialogProps) -> Element {
         ModalOverlay { on_close: move |_| props.on_cancel.call(()),
             div { class: "relative z-50 w-full max-w-xl rounded-lg border glass-panel p-6 shadow-lg space-y-4",
                 div { class: "space-y-1",
-                    h2 { class: "text-lg font-semibold text-destructive", "Destroy Realm" }
+                    h2 { class: "text-lg font-semibold text-destructive", {t("realm_destroy_dialog.title")} }
                     p { class: "text-sm text-muted-foreground",
-                        "You are about to seal a `ak.realm.destroy` event on "
+                        {t("realm_destroy_dialog.intro_prefix")}
                         span { class: "font-mono", "{realm_id}" }
-                        ". This is irreversible."
+                        {t("realm_destroy_dialog.intro_suffix")}
                     }
                 }
 
                 ul { class: "space-y-2",
-                    for (idx, rule) in NORMATIVE_RULES.iter().enumerate() {
+                    for (idx, rule_key) in NORMATIVE_RULE_KEYS.iter().enumerate() {
                         {
                             let is_checked = checked.read()[idx];
-                            let rule_text = (*rule).to_string();
+                            let rule_text = t(rule_key);
                             rsx! {
                                 li { class: "flex items-start gap-2 text-sm",
                                     input {
@@ -93,9 +95,9 @@ pub fn RealmDestroyDialog(props: RealmDestroyDialogProps) -> Element {
 
                 div { class: "space-y-1",
                     label { class: "text-sm font-medium",
-                        "Type "
+                        {t("realm_destroy_dialog.type_prefix")}
                         span { class: "font-mono", "{CONFIRMATION_PHRASE}" }
-                        " to confirm:"
+                        {t("realm_destroy_dialog.type_suffix")}
                     }
                     Input {
                         r#type: "text".to_string(),
@@ -109,7 +111,7 @@ pub fn RealmDestroyDialog(props: RealmDestroyDialogProps) -> Element {
                     Button {
                         variant: ButtonVariant::Outline,
                         onclick: move |_| props.on_cancel.call(()),
-                        "Cancel"
+                        {t("realm_destroy_dialog.cancel")}
                     }
                     Button {
                         variant: ButtonVariant::Destructive,
@@ -119,7 +121,7 @@ pub fn RealmDestroyDialog(props: RealmDestroyDialogProps) -> Element {
                                 props.on_confirm.call(());
                             }
                         },
-                        "Seal ak.realm.destroy"
+                        {t("realm_destroy_dialog.seal_confirm")}
                     }
                 }
             }
@@ -143,19 +145,15 @@ mod tests {
     #[test]
     fn five_normative_rules_present() {
         // Spec calls for five explicit bullets; if the list ever grows
-        // / shrinks the spec is the source of truth.
-        assert_eq!(NORMATIVE_RULES.len(), 5);
-        // Spot-check a few of the canonical phrases.
+        // / shrinks the spec is the source of truth. The canonical
+        // phrasing lives in the i18n dictionaries under these keys.
+        assert_eq!(NORMATIVE_RULE_KEYS.len(), 5);
+        let unique: std::collections::BTreeSet<_> = NORMATIVE_RULE_KEYS.iter().collect();
+        assert_eq!(unique.len(), NORMATIVE_RULE_KEYS.len());
         assert!(
-            NORMATIVE_RULES
+            NORMATIVE_RULE_KEYS
                 .iter()
-                .any(|r| r.contains("ordinary writes"))
+                .all(|k| k.starts_with("realm_destroy_dialog.rule_"))
         );
-        assert!(
-            NORMATIVE_RULES
-                .iter()
-                .any(|r| r.contains("Erasure receipts"))
-        );
-        assert!(NORMATIVE_RULES.iter().any(|r| r.contains("30-day")));
     }
 }

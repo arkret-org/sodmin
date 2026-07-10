@@ -18,6 +18,7 @@ use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::table::*;
 use crate::components::ui::toast::{ToastVariant, show_toast};
+use crate::utils::i18n::t;
 
 #[component]
 pub fn SealDagPage(realm_id: String) -> Element {
@@ -39,13 +40,13 @@ pub fn SealDagPage(realm_id: String) -> Element {
     rsx! {
         div { class: "space-y-6",
             PageHeader {
-                title: format!("Seal DAG · {}", header_realm_id),
-                description: "Visualize Seal leaves, covered events and state_root for this Realm.".to_string(),
+                title: t("realm_seal_dag.title").replace("{realm_id}", &header_realm_id),
+                description: t("realm_seal_dag.description"),
                 Button {
                     variant: ButtonVariant::Default,
                     disabled: *compacting.read(),
                     onclick: move |_| show_compact_confirm.set(true),
-                    "Trigger compaction"
+                    {t("realm_seal_dag.trigger_compaction")}
                 }
             }
 
@@ -63,8 +64,8 @@ pub fn SealDagPage(realm_id: String) -> Element {
                             div { class: "space-y-6",
                                 EmptyState {
                                     icon_name: "shield".to_string(),
-                                    title: "No Seals yet".to_string(),
-                                    description: "soland returned no Seal leaves for this Realm; the DAG is empty.".to_string(),
+                                    title: t("realm_seal_dag.empty_title"),
+                                    description: t("realm_seal_dag.empty_description"),
                                 }
                             }
                         };
@@ -81,19 +82,19 @@ pub fn SealDagPage(realm_id: String) -> Element {
                     let leaves = snapshot.leaves.clone();
                     rsx! {
                         Card {
-                            CardHeader { CardTitle { "Covered events & state root" } }
+                            CardHeader { CardTitle { {t("realm_seal_dag.card_covered_title")} } }
                             CardContent {
                                 div { class: "space-y-2 text-sm",
                                     div {
-                                        span { class: "text-muted-foreground mr-2", "Covered events:" }
+                                        span { class: "text-muted-foreground mr-2", {t("realm_seal_dag.covered_events_label")} }
                                         span { class: "font-mono text-xs", "{covered_events}" }
                                     }
                                     div {
-                                        span { class: "text-muted-foreground mr-2", "state_root:" }
+                                        span { class: "text-muted-foreground mr-2", {t("realm_seal_dag.state_root_label")} }
                                         span { class: "font-mono text-xs", "{state_root}" }
                                     }
                                     div {
-                                        span { class: "text-muted-foreground mr-2", "Last compaction:" }
+                                        span { class: "text-muted-foreground mr-2", {t("realm_seal_dag.last_compaction_label")} }
                                         span { class: "font-mono text-xs", "{last_compaction}" }
                                     }
                                 }
@@ -101,18 +102,18 @@ pub fn SealDagPage(realm_id: String) -> Element {
                         }
 
                         Card {
-                            CardHeader { CardTitle { "Seal leaves" } }
+                            CardHeader { CardTitle { {t("realm_seal_dag.card_leaves_title")} } }
                             CardContent {
                                 div { class: "rounded-md border",
                                     Table {
                                         TableHeader {
                                             TableRow {
-                                                TableHead { "Seal ID" }
-                                                TableHead { "state_root" }
-                                                TableHead { "Control events" }
-                                                TableHead { "Created" }
-                                                TableHead { "Signers" }
-                                                TableHead { "Type" }
+                                                TableHead { {t("realm_seal_dag.col_seal_id")} }
+                                                TableHead { {t("realm_seal_dag.col_state_root")} }
+                                                TableHead { {t("realm_seal_dag.col_control_events")} }
+                                                TableHead { {t("realm_seal_dag.col_created")} }
+                                                TableHead { {t("realm_seal_dag.col_signers")} }
+                                                TableHead { {t("realm_seal_dag.col_type")} }
                                             }
                                         }
                                         TableBody {
@@ -121,7 +122,7 @@ pub fn SealDagPage(realm_id: String) -> Element {
                                                     TableCell {
                                                         class: "text-center text-muted-foreground py-8".to_string(),
                                                         colspan: 99,
-                                                        "No leaves visible."
+                                                        {t("realm_seal_dag.no_leaves")}
                                                     }
                                                 }
                                             } else {
@@ -144,9 +145,9 @@ pub fn SealDagPage(realm_id: String) -> Element {
                                                             BadgeVariant::Secondary
                                                         };
                                                         let kind_label = if leaf.is_compaction {
-                                                            "compaction"
+                                                            t("realm_seal_dag.badge_compaction")
                                                         } else {
-                                                            "leaf"
+                                                            t("realm_seal_dag.badge_leaf")
                                                         };
                                                         rsx! {
                                                             TableRow {
@@ -188,13 +189,11 @@ pub fn SealDagPage(realm_id: String) -> Element {
             DangerousActionDialog {
                 open: *show_compact_confirm.read(),
                 confirmation_phrase: "COMPACT".to_string(),
-                title: "Trigger Seal DAG compaction?".to_string(),
-                description: format!(
-                    "This requests Seal DAG compaction for Realm {}. Continue only after checking the current leaves and state_root.",
-                    realm_id_for_compact
-                ),
-                confirm_text: "Trigger compaction".to_string(),
-                cancel_text: "Cancel".to_string(),
+                title: t("realm_seal_dag.confirm_title"),
+                description: t("realm_seal_dag.confirm_description")
+                    .replace("{realm_id}", &realm_id_for_compact),
+                confirm_text: t("realm_seal_dag.trigger_compaction"),
+                cancel_text: t("common.cancel"),
                 on_cancel: move |_| show_compact_confirm.set(false),
                 on_confirm: move |_| {
                     if *compacting.read() {
@@ -206,11 +205,11 @@ pub fn SealDagPage(realm_id: String) -> Element {
                     spawn(async move {
                         match seal::trigger_compaction(&id).await {
                             Ok(r) => show_toast(
-                                &format!("Compaction Seal signed: {}", r.seal_id),
+                                &t("realm_seal_dag.toast_signed").replace("{seal_id}", &r.seal_id),
                                 ToastVariant::Success,
                             ),
                             Err(e) => show_toast(
-                                &format!("Failed: {}", e.message),
+                                &t("realm_seal_dag.toast_failed").replace("{err}", &e.message),
                                 ToastVariant::Error,
                             ),
                         }

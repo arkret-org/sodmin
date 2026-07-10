@@ -120,7 +120,7 @@ pub fn OAuth2SessionsPage() -> Element {
             DangerousActionDialog {
                 open: pending_finish.read().is_some(),
                 title: t("coauth.oauth2_sessions.finish"),
-                description: "Finish this OAuth2 session now? This can interrupt the third-party client using it.".to_string(),
+                description: t("coauth.oauth2_sessions.finish_description"),
                 confirmation_phrase: confirmation_suffix(pending_finish.read().as_deref().unwrap_or(""), 4),
                 confirm_text: t("coauth.oauth2_sessions.finish"),
                 cancel_text: t("common.cancel"),

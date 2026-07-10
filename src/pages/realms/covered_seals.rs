@@ -25,6 +25,7 @@ use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::toast::{ToastVariant, show_toast};
 use crate::types::covered_seals::DEFAULT_LAG_WARN_THRESHOLD;
+use crate::utils::i18n::t;
 use crate::utils::net::error::format_optional_endpoint_error;
 
 #[component]
@@ -46,15 +47,17 @@ pub fn CoveredSealsPage(realm_id: String) -> Element {
     rsx! {
         div { class: "space-y-6",
             PageHeader {
-                title: format!("covered_seals · {}", header_realm_id),
-                description: "Governance Seals vs MLS group epoch: Seal acknowledgement lag.".to_string(),
+                title: t("realm_covered_seals.title").replace("{realm_id}", &header_realm_id),
+                description: t("realm_covered_seals.description"),
             }
 
             match &*data.read() {
                 Some(Ok(snap)) => {
                     let lag = snap.lag_count();
                     let above_threshold = snap.lag_above(DEFAULT_LAG_WARN_THRESHOLD);
-                    let (lag_variant, lag_label) = lag_badge(lag, above_threshold);
+                    let lag_variant = lag_badge_variant(lag, above_threshold);
+                    let lag_label =
+                        t("realm_covered_seals.lag_badge").replace("{lag}", &lag.to_string());
                     let mls_epoch = snap.mls_epoch;
                     let governance_count = snap.governance_seals.len();
                     let covered_count = snap.covered_seals.len();
@@ -75,8 +78,8 @@ pub fn CoveredSealsPage(realm_id: String) -> Element {
                         rsx! {
                             EmptyState {
                                 icon_name: "shield".to_string(),
-                                title: "No covered_seals data yet".to_string(),
-                                description: "soland has not yet seen any governance Seals for this Realm; covered_seals is empty by construction.".to_string(),
+                                title: t("realm_covered_seals.empty_title"),
+                                description: t("realm_covered_seals.empty_description"),
                             }
                         }
                     } else {
@@ -85,44 +88,44 @@ pub fn CoveredSealsPage(realm_id: String) -> Element {
                             if above_threshold {
                                 div { class: "rounded-md bg-destructive/10 p-3 text-sm text-destructive flex items-center justify-between gap-3",
                                     span {
-                                        {format!(
-                                            "Lag of {lag} Seals is above warn threshold {DEFAULT_LAG_WARN_THRESHOLD}; investigate MLS group health (member offline, KeyPackage stale)."
-                                        )}
+                                        {t("realm_covered_seals.warn_banner")
+                                            .replace("{lag}", &lag.to_string())
+                                            .replace("{threshold}", &DEFAULT_LAG_WARN_THRESHOLD.to_string())}
                                     }
                                     Button {
                                         variant: ButtonVariant::Destructive,
                                         disabled: advancing_now,
                                         onclick: move |_| show_advance_confirm.set(true),
-                                        if advancing_now { "Advancing…" } else { "Manually advance covered_seals" }
+                                        if advancing_now { {t("realm_covered_seals.advancing")} } else { {t("realm_covered_seals.advance_button")} }
                                     }
                                 }
                             }
                             Card {
-                                CardHeader { CardTitle { "Lag summary" } }
+                                CardHeader { CardTitle { {t("realm_covered_seals.lag_summary_title")} } }
                                 CardContent {
                                     div { class: "space-y-2 text-sm",
                                         div { class: "flex items-center gap-2",
-                                            span { class: "text-muted-foreground", "Lag:" }
+                                            span { class: "text-muted-foreground", {t("realm_covered_seals.label_lag")} }
                                             Badge { variant: lag_variant, "{lag_label}" }
                                         }
                                         div {
-                                            span { class: "text-muted-foreground mr-2", "MLS epoch:" }
+                                            span { class: "text-muted-foreground mr-2", {t("realm_covered_seals.label_mls_epoch")} }
                                             span { class: "font-mono text-xs", "{mls_epoch}" }
                                         }
                                         div {
-                                            span { class: "text-muted-foreground mr-2", "Governance Seals size:" }
+                                            span { class: "text-muted-foreground mr-2", {t("realm_covered_seals.label_governance_size")} }
                                             span { class: "font-mono text-xs", "{governance_count}" }
                                         }
                                         div {
-                                            span { class: "text-muted-foreground mr-2", "Covered Seals size:" }
+                                            span { class: "text-muted-foreground mr-2", {t("realm_covered_seals.label_covered_size")} }
                                             span { class: "font-mono text-xs", "{covered_count}" }
                                         }
                                         div {
-                                            span { class: "text-muted-foreground mr-2", "Latest Seal:" }
+                                            span { class: "text-muted-foreground mr-2", {t("realm_covered_seals.label_latest_seal")} }
                                             span { class: "font-mono text-xs", "{latest_seal}" }
                                         }
                                         div {
-                                            span { class: "text-muted-foreground mr-2", "Last covered_seals update:" }
+                                            span { class: "text-muted-foreground mr-2", {t("realm_covered_seals.label_last_update")} }
                                             span { class: "font-mono text-xs", "{last_covered_at}" }
                                         }
                                     }
@@ -130,14 +133,14 @@ pub fn CoveredSealsPage(realm_id: String) -> Element {
                             }
 
                             Card {
-                                CardHeader { CardTitle { "Governance Seals" } }
+                                CardHeader { CardTitle { {t("realm_covered_seals.governance_title")} } }
                                 CardContent {
                                     p { class: "font-mono text-xs break-all", "{governance_text}" }
                                 }
                             }
 
                             Card {
-                                CardHeader { CardTitle { "Covered Seals" } }
+                                CardHeader { CardTitle { {t("realm_covered_seals.covered_title")} } }
                                 CardContent {
                                     p { class: "font-mono text-xs break-all", "{covered_text}" }
                                 }
@@ -157,13 +160,11 @@ pub fn CoveredSealsPage(realm_id: String) -> Element {
             DangerousActionDialog {
                 open: *show_advance_confirm.read(),
                 confirmation_phrase: "ADVANCE".to_string(),
-                title: "Manually advance covered_seals?".to_string(),
-                description: format!(
-                    "This bypasses normal MLS acknowledgement waiting for Realm {} and folds the current governance Seal set into covered_seals.",
-                    realm_id_for_action
-                ),
-                confirm_text: "Advance covered_seals".to_string(),
-                cancel_text: "Cancel".to_string(),
+                title: t("realm_covered_seals.confirm_title"),
+                description: t("realm_covered_seals.confirm_description")
+                    .replace("{realm_id}", &realm_id_for_action),
+                confirm_text: t("realm_covered_seals.confirm_button"),
+                cancel_text: t("common.cancel"),
                 on_cancel: move |_| show_advance_confirm.set(false),
                 on_confirm: move |_| {
                     if *advancing.read() {
@@ -176,7 +177,8 @@ pub fn CoveredSealsPage(realm_id: String) -> Element {
                         let res = covered_seals::advance(&id).await;
                         match res {
                             Ok(r) => show_toast(
-                                &format!("Advanced covered_seals; new lag = {}", r.lag_count),
+                                &t("realm_covered_seals.toast_advanced")
+                                    .replace("{lag}", &r.lag_count.to_string()),
                                 ToastVariant::Success,
                             ),
                             Err(e) => {
@@ -196,42 +198,41 @@ pub fn CoveredSealsPage(realm_id: String) -> Element {
     }
 }
 
-/// Badge for the lag count: destructive when above threshold, success
-/// when zero, secondary in between. Pure helper so we can unit-test the
-/// exact variant assignment without rendering.
-pub(crate) fn lag_badge(lag: u64, above_threshold: bool) -> (BadgeVariant, String) {
-    let variant = if above_threshold {
+/// Badge variant for the lag count: destructive when above threshold,
+/// success when zero, secondary in between. Pure helper so we can
+/// unit-test the exact variant assignment without rendering. The
+/// user-facing badge label is built at the render site via i18n
+/// (`realm_covered_seals.lag_badge`).
+pub(crate) fn lag_badge_variant(lag: u64, above_threshold: bool) -> BadgeVariant {
+    if above_threshold {
         BadgeVariant::Destructive
     } else if lag == 0 {
         BadgeVariant::Success
     } else {
         BadgeVariant::Secondary
-    };
-    (variant, format!("{lag} Seal(s)"))
+    }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::lag_badge;
+    use super::lag_badge_variant;
     use crate::components::ui::badge::BadgeVariant;
 
     #[test]
     fn lag_badge_zero_is_success() {
-        let (v, l) = lag_badge(0, false);
+        let v = lag_badge_variant(0, false);
         assert!(matches!(v, BadgeVariant::Success));
-        assert_eq!(l, "0 Seal(s)");
     }
 
     #[test]
     fn lag_badge_below_threshold_is_secondary() {
-        let (v, _) = lag_badge(2, false);
+        let v = lag_badge_variant(2, false);
         assert!(matches!(v, BadgeVariant::Secondary));
     }
 
     #[test]
     fn lag_badge_above_threshold_is_destructive() {
-        let (v, l) = lag_badge(12, true);
+        let v = lag_badge_variant(12, true);
         assert!(matches!(v, BadgeVariant::Destructive));
-        assert_eq!(l, "12 Seal(s)");
     }
 }

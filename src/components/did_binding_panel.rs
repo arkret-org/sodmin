@@ -16,6 +16,7 @@ use crate::components::dangerous_action_dialog::{DangerousActionDialog, confirma
 use crate::components::ui::button::{Button, ButtonVariant};
 use crate::components::ui::input::Label;
 use crate::components::validated_input::{ValidatedInput, ValidationKind};
+use crate::utils::i18n::t;
 use crate::utils::net::error::HttpError;
 
 #[component]
@@ -39,11 +40,11 @@ pub fn DidBindingPanel(
 
     rsx! {
         div { class: "rounded-lg border p-4 space-y-3",
-            h2 { class: "text-base font-semibold", "Managed DID Bindings" }
+            h2 { class: "text-base font-semibold", {t("did_binding_panel.title")} }
 
             if bindings.is_empty() {
                 p { class: "text-sm text-muted-foreground",
-                    "No DID bindings are currently returned for this account."
+                    {t("did_binding_panel.empty")}
                 }
             } else {
                 ul { class: "space-y-2",
@@ -54,7 +55,11 @@ pub fn DidBindingPanel(
                             let kind = binding.kind.label().to_string();
                             let state = binding.state.label().to_string();
                             let verification = binding.verification_status.label().to_string();
-                            let primary = if binding.primary { "yes" } else { "no" };
+                            let primary = if binding.primary {
+                                t("did_binding_panel.primary_yes")
+                            } else {
+                                t("did_binding_panel.primary_no")
+                            };
                             let verified_at = binding.last_verified_at.clone().unwrap_or_else(|| "-".to_string());
                             rsx! {
                                 li { class: "rounded-md border p-3 space-y-2",
@@ -66,28 +71,28 @@ pub fn DidBindingPanel(
                                                 pending_remove.set(Some(did_for_button.clone()));
                                                 remove_error.set(None);
                                             },
-                                            "Remove"
+                                            {t("did_binding_panel.remove")}
                                         }
                                     }
                                     div { class: "grid gap-2 text-sm md:grid-cols-5",
                                         div {
-                                            span { class: "text-muted-foreground", "Kind: " }
+                                            span { class: "text-muted-foreground", {t("did_binding_panel.label_kind")} }
                                             span { "{kind}" }
                                         }
                                         div {
-                                            span { class: "text-muted-foreground", "State: " }
+                                            span { class: "text-muted-foreground", {t("did_binding_panel.label_state")} }
                                             span { class: "font-mono", "{state}" }
                                         }
                                         div {
-                                            span { class: "text-muted-foreground", "Verification: " }
+                                            span { class: "text-muted-foreground", {t("did_binding_panel.label_verification")} }
                                             span { class: "font-mono", "{verification}" }
                                         }
                                         div {
-                                            span { class: "text-muted-foreground", "Primary: " }
+                                            span { class: "text-muted-foreground", {t("did_binding_panel.label_primary")} }
                                             span { "{primary}" }
                                         }
                                         div {
-                                            span { class: "text-muted-foreground", "Last Verified: " }
+                                            span { class: "text-muted-foreground", {t("did_binding_panel.label_last_verified")} }
                                             span { "{verified_at}" }
                                         }
                                     }
@@ -99,12 +104,12 @@ pub fn DidBindingPanel(
             }
 
             div { class: "rounded-md border p-3 space-y-3",
-                h3 { class: "text-sm font-semibold", "Add DID Binding" }
+                h3 { class: "text-sm font-semibold", {t("did_binding_panel.add_title")} }
                 p { class: "text-xs text-muted-foreground",
-                    "DID, binding kind, proof JWS, and nonce are required."
+                    {t("did_binding_panel.add_hint")}
                 }
                 div { class: "space-y-2",
-                    Label { r#for: "new-did".to_string(), "DID" }
+                    Label { r#for: "new-did".to_string(), {t("did_binding_panel.field_did")} }
                     // P5 — ValidatedInput for the round-4 DID grammar,
                     // identical regex to `crate::utils::security::did::is_valid_did`.
                     ValidatedInput {
@@ -115,30 +120,30 @@ pub fn DidBindingPanel(
                     }
                 }
                 div { class: "space-y-2",
-                    Label { r#for: "new-kind".to_string(), "Kind" }
+                    Label { r#for: "new-kind".to_string(), {t("did_binding_panel.field_kind")} }
                     select {
                         class: "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm",
                         value: new_kind.read().clone(),
                         onchange: move |evt: Event<FormData>| new_kind.set(evt.value()),
-                        option { value: "primary", "Primary" }
-                        option { value: "recovery", "Recovery" }
-                        option { value: "pairwise", "Pairwise" }
+                        option { value: "primary", {t("did_binding_panel.kind_primary")} }
+                        option { value: "recovery", {t("did_binding_panel.kind_recovery")} }
+                        option { value: "pairwise", {t("did_binding_panel.kind_pairwise")} }
                     }
                 }
                 div { class: "space-y-2",
-                    Label { r#for: "new-control-proof-jws".to_string(), "Control Proof JWS" }
+                    Label { r#for: "new-control-proof-jws".to_string(), {t("did_binding_panel.field_control_proof_jws")} }
                     ValidatedInput {
                         kind: ValidationKind::Required,
-                        placeholder: "compact JWS".to_string(),
+                        placeholder: t("did_binding_panel.jws_placeholder"),
                         value: new_control_proof_jws.read().clone(),
                         oninput: move |evt: FormEvent| new_control_proof_jws.set(evt.value()),
                     }
                 }
                 div { class: "space-y-2",
-                    Label { r#for: "new-control-proof-nonce".to_string(), "Control Proof Nonce" }
+                    Label { r#for: "new-control-proof-nonce".to_string(), {t("did_binding_panel.field_control_proof_nonce")} }
                     ValidatedInput {
                         kind: ValidationKind::Required,
-                        placeholder: "nonce from the signed binding statement".to_string(),
+                        placeholder: t("did_binding_panel.nonce_placeholder"),
                         value: new_control_proof_nonce.read().clone(),
                         oninput: move |evt: FormEvent| new_control_proof_nonce.set(evt.value()),
                     }
@@ -192,7 +197,11 @@ pub fn DidBindingPanel(
                             });
                         }
                     },
-                    if *submit_in_flight.read() { "Submitting..." } else { "Add binding" }
+                    if *submit_in_flight.read() {
+                        {t("did_binding_panel.submitting")}
+                    } else {
+                        {t("did_binding_panel.add_binding")}
+                    }
                 }
             }
 
@@ -205,17 +214,18 @@ pub fn DidBindingPanel(
             DangerousActionDialog {
                 open: pending_remove.read().is_some(),
                 confirmation_phrase: confirmation_suffix(pending_remove.read().as_deref().unwrap_or(""), 4),
-                title: "Remove DID binding?".to_string(),
+                title: t("did_binding_panel.remove_title"),
                 description: pending_remove
                     .read()
                     .clone()
-                    .map(|d| format!(
-                        "This will detach {} from the account. The DID itself is not deleted.",
-                        d
-                    ))
+                    .map(|d| t("did_binding_panel.remove_description").replace("{did}", &d))
                     .unwrap_or_default(),
-                confirm_text: if *remove_in_flight.read() { "Removing...".to_string() } else { "Remove".to_string() },
-                cancel_text: "Cancel".to_string(),
+                confirm_text: if *remove_in_flight.read() {
+                    t("did_binding_panel.removing")
+                } else {
+                    t("did_binding_panel.remove")
+                },
+                cancel_text: t("did_binding_panel.cancel"),
                 on_confirm: {
                     let account_id = account_id.clone();
                     move |_| {
@@ -254,8 +264,10 @@ pub fn DidBindingPanel(
 
 fn format_err(e: &HttpError) -> String {
     match e.status {
-        0 => format!("Network error: {}", e.message),
-        s => format!("HTTP {}: {}", s, e.message),
+        0 => t("did_binding_panel.error_network").replace("{message}", &e.message),
+        s => t("did_binding_panel.error_http")
+            .replace("{status}", &s.to_string())
+            .replace("{message}", &e.message),
     }
 }
 

@@ -22,6 +22,7 @@ use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::table::*;
 use crate::components::ui::toast::{ToastVariant, show_toast};
 use crate::types::multisig::PendingMultisigSeal;
+use crate::utils::i18n::t;
 use crate::utils::net::error::format_optional_endpoint_error;
 
 #[component]
@@ -42,12 +43,12 @@ pub fn MultiSigPage(realm_id: String) -> Element {
     rsx! {
         div { class: "space-y-6",
             PageHeader {
-                title: format!("Multi-sig pending · {}", header_realm_id),
-                description: "Seals awaiting threshold partial signatures from the notary cell members.".to_string(),
+                title: t("realm_multisig.title").replace("{realm_id}", &header_realm_id),
+                description: t("realm_multisig.description"),
                 Button {
                     variant: ButtonVariant::Outline,
                     onclick: move |_| data.restart(),
-                    "Refresh"
+                    {t("realm_multisig.refresh")}
                 }
             }
 
@@ -56,8 +57,8 @@ pub fn MultiSigPage(realm_id: String) -> Element {
                     rsx! {
                         EmptyState {
                             icon_name: "shield".to_string(),
-                            title: "No pending multi-sig Seals".to_string(),
-                            description: "All Seals in this Realm have reached threshold and assembled.".to_string(),
+                            title: t("realm_multisig.empty_title"),
+                            description: t("realm_multisig.empty_description"),
                         }
                     }
                 } else {
@@ -66,13 +67,13 @@ pub fn MultiSigPage(realm_id: String) -> Element {
                             Table {
                                 TableHeader {
                                     TableRow {
-                                        TableHead { "Seal ID" }
-                                        TableHead { "Threshold" }
-                                        TableHead { "Collected" }
-                                        TableHead { "Missing signers" }
-                                        TableHead { "State root" }
-                                        TableHead { "Created" }
-                                        TableHead { class: "text-right".to_string(), "Action" }
+                                        TableHead { {t("realm_multisig.col_seal_id")} }
+                                        TableHead { {t("realm_multisig.col_threshold")} }
+                                        TableHead { {t("realm_multisig.col_collected")} }
+                                        TableHead { {t("realm_multisig.col_missing_signers")} }
+                                        TableHead { {t("realm_multisig.col_state_root")} }
+                                        TableHead { {t("realm_multisig.col_created")} }
+                                        TableHead { class: "text-right".to_string(), {t("realm_multisig.col_action")} }
                                     }
                                 }
                                 TableBody {
@@ -84,8 +85,9 @@ pub fn MultiSigPage(realm_id: String) -> Element {
                                             let threshold_label = entry.threshold_label();
                                             let collected = entry.collected_partials;
                                             let remaining = entry.remaining();
-                                            let collected_label =
-                                                format!("{collected} (need {remaining} more)");
+                                            let collected_label = t("realm_multisig.collected_label")
+                                                .replace("{collected}", &collected.to_string())
+                                                .replace("{remaining}", &remaining.to_string());
                                             let collected_variant =
                                                 collected_badge_variant(entry);
                                             let missing = entry.missing_signers.join(", ");
@@ -128,13 +130,13 @@ pub fn MultiSigPage(realm_id: String) -> Element {
                                                                 onclick: move |_| {
                                                                     let pending_seal_id = seal_id_for_btn.clone();
                                                                     let sid = realm_id_for_btn.clone();
-                                                                    let Some(signer_did) = prompt_required("Signer DID") else {
+                                                                    let Some(signer_did) = prompt_required(&t("realm_multisig.prompt_signer_did")) else {
                                                                         return;
                                                                     };
-                                                                    let Some(signature_b64) = prompt_required("Partial signature (base64)") else {
+                                                                    let Some(signature_b64) = prompt_required(&t("realm_multisig.prompt_partial_signature")) else {
                                                                         return;
                                                                     };
-                                                                    let Some(kid) = prompt_required("Key ID") else {
+                                                                    let Some(kid) = prompt_required(&t("realm_multisig.prompt_key_id")) else {
                                                                         return;
                                                                     };
                                                                     in_flight.set(Some(pending_seal_id.clone()));
@@ -148,15 +150,20 @@ pub fn MultiSigPage(realm_id: String) -> Element {
                                                                         )
                                                                         .await;
                                                                         match res {
-                                                                            Ok(r) => show_toast(
-                                                                                &format!(
-                                                                                    "Partial recorded: {}/{}{}",
-                                                                                    r.collected_partials,
-                                                                                    r.threshold_k,
-                                                                                    if r.threshold_met() { " — threshold met" } else { "" }
-                                                                                ),
-                                                                                ToastVariant::Success,
-                                                                            ),
+                                                                            Ok(r) => {
+                                                                                let met_suffix = if r.threshold_met() {
+                                                                                    t("realm_multisig.toast_threshold_met_suffix")
+                                                                                } else {
+                                                                                    String::new()
+                                                                                };
+                                                                                show_toast(
+                                                                                    &t("realm_multisig.toast_partial_recorded")
+                                                                                        .replace("{collected}", &r.collected_partials.to_string())
+                                                                                        .replace("{threshold}", &r.threshold_k.to_string())
+                                                                                        .replace("{met}", &met_suffix),
+                                                                                    ToastVariant::Success,
+                                                                                );
+                                                                            }
                                                                             Err(e) => {
                                                                                 let msg = format_optional_endpoint_error(
                                                                                     "multisig partial",
@@ -169,7 +176,7 @@ pub fn MultiSigPage(realm_id: String) -> Element {
                                                                         data.restart();
                                                                     });
                                                                 },
-                                                                "Submit my partial signature"
+                                                                {t("realm_multisig.submit_partial")}
                                                             }
                                                         } else {
                                                             span { class: "text-xs text-muted-foreground", "—" }

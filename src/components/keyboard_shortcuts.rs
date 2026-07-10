@@ -1,6 +1,7 @@
 use dioxus::prelude::*;
 
 use crate::router::Route;
+use crate::utils::i18n::t;
 
 /// Global signal: if Some, we are awaiting the second key of a two-key chord.
 /// The f64 is the timestamp (milliseconds) when the first key was pressed.
@@ -154,7 +155,7 @@ fn ShortcutHelpModal() -> Element {
                 },
                 // Header
                 div { class: "flex items-center justify-between mb-4",
-                    h2 { class: "text-lg font-semibold", "Keyboard Shortcuts" }
+                    h2 { class: "text-lg font-semibold", {t("keyboard_shortcuts.title")} }
                     button {
                         class: "text-muted-foreground hover:text-foreground",
                         onclick: move |_| {
@@ -167,8 +168,8 @@ fn ShortcutHelpModal() -> Element {
                 table { class: "w-full text-sm",
                     thead {
                         tr { class: "border-b",
-                            th { class: "py-2 text-left font-medium", "Shortcut" }
-                            th { class: "py-2 text-left font-medium", "Action" }
+                            th { class: "py-2 text-left font-medium", {t("keyboard_shortcuts.col_shortcut")} }
+                            th { class: "py-2 text-left font-medium", {t("keyboard_shortcuts.col_action")} }
                         }
                     }
                     tbody {
@@ -176,28 +177,28 @@ fn ShortcutHelpModal() -> Element {
                             td { class: "py-2",
                                 kbd { class: "rounded bg-muted px-1.5 py-0.5 font-mono text-xs", "?" }
                             }
-                            td { class: "py-2", "Toggle this help dialog" }
+                            td { class: "py-2", {t("keyboard_shortcuts.toggle_help")} }
                         }
-                        for (key, label) in [
-                            ("d", "Dashboard"), ("a", "Actors"), ("s", "Spaces"),
-                            ("f", "Federation"), ("v", "Devices"), ("c", "Coauth Accounts"),
-                            ("l", "Audit Log"), ("p", "Policy"), ("t", "Server Status"),
-                            ("e", "Capabilities"),
+                        for (key, label_key) in [
+                            ("d", "nav.dashboard"), ("a", "nav.actors"), ("s", "nav.spaces"),
+                            ("f", "nav.federation"), ("v", "nav.devices"), ("c", "keyboard_shortcuts.coauth_accounts"),
+                            ("l", "nav.audit_log"), ("p", "nav.policy"), ("t", "nav.server_status"),
+                            ("e", "nav.capabilities"),
                         ] {
                             tr { class: "border-b",
                                 td { class: "py-2",
                                     kbd { class: "rounded bg-muted px-1.5 py-0.5 font-mono text-xs", "g" }
-                                    span { class: "mx-1 text-muted-foreground", "then" }
+                                    span { class: "mx-1 text-muted-foreground", {t("keyboard_shortcuts.then")} }
                                     kbd { class: "rounded bg-muted px-1.5 py-0.5 font-mono text-xs", "{key}" }
                                 }
-                                td { class: "py-2", "Go to {label}" }
+                                td { class: "py-2", {t("keyboard_shortcuts.go_to").replace("{label}", &t(label_key))} }
                             }
                         }
                     }
                 }
                 // Footer note
                 p { class: "mt-4 text-xs text-muted-foreground",
-                    "Two-key shortcuts must be pressed within 500ms."
+                    {t("keyboard_shortcuts.timing_note")}
                 }
             }
         }

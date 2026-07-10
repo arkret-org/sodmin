@@ -11,6 +11,7 @@ use dioxus::prelude::*;
 use crate::api::coauth::{self, CoauthAccountClaim};
 use crate::components::dangerous_action_dialog::{DangerousActionDialog, confirmation_suffix};
 use crate::components::ui::button::{Button, ButtonVariant};
+use crate::utils::i18n::t;
 use crate::utils::net::error::HttpError;
 
 #[component]
@@ -25,11 +26,11 @@ pub fn ClaimsPanel(
 
     rsx! {
         div { class: "rounded-lg border p-4 space-y-3",
-            h2 { class: "text-base font-semibold", "Claims" }
+            h2 { class: "text-base font-semibold", {t("claims_panel.title")} }
 
             if claims.is_empty() {
                 p { class: "text-sm text-muted-foreground",
-                    "No claim material is exposed by the current coauth account admin contract."
+                    {t("claims_panel.empty")}
                 }
             } else {
                 ul { class: "space-y-2",
@@ -59,23 +60,23 @@ pub fn ClaimsPanel(
                                                     pending_revoke.set(Some(claim_id_for_button.clone()));
                                                     revoke_error.set(None);
                                                 },
-                                                "Revoke"
+                                                {t("common.revoke")}
                                             }
                                         } else {
-                                            span { class: "text-xs text-muted-foreground", "already revoked" }
+                                            span { class: "text-xs text-muted-foreground", {t("claims_panel.already_revoked")} }
                                         }
                                     }
                                     div { class: "grid gap-2 text-sm md:grid-cols-3",
                                         div {
-                                            span { class: "text-muted-foreground", "Value: " }
+                                            span { class: "text-muted-foreground", {t("claims_panel.label_value")} }
                                             span { class: "break-all", "{value}" }
                                         }
                                         div {
-                                            span { class: "text-muted-foreground", "State: " }
+                                            span { class: "text-muted-foreground", {t("claims_panel.label_state")} }
                                             span { class: "font-mono", "{state}" }
                                         }
                                         div {
-                                            span { class: "text-muted-foreground", "Source: " }
+                                            span { class: "text-muted-foreground", {t("claims_panel.label_source")} }
                                             span { class: "font-mono", "{source}" }
                                         }
                                     }
@@ -95,18 +96,18 @@ pub fn ClaimsPanel(
             DangerousActionDialog {
                 open: pending_revoke.read().is_some(),
                 confirmation_phrase: confirmation_suffix(pending_revoke.read().as_deref().unwrap_or(""), 4),
-                title: "Revoke claim?".to_string(),
+                title: t("claims_panel.revoke_title"),
                 description: pending_revoke
                     .read()
                     .clone()
-                    .map(|c| format!(
-                        "This will revoke claim record {} on account {} via coauth's claims revoke endpoint.",
-                        c,
-                        account_id
-                    ))
+                    .map(|c| {
+                        t("claims_panel.revoke_description")
+                            .replace("{claim_id}", &c)
+                            .replace("{account_id}", &account_id)
+                    })
                     .unwrap_or_default(),
-                confirm_text: if *revoke_in_flight.read() { "Revoking...".to_string() } else { "Revoke".to_string() },
-                cancel_text: "Cancel".to_string(),
+                confirm_text: if *revoke_in_flight.read() { t("claims_panel.revoking") } else { t("common.revoke") },
+                cancel_text: t("common.cancel"),
                 on_confirm: {
                     move |_| {
                         let claim_id = match pending_revoke.read().clone() {
@@ -143,7 +144,9 @@ pub fn ClaimsPanel(
 
 fn format_err(e: &HttpError) -> String {
     match e.status {
-        0 => format!("Network error: {}", e.message),
-        s => format!("HTTP {}: {}", s, e.message),
+        0 => t("claims_panel.error_network").replace("{message}", &e.message),
+        s => t("claims_panel.error_http")
+            .replace("{status}", &s.to_string())
+            .replace("{message}", &e.message),
     }
 }

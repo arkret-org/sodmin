@@ -26,6 +26,7 @@ use crate::components::ui::toast::{ToastVariant, show_toast};
 use crate::types::seal::{
     AdminNotaryValue, NotaryKind, NotaryReconfigRequestBody, SubmitControlMoveOutcome,
 };
+use crate::utils::i18n::t;
 use crate::utils::net::session;
 
 #[component]
@@ -73,21 +74,21 @@ pub fn NotaryPage(realm_id: String) -> Element {
     rsx! {
         div { class: "space-y-6",
             PageHeader {
-                title: format!("Notary · {}", header_realm_id),
-                description: "Configure the notary cell for this Realm (single_did / threshold / open_set / mixed).".to_string(),
+                title: t("realm_notary.title").replace("{realm_id}", &header_realm_id),
+                description: t("realm_notary.description"),
             }
 
             match &*data.read() {
                 Some(Ok(value)) => rsx! {
                     Card {
-                        CardHeader { CardTitle { "Current notary value" } }
+                        CardHeader { CardTitle { {t("realm_notary.current_value_title")} } }
                         CardContent {
                             div { class: "space-y-2 text-sm",
                                 div { class: "flex items-center gap-2",
                                     Badge { variant: BadgeVariant::Secondary, "{value.kind_label()}" }
                                     span { class: "text-muted-foreground", "{value.summary()}" }
                                     if value.paused {
-                                        Badge { variant: BadgeVariant::Destructive, "paused" }
+                                        Badge { variant: BadgeVariant::Destructive, {t("realm_notary.paused")} }
                                     }
                                 }
                                 {render_value_detail(value)}
@@ -110,11 +111,11 @@ pub fn NotaryPage(realm_id: String) -> Element {
             }
 
             Card {
-                CardHeader { CardTitle { "Construct notary reconfig Control Move" } }
+                CardHeader { CardTitle { {t("realm_notary.form_title")} } }
                 CardContent {
                     div { class: "space-y-3",
                         div { class: "space-y-1",
-                            Label { r#for: "notary-kind".to_string(), "Kind" }
+                            Label { r#for: "notary-kind".to_string(), {t("realm_notary.label_kind")} }
                             select {
                                 class: "flex h-10 w-full rounded-md border bg-background px-3 py-2 text-sm",
                                 value: new_kind.read().clone(),
@@ -128,7 +129,7 @@ pub fn NotaryPage(realm_id: String) -> Element {
 
                         if *new_kind.read() == "single_did" {
                             div { class: "space-y-1",
-                                Label { r#for: "notary-single-did".to_string(), "DID" }
+                                Label { r#for: "notary-single-did".to_string(), {t("realm_notary.label_did")} }
                                 Input {
                                     value: new_single_did.read().clone(),
                                     oninput: move |evt: FormEvent| new_single_did.set(evt.value()),
@@ -157,7 +158,7 @@ pub fn NotaryPage(realm_id: String) -> Element {
                             }
                             div { class: "space-y-1",
                                 Label { r#for: "notary-threshold-dids".to_string(),
-                                    "DIDs (one per line)"
+                                    {t("realm_notary.label_threshold_dids")}
                                 }
                                 textarea {
                                     class: "flex min-h-[80px] w-full rounded-md border bg-background px-3 py-2 text-sm",
@@ -170,7 +171,7 @@ pub fn NotaryPage(realm_id: String) -> Element {
                         if *new_kind.read() == "open_set" {
                             div { class: "space-y-1",
                                 Label { r#for: "notary-open-set".to_string(),
-                                    "Members (one DID per line)"
+                                    {t("realm_notary.label_open_set_members")}
                                 }
                                 textarea {
                                     class: "flex min-h-[80px] w-full rounded-md border bg-background px-3 py-2 text-sm",
@@ -182,7 +183,7 @@ pub fn NotaryPage(realm_id: String) -> Element {
 
                         if *new_kind.read() == "mixed" {
                             div { class: "space-y-1",
-                                Label { r#for: "notary-mixed-primary".to_string(), "Primary DID" }
+                                Label { r#for: "notary-mixed-primary".to_string(), {t("realm_notary.label_mixed_primary")} }
                                 Input {
                                     value: new_mixed_primary.read().clone(),
                                     oninput: move |evt: FormEvent| new_mixed_primary.set(evt.value()),
@@ -190,7 +191,7 @@ pub fn NotaryPage(realm_id: String) -> Element {
                             }
                             div { class: "space-y-1",
                                 Label { r#for: "notary-mixed-recovery".to_string(),
-                                    "Recovery DIDs (one per line)"
+                                    {t("realm_notary.label_mixed_recovery")}
                                 }
                                 textarea {
                                     class: "flex min-h-[80px] w-full rounded-md border bg-background px-3 py-2 text-sm",
@@ -226,14 +227,14 @@ pub fn NotaryPage(realm_id: String) -> Element {
                                     if let Some(did) = &admin_did_for_submit
                                         && req.admin_self_signs_themselves_in(did) {
                                             show_toast(
-                                                "Refusing to submit: the proposed notary includes the current admin DID. Pick a different operator (or, if you intend the swap, perform it via a fresh admin scope, not self-signed).",
+                                                &t("realm_notary.toast_self_sign_blocked"),
                                                 ToastVariant::Error,
                                             );
                                             return;
                                         }
                                     pending.set(Some(req));
                                 },
-                                "Construct Control Move"
+                                {t("realm_notary.construct_button")}
                             }
                         }
                     }
@@ -251,10 +252,10 @@ pub fn NotaryPage(realm_id: String) -> Element {
                 if let Some(resp) = snapshot {
                     let control_move_id = resp.control_move_id.clone();
                     let pretty = serde_json::to_string_pretty(&resp.control_move_body)
-                        .unwrap_or_else(|_| "(failed to render control_move_body)".to_string());
+                        .unwrap_or_else(|_| t("realm_notary.render_body_failed"));
                     rsx! {
                         Card {
-                            CardHeader { CardTitle { "Last submitted Control Move body" } }
+                            CardHeader { CardTitle { {t("realm_notary.last_body_title")} } }
                             CardContent {
                                 div { class: "space-y-2 text-sm",
                                     div { class: "flex items-center gap-2",
@@ -263,7 +264,7 @@ pub fn NotaryPage(realm_id: String) -> Element {
                                     }
                                     details { class: "rounded-md border bg-muted/30",
                                         summary { class: "cursor-pointer select-none px-3 py-2 text-xs font-medium",
-                                            "Signed control_move_body"
+                                            {t("realm_notary.signed_body_summary")}
                                         }
                                         pre { class: "px-3 py-2 text-xs font-mono whitespace-pre-wrap break-all",
                                             "{pretty}"
@@ -285,26 +286,24 @@ pub fn NotaryPage(realm_id: String) -> Element {
             {
                 let pending_snapshot = pending.read().clone();
                 let open = pending_snapshot.is_some();
-                let title = "Submit notary reconfig?".to_string();
+                let title = t("realm_notary.confirm_title");
                 let admin_did_for_warn = admin_did_for_modal.clone();
                 let description = match &pending_snapshot {
                     Some(req) => {
-                        let mut d = format!(
-                            "High-sensitivity admin operation. Proposed kind = {}. Confirm your admin scope is current; soland will reject if scope has lapsed.",
-                            req.kind
-                        );
+                        let mut d = t("realm_notary.confirm_description").replace("{kind}", &req.kind);
                         if let Some(did) = admin_did_for_warn.as_deref()
                             && req.admin_self_signs_themselves_in(did) {
-                                d.push_str(" Warning: the proposed notary references the current admin DID; this will be rejected.");
+                                d.push(' ');
+                                d.push_str(&t("realm_notary.confirm_self_sign_warning"));
                             }
                         d
                     }
                     None => String::new(),
                 };
                 let confirm_text = if *submitting.read() {
-                    "Submitting…".to_string()
+                    t("realm_notary.submitting")
                 } else {
-                    "Submit Control Move".to_string()
+                    t("realm_notary.submit")
                 };
                 rsx! {
                     ConfirmDialog {
@@ -312,7 +311,7 @@ pub fn NotaryPage(realm_id: String) -> Element {
                         title,
                         description,
                         confirm_text,
-                        cancel_text: "Cancel".to_string(),
+                        cancel_text: t("common.cancel"),
                         destructive: true,
                         on_cancel: move |_| pending.set(None),
                         on_confirm: move |_| {
@@ -324,7 +323,8 @@ pub fn NotaryPage(realm_id: String) -> Element {
                                     match seal::submit_notary_reconfig(&req).await {
                                         Ok(resp) => {
                                             show_toast(
-                                                &format!("Control Move submitted: {}", resp.control_move_id),
+                                                &t("realm_notary.toast_submitted")
+                                                    .replace("{control_move_id}", &resp.control_move_id),
                                                 ToastVariant::Success,
                                             );
                                             // H'2 — surface the signed
@@ -333,7 +333,7 @@ pub fn NotaryPage(realm_id: String) -> Element {
                                             last_response.set(Some(resp));
                                         }
                                         Err(e) => show_toast(
-                                            &format!("Failed: {}", e.message),
+                                            &t("realm_notary.toast_failed").replace("{message}", &e.message),
                                             ToastVariant::Error,
                                         ),
                                     }
@@ -354,7 +354,9 @@ fn render_value_detail(v: &AdminNotaryValue) -> Element {
         None => {
             let raw = v.kind_raw.clone();
             rsx! {
-                div { class: "font-mono text-xs text-muted-foreground", "unknown notary kind: {raw}" }
+                div { class: "font-mono text-xs text-muted-foreground",
+                    {t("realm_notary.unknown_kind").replace("{raw}", &raw)}
+                }
             }
         }
         Some(NotaryKind::SingleDid) => {

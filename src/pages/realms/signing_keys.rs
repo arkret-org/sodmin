@@ -27,6 +27,7 @@ use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::toast::{ToastVariant, show_toast};
 use crate::types::signing_key::SigningKeyOrigin;
+use crate::utils::i18n::t;
 use crate::utils::net::error::format_optional_endpoint_error;
 
 #[component]
@@ -49,12 +50,12 @@ pub fn SigningKeysPage(realm_id: String) -> Element {
     rsx! {
         div { class: "space-y-6",
             PageHeader {
-                title: format!("Signing key · {}", header_realm_id),
-                description: "NotaryWorker signing key origin, verification method and rotation controls.".to_string(),
+                title: t("realm_signing_keys.title").replace("{realm_id}", &header_realm_id),
+                description: t("realm_signing_keys.description"),
                 Button {
                     variant: ButtonVariant::Outline,
                     onclick: move |_| data.restart(),
-                    "Refresh"
+                    {t("realm_signing_keys.refresh")}
                 }
             }
 
@@ -80,42 +81,42 @@ pub fn SigningKeysPage(realm_id: String) -> Element {
                             // for live workloads. The destructive banner
                             // mirrors the covered_seals lag pattern.
                             div { class: "rounded-md bg-destructive/10 p-3 text-sm text-destructive",
-                                "NotaryWorker signing-key origin is not confirmed by a backend describe endpoint. Rotation is disabled until soland exposes authoritative key origin and persistence metadata."
+                                {t("realm_signing_keys.unverified_banner")}
                             }
                         }
                         Card {
-                            CardHeader { CardTitle { "Current signing key" } }
+                            CardHeader { CardTitle { {t("realm_signing_keys.current_key_title")} } }
                             CardContent {
                                 div { class: "space-y-3 text-sm",
                                     div { class: "flex items-center gap-2",
                                         Badge { variant: origin_variant, "{origin_label}" }
                                         if is_unverified_origin {
                                             span { class: "text-xs text-muted-foreground",
-                                                "(read-only until key origin is confirmed)"
+                                                {t("realm_signing_keys.read_only_hint")}
                                             }
                                         }
                                     }
                                     div {
-                                        span { class: "text-muted-foreground mr-2", "Verification method:" }
+                                        span { class: "text-muted-foreground mr-2", {t("realm_signing_keys.label_verification_method")} }
                                         span { class: "font-mono text-xs break-all", "{vm}" }
                                     }
                                     div { class: "grid grid-cols-2 gap-3",
                                         div {
-                                            span { class: "text-muted-foreground mr-2", "DID:" }
+                                            span { class: "text-muted-foreground mr-2", {t("realm_signing_keys.label_did")} }
                                             span { class: "font-mono text-xs break-all", "{did}" }
                                         }
                                         div {
-                                            span { class: "text-muted-foreground mr-2", "kid:" }
+                                            span { class: "text-muted-foreground mr-2", {t("realm_signing_keys.label_kid")} }
                                             span { class: "font-mono text-xs break-all", "{kid}" }
                                         }
                                     }
                                     div { class: "grid grid-cols-2 gap-3",
                                         div {
-                                            span { class: "text-muted-foreground mr-2", "Algorithm:" }
+                                            span { class: "text-muted-foreground mr-2", {t("realm_signing_keys.label_algorithm")} }
                                             span { class: "font-mono text-xs", "{alg}" }
                                         }
                                         div {
-                                            span { class: "text-muted-foreground mr-2", "Last rotated:" }
+                                            span { class: "text-muted-foreground mr-2", {t("realm_signing_keys.label_last_rotated")} }
                                             span { class: "font-mono text-xs", "{last_rotated}" }
                                         }
                                     }
@@ -124,21 +125,21 @@ pub fn SigningKeysPage(realm_id: String) -> Element {
                         }
 
                         Card {
-                            CardHeader { CardTitle { "Rotation" } }
+                            CardHeader { CardTitle { {t("realm_signing_keys.rotation_title")} } }
                             CardContent {
                                 div { class: "flex items-center justify-between",
                                     p { class: "text-sm text-muted-foreground max-w-2xl",
                                         if can_rotate {
-                                            "Rotating generates a fresh key, swaps the worker's signer atomically, and reports the new verification method id. Audit-logged."
+                                            {t("realm_signing_keys.rotation_enabled_hint")}
                                         } else {
-                                            "Rotation disabled for this signing-key origin. Configure a stable PEM / KMS-backed signer and redeploy to enable."
+                                            {t("realm_signing_keys.rotation_disabled_hint")}
                                         }
                                     }
                                     Button {
                                         variant: ButtonVariant::Default,
                                         disabled: !can_rotate || *submitting.read(),
                                         onclick: move |_| confirming.set(true),
-                                        "Rotate signing key"
+                                        {t("realm_signing_keys.rotate_button")}
                                     }
                                 }
                             }
@@ -151,19 +152,19 @@ pub fn SigningKeysPage(realm_id: String) -> Element {
                         {
                             let open = *confirming.read();
                             let confirm_text = if *submitting.read() {
-                                "Rotating…".to_string()
+                                t("realm_signing_keys.rotating")
                             } else {
-                                "Confirm rotation".to_string()
+                                t("realm_signing_keys.confirm_rotation")
                             };
                             let realm_id = realm_id_for_rotate.clone();
                             rsx! {
                                 DangerousActionDialog {
                                     open,
                                     confirmation_phrase: "ROTATE".to_string(),
-                                    title: "Rotate NotaryWorker signing key?".to_string(),
-                                    description: "This generates a fresh key and rebinds the NotaryWorker. Existing in-flight Seals will be re-signed with the new key. Audit-logged. Continue?".to_string(),
+                                    title: t("realm_signing_keys.confirm_title"),
+                                    description: t("realm_signing_keys.confirm_description"),
                                     confirm_text,
-                                    cancel_text: "Cancel".to_string(),
+                                    cancel_text: t("realm_signing_keys.cancel"),
                                     on_cancel: move |_| confirming.set(false),
                                     on_confirm: move |_| {
                                         if *submitting.read() { return; }
@@ -173,10 +174,8 @@ pub fn SigningKeysPage(realm_id: String) -> Element {
                                             let res = signing_key::rotate_signing_key(&id).await;
                                             match res {
                                                 Ok(r) => show_toast(
-                                                    &format!(
-                                                        "Rotated to {}",
-                                                        r.verification_method_id
-                                                    ),
+                                                    &t("realm_signing_keys.toast_rotated")
+                                                        .replace("{vm}", &r.verification_method_id),
                                                     ToastVariant::Success,
                                                 ),
                                                 Err(e) => {

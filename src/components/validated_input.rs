@@ -31,7 +31,7 @@ impl ValidationKind {
             }
             ValidationKind::Required => {
                 if value.is_empty() {
-                    Err("This field is required")
+                    Err("validated_input.required")
                 } else {
                     Ok(())
                 }
