@@ -8,6 +8,7 @@ use crate::components::ui::error_banner::ErrorBanner;
 use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
 use crate::router::Route;
+use crate::utils::i18n::t;
 
 #[component]
 pub fn AccountDetailPage(account_id: String) -> Element {
@@ -26,12 +27,12 @@ pub fn AccountDetailPage(account_id: String) -> Element {
     rsx! {
         div { class: "space-y-6",
             PageHeader {
-                title: "coauth Account Detail".to_string(),
-                description: "Account-first admin detail view backed by coauth account, DID-binding, and explicit risk-action state-machine endpoints. Claims and grant inventory remain partial until backend coverage expands.".to_string(),
+                title: t("coauth_account_detail.title"),
+                description: t("coauth_account_detail.description"),
                 Link {
                     to: Route::CoauthAccountList {},
                     class: "inline-flex h-10 items-center rounded-md border px-4 text-sm font-medium transition-colors hover:bg-accent".to_string(),
-                    "Back to accounts"
+                    {t("coauth_account_detail.back")}
                 }
             }
 
@@ -45,7 +46,7 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                     let primary_did = summary.primary_did.clone().unwrap_or_else(|| "-".to_string());
                     let lifecycle = summary.lifecycle_label();
                     let integration_dependencies = if detail.integration_manifest.dependencies.is_empty() {
-                        "none".to_string()
+                        t("coauth_account_detail.none")
                     } else {
                         detail
                             .integration_manifest
@@ -61,7 +62,7 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                             .join(" | ")
                     };
                     let integration_surfaces = if detail.integration_manifest.surfaces.is_empty() {
-                        "none".to_string()
+                        t("coauth_account_detail.none")
                     } else {
                         detail
                             .integration_manifest
@@ -77,7 +78,7 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                             .join(" | ")
                     };
                     let integration_todos = if detail.integration_manifest.todos.is_empty() {
-                        "none".to_string()
+                        t("coauth_account_detail.none")
                     } else {
                         detail.integration_manifest.todos.join(" ")
                     };
@@ -86,31 +87,31 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                         div { class: "rounded-lg border p-4 space-y-2",
                             div { class: "text-lg font-semibold", "{display_name}" }
                             div { class: "text-sm text-muted-foreground",
-                                "Bridge status: "
+                                {t("coauth_account_detail.bridge_status")}
                                 span { class: "font-mono", "{summary.bridge_status}" }
                             }
                             div { class: "text-sm text-muted-foreground",
-                                "This panel is backed by coauth admin bridge discovery plus account, DID-binding, claims, session-grant, and risk-action endpoints. High-risk actions strand through a discovered persisted state-machine."
+                                {t("coauth_account_detail.bridge_description")}
                             }
                         }
 
                         div { class: "grid gap-4 md:grid-cols-2",
                             {section_block(
-                                "Account Summary",
+                                t("coauth_account_detail.account_summary"),
                                 rsx! {
-                                    {detail_row("Account ID", &summary.id)}
-                                    {detail_row("Handle", &handle)}
-                                    {detail_row("Primary DID", &primary_did)}
+                                    {detail_row(t("coauth_account_detail.account_id"), &summary.id)}
+                                    {detail_row(t("coauth_account_detail.handle"), &handle)}
+                                    {detail_row(t("coauth_account_detail.primary_did"), &primary_did)}
                                 },
                             )}
                             {section_block(
-                                "Lifecycle",
+                                t("coauth_account_detail.lifecycle"),
                                 rsx! {
-                                    {detail_row("Status", lifecycle)}
-                                    {detail_row("Locked", bool_label(summary.is_locked))}
-                                    {detail_row("Deactivated", bool_label(summary.is_deactivated))}
-                                    {detail_row("Created At", &created_at)}
-                                    {detail_row("Updated At", &updated_at)}
+                                    {detail_row(t("coauth_account_detail.status"), lifecycle)}
+                                    {detail_row(t("coauth_account_detail.locked"), &bool_label(summary.is_locked))}
+                                    {detail_row(t("coauth_account_detail.deactivated"), &bool_label(summary.is_deactivated))}
+                                    {detail_row(t("coauth_account_detail.created_at"), &created_at)}
+                                    {detail_row(t("coauth_account_detail.updated_at"), &updated_at)}
                                 },
                             )}
                         }
@@ -128,11 +129,11 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                         }
 
                         {section_block(
-                            "Session Grants",
+                            t("coauth_account_detail.session_grants"),
                             if detail.session_grants.is_empty() {
                                 rsx! {
                                     p { class: "text-sm text-muted-foreground",
-                                        "Session-grant inventory is not exposed by the current coauth account admin contract yet."
+                                        {t("coauth_account_detail.session_grants_empty")}
                                     }
                                 }
                             } else {
@@ -149,10 +150,10 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                                                         key: "{grant.grant_id}",
                                                         div { class: "font-mono text-sm", "{grant.grant_id}" }
                                                         div { class: "mt-2 grid gap-2 text-sm md:grid-cols-2",
-                                                            {detail_row("Subject", &subject)}
-                                                            {detail_row("Scope", &scope)}
-                                                            {detail_row("State", &state)}
-                                                            {detail_row("Issued At", &issued_at)}
+                                                            {detail_row(t("coauth_account_detail.subject"), &subject)}
+                                                            {detail_row(t("coauth_account_detail.scope"), &scope)}
+                                                            {detail_row(t("coauth_account_detail.state"), &state)}
+                                                            {detail_row(t("coauth_account_detail.issued_at"), &issued_at)}
                                                         }
                                                     }
                                                 }
@@ -173,69 +174,69 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                         )}
 
                         div { class: "rounded-lg border p-4 space-y-4",
-                            h2 { class: "text-base font-semibold", "Service Integration Manifest" }
+                            h2 { class: "text-base font-semibold", {t("coauth_account_detail.integration_manifest")} }
                             p { class: "text-sm text-muted-foreground",
-                                "Contract: "
+                                {t("coauth_account_detail.contract")}
                                 span { class: "font-mono", "{detail.integration_manifest.contract}" }
                             }
                             p { class: "text-sm text-muted-foreground",
-                                "Version: "
+                                {t("coauth_account_detail.version")}
                                 span { class: "font-mono", "{detail.integration_manifest.version}" }
                             }
                             p { class: "text-sm text-muted-foreground",
-                                "Service: "
+                                {t("coauth_account_detail.service")}
                                 span { class: "font-mono", "{detail.integration_manifest.service}" }
                             }
                             p { class: "text-sm text-muted-foreground",
-                                "Kind: "
+                                {t("coauth_account_detail.kind")}
                                 span { class: "font-mono", "{detail.integration_manifest.service_kind}" }
                             }
                             p { class: "text-sm text-muted-foreground",
-                                "Describe Path: "
+                                {t("coauth_account_detail.describe_path")}
                                 span { class: "font-mono", "{detail.integration_manifest.describe_path}" }
                             }
                             p { class: "text-sm text-muted-foreground",
-                                "Dependencies: "
+                                {t("coauth_account_detail.dependencies")}
                                 span { class: "font-mono", "{integration_dependencies}" }
                             }
                             p { class: "text-sm text-muted-foreground",
-                                "Surfaces: "
+                                {t("coauth_account_detail.surfaces")}
                                 span { class: "font-mono", "{integration_surfaces}" }
                             }
                             p { class: "text-sm text-muted-foreground",
                                 "{integration_todos}"
                             }
-                            h2 { class: "text-base font-semibold", "Admin Bridge Contract" }
+                            h2 { class: "text-base font-semibold", {t("coauth_account_detail.admin_bridge_contract")} }
                             p { class: "text-sm text-muted-foreground",
-                                "Contract: "
+                                {t("coauth_account_detail.contract")}
                                 span { class: "font-mono", "{detail.admin_bridge.contract}" }
                             }
                             p { class: "text-sm text-muted-foreground",
-                                "Version: "
+                                {t("coauth_account_detail.version")}
                                 span { class: "font-mono", "{detail.admin_bridge.version}" }
                             }
                             p { class: "text-sm text-muted-foreground",
-                                "API Base: "
+                                {t("coauth_account_detail.api_base")}
                                 span { class: "font-mono", "{detail.admin_bridge.api_base_path}" }
                             }
                             p { class: "text-sm text-muted-foreground",
-                                "Accounts: "
+                                {t("coauth_account_detail.accounts")}
                                 span { class: "font-mono", "{detail.admin_bridge.accounts_path}" }
                             }
                             p { class: "text-sm text-muted-foreground",
-                                "Account Detail Template: "
+                                {t("coauth_account_detail.account_detail_template")}
                                 span { class: "font-mono", "{detail.admin_bridge.account_detail_path_template}" }
                             }
                             p { class: "text-sm text-muted-foreground",
-                                "DID Bindings Template: "
+                                {t("coauth_account_detail.did_bindings_template")}
                                 span { class: "font-mono", "{detail.admin_bridge.account_dids_path_template}" }
                             }
                             p { class: "text-sm text-muted-foreground",
-                                "Claims Template: "
+                                {t("coauth_account_detail.claims_template")}
                                 span { class: "font-mono", "{detail.admin_bridge.account_claims_path_template}" }
                             }
                             p { class: "text-sm text-muted-foreground",
-                                "Session Grants Template: "
+                                {t("coauth_account_detail.session_grants_template")}
                                 span { class: "font-mono", "{detail.admin_bridge.account_session_grants_path_template}" }
                             }
                         }
@@ -256,7 +257,7 @@ pub fn AccountDetailPage(account_id: String) -> Element {
     }
 }
 
-fn section_block(title: &'static str, content: Element) -> Element {
+fn section_block(title: String, content: Element) -> Element {
     rsx! {
         div { class: "rounded-lg border p-4 space-y-3",
             h2 { class: "text-base font-semibold", "{title}" }
@@ -265,7 +266,7 @@ fn section_block(title: &'static str, content: Element) -> Element {
     }
 }
 
-fn detail_row(label: &'static str, value: &str) -> Element {
+fn detail_row(label: String, value: &str) -> Element {
     rsx! {
         div { class: "flex items-start justify-between gap-4 border-b pb-2 last:border-b-0 last:pb-0",
             span { class: "text-sm text-muted-foreground", "{label}" }
@@ -274,6 +275,10 @@ fn detail_row(label: &'static str, value: &str) -> Element {
     }
 }
 
-fn bool_label(value: bool) -> &'static str {
-    if value { "Yes" } else { "No" }
+fn bool_label(value: bool) -> String {
+    if value {
+        t("common.yes")
+    } else {
+        t("common.no")
+    }
 }
