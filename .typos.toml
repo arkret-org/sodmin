@@ -1,5 +1,11 @@
 [default.extend-words]
 consts = "consts"
+# "DELETEs" tokenizes as DELET + Es
+DELET = "DELET"
+# Recovery Time Objective
+RTO = "RTO"
+# "look-alikes"
+alikes = "alikes"
 
 [files]
 extend-exclude = ["**/*.js", "**/*.css", "**/*.html", "examples/*/static/**/*.*"]
