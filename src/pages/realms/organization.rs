@@ -1,26 +1,14 @@
-//! Realm organization control admin page (SOD-ORG-01..03).
-//!
-//! Read-only operator surface that answers two questions an admin must be able
-//! to answer at a glance:
-//!   * **SOD-ORG-01** — "Who claims to own/govern this Realm, and did the organization actually
-//!     consent?" Shows the verified relationship rows from soland's projection next to the
-//!     declared-only `owning_organizations` set, diffing the two. `revoked` / `expired` / `stale`
-//!     rows are bucketed separately and never counted as verified.
-//!   * **SOD-ORG-02** — "Who controls the organization principal, and through what proof?" Shows
-//!     controller / governance service / Account-Authority delegation / PCR bootstrap source and
-//!     the `executed_by` executor (which is explicitly NOT the organization principal / a shared
-//!     account). Expiring / revoked delegations are highlighted.
-//!   * **SOD-ORG-03** — security operation entry points (revoke / renew delegation, revoke realm
-//!     relationship). These are skeleton-only: each button shows the impact scope and is wired to a
-//!     TODO that MUST call the coauth / soland standard authorization API — sodmin never edits the
-//!     DB or emits product-private events directly.
-//!
-//! Route: `/realms/:realm_id/organization`.
-//!
-//! Data plumbing is mock-backed today (see `api::realm_organization`): the
-//! verified relationship data depends on soland SOL-ORG-06 and the principal
-//! control data depends on coauth COA-ORG-05.
+//! Realm organization relationship and principal-control surface.
 
+use arkret_core::models::{
+    RealmOrganizationControlScope, RealmOrganizationIssuerRole, RealmOrganizationLifecyclePhase,
+    RealmOrganizationRelationship, RealmOrganizationRelationshipList,
+    RealmOrganizationRelationshipRow,
+};
+use coauth_admin_types::organization_admin::{
+    OrganizationBootstrapAuthorization, OrganizationControlView, OrganizationDelegation,
+    OrganizationDelegationStatus,
+};
 use dioxus::prelude::*;
 
 use crate::api::realm_organization;
@@ -33,11 +21,6 @@ use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::{BreadcrumbItem, Breadcrumbs, PageHeader};
 use crate::components::ui::table::*;
 use crate::router::Route;
-use crate::types::{
-    DelegationLifecycle, OrgPrincipalControl, RealmOrganizationControlScope,
-    RealmOrganizationIssuerRole, RealmOrganizationPanel, RealmOrganizationRelationship,
-    RelationshipLifecycle, VerifiedOrgRelationship,
-};
 use crate::utils::i18n::t;
 
 #[component]
@@ -46,16 +29,10 @@ pub fn OrganizationPage(realm_id: String) -> Element {
         return selection_required_state("Realm");
     }
 
-    let realm_id_panel = realm_id.clone();
-    let mut panel = use_resource(move || {
-        let id = realm_id_panel.clone();
-        async move { realm_organization::get_realm_organization_panel(&id).await }
-    });
-
-    let realm_id_control = realm_id.clone();
-    let mut control = use_resource(move || {
-        let id = realm_id_control.clone();
-        async move { realm_organization::get_org_principal_control_panel(&id).await }
+    let realm_id_for_load = realm_id.clone();
+    let mut data = use_resource(move || {
+        let id = realm_id_for_load.clone();
+        async move { realm_organization::get_realm_organization_admin_view(&id).await }
     });
 
     let breadcrumbs = vec![
@@ -78,66 +55,33 @@ pub fn OrganizationPage(realm_id: String) -> Element {
     rsx! {
         div { class: "space-y-6",
             Breadcrumbs { items: breadcrumbs }
-
             PageHeader {
                 title: t("realm_organization.title"),
                 description: t("realm_organization.subtitle"),
                 Button {
                     variant: ButtonVariant::Outline,
-                    onclick: move |_| {
-                        panel.restart();
-                        control.restart();
-                    },
+                    onclick: move |_| data.restart(),
                     {t("common.refresh")}
                 }
             }
 
-            // Mock-data banner — surfaces SOL-ORG-06 / COA-ORG-05 dependency so
-            // the operator never mistakes the fixture for live data.
-            div {
-                class: "rounded-md border border-amber-600 bg-amber-600/10 px-3 py-2 text-sm space-y-1",
-                role: "alert",
-                "data-testid": "realm-organization-stub-banner",
-                p { class: "font-semibold text-amber-700 dark:text-amber-200",
-                    span { class: "mr-2", "\u{2139}" }
-                    {t("realm_organization.stub_title")}
-                }
-                p { class: "text-xs text-amber-700/90 dark:text-amber-200/90",
-                    {t("realm_organization.stub_body")}
-                }
-            }
-
-            // ── SOD-ORG-01 — verified relationship panel ──
-            match &*panel.read() {
-                Some(Ok(p)) => rsx! { VerifiedRelationshipCard { panel: p.clone() } },
-                Some(Err(e)) => rsx! {
-                    ErrorBanner { message: e.message.clone(), on_retry: move |_| panel.restart() }
+            match &*data.read() {
+                Some(Ok(view)) => rsx! {
+                    {verified_relationship_card(&view.relationships)}
+                    {principal_control_card(&view.controls, &view.unavailable_control_dids)}
+                },
+                Some(Err(error)) => rsx! {
+                    ErrorBanner { message: error.message.clone(), on_retry: move |_| data.restart() }
                 },
                 None => rsx! { PageSkeleton {} },
             }
 
-            // ── SOD-ORG-02 — organization principal control audit ──
-            match &*control.read() {
-                Some(Ok(c)) => rsx! { PrincipalControlCard { rows: c.rows.clone() } },
-                Some(Err(e)) => rsx! {
-                    ErrorBanner { message: e.message.clone(), on_retry: move |_| control.restart() }
-                },
-                None => rsx! { PageSkeleton {} },
-            }
-
-            // ── SOD-ORG-03 — security operations (skeleton) ──
             SecurityOperationsCard {}
         }
     }
 }
 
-// ── SOD-ORG-01 ──
-
-#[component]
-fn VerifiedRelationshipCard(panel: RealmOrganizationPanel) -> Element {
-    let declared_only = panel.declared_without_verified();
-    let verified_undeclared = panel.verified_without_declared();
-
+fn verified_relationship_card(panel: &RealmOrganizationRelationshipList) -> Element {
     rsx! {
         Card {
             CardHeader {
@@ -146,26 +90,12 @@ fn VerifiedRelationshipCard(panel: RealmOrganizationPanel) -> Element {
             }
             CardContent {
                 div { class: "space-y-4",
-                    // Declared-only diff: claimed but no organization consent.
-                    if !declared_only.is_empty() {
+                    if !panel.declared_organization_hints.is_empty() {
                         div {
                             class: "rounded-md border border-amber-600/60 bg-amber-600/5 px-3 py-2 text-sm",
                             p { class: "font-semibold mb-1", {t("realm_organization.declared_only_title")} }
                             ul { class: "list-disc pl-5 space-y-0.5",
-                                for did in declared_only.iter() {
-                                    li { key: "{did}", class: "font-mono text-xs", "{did}" }
-                                }
-                            }
-                        }
-                    }
-                    // Verified but not self-declared: consent exists, Realm
-                    // object omits the org.
-                    if !verified_undeclared.is_empty() {
-                        div {
-                            class: "rounded-md border border-sky-600/60 bg-sky-600/5 px-3 py-2 text-sm",
-                            p { class: "font-semibold mb-1", {t("realm_organization.verified_undeclared_title")} }
-                            ul { class: "list-disc pl-5 space-y-0.5",
-                                for did in verified_undeclared.iter() {
+                                for did in panel.declared_organization_hints.iter() {
                                     li { key: "{did}", class: "font-mono text-xs", "{did}" }
                                 }
                             }
@@ -185,7 +115,7 @@ fn VerifiedRelationshipCard(panel: RealmOrganizationPanel) -> Element {
                             }
                         }
                         TableBody {
-                            if panel.verified.is_empty() {
+                            if panel.relationships.is_empty() {
                                 TableRow {
                                     TableCell {
                                         class: "text-center text-muted-foreground py-6".to_string(),
@@ -194,7 +124,7 @@ fn VerifiedRelationshipCard(panel: RealmOrganizationPanel) -> Element {
                                     }
                                 }
                             } else {
-                                for row in panel.verified.iter() {
+                                for row in panel.relationships.iter() {
                                     {relationship_row(row)}
                                 }
                             }
@@ -206,24 +136,28 @@ fn VerifiedRelationshipCard(panel: RealmOrganizationPanel) -> Element {
     }
 }
 
-fn relationship_row(row: &VerifiedOrgRelationship) -> Element {
+fn relationship_row(row: &RealmOrganizationRelationshipRow) -> Element {
     let scopes = row
         .control_scopes
         .iter()
-        .map(|s| scope_label(*s))
+        .map(|scope| scope_label(*scope))
         .collect::<Vec<_>>()
         .join(", ");
+    let organization_id = row.organization_id.to_string();
+    let issued_at = row.issued_at.to_rfc3339();
+    let expires_at = row
+        .expires_at
+        .map(|timestamp| timestamp.to_rfc3339())
+        .unwrap_or_else(|| t("realm_organization.no_expiry"));
     rsx! {
         TableRow {
             key: "{row.statement_id}",
-            TableCell { class: "font-mono text-xs".to_string(), "{row.organization_id}" }
+            TableCell { class: "font-mono text-xs".to_string(), "{organization_id}" }
             TableCell { class: "text-xs".to_string(), {relationship_label(row.relationship)} }
-            TableCell { {lifecycle_badge(row.lifecycle)} }
+            TableCell { {relationship_lifecycle_badge(row.lifecycle_phase)} }
             TableCell { class: "text-xs max-w-[260px]".to_string(), "{scopes}" }
-            TableCell { class: "text-xs".to_string(), "{row.issued_at}" }
-            TableCell { class: "text-xs".to_string(),
-                {row.expires_at.clone().unwrap_or_else(|| t("realm_organization.no_expiry"))}
-            }
+            TableCell { class: "text-xs".to_string(), "{issued_at}" }
+            TableCell { class: "text-xs".to_string(), "{expires_at}" }
             TableCell { class: "font-mono text-xs".to_string(),
                 div { class: "flex flex-col",
                     span { "{row.statement_id}" }
@@ -236,33 +170,23 @@ fn relationship_row(row: &VerifiedOrgRelationship) -> Element {
     }
 }
 
-/// Lifecycle badge — `revoked` / `expired` / `stale` are visually distinct from
-/// `active` so they are never read as verified consent.
-fn lifecycle_badge(lc: RelationshipLifecycle) -> Element {
-    let (variant, key) = match lc {
-        RelationshipLifecycle::Active => {
+fn relationship_lifecycle_badge(lifecycle: RealmOrganizationLifecyclePhase) -> Element {
+    let (variant, key) = match lifecycle {
+        RealmOrganizationLifecyclePhase::VerifiedActive => {
             (BadgeVariant::Success, "realm_organization.lifecycle_active")
         }
-        RelationshipLifecycle::Revoked => (
+        RealmOrganizationLifecyclePhase::RevokedOrExpired => (
             BadgeVariant::Destructive,
-            "realm_organization.lifecycle_revoked",
-        ),
-        RelationshipLifecycle::Expired => (
-            BadgeVariant::Destructive,
-            "realm_organization.lifecycle_expired",
-        ),
-        RelationshipLifecycle::Stale => (
-            BadgeVariant::Secondary,
-            "realm_organization.lifecycle_stale",
+            "realm_organization.lifecycle_revoked_or_expired",
         ),
     };
     rsx! { Badge { variant, {t(key)} } }
 }
 
-// ── SOD-ORG-02 ──
-
-#[component]
-fn PrincipalControlCard(rows: Vec<OrgPrincipalControl>) -> Element {
+fn principal_control_card(
+    controls: &[OrganizationControlView],
+    unavailable_control_dids: &[String],
+) -> Element {
     rsx! {
         Card {
             CardHeader {
@@ -270,32 +194,51 @@ fn PrincipalControlCard(rows: Vec<OrgPrincipalControl>) -> Element {
                 CardDescription { {t("realm_organization.control_subtitle")} }
             }
             CardContent {
-                Table {
-                    TableHeader {
-                        TableRow {
-                            TableHead { {t("realm_organization.col_org")} }
-                            TableHead { {t("realm_organization.col_controller")} }
-                            TableHead { {t("realm_organization.col_governance")} }
-                            TableHead { {t("realm_organization.col_role")} }
-                            TableHead { {t("realm_organization.col_delegation")} }
-                            TableHead { {t("realm_organization.col_pcr")} }
-                            TableHead { {t("realm_organization.col_executed_by")} }
-                            TableHead { {t("realm_organization.col_expires")} }
-                            TableHead { {t("realm_organization.col_delegation_status")} }
-                        }
-                    }
-                    TableBody {
-                        if rows.is_empty() {
-                            TableRow {
-                                TableCell {
-                                    class: "text-center text-muted-foreground py-6".to_string(),
-                                    colspan: 99,
-                                    {t("realm_organization.control_empty")}
+                div { class: "space-y-4",
+                    if !unavailable_control_dids.is_empty() {
+                        div {
+                            class: "rounded-md border border-muted-foreground/40 bg-muted/30 px-3 py-2 text-sm",
+                            p { class: "font-semibold mb-1", {t("realm_organization.control_unavailable_title")} }
+                            ul { class: "list-disc pl-5 space-y-0.5",
+                                for did in unavailable_control_dids.iter() {
+                                    li { key: "{did}", class: "font-mono text-xs", "{did}" }
                                 }
                             }
-                        } else {
-                            for row in rows.iter() {
-                                {principal_control_row(row)}
+                        }
+                    }
+                    Table {
+                        TableHeader {
+                            TableRow {
+                                TableHead { {t("realm_organization.col_org")} }
+                                TableHead { {t("realm_organization.col_control_stream")} }
+                                TableHead { {t("realm_organization.col_pcr_realm")} }
+                                TableHead { {t("realm_organization.col_role")} }
+                                TableHead { {t("realm_organization.col_delegation")} }
+                                TableHead { {t("realm_organization.col_pcr")} }
+                                TableHead { {t("realm_organization.col_executed_by")} }
+                                TableHead { {t("realm_organization.col_expires")} }
+                                TableHead { {t("realm_organization.col_delegation_status")} }
+                            }
+                        }
+                        TableBody {
+                            if controls.is_empty() {
+                                TableRow {
+                                    TableCell {
+                                        class: "text-center text-muted-foreground py-6".to_string(),
+                                        colspan: 99,
+                                        {t("realm_organization.control_empty")}
+                                    }
+                                }
+                            } else {
+                                for view in controls.iter() {
+                                    if view.delegations.is_empty() {
+                                        {principal_control_row(view, None)}
+                                    } else {
+                                        for delegation in view.delegations.iter() {
+                                            {principal_control_row(view, Some(delegation))}
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
@@ -305,83 +248,113 @@ fn PrincipalControlCard(rows: Vec<OrgPrincipalControl>) -> Element {
     }
 }
 
-fn principal_control_row(row: &OrgPrincipalControl) -> Element {
+fn principal_control_row(
+    view: &OrganizationControlView,
+    delegation: Option<&OrganizationDelegation>,
+) -> Element {
     let dash = "-".to_string();
-    let scopes = row
-        .covered_control_scopes
-        .iter()
-        .map(|s| scope_label(*s))
-        .collect::<Vec<_>>()
-        .join(", ");
-    // Stable row key: delegation ref is unique per row when present, otherwise
-    // fall back to the org DID + issuer role pair.
-    let row_key = row
-        .account_authority_delegation_ref
+    let control = &view.control;
+    let row_key = delegation
+        .map(|row| row.delegation_ref.clone())
+        .unwrap_or_else(|| format!("{}:control", control.organization_did));
+    let control_stream = control
+        .control_stream_ref
         .clone()
-        .unwrap_or_else(|| format!("{}:{:?}", row.organization_id, row.issuer_role));
+        .unwrap_or_else(|| dash.clone());
+    let issuer_role = delegation
+        .map(|row| issuer_role_label(row.issuer_role))
+        .unwrap_or_else(|| dash.clone());
+    let delegation_ref = delegation
+        .map(|row| row.delegation_ref.clone())
+        .unwrap_or_else(|| dash.clone());
+    let scopes = delegation
+        .map(|row| {
+            row.covered_control_scopes
+                .iter()
+                .map(|scope| scope_label(*scope))
+                .collect::<Vec<_>>()
+                .join(", ")
+        })
+        .unwrap_or_default();
+    let executed_by = delegation
+        .map(|row| row.created_by.clone())
+        .or_else(|| control.executed_by.clone())
+        .unwrap_or_else(|| dash.clone());
+    let expires_at = delegation
+        .and_then(|row| row.valid_until)
+        .map(|timestamp| timestamp.to_rfc3339())
+        .unwrap_or_else(|| t("realm_organization.no_expiry"));
+    let bootstrap = bootstrap_authorization_label(control.bootstrap_authorization);
+
     rsx! {
         TableRow {
             key: "{row_key}",
-            TableCell { class: "font-mono text-xs".to_string(), "{row.organization_id}" }
-            TableCell { class: "font-mono text-xs".to_string(),
-                {row.controller.clone().unwrap_or_else(|| dash.clone())}
-            }
-            TableCell { class: "font-mono text-xs".to_string(),
-                {row.governance_service.clone().unwrap_or_else(|| dash.clone())}
-            }
-            TableCell { class: "text-xs".to_string(), {issuer_role_label(row.issuer_role)} }
+            TableCell { class: "font-mono text-xs".to_string(), "{control.organization_did}" }
+            TableCell { class: "font-mono text-xs".to_string(), "{control_stream}" }
+            TableCell { class: "font-mono text-xs".to_string(), "{control.principal_control_realm_id}" }
+            TableCell { class: "text-xs".to_string(), "{issuer_role}" }
             TableCell { class: "font-mono text-xs max-w-[220px] truncate".to_string(),
                 div { class: "flex flex-col",
-                    span { {row.account_authority_delegation_ref.clone().unwrap_or_else(|| dash.clone())} }
+                    span { "{delegation_ref}" }
                     if !scopes.is_empty() {
                         span { class: "text-muted-foreground/80 text-[10px]", "{scopes}" }
                     }
                 }
             }
-            TableCell { class: "font-mono text-xs".to_string(),
-                {row.pcr_bootstrap_source.clone().unwrap_or_else(|| dash.clone())}
+            TableCell { class: "text-xs".to_string(),
+                div { class: "flex flex-col",
+                    span { "{bootstrap}" }
+                    if let Some(reference) = control.bootstrap_delegation_ref.as_ref() {
+                        span { class: "font-mono text-muted-foreground/80 text-[10px]", "{reference}" }
+                    }
+                }
             }
-            // `executed_by` — executor identity only, NOT the organization
-            // principal and NOT a shared account.
             TableCell { class: "font-mono text-xs".to_string(),
                 div { class: "flex flex-col",
-                    span { {row.executed_by.clone().unwrap_or_else(|| dash.clone())} }
-                    if row.executed_by.is_some() {
+                    span { "{executed_by}" }
+                    if executed_by != "-" {
                         span { class: "text-muted-foreground/80 text-[10px]",
                             {t("realm_organization.executor_note")}
                         }
                     }
                 }
             }
-            TableCell { class: "text-xs".to_string(),
-                {row.expires_at.clone().unwrap_or_else(|| t("realm_organization.no_expiry"))}
-            }
-            TableCell { {delegation_badge(row.lifecycle)} }
+            TableCell { class: "text-xs".to_string(), "{expires_at}" }
+            TableCell { {delegation_badge(delegation)} }
         }
     }
 }
 
-/// Highlight expiring-soon / revoked delegations.
-fn delegation_badge(lc: DelegationLifecycle) -> Element {
-    let (variant, key) = match lc {
-        DelegationLifecycle::Live => (BadgeVariant::Success, "realm_organization.delegation_live"),
-        DelegationLifecycle::ExpiringSoon => (
-            BadgeVariant::Outline,
-            "realm_organization.delegation_expiring",
-        ),
-        DelegationLifecycle::Expired => (
-            BadgeVariant::Destructive,
-            "realm_organization.delegation_expired",
-        ),
-        DelegationLifecycle::Revoked => (
+fn delegation_badge(delegation: Option<&OrganizationDelegation>) -> Element {
+    let Some(delegation) = delegation else {
+        return rsx! { Badge { variant: BadgeVariant::Outline, {t("realm_organization.delegation_none")} } };
+    };
+    let now = chrono::Utc::now();
+    let (variant, key) = if delegation.status == OrganizationDelegationStatus::Revoked
+        || delegation.revoked_at.is_some()
+    {
+        (
             BadgeVariant::Destructive,
             "realm_organization.delegation_revoked",
-        ),
+        )
+    } else if delegation.valid_until.is_some_and(|until| until <= now) {
+        (
+            BadgeVariant::Destructive,
+            "realm_organization.delegation_expired",
+        )
+    } else if delegation
+        .valid_until
+        .is_some_and(|until| until <= now + chrono::Duration::days(7))
+    {
+        (
+            BadgeVariant::Outline,
+            "realm_organization.delegation_expiring",
+        )
+    } else {
+        (BadgeVariant::Success, "realm_organization.delegation_live")
     };
     rsx! { Badge { variant, {t(key)} } }
 }
-
-// ── SOD-ORG-03 — security operations skeleton ──
 
 #[component]
 fn SecurityOperationsCard() -> Element {
@@ -393,10 +366,6 @@ fn SecurityOperationsCard() -> Element {
             }
             CardContent {
                 div { class: "space-y-4",
-                    // Impact-scope preview shown before any operation. These are
-                    // the boundaries a revoke/renew touches: official badge,
-                    // governance policy, directory listing, durability/delivery
-                    // binding policy.
                     div {
                         class: "rounded-md border border-border bg-muted/30 px-3 py-2 text-sm",
                         p { class: "font-semibold mb-1", {t("realm_organization.impact_title")} }
@@ -407,13 +376,6 @@ fn SecurityOperationsCard() -> Element {
                             li { {t("realm_organization.impact_binding_policy")} }
                         }
                     }
-
-                    // TODO(SOD-ORG-03): each action MUST be routed through the
-                    // coauth / soland standard authorization API so the emitted
-                    // event verifies as a standard `ak.realm.organization`
-                    // flow (cotest acceptance). sodmin MUST NOT mutate the DB or
-                    // emit product-private events directly. Buttons are disabled
-                    // until those endpoints exist (COA-ORG-05 / SOL-ORG-06).
                     div { class: "flex flex-wrap gap-2",
                         Button {
                             variant: ButtonVariant::Outline,
@@ -440,10 +402,16 @@ fn SecurityOperationsCard() -> Element {
     }
 }
 
-// ── label helpers (display only; never re-derive protocol semantics) ──
+fn bootstrap_authorization_label(value: OrganizationBootstrapAuthorization) -> String {
+    match value {
+        OrganizationBootstrapAuthorization::DidControllerProof => "did_controller_proof",
+        OrganizationBootstrapAuthorization::DelegatedGovernance => "delegated_governance",
+    }
+    .to_string()
+}
 
-fn relationship_label(r: RealmOrganizationRelationship) -> String {
-    let key = match r {
+fn relationship_label(value: RealmOrganizationRelationship) -> String {
+    let key = match value {
         RealmOrganizationRelationship::Owner => "realm_organization.rel_owner",
         RealmOrganizationRelationship::Governance => "realm_organization.rel_governance",
         RealmOrganizationRelationship::Sponsor => "realm_organization.rel_sponsor",
@@ -454,8 +422,8 @@ fn relationship_label(r: RealmOrganizationRelationship) -> String {
     t(key)
 }
 
-fn issuer_role_label(r: RealmOrganizationIssuerRole) -> String {
-    let key = match r {
+fn issuer_role_label(value: RealmOrganizationIssuerRole) -> String {
+    let key = match value {
         RealmOrganizationIssuerRole::OrganizationDid => "realm_organization.role_organization_did",
         RealmOrganizationIssuerRole::GovernanceService => {
             "realm_organization.role_governance_service"
@@ -468,10 +436,8 @@ fn issuer_role_label(r: RealmOrganizationIssuerRole) -> String {
     t(key)
 }
 
-fn scope_label(s: RealmOrganizationControlScope) -> String {
-    // Machine scope names are stable wire tokens; render them verbatim so the
-    // operator sees the exact `control_scopes[]` value, not a lossy gloss.
-    match s {
+fn scope_label(value: RealmOrganizationControlScope) -> String {
+    match value {
         RealmOrganizationControlScope::OfficialBadge => "official_badge",
         RealmOrganizationControlScope::RealmAdmin => "realm_admin",
         RealmOrganizationControlScope::NotaryControl => "notary_control",

@@ -7,19 +7,19 @@
 use dioxus::prelude::*;
 
 use crate::api::coauth_devices;
+use crate::components::dangerous_action_dialog::{DangerousActionDialog, confirmation_suffix};
 use crate::components::ui::badge::{Badge, BadgeVariant};
 use crate::components::ui::button::{Button, ButtonSize, ButtonVariant};
 use crate::components::ui::empty_state::EmptyState;
 use crate::components::ui::error_banner::ErrorBanner;
-use crate::components::ui::input::{Input, Label};
 use crate::components::ui::loading::PageSkeleton;
-use crate::components::ui::modal::{DialogActions, Modal};
 use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::table::*;
 use crate::components::ui::toast::{ToastVariant, show_toast};
 use crate::types::coauth_devices::{
     CoauthDeviceMfaState, CoauthDeviceRiskLevel, render_optional_timestamp,
 };
+use crate::utils::destructive_reason::destructive_reason_error;
 use crate::utils::i18n::t;
 use crate::utils::net::error::format_optional_endpoint_error;
 
@@ -147,68 +147,48 @@ pub fn AccountDevicesPage(account_id: String) -> Element {
                 None => rsx! { PageSkeleton {} },
             }
 
-            Modal {
+            DangerousActionDialog {
                 open: pending_revoke.read().is_some(),
                 title: t("coauth_devices.revoke_confirm_title"),
-                on_close: move |_| pending_revoke.set(None),
-                p { class: "text-sm text-muted-foreground", {t("coauth_devices.revoke_confirm_body")} }
-                div { class: "space-y-1",
-                    Label { r#for: "coauth-device-revoke-reason".to_string(), "Reason / ticket" }
-                    Input {
-                        id: "coauth-device-revoke-reason".to_string(),
-                        value: revoke_reason.read().clone(),
-                        required: true,
-                        placeholder: "SEC-1234 / support case / incident reason".to_string(),
-                        oninput: move |evt: FormEvent| revoke_reason.set(evt.value()),
+                description: t("coauth_devices.revoke_confirm_body"),
+                confirmation_phrase: confirmation_suffix(
+                    pending_revoke.read().as_deref().unwrap_or(""),
+                    4,
+                ),
+                confirm_text: t("coauth_devices.revoke"),
+                cancel_text: t("common.cancel"),
+                reason: Some(revoke_reason.read().clone()),
+                reason_required: true,
+                busy: in_flight.read().is_some(),
+                on_reason_change: move |reason| revoke_reason.set(reason),
+                on_cancel: move |_| pending_revoke.set(None),
+                on_confirm: move |_| {
+                    let reason = revoke_reason.read().trim().to_string();
+                    if destructive_reason_error(&reason, true).is_some() {
+                        return;
                     }
-                }
-                {
-                    let reason_ready = !revoke_reason.read().trim().is_empty();
-                    let busy = in_flight.read().is_some();
-                    rsx! {
-                        DialogActions {
-                            confirm_text: t("coauth_devices.revoke"),
-                            cancel_text: t("common.cancel"),
-                            destructive: true,
-                            confirm_loading: busy || !reason_ready,
-                            on_cancel: move |_| pending_revoke.set(None),
-                            on_confirm: move |_| {
-                                let reason = revoke_reason.read().trim().to_string();
-                                if reason.is_empty() {
-                                    return;
+                    if let Some(did) = pending_revoke.read().clone() {
+                        in_flight.set(Some(did.clone()));
+                        let acct = account_for_revoke.clone();
+                        spawn(async move {
+                            let res = coauth_devices::revoke_account_device(&acct, &did, &reason)
+                                .await;
+                            match res {
+                                Ok(_) => show_toast(
+                                    &t("coauth_devices.revoke_ok"),
+                                    ToastVariant::Success,
+                                ),
+                                Err(e) => {
+                                    let msg = format_optional_endpoint_error("device revoke", &e);
+                                    show_toast(&msg, ToastVariant::Error);
                                 }
-                                if let Some(did) = pending_revoke.read().clone() {
-                                    in_flight.set(Some(did.clone()));
-                                    let acct = account_for_revoke.clone();
-                                    spawn(async move {
-                                        let res = coauth_devices::revoke_account_device(
-                                            &acct,
-                                            &did,
-                                            &reason,
-                                        )
-                                        .await;
-                                        match res {
-                                            Ok(_) => show_toast(
-                                                "Device revoked. Linked session grants cascade-revoke on soland side.",
-                                                ToastVariant::Success,
-                                            ),
-                                            Err(e) => {
-                                                let msg = format_optional_endpoint_error(
-                                                    "device revoke",
-                                                    &e,
-                                                );
-                                                show_toast(&msg, ToastVariant::Error);
-                                            }
-                                        }
-                                        in_flight.set(None);
-                                        data.restart();
-                                    });
-                                }
-                                pending_revoke.set(None);
-                            },
-                        }
+                            }
+                            in_flight.set(None);
+                            data.restart();
+                        });
                     }
-                }
+                    pending_revoke.set(None);
+                },
             }
         }
     }

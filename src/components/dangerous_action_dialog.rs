@@ -18,6 +18,7 @@ use dioxus::prelude::*;
 use crate::components::ui::button::{Button, ButtonVariant};
 use crate::components::ui::input::Input;
 use crate::components::ui::modal::ModalOverlay;
+use crate::utils::destructive_reason::{DESTRUCTIVE_REASON_MAX_CHARS, destructive_reason_error};
 use crate::utils::i18n::t;
 
 #[derive(Props, Clone, PartialEq)]
@@ -33,6 +34,19 @@ pub struct DangerousActionDialogProps {
     pub confirm_text: String,
     #[props(default = "Cancel".to_string())]
     pub cancel_text: String,
+    /// Optional controlled audit-reason value. `Some` renders the reason input;
+    /// `None` leaves the dialog as a phrase-only confirmation.
+    #[props(default)]
+    pub reason: Option<String>,
+    #[props(default)]
+    pub reason_required: bool,
+    #[props(default)]
+    pub on_reason_change: Option<EventHandler<String>>,
+    /// Extra action-specific fields rendered before the confirmation phrase.
+    #[props(default)]
+    pub children: Element,
+    #[props(default)]
+    pub busy: bool,
     pub on_cancel: EventHandler<()>,
     pub on_confirm: EventHandler<()>,
 }
@@ -59,13 +73,60 @@ pub fn DangerousActionDialog(props: DangerousActionDialogProps) -> Element {
 
     let phrase = props.confirmation_phrase.clone();
     let phrase_ok = phrase_matches(&typed.read(), &phrase);
+    let reason_error = props
+        .reason
+        .as_deref()
+        .and_then(|reason| destructive_reason_error(reason, props.reason_required));
+    let reason_ok = props.reason.is_none() || reason_error.is_none();
+
+    let clear_reason_on_cancel = props.on_reason_change;
+    let clear_reason_on_confirm = props.on_reason_change;
 
     rsx! {
-        ModalOverlay { on_close: move |_| props.on_cancel.call(()),
+        ModalOverlay { on_close: move |_| {
+            if let Some(handler) = props.on_reason_change {
+                handler.call(String::new());
+            }
+            props.on_cancel.call(());
+        },
             div { class: "relative z-50 w-full max-w-lg rounded-lg border glass-panel p-6 shadow-lg space-y-4",
                 div { class: "space-y-1",
                     h2 { class: "text-lg font-semibold text-destructive", "{props.title}" }
                     p { class: "text-sm text-muted-foreground", "{props.description}" }
+                }
+
+                {props.children}
+
+                if let Some(reason) = props.reason.as_ref() {
+                    div { class: "space-y-1",
+                        label {
+                            class: "text-sm font-medium",
+                            r#for: "dangerous-action-reason",
+                            {t("dangerous_action.reason_label")}
+                        }
+                        Input {
+                            id: "dangerous-action-reason".to_string(),
+                            value: reason.clone(),
+                            required: props.reason_required,
+                            max_length: DESTRUCTIVE_REASON_MAX_CHARS as u32,
+                            placeholder: t("dangerous_action.reason_placeholder"),
+                            aria_describedby: "dangerous-action-reason-help".to_string(),
+                            oninput: move |evt: FormEvent| {
+                                if let Some(handler) = props.on_reason_change {
+                                    handler.call(evt.value());
+                                }
+                            },
+                        }
+                        p {
+                            id: "dangerous-action-reason-help",
+                            class: if reason_error.is_some() {
+                                "text-xs text-destructive"
+                            } else {
+                                "text-xs text-muted-foreground"
+                            },
+                            {reason_error.map(t).unwrap_or_else(|| t("dangerous_action.reason_help"))}
+                        }
+                    }
                 }
 
                 div { class: "space-y-1",
@@ -85,15 +146,24 @@ pub fn DangerousActionDialog(props: DangerousActionDialogProps) -> Element {
                 div { class: "flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2",
                     Button {
                         variant: ButtonVariant::Outline,
-                        onclick: move |_| props.on_cancel.call(()),
+                        disabled: props.busy,
+                        onclick: move |_| {
+                            if let Some(handler) = clear_reason_on_cancel {
+                                handler.call(String::new());
+                            }
+                            props.on_cancel.call(());
+                        },
                         "{props.cancel_text}"
                     }
                     Button {
                         variant: ButtonVariant::Destructive,
-                        disabled: !phrase_ok,
+                        disabled: props.busy || !phrase_ok || !reason_ok,
                         onclick: move |_| {
-                            if phrase_ok {
+                            if phrase_ok && reason_ok && !props.busy {
                                 props.on_confirm.call(());
+                                if let Some(handler) = clear_reason_on_confirm {
+                                    handler.call(String::new());
+                                }
                             }
                         },
                         "{props.confirm_text}"

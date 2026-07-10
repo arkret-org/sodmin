@@ -9,6 +9,7 @@ use serde::Serialize;
 
 use crate::api::client::{NO_BODY, NoBody, api_client};
 use crate::types::coauth_devices::CoauthDeviceRow;
+use crate::utils::destructive_reason::destructive_reason_error;
 use crate::utils::net::error::HttpError;
 
 #[derive(Debug, Clone, serde::Deserialize)]
@@ -36,8 +37,8 @@ pub async fn revoke_account_device(
     reason: &str,
 ) -> Result<(), HttpError> {
     let reason = reason.trim();
-    if reason.is_empty() {
-        return Err(HttpError::message("device revoke reason is required"));
+    if let Some(error_key) = destructive_reason_error(reason, true) {
+        return Err(HttpError::message(error_key));
     }
     let url = format!(
         "/_coauth/admin/accounts/{}/devices/{}/revoke",

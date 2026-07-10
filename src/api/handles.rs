@@ -11,6 +11,7 @@
 
 use crate::api::client::{NO_BODY, api_client, build_url};
 use crate::types::*;
+use crate::utils::destructive_reason::destructive_reason_error;
 use crate::utils::net::error::HttpError;
 
 pub async fn list_handles(
@@ -48,6 +49,9 @@ pub async fn reassign_handle(
     id: &str,
     req: &HandleReassignRequest,
 ) -> Result<HandleRecord, HttpError> {
+    if let Some(error_key) = destructive_reason_error(&req.reason, true) {
+        return Err(HttpError::message(error_key));
+    }
     let url = format!(
         "/_soland/admin/handles/{}/reassign",
         urlencoding::encode(id)

@@ -25,6 +25,7 @@ use crate::types::seal::{
     BottomCandidateHead, BottomEntry, BottomKind, BottomKindExt, BottomRepairStrategy,
     bottom_kind_from_wire,
 };
+use crate::utils::i18n::t;
 
 #[component]
 pub fn BottomDiagnosticsPage() -> Element {
@@ -46,12 +47,12 @@ pub fn BottomDiagnosticsPage() -> Element {
     rsx! {
         div { class: "space-y-6",
             PageHeader {
-                title: "Bottom diagnostics".to_string(),
-                description: "Cells currently in Bottom state across visible Realms.".to_string(),
+                title: t("seal_bottom.title"),
+                description: t("seal_bottom.description"),
                 Button {
                     variant: ButtonVariant::Outline,
                     onclick: move |_| data.restart(),
-                    "Refresh"
+                    {t("common.refresh")}
                 }
             }
 
@@ -60,8 +61,8 @@ pub fn BottomDiagnosticsPage() -> Element {
                     rsx! {
                         EmptyState {
                             icon_name: "shield".to_string(),
-                            title: "All clear".to_string(),
-                            description: "No bottom-state cells reported across visible Spaces.".to_string(),
+                            title: t("seal_bottom.all_clear"),
+                            description: t("seal_bottom.all_clear_description"),
                         }
                     }
                 } else {
@@ -70,13 +71,13 @@ pub fn BottomDiagnosticsPage() -> Element {
                         Table {
                             TableHeader {
                                 TableRow {
-                                    TableHead { "Kind" }
-                                    TableHead { "Realm" }
-                                    TableHead { "Cell" }
-                                    TableHead { "Event IDs" }
-                                    TableHead { "Detected" }
-                                    TableHead { "Details" }
-                                    TableHead { class: "text-right".to_string(), "Action" }
+                                    TableHead { {t("seal_bottom.col_kind")} }
+                                    TableHead { {t("seal_bottom.col_realm")} }
+                                    TableHead { {t("seal_bottom.col_cell")} }
+                                    TableHead { {t("seal_bottom.col_event_ids")} }
+                                    TableHead { {t("seal_bottom.col_detected")} }
+                                    TableHead { {t("seal_bottom.col_details")} }
+                                    TableHead { class: "text-right".to_string(), {t("common.actions")} }
                                 }
                             }
                             TableBody {
@@ -172,7 +173,7 @@ pub fn BottomDiagnosticsPage() -> Element {
                                                                             let strategy = repair_strategy_for_entry(&entry_for_button, idx);
                                                                             pending.set(Some((entry_for_button.clone(), strategy)));
                                                                         },
-                                                                        "Construct repair Control Move"
+                                                                        {t("seal_bottom.construct_repair")}
                                                                     }
                                                                 }
                                                             }
@@ -205,20 +206,18 @@ pub fn BottomDiagnosticsPage() -> Element {
                     None => (None, None),
                 };
                 let open = entry_opt.is_some();
-                let title = "Submit repair Control Move?".to_string();
+                let title = t("seal_bottom.confirm_title");
                 let description = match (&entry_opt, &strategy_opt) {
-                    (Some(e), Some(s)) => format!(
-                        "Cell {} ({}); strategy = {}.",
-                        e.cell_id,
-                        format_kind_label(&e.kind),
-                        s.label()
-                    ),
+                    (Some(e), Some(s)) => t("seal_bottom.confirm_description")
+                        .replace("{cell}", &e.cell_id)
+                        .replace("{kind}", &format_kind_label(&e.kind))
+                        .replace("{strategy}", s.label()),
                     _ => String::new(),
                 };
                 let confirm_text = if *submitting.read() {
-                    "Submitting…".to_string()
+                    t("seal_bottom.submitting")
                 } else {
-                    "Submit".to_string()
+                    t("seal_bottom.submit")
                 };
                 rsx! {
                     ConfirmDialog {
@@ -226,7 +225,7 @@ pub fn BottomDiagnosticsPage() -> Element {
                         title,
                         description,
                         confirm_text,
-                        cancel_text: "Cancel".to_string(),
+                        cancel_text: t("common.cancel"),
                         destructive: true,
                         on_cancel: move |_| pending.set(None),
                         on_confirm: move |_| {
@@ -243,11 +242,13 @@ pub fn BottomDiagnosticsPage() -> Element {
                                     .await;
                                     match res {
                                         Ok(r) => show_toast(
-                                            &format!("Repair Control Move: {}", r.control_move_id),
+                                            &t("seal_bottom.toast_repair")
+                                                .replace("{control_move_id}", &r.control_move_id),
                                             ToastVariant::Success,
                                         ),
                                         Err(e) => show_toast(
-                                            &format!("Failed: {}", e.message),
+                                            &t("seal_bottom.toast_failed")
+                                                .replace("{message}", &e.message),
                                             ToastVariant::Error,
                                         ),
                                     }

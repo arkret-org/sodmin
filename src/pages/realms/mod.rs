@@ -14,9 +14,7 @@ pub mod list;
 pub mod media_service;
 pub mod multisig;
 pub mod notary;
-/// SOD-ORG-01..03 — Realm verified organization relationship + organization
-/// principal control / delegation audit + security operation entry points
-/// (mock-backed; SOL-ORG-06 + COA-ORG-05 pending).
+/// Realm organization relationships and principal-control projections.
 pub mod organization;
 pub mod seal_dag;
 pub mod show;

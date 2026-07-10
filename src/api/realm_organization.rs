@@ -1,54 +1,80 @@
-//! Realm organization control API client (SOD-ORG-01..03).
-//!
-//! The backing endpoints are not wired yet:
-//!   * soland's verified Realm organization projection (SOL-ORG-06) for the relationship panel; and
-//!   * coauth's organization-principal admin API (COA-ORG-05) for the delegation / PCR audit view.
-//!
-//! Until those land, these read paths return **empty** panels so the page
-//! renders an explicit "feature not yet live" empty state. No fabricated
-//! governance data is ever shown in production. When the real endpoints ship,
-//! replace the empty bodies with `api_client` calls against
-//! `/_soland/admin/...` (SOL-ORG-06) and `/_coauth/admin/...` (COA-ORG-05),
-//! consuming `coauth_admin_types::organization_admin::OrganizationControlView`
-//! and soland's verified projection rather than re-defining wire types here.
+//! Typed Realm organization control API client.
 
-use crate::types::{OrgPrincipalControlPanel, RealmOrganizationPanel};
+use std::collections::BTreeSet;
+
+use arkret_core::models::RealmOrganizationRelationshipList;
+use coauth_admin_types::organization_admin::OrganizationControlView;
+
+use crate::api::client::{NO_BODY, api_client};
 use crate::utils::net::error::HttpError;
 
-/// SOD-ORG-01 — fetch the verified Realm organization relationship panel.
-///
-/// TODO(SOL-ORG-06): replace the empty body with a real GET against soland's
-/// verified Realm organization projection, e.g.
-/// `GET /_soland/admin/realms/{realm_id}/organizations` returning
-/// `{ declared_owning_organizations: [Did], verified: [VerifiedOrgRelationship] }`.
-/// soland's projection MUST already bucket each row's lifecycle
-/// (active / revoked / expired / stale) — sodmin does not recompute it.
-pub async fn get_realm_organization_panel(
+#[derive(Clone, Debug)]
+pub struct RealmOrganizationAdminView {
+    pub relationships: RealmOrganizationRelationshipList,
+    pub controls: Vec<OrganizationControlView>,
+    /// Organizations that are valid relationship/hint rows but are not
+    /// governed by this deployment's Account Authority.
+    pub unavailable_control_dids: Vec<String>,
+}
+
+pub async fn get_realm_organization_admin_view(
     realm_id: &str,
-) -> Result<RealmOrganizationPanel, HttpError> {
-    // SOL-ORG-06 pending — return an empty panel (explicit empty state),
-    // never fabricated rows.
-    Ok(RealmOrganizationPanel {
-        realm_id: realm_id.to_string(),
-        declared_owning_organizations: Vec::new(),
-        verified: Vec::new(),
+) -> Result<RealmOrganizationAdminView, HttpError> {
+    let relationship_path = format!(
+        "/_arkret/self/realms/{}/organizations",
+        urlencoding::encode(realm_id)
+    );
+    let relationships: RealmOrganizationRelationshipList =
+        api_client(&relationship_path, "GET", NO_BODY).await?;
+    if relationships.realm_id.to_string() != realm_id {
+        return Err(HttpError::message(
+            "realm organization response did not match the requested realm",
+        ));
+    }
+
+    let organization_dids: BTreeSet<String> = relationships
+        .relationships
+        .iter()
+        .map(|row| row.organization_id.to_string())
+        .chain(
+            relationships
+                .declared_organization_hints
+                .iter()
+                .map(ToString::to_string),
+        )
+        .collect();
+
+    let mut controls = Vec::new();
+    let mut unavailable_control_dids = Vec::new();
+    for organization_did in organization_dids {
+        let path = format!(
+            "/_coauth/admin/organizations/{}",
+            urlencoding::encode(&organization_did)
+        );
+        match api_client::<OrganizationControlView, _>(&path, "GET", NO_BODY).await {
+            Ok(view) => controls.push(view),
+            Err(error) if error.status == 404 => unavailable_control_dids.push(organization_did),
+            Err(error) => return Err(error),
+        }
+    }
+
+    Ok(RealmOrganizationAdminView {
+        relationships,
+        controls,
+        unavailable_control_dids,
     })
 }
 
-/// SOD-ORG-02 — fetch the organization-principal control / delegation audit
-/// panel.
-///
-/// TODO(COA-ORG-05): replace the empty body with a real GET against coauth's
-/// organization-principal admin API
-/// (`GET /_coauth/admin/organizations/{organization_id}`), consuming
-/// `coauth_admin_types::organization_admin::OrganizationControlView`.
-pub async fn get_org_principal_control_panel(
-    realm_id: &str,
-) -> Result<OrgPrincipalControlPanel, HttpError> {
-    // COA-ORG-05 pending — return an empty panel (explicit empty state),
-    // never fabricated rows.
-    Ok(OrgPrincipalControlPanel {
-        realm_id: realm_id.to_string(),
-        rows: Vec::new(),
-    })
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn admin_view_is_composed_from_shared_wire_types() {
+        fn assert_relationships(_: &RealmOrganizationRelationshipList) {}
+        fn assert_controls(_: &[OrganizationControlView]) {}
+
+        let _ = assert_relationships;
+        let _ = assert_controls;
+    }
 }

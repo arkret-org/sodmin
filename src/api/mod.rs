@@ -23,8 +23,7 @@ pub mod media_service;
 pub mod multisig;
 pub mod policy;
 pub mod realm_links;
-/// SOD-ORG-01..03 — Realm organization control / principal delegation
-/// (mock-backed today; SOL-ORG-06 + COA-ORG-05 pending).
+/// Realm organization relationships and principal-control projections.
 pub mod realm_organization;
 pub mod realms;
 pub mod seal;
