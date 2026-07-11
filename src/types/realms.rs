@@ -1,6 +1,6 @@
 //! DTO shapes for the Realm admin surface.
 
-use arkret_core::{Discoverability, HistoryVisibility, JoinRule};
+use arkret_core::{BlobRef, Discoverability, HistoryVisibility, JoinRule};
 use serde::{Deserialize, Serialize};
 
 use crate::types::HandleClaim;
@@ -30,7 +30,7 @@ pub struct AdminRealm {
     #[serde(default)]
     pub topic: Option<String>,
     #[serde(default)]
-    pub avatar_url: Option<String>,
+    pub avatar_blob_ref: Option<BlobRef>,
     #[serde(default)]
     pub created_at: Option<String>,
     #[serde(default, rename = "default_join_rule")]
