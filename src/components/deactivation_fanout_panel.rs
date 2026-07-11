@@ -137,7 +137,7 @@ pub struct ErasureReceiptStatus {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CrossPsFanoutResult {
-    pub service_did: String,
+    pub service_id: String,
     pub state: FanoutState,
     pub error_code: Option<String>,
     pub observed_at: Option<String>,
@@ -349,7 +349,7 @@ fn erasure_receipt_block(receipt: &ErasureReceiptStatus) -> Element {
                             let observed = format_optional_iso_datetime(peer.observed_at.as_deref());
                             rsx! {
                                 li { class: "flex flex-wrap items-center gap-2 rounded-md border px-2 py-1 text-xs",
-                                    span { class: "font-mono break-all", "{peer.service_did}" }
+                                    span { class: "font-mono break-all", "{peer.service_id}" }
                                     Badge { variant: variant, "{label}" }
                                     span { class: "ml-auto text-muted-foreground", "{observed}" }
                                     if let Some(code) = peer.error_code.as_ref() {

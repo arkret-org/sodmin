@@ -7,7 +7,7 @@
 //! operations console. `policy_frontier` is reducer-owned.
 //!
 //! Below the policy summary the page lists each Realm member with their
-//! effective `member_delivery_binding.recipient_service_did` and a
+//! effective `member_delivery_binding.recipient_service_id` and a
 //! routability check against the allowed list, plus the handover panel.
 
 use dioxus::prelude::*;
@@ -153,7 +153,7 @@ pub fn DeliveryBindingPage(realm_id: String) -> Element {
                                                 } else {
                                                     row.actor_id.clone()
                                                 };
-                                                let recipient = row.recipient_service_did.clone().unwrap_or_else(|| "-".to_string());
+                                                let recipient = row.recipient_service_id.clone().unwrap_or_else(|| "-".to_string());
                                                 let status = row.delivery_status.clone().unwrap_or_else(|| "-".to_string());
                                                 let routable = row.in_allowed_list;
                                                 rsx! {

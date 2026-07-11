@@ -36,7 +36,7 @@ mod tests {
     #[test]
     fn describe_round_trips_full_payload() {
         let raw = r#"{
-            "service_did": "did:web:starid.example",
+            "service_id": "did:web:starid.example",
             "registry_mode": "writer",
             "supported_methods": ["did:webvh", "did:web"],
             "supported_receipts": ["starid-local-sha256-v1"],
@@ -47,7 +47,7 @@ mod tests {
             "freshness": "2026-05-09T10:11:12Z"
         }"#;
         let parsed: StaridDescribe = serde_json::from_str(raw).expect("parse");
-        assert_eq!(parsed.service_did, "did:web:starid.example");
+        assert_eq!(parsed.service_id, "did:web:starid.example");
         assert_eq!(parsed.registry_mode, "writer");
         assert_eq!(parsed.supported_methods, vec!["did:webvh", "did:web"]);
         assert_eq!(parsed.head_version_id.as_deref(), Some("42-zABCDEF"));
@@ -63,7 +63,7 @@ mod tests {
         // the panel still renders a healthy card instead of failing
         // the JSON parse.
         let raw = r#"{
-            "service_did": "did:web:starid.example",
+            "service_id": "did:web:starid.example",
             "registry_mode": "writer",
             "supported_methods": ["did:webvh"],
             "supported_receipts": ["starid-local-sha256-v1"],

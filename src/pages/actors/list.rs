@@ -19,9 +19,7 @@ pub(crate) fn actor_status_badge_variant(status: Option<AccountStatus>) -> Badge
         Some(AccountStatus::Active) => BadgeVariant::Success,
         Some(AccountStatus::SoftLoggedOut | AccountStatus::Locked) => BadgeVariant::Secondary,
         Some(
-            AccountStatus::Suspended
-            | AccountStatus::Deactivated
-            | AccountStatus::ErasurePending,
+            AccountStatus::Suspended | AccountStatus::Deactivated | AccountStatus::ErasurePending,
         ) => BadgeVariant::Destructive,
         None => BadgeVariant::Secondary,
     }

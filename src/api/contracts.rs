@@ -14,7 +14,7 @@ pub mod starid {
     #[derive(Debug, Clone, Default, Serialize, Deserialize)]
     pub struct StaridDescribe {
         #[serde(default)]
-        pub service_did: String,
+        pub service_id: String,
         #[serde(default)]
         pub registry_mode: String,
         #[serde(default)]
@@ -44,7 +44,7 @@ mod tests {
     #[test]
     fn starid_contract_describe_tolerates_optional_status_fields() {
         let raw = r#"{
-            "service_did": "did:web:starid.example",
+            "service_id": "did:web:starid.example",
             "registry_mode": "writer",
             "supported_methods": ["did:webvh"],
             "supported_receipts": ["starid-local-sha256-v1"],
@@ -52,7 +52,7 @@ mod tests {
             "profiles": []
         }"#;
         let describe: StaridDescribe = serde_json::from_str(raw).unwrap();
-        assert_eq!(describe.service_did, "did:web:starid.example");
+        assert_eq!(describe.service_id, "did:web:starid.example");
         assert_eq!(describe.witness_count, 0);
         assert!(describe.freshness.is_none());
     }

@@ -98,10 +98,10 @@ fn describe_card(describe: StaridDescribe) -> Element {
         .freshness
         .map(|ts| ts.to_rfc3339_opts(chrono::SecondsFormat::Secs, true))
         .unwrap_or_else(|| "-".to_string());
-    let service_did = if describe.service_did.is_empty() {
+    let service_id = if describe.service_id.is_empty() {
         "-".to_string()
     } else {
-        describe.service_did.clone()
+        describe.service_id.clone()
     };
     let registry_mode = if describe.registry_mode.is_empty() {
         "-".to_string()
@@ -134,7 +134,7 @@ fn describe_card(describe: StaridDescribe) -> Element {
             CardContent {
                 div { class: "space-y-4",
                     div { class: "grid gap-3 sm:grid-cols-2 lg:grid-cols-3",
-                        {info_cell(t("starid_resolver.service_did"), service_did)}
+                        {info_cell(t("starid_resolver.service_id"), service_id)}
                         {info_cell(t("starid_resolver.registry_mode"), registry_mode)}
                         {info_cell(t("starid_resolver.protocol_version"), protocol)}
                         {info_cell(t("starid_resolver.head_version_id"), head)}
@@ -243,7 +243,7 @@ mod tests {
 
     fn populated_describe() -> StaridDescribe {
         StaridDescribe {
-            service_did: "did:web:starid.example".into(),
+            service_id: "did:web:starid.example".into(),
             registry_mode: "writer".into(),
             supported_methods: vec!["did:webvh".into(), "did:web".into()],
             supported_receipts: vec!["starid-local-sha256-v1".into()],

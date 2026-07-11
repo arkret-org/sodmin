@@ -5,7 +5,7 @@
 //! `historical_only`) as discrete rows so the operator can:
 //!
 //! - See exactly which envelope the recipient service rejected, and
-//! - Read the `new_recipient_service_did` + `handover_frontier` the recipient advertises in the 409
+//! - Read the `new_recipient_service_id` + `handover_frontier` the recipient advertises in the 409
 //!   body (`stale` / `handed_over`).
 //! - Distinguish a fresh failure from a `historical_only` cached replay — the latter is diagnostic
 //!   only and MUST NOT be presented as a "fresh action" indicator.
@@ -94,11 +94,11 @@ fn render_row(row: &DeliveryBindingHandoverRow) -> Element {
         row.actor_id.clone()
     };
     let new_recipient = row
-        .new_recipient_service_did
+        .new_recipient_service_id
         .clone()
         .unwrap_or_else(|| "-".to_string());
     let prev_recipient = row
-        .previous_recipient_service_did
+        .previous_recipient_service_id
         .clone()
         .unwrap_or_else(|| "-".to_string());
     let observed_at = row.observed_at.clone().unwrap_or_else(|| "-".to_string());
@@ -122,7 +122,7 @@ fn render_row(row: &DeliveryBindingHandoverRow) -> Element {
             div { class: "grid gap-2 sm:grid-cols-2",
                 div {
                     p { class: "text-[10px] uppercase tracking-wider text-muted-foreground",
-                        "previous_recipient_service_did"
+                        "previous_recipient_service_id"
                     }
                     p { class: "font-mono break-all", "{prev_recipient}" }
                 }

@@ -235,7 +235,7 @@ fn service_describe_card(
 }
 
 fn describe_body(describe: &ServerDescribeDocument) -> Element {
-    let did = describe.service_did.to_string();
+    let did = describe.service_id.to_string();
     // Round 4 — `trust_domain` is a required (validated) ServerDescribe
     // v2 field in the SDK type, so it is always present here.
     let trust_domain = describe.trust_domain.to_string();
@@ -338,7 +338,7 @@ fn describe_body(describe: &ServerDescribeDocument) -> Element {
                 }
             }
             div { class: "grid gap-3 sm:grid-cols-2",
-                {info_cell(t("server_status.service_did"), did)}
+                {info_cell(t("server_status.service_id"), did)}
                 {info_cell(t("server_status.trust_domain"), trust_domain)}
                 {info_cell(t("server_status.service_type"), service_type)}
                 {info_cell(t("server_status.protocol_version"), protocol)}

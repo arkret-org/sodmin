@@ -93,9 +93,9 @@ pub fn Dashboard() -> Element {
         .or_else(|| info_data.as_ref().and_then(|i| i.protocol_version.clone()))
         .unwrap_or_else(|| "1.0".to_string());
 
-    let service_did = describe_data
+    let service_id = describe_data
         .as_ref()
-        .map(|d| d.service_did.to_string())
+        .map(|d| d.service_id.to_string())
         .unwrap_or_else(|| "-".to_string());
     let coauth_issuer_did = coauth_describe_data
         .as_ref()
@@ -245,7 +245,7 @@ pub fn Dashboard() -> Element {
                 }
                 CardContent {
                     div { class: "grid gap-4 md:grid-cols-2 xl:grid-cols-4",
-                        {metadata_cell(t("dashboard.principal_server_did"), service_did)}
+                        {metadata_cell(t("dashboard.principal_server_did"), service_id)}
                         {metadata_cell(t("dashboard.coauth_issuer_did"), coauth_issuer_did)}
                         {metadata_cell(t("dashboard.delegated_resolver"), delegated_resolver_endpoint)}
                         {metadata_cell(t("dashboard.supported_profiles"), supported_profiles)}
@@ -359,7 +359,7 @@ fn coauth_issuer_did(describe: &ServerDescribeDocument) -> Option<String> {
     // serialize to JSON before walking for the `issuer_did` key.
     let auth_metadata = serde_json::to_value(&describe.auth_metadata).unwrap_or_default();
     json_string(&auth_metadata, &["issuer_did"])
-        .or_else(|| non_empty(describe.service_did.to_string()))
+        .or_else(|| non_empty(describe.service_id.to_string()))
 }
 
 fn identity_registry_endpoint(describe: &ServerDescribeDocument) -> Option<String> {
@@ -417,4 +417,3 @@ fn json_string(value: &serde_json::Value, path: &[&str]) -> Option<String> {
     }
     current.as_str().map(ToOwned::to_owned)
 }
-

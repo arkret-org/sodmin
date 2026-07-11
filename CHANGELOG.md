@@ -84,7 +84,7 @@ See [`../_sodmin_soland_todos.md`](../_sodmin_soland_todos.md) for the workstrea
   `verified_profiles` raises a red warning row.
 - **Added** delivery-binding handover panel rendering the new error codes
   `delivery_binding_stale` / `delivery_binding_handed_over` /
-  `historical_only`. Stale entries surface `new_recipient_service_did` and
+  `historical_only`. Stale entries surface `new_recipient_service_id` and
   `handover_frontier`.
 - **Added** 3PID invite admin: the 5-terminal-state machine
   (`claimed` / `send_failed` / `revoked_by_capability_loss` /

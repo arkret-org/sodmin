@@ -32,7 +32,7 @@ pub struct MemberRoutabilityRow {
     #[serde(default)]
     pub display_name: Option<String>,
     #[serde(default)]
-    pub recipient_service_did: Option<String>,
+    pub recipient_service_id: Option<String>,
     #[serde(default)]
     pub in_allowed_list: bool,
     #[serde(default)]
@@ -54,12 +54,12 @@ pub struct DeliveryBindingHandoverRow {
     pub actor_id: String,
     /// The previous (now-stale) recipient service DID, if known.
     #[serde(default)]
-    pub previous_recipient_service_did: Option<String>,
-    /// `new_recipient_service_did` — the redirect target the recipient
+    pub previous_recipient_service_id: Option<String>,
+    /// `new_recipient_service_id` — the redirect target the recipient
     /// service advertises in the `delivery_binding_stale` /
     /// `delivery_binding_handed_over` 409 body.
     #[serde(default)]
-    pub new_recipient_service_did: Option<String>,
+    pub new_recipient_service_id: Option<String>,
     /// `handover_frontier` — the frontier (vector of `ak:event:*` refs)
     /// at/after which the new recipient takes effect.
     #[serde(default)]

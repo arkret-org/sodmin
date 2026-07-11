@@ -32,7 +32,7 @@ pub struct ServerInfo {
 /// `/_arkret/describe` response envelope.
 ///
 /// The protocol-authoritative fields deserialize into the SDK
-/// [`ServerDescription`] (strict: `service_did: Did`,
+/// [`ServerDescription`] (strict: `service_id: Did`,
 /// `trust_domain: TypedTrustDomainId`, `development_mode: bool`, …).
 /// Any additional top-level keys a service emits beyond the spec shape
 /// (e.g. coauth's `identity_registry_resolver` extension block) land in
@@ -165,7 +165,7 @@ mod tests {
     /// field (Round 4 ServiceDescribe v2 shape, as soland emits it).
     fn base_describe() -> serde_json::Value {
         json!({
-            "service_did": "did:web:soland.local",
+            "service_id": "did:web:soland.local",
             "trust_domain": "ak:trust_domain:soland.local",
             "service_type": "principal_server",
             "protocol_version": "1.0",
@@ -201,7 +201,7 @@ mod tests {
         let describe: ServerDescribeDocument =
             serde_json::from_value(base_describe()).expect("soland describe should deserialize");
 
-        assert_eq!(describe.service_did.as_str(), "did:web:soland.local");
+        assert_eq!(describe.service_id.as_str(), "did:web:soland.local");
         assert_eq!(
             describe.trust_domain.as_str(),
             "ak:trust_domain:soland.local"
@@ -258,6 +258,6 @@ mod tests {
             Some("urn:coauth:admin".to_string())
         );
         // Spec fields must NOT leak into the extension envelope.
-        assert!(!describe.extra.contains_key("service_did"));
+        assert!(!describe.extra.contains_key("service_id"));
     }
 }
