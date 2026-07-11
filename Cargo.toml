@@ -15,7 +15,7 @@ chrono = {workspace = true,features = ["serde", "wasmbind"]}
 coauth-admin-types = {workspace = true}
 arkret-core = {workspace = true,default-features = false}
 arkret-identifiers = {workspace = true,default-features = false}
-dioxus = {workspace = true,features = ["web", "router"]}
+dioxus = {workspace = true,features = ["minimal", "web", "router"]}
 dioxus-logger = {workspace = true}
 futures-util = {workspace = true,default-features = false,features = ["alloc"]}
 gloo-net = {workspace = true,features = ["http", "json"]}
@@ -69,7 +69,11 @@ web-sys = {workspace = true,features = [
 # so they don't bloat the wasm bundle.
 serde_json = {workspace = true}
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-reqwest = {workspace = true,default-features = false,features = ["blocking", "json", "rustls"]}
+reqwest = {workspace = true,default-features = false,features = ["blocking", "json", "rustls"],optional = true}
+
+[features]
+default = []
+smoke = ["dep:reqwest"]
 
 [dev-dependencies]
 wasm-bindgen-test = "0.3"
@@ -81,6 +85,7 @@ path = "src/main.rs"
 [[bin]]
 name = "sodmin-smoke"
 path = "src/bin/sodmin_smoke.rs"
+required-features = ["smoke"]
 
 # arkret fork of DioxusLabs/dioxus, branched off the v0.7.9 tag (same patch
 # set as inkson; build.rs checks the patch block so it cannot drift). The only delta is
@@ -122,7 +127,7 @@ chrono = "0.4.45"
 coauth-admin-types = {path = "../coauth/crates/admin-types"}
 arkret-core = {path = "../arkret-rust-sdk/crates/core",default-features = false}
 arkret-identifiers = {path = "../arkret-rust-sdk/crates/identifiers",default-features = false}
-dioxus = "0.7.9"
+dioxus = {version = "0.7.9",default-features = false}
 dioxus-logger = "0.7.9"
 futures-util = {version = "0.3.32",default-features = false}
 gloo-net = "0.7"
