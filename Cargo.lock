@@ -36,10 +36,32 @@ dependencies = [
 ]
 
 [[package]]
+name = "arkret-canonical"
+version = "0.3.0"
+dependencies = [
+ "base64",
+ "blake3",
+ "bs58",
+ "chrono",
+ "hex",
+ "serde",
+ "serde_json",
+ "sha2 0.11.0",
+ "thiserror 2.0.18",
+ "unicode-normalization",
+]
+
+[[package]]
 name = "arkret-core"
 version = "0.3.0"
 dependencies = [
+ "arkret-canonical",
  "arkret-identifiers",
+ "arkret-policy",
+ "arkret-schema",
+ "arkret-state",
+ "arkret-wire-base",
+ "arkret-wire-edge",
  "base64",
  "blake3",
  "bs58",
@@ -70,6 +92,72 @@ dependencies = [
  "sha2 0.11.0",
  "thiserror 2.0.18",
  "uuid",
+]
+
+[[package]]
+name = "arkret-policy"
+version = "0.3.0"
+dependencies = [
+ "arkret-schema",
+ "arkret-wire-base",
+ "chrono",
+ "chrono-tz",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+]
+
+[[package]]
+name = "arkret-schema"
+version = "0.3.0"
+dependencies = [
+ "arkret-canonical",
+ "arkret-wire-base",
+ "chrono",
+ "regex",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+ "tracing",
+]
+
+[[package]]
+name = "arkret-state"
+version = "0.3.0"
+dependencies = [
+ "arkret-canonical",
+ "arkret-wire-base",
+ "chrono",
+ "hex",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+]
+
+[[package]]
+name = "arkret-wire-base"
+version = "0.3.0"
+dependencies = [
+ "arkret-canonical",
+ "arkret-identifiers",
+ "chrono",
+ "hex",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+]
+
+[[package]]
+name = "arkret-wire-edge"
+version = "0.3.0"
+dependencies = [
+ "arkret-canonical",
+ "arkret-wire-base",
+ "chrono",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+ "tracing",
 ]
 
 [[package]]
@@ -4957,7 +5045,6 @@ dependencies = [
  "bytes",
  "libc",
  "mio",
- "parking_lot",
  "pin-project-lite",
  "signal-hook-registry",
  "socket2",

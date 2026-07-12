@@ -640,14 +640,7 @@ fn evidence_item(value: &Value) -> Option<PolicyEvidenceItem> {
     };
     Some(PolicyEvidenceItem {
         kind: field(&["kind", "type", "proof_kind"])?,
-        reference: field(&[
-            "evidence_ref",
-            "ref",
-            "id",
-            "approval_id",
-            "request_id",
-            "digest",
-        ])?,
+        reference: field(&["evidence_ref", "id", "approval_id", "request_id", "digest"])?,
         actor: field(&["approved_by", "issuer", "actor_id", "subject_id"]),
         decision: field(&["decision", "outcome", "state"]),
         digest: field(&["digest", "proof_digest", "request_canonical_digest"]),
