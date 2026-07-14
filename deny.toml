@@ -47,6 +47,6 @@ unknown-git = "deny"
 allow-registry = ["https://github.com/rust-lang/crates.io-index"]
 # arkret/dioxus point-to-graceful fork (see Cargo.toml [patch.crates-io]).
 allow-git = [
-    "https://github.com/arkret/dioxus",
-    "https://github.com/arkret/dioxus-components",
+    "https://github.com/arkret-org/dioxus",
+    "https://github.com/arkret-org/dioxus-components",
 ]
