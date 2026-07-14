@@ -214,7 +214,7 @@ mod tests {
         );
         assert_eq!(describe.compat_surfaces[0].name, "federation.bridge");
         assert_eq!(
-            describe.limits["profile_status"]["conformance"],
+            describe.limits.extensions["profile_status"]["conformance"],
             "limited_reference"
         );
         assert_eq!(

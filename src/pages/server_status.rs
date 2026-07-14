@@ -301,11 +301,15 @@ fn describe_body(describe: &ServerDescribeDocument) -> Element {
         serde_json::to_string_pretty(&rate_limit_value)
             .unwrap_or_else(|_| rate_limit_value.to_string())
     };
-    let limits_text = if describe.limits.is_null() {
+    let limits_value =
+        serde_json::to_value(&describe.limits).unwrap_or_else(|_| serde_json::json!({}));
+    let limits_text = if limits_value
+        .as_object()
+        .is_none_or(serde_json::Map::is_empty)
+    {
         "-".to_string()
     } else {
-        serde_json::to_string_pretty(&describe.limits)
-            .unwrap_or_else(|_| describe.limits.to_string())
+        serde_json::to_string_pretty(&limits_value).unwrap_or_else(|_| limits_value.to_string())
     };
 
     rsx! {

@@ -7,7 +7,14 @@ no-default-features = false
 
 [advisories]
 version = 2
-ignore = []
+ignore = [
+    # RSA Marvin Attack applies to PKCS#1 v1.5 decryption. sodmin is a WASM
+    # admin client and reaches rsa only through shared signing dependencies; it
+    # does not perform RSA private-key decryption.
+    # Owner: security maintainers. Last reviewed: 2026-07-14.
+    # Re-review by: 2026-10-14, or when a patched rsa release lands.
+    "RUSTSEC-2023-0071",
+]
 
 [licenses]
 version = 2

@@ -388,7 +388,9 @@ fn event_kind_registry_version(describe: &ServerDescribeDocument) -> Option<Stri
 }
 
 fn conformance_level(describe: &ServerDescribeDocument) -> Option<String> {
-    json_string(&describe.limits, &["profile_status", "conformance"])
+    serde_json::to_value(&describe.limits)
+        .ok()
+        .and_then(|limits| json_string(&limits, &["profile_status", "conformance"]))
 }
 
 fn health_summary(status: Option<&ServerStatusOutcome>) -> String {
