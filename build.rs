@@ -17,7 +17,7 @@ fn main() {
 }
 
 fn check_dioxus_patch_sources(manifest_dir: &Path) {
-    const DIOXUS_REPO: &str = "https://github.com/arkret/dioxus";
+    const DIOXUS_REPO: &str = "https://github.com/arkret-org/dioxus";
     const DIOXUS_REV: &str = "e59f9f24a5c27c9303cd61edd0452b44161374ab";
     const DIOXUS_PATCH_CRATES: &[&str] = &[
         "dioxus-core",
@@ -26,7 +26,7 @@ fn check_dioxus_patch_sources(manifest_dir: &Path) {
         "subsecond",
         "subsecond-types",
     ];
-    const COMPONENTS_REPO: &str = "https://github.com/arkret/dioxus-components";
+    const COMPONENTS_REPO: &str = "https://github.com/arkret-org/dioxus-components";
     const COMPONENTS_REV: &str = "3510aeee2d14f0ca2c11682c9b826650cb557d2f";
 
     let cargo_toml_path = manifest_dir.join("Cargo.toml");

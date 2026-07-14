@@ -102,21 +102,21 @@ required-features = ["smoke"]
 # same crate would exist under two sources and `GenerationalBox<T>` would
 # mismatch across the registry `dioxus-signals`/`dioxus-web` and the patched
 # core.
-# See https://github.com/arkret/dioxus/commit/e59f9f24a5c27c9303cd61edd0452b44161374ab.
+# See https://github.com/arkret-org/dioxus/commit/e59f9f24a5c27c9303cd61edd0452b44161374ab.
 #
 # yoface depends on dioxus-primitives from the components fork. `[patch]`
 # entries are not inherited from dependencies, so sodmin, as the workspace
 # root, carries yoface README §2's components patch explicitly. build.rs
 # enforces the expected fork URL and rev.
 [patch."https://github.com/DioxusLabs/components"]
-dioxus-primitives = { git = "https://github.com/arkret/dioxus-components", rev = "3510aeee2d14f0ca2c11682c9b826650cb557d2f" }
+dioxus-primitives = { git = "https://github.com/arkret-org/dioxus-components", rev = "3510aeee2d14f0ca2c11682c9b826650cb557d2f" }
 
 [patch.crates-io]
-dioxus-core       = { git = "https://github.com/arkret/dioxus", rev = "e59f9f24a5c27c9303cd61edd0452b44161374ab" }
-dioxus-core-types = { git = "https://github.com/arkret/dioxus", rev = "e59f9f24a5c27c9303cd61edd0452b44161374ab" }
-generational-box  = { git = "https://github.com/arkret/dioxus", rev = "e59f9f24a5c27c9303cd61edd0452b44161374ab" }
-subsecond         = { git = "https://github.com/arkret/dioxus", rev = "e59f9f24a5c27c9303cd61edd0452b44161374ab" }
-subsecond-types   = { git = "https://github.com/arkret/dioxus", rev = "e59f9f24a5c27c9303cd61edd0452b44161374ab" }
+dioxus-core       = { git = "https://github.com/arkret-org/dioxus", rev = "e59f9f24a5c27c9303cd61edd0452b44161374ab" }
+dioxus-core-types = { git = "https://github.com/arkret-org/dioxus", rev = "e59f9f24a5c27c9303cd61edd0452b44161374ab" }
+generational-box  = { git = "https://github.com/arkret-org/dioxus", rev = "e59f9f24a5c27c9303cd61edd0452b44161374ab" }
+subsecond         = { git = "https://github.com/arkret-org/dioxus", rev = "e59f9f24a5c27c9303cd61edd0452b44161374ab" }
+subsecond-types   = { git = "https://github.com/arkret-org/dioxus", rev = "e59f9f24a5c27c9303cd61edd0452b44161374ab" }
 
 [workspace]
 resolver = "3"
