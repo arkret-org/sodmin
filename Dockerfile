@@ -64,7 +64,8 @@ FROM nginx:alpine
 
 COPY --from=builder /workspace/dist /usr/share/nginx/html
 COPY --chmod=755 sodmin/docker-entrypoint.sh /docker-entrypoint.sh
-RUN chown -R 101:101 /usr/share/nginx/html /etc/nginx/conf.d
+RUN mkdir -p /runtime && \
+    chown -R 101:101 /usr/share/nginx/html /etc/nginx/conf.d /runtime
 
 # Runtime configuration. SOLAND_URL is the soland Principal Server (admin
 # + reducer surface) the proxy should forward to; COAUTH_URL is the

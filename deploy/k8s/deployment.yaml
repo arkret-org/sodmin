@@ -17,6 +17,13 @@ spec:
         app.kubernetes.io/name: sodmin
         app.kubernetes.io/component: admin-spa
     spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 101
+        runAsGroup: 101
+        fsGroup: 101
+        fsGroupChangePolicy: OnRootMismatch
       nodeSelector:
         kubernetes.io/arch: arm64
       containers:
@@ -26,7 +33,7 @@ spec:
           # Gitea workflow publishes architecture-suffixed ARM64 tags only;
           # replace the repository with your configured registry and pin a
           # digest for production rollouts.
-          image: registry.example.com/arkret/sodmin:latest-arm64
+          image: registry.example.com/arkret/sodmin:replace-with-immutable-arm64-release
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
@@ -63,8 +70,37 @@ spec:
               memory: 256Mi
           securityContext:
             allowPrivilegeEscalation: false
-            readOnlyRootFilesystem: false
+            readOnlyRootFilesystem: true
             runAsNonRoot: true
             runAsUser: 101
             capabilities:
               drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+          volumeMounts:
+            - name: nginx-conf
+              mountPath: /etc/nginx/conf.d
+            - name: nginx-cache
+              mountPath: /var/cache/nginx
+            - name: nginx-run
+              mountPath: /var/run
+            - name: runtime-config
+              mountPath: /runtime
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: nginx-conf
+          emptyDir:
+            sizeLimit: 1Mi
+        - name: nginx-cache
+          emptyDir:
+            sizeLimit: 64Mi
+        - name: nginx-run
+          emptyDir:
+            sizeLimit: 1Mi
+        - name: runtime-config
+          emptyDir:
+            sizeLimit: 1Mi
+        - name: tmp
+          emptyDir:
+            sizeLimit: 16Mi

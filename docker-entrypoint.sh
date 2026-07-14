@@ -96,7 +96,7 @@ json_escape() {
 }
 printf '{"coauth_public_url":"%s"}' \
     "$(json_escape "$COAUTH_PUBLIC_URL")" \
-    > /usr/share/nginx/html/config.json
+    > /runtime/config.json
 
 cat > /etc/nginx/conf.d/default.conf <<EOF
 server {
@@ -119,6 +119,11 @@ server {
     add_header X-Frame-Options "DENY" always;
     add_header Referrer-Policy "no-referrer" always;
     add_header Permissions-Policy "geolocation=(), microphone=(), camera=(), payment=()" always;
+
+    location = /config.json {
+        alias /runtime/config.json;
+        add_header Cache-Control "no-store" always;
+    }
 
     # Healthz actually serves index.html so liveness fails (503) when the
     # wasm bundle disappears from disk, instead of nginx happily returning

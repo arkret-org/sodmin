@@ -1,0 +1,29 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: sodmin-default-deny-ingress
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: sodmin
+  policyTypes:
+    - Ingress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: sodmin-allow-ingress
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: sodmin
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
+      ports:
+        - protocol: TCP
+          port: 80
