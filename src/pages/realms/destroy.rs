@@ -57,7 +57,7 @@ pub fn DestroyPage(realm_id: String) -> Element {
                             on_retry: move |domain: FanoutDomain| {
                                 show_toast(
                                     &t("realm_destroy.retry_unsupported")
-                                        .replace("{domain}", &domain.slug().to_string()),
+                                        .replace("{domain}", domain.slug()),
                                     ToastVariant::Error,
                                 );
                             }
