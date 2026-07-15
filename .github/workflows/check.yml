@@ -25,23 +25,25 @@ jobs:
     timeout-minutes: 30
     steps:
       - name: Check out source
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           submodules: recursive
 
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@fa04a1451ff1842e2626ccb99004d0195b455a88 # master
         with:
+          toolchain: stable
           components: rustfmt, clippy
           targets: wasm32-unknown-unknown
 
       - name: Install nightly rustfmt
-        uses: dtolnay/rust-toolchain@nightly
+        uses: dtolnay/rust-toolchain@fa04a1451ff1842e2626ccb99004d0195b455a88 # master
         with:
+          toolchain: nightly
           components: rustfmt
 
       - name: Cache cargo registry, git, and target
-        uses: Swatinem/rust-cache@v2
+        uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32 # v2
 
       - name: cargo fmt (host)
         run: cargo +nightly fmt --all -- --check
@@ -61,13 +63,14 @@ jobs:
     timeout-minutes: 45
     steps:
       - name: Check out source
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           submodules: recursive
 
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@fa04a1451ff1842e2626ccb99004d0195b455a88 # master
         with:
+          toolchain: stable
           targets: wasm32-unknown-unknown
 
       - name: Install binaryen
@@ -76,7 +79,7 @@ jobs:
           sudo apt-get install -y binaryen
 
       - name: Cache cargo registry, git, and target
-        uses: Swatinem/rust-cache@v2
+        uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32 # v2
         with:
           shared-key: wasm
 
@@ -97,7 +100,7 @@ jobs:
           echo "dir=$dist_dir" >> "$GITHUB_OUTPUT"
 
       - name: Upload web artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: sodmin-web-public
           path: ${{ steps.dist.outputs.dir }}
@@ -109,9 +112,9 @@ jobs:
     needs: wasm-build
     steps:
       - name: Check out source
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       - name: Set up Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 20
           cache: npm
@@ -120,7 +123,7 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
       - name: Download web artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           name: sodmin-web-public
           path: dist
@@ -153,16 +156,16 @@ jobs:
     needs: wasm-build
     steps:
       - name: Check out source
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       - name: Set up Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 20
           cache: npm
       - name: Install npm deps
         run: npm ci
       - name: Download web artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           name: sodmin-web-public
           path: dist

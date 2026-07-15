@@ -11,6 +11,9 @@ on:
 
 permissions:
   contents: read
+  id-token: write
+  attestations: write
+  artifact-metadata: write
 
 concurrency:
   group: local-bundle-${{ github.ref }}
@@ -28,13 +31,14 @@ jobs:
     timeout-minutes: 45
     steps:
       - name: Check out source
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           submodules: recursive
 
       - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@fa04a1451ff1842e2626ccb99004d0195b455a88 # master
         with:
+          toolchain: stable
           targets: wasm32-unknown-unknown
 
       - name: Install binaryen
@@ -43,7 +47,7 @@ jobs:
           sudo apt-get install -y binaryen
 
       - name: Cache cargo registry, git, and target
-        uses: Swatinem/rust-cache@v2
+        uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32 # v2
         with:
           shared-key: wasm
 
@@ -71,14 +75,45 @@ jobs:
           set -euo pipefail
           sha256sum "${{ steps.artifact.outputs.archive }}" > "${{ steps.artifact.outputs.archive }}.sha256"
 
+      - name: Install CycloneDX generator
+        run: cargo install cargo-cyclonedx@0.5.9 --locked
+
+      - name: Generate Rust and npm SBOMs
+        run: |
+          set -euo pipefail
+          cargo cyclonedx --format json --all --override-filename sodmin-rust.cdx
+          npm sbom --sbom-format cyclonedx > sodmin-npm.cdx.json
+
+      - name: Attest bundle build provenance
+        if: github.event_name != 'pull_request'
+        uses: actions/attest@f6bf1532d7d6793fce74eac584813a8eee607999 # v4
+        with:
+          subject-path: ${{ steps.artifact.outputs.archive }}
+
+      - name: Attest Rust SBOM
+        if: github.event_name != 'pull_request'
+        uses: actions/attest@f6bf1532d7d6793fce74eac584813a8eee607999 # v4
+        with:
+          subject-path: ${{ steps.artifact.outputs.archive }}
+          sbom-path: sodmin-rust.cdx.json
+
+      - name: Attest npm SBOM
+        if: github.event_name != 'pull_request'
+        uses: actions/attest@f6bf1532d7d6793fce74eac584813a8eee607999 # v4
+        with:
+          subject-path: ${{ steps.artifact.outputs.archive }}
+          sbom-path: sodmin-npm.cdx.json
+
       - name: Generate local cosign evidence
         run: bash scripts/local-cosign-evidence.sh "${{ steps.artifact.outputs.archive }}" cosign-evidence
 
       - name: Upload local bundle artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: sodmin-web-public
           path: |
             ${{ steps.artifact.outputs.archive }}
             ${{ steps.artifact.outputs.archive }}.sha256
+            sodmin-rust.cdx.json
+            sodmin-npm.cdx.json
             cosign-evidence/
