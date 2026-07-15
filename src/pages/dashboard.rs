@@ -131,7 +131,7 @@ pub fn Dashboard() -> Element {
         .unwrap_or_else(|| t("common.unknown"));
     let health_state = health_summary(status_data.as_ref());
     // SOD-01-004 — typed conformance buckets straight off the SDK
-    // `ServerDescription` (same source as the server-status page); the old
+    // `ServiceDescribe` (same source as the server-status page); the old
     // substring-needle heuristic over supported_* lists is gone.
     let verified_profiles = describe_data
         .as_ref()

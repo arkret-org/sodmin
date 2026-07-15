@@ -1,7 +1,7 @@
 //! DTO shapes for the server status and describe admin surfaces.
 //!
 //! The `/_arkret/describe` payload is the SDK-authoritative
-//! [`ServerDescription`] (`arkret_core::models::api`). sodmin does not
+//! [`ServiceDescribe`] (`arkret_core::models::api`). sodmin does not
 //! mirror it; service-proprietary top-level extensions (coauth's
 //! `identity_registry_resolver`, `admin_audience`, …) are captured in a
 //! flattened `extra` envelope and read by the view layer on demand.
@@ -10,9 +10,9 @@ use std::collections::BTreeMap;
 
 // (The `ClaimedProfileEntry` / `VerifiedProfileEntry` /
 // `CompatSurfaceEntry` element types are reachable through the SDK
-// directly; sodmin views consume them via the `ServerDescription`
+// directly; sodmin views consume them via the `ServiceDescribe`
 // fields and need no local re-export.)
-pub use arkret_core::models::ServerDescription;
+pub use arkret_core::models::ServiceDescribe;
 use serde::{Deserialize, Serialize};
 
 // ── Server info types ──
@@ -32,7 +32,7 @@ pub struct ServerInfo {
 /// `/_arkret/describe` response envelope.
 ///
 /// The protocol-authoritative fields deserialize into the SDK
-/// [`ServerDescription`] (strict: `service_id: Did`,
+/// [`ServiceDescribe`] (strict: `service_id: Did`,
 /// `trust_domain: TypedTrustDomainId`, `development_mode: bool`, …).
 /// Any additional top-level keys a service emits beyond the spec shape
 /// (e.g. coauth's `identity_registry_resolver` extension block) land in
@@ -44,8 +44,8 @@ pub struct ServerInfo {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ServerDescribeDocument {
     #[serde(flatten)]
-    pub description: ServerDescription,
-    /// Top-level keys not consumed by [`ServerDescription`].
+    pub description: ServiceDescribe,
+    /// Top-level keys not consumed by [`ServiceDescribe`].
     #[serde(flatten)]
     pub extra: ServerDescribeExtensions,
 }
@@ -72,9 +72,9 @@ impl ServerDescribeExtensions {
 }
 
 impl std::ops::Deref for ServerDescribeDocument {
-    type Target = ServerDescription;
+    type Target = ServiceDescribe;
 
-    fn deref(&self) -> &ServerDescription {
+    fn deref(&self) -> &ServiceDescribe {
         &self.description
     }
 }
@@ -161,7 +161,7 @@ mod tests {
 
     use super::ServerDescribeDocument;
 
-    /// Minimal payload satisfying every REQUIRED `ServerDescription`
+    /// Minimal payload satisfying every REQUIRED `ServiceDescribe`
     /// field (Round 4 ServiceDescribe v2 shape, as soland emits it).
     fn base_describe() -> serde_json::Value {
         json!({
