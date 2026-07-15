@@ -322,23 +322,6 @@ pub async fn api_client<T: DeserializeOwned, B: Serialize>(
     api_client_raw(url, method, body).await
 }
 
-/// Admin API call for a caller-scoped mutation retry. Reuse the same
-/// idempotency key for every physical send that belongs to the same operator
-/// intent, including a 401 refresh/replay inside this client.
-#[allow(dead_code)]
-pub async fn api_client_with_idempotency_key<T: DeserializeOwned, B: Serialize>(
-    url: &str,
-    method: &str,
-    body: Option<B>,
-    idempotency_key: &str,
-) -> Result<T, HttpError> {
-    let body = match body {
-        Some(value) => Some(json_body(&value)?),
-        None => None,
-    };
-    api_client_raw_with_idempotency(url, method, body, Some(idempotency_key.to_owned())).await
-}
-
 pub fn build_url(path: &str, params: &[(&str, &str)]) -> Result<String, HttpError> {
     reject_query_credentials(path)?;
     for (key, _) in params {

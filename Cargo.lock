@@ -553,7 +553,6 @@ dependencies = [
  "coauth-data",
  "serde",
  "serde_json",
- "thiserror 2.0.18",
 ]
 
 [[package]]
@@ -563,7 +562,6 @@ dependencies = [
  "anyhow",
  "arkret-core",
  "async-trait",
- "base64ct",
  "chrono",
  "coauth-email-types",
  "coauth-iana",
@@ -578,13 +576,11 @@ dependencies = [
  "language-tags",
  "opentelemetry",
  "opentelemetry-semantic-conventions",
- "rand 0.8.7",
  "rand_chacha 0.3.1",
  "rand_core 0.6.4",
  "regex",
  "serde",
  "serde_json",
- "serde_urlencoded",
  "sha2 0.10.9",
  "soland-core",
  "subtle",
@@ -630,7 +626,6 @@ dependencies = [
  "p256",
  "p384",
  "p521",
- "rand 0.8.7",
  "rsa",
  "schemars 1.2.1",
  "sec1",
@@ -651,7 +646,6 @@ dependencies = [
  "chrono",
  "coauth-iana",
  "coauth-jose",
- "indexmap 2.14.0",
  "language-tags",
  "serde",
  "serde_json",
@@ -3643,7 +3637,6 @@ version = "0.8.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "22f6172bdec972074665ed81ed53b71da00bfc44b65a753cfde883ec4c702a1a"
 dependencies = [
- "libc",
  "rand_chacha 0.3.1",
  "rand_core 0.6.4",
 ]
