@@ -48,7 +48,9 @@ pub fn AppLayout(children: Element) -> Element {
             let key = event.key();
             let is_auth_key = matches!(key.as_deref(), Some("session_active") | None);
             if is_auth_key && !auth::is_authenticated() {
-                nav.replace(Route::LoginPage {});
+                nav.replace(Route::LoginPage {
+                    logout_warning: None,
+                });
             }
         });
 

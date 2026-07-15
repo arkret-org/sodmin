@@ -8,8 +8,8 @@ use crate::utils::i18n::t;
 #[derive(Debug, Clone, Routable, PartialEq)]
 #[rustfmt::skip]
 pub enum Route {
-    #[route("/login")]
-    LoginPage {},
+    #[route("/login?:logout_warning")]
+    LoginPage { logout_warning: Option<String> },
 
     #[route("/oauth/callback?:code&:state&:error&:error_description")]
     OAuthCallback {
@@ -159,7 +159,9 @@ fn AuthenticatedLayout() -> Element {
     let nav = use_navigator();
 
     if !auth::is_authenticated() {
-        nav.replace(Route::LoginPage {});
+        nav.replace(Route::LoginPage {
+            logout_warning: None,
+        });
         return rsx! {
             div { "Redirecting..." }
         };
@@ -230,9 +232,9 @@ fn AuthenticatedLayout() -> Element {
 }
 
 #[component]
-fn LoginPage() -> Element {
+fn LoginPage(logout_warning: Option<String>) -> Element {
     rsx! {
-        pages::login::LoginPage {}
+        pages::login::LoginPage { logout_warning }
     }
 }
 

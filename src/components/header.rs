@@ -12,6 +12,8 @@ pub fn AppHeader(collapsed: Signal<bool>, mobile_sidebar_open: Signal<bool>) -> 
     let mut is_collapsed = collapsed;
     let mut is_mobile_sidebar_open = mobile_sidebar_open;
     let mut dark_mode = use_signal(|| get_resolved_theme() == "dark");
+    let mut logout_in_progress = use_signal(|| false);
+    let mut logout_error = use_signal(|| None::<String>);
     let nav = use_navigator();
 
     rsx! {
@@ -115,7 +117,7 @@ pub fn AppHeader(collapsed: Signal<bool>, mobile_sidebar_open: Signal<bool>) -> 
                         .map(format_timestamp)
                         .unwrap_or_else(|| "session expiry unknown".to_string());
                     rsx! {
-                        div { class: "app-header-session",
+                        div { class: "app-header-session flex-wrap justify-end",
                             div { class: "app-header-user flex items-center gap-2", title: "{full}",
                                 div { class: "flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary overflow-hidden",
                                     if let Some(url) = avatar_url.as_deref() {
@@ -135,14 +137,42 @@ pub fn AppHeader(collapsed: Signal<bool>, mobile_sidebar_open: Signal<bool>) -> 
                             }
                             button {
                                 class: "app-header-logout inline-flex h-9 items-center justify-center rounded-lg border bg-background px-3 text-xs font-medium text-foreground hover:bg-accent hover:text-accent-foreground touch-target",
+                                disabled: *logout_in_progress.read(),
                                 onclick: move |_| {
                                     let nav = nav;
+                                    logout_error.set(None);
+                                    logout_in_progress.set(true);
                                     spawn(async move {
-                                        let _ = crate::api::auth::logout().await;
-                                        nav.push(Route::LoginPage {});
+                                        let report = crate::api::auth::logout().await;
+                                        if report.local_cookie_cleared() {
+                                            let logout_warning = report.login_warning_code();
+                                            if !report.fully_confirmed() {
+                                                log::warn!(
+                                                    "local logout succeeded with incomplete upstream cleanup: {report:?}"
+                                                );
+                                            }
+                                            logout_in_progress.set(false);
+                                            nav.replace(Route::LoginPage { logout_warning });
+                                        } else {
+                                            logout_error.set(Some(report.retry_message()));
+                                            logout_in_progress.set(false);
+                                        }
                                     });
                                 },
-                                {t("nav.logout")}
+                                if *logout_in_progress.read() {
+                                    "Signing out..."
+                                } else if logout_error.read().is_some() {
+                                    "Retry sign-out"
+                                } else {
+                                    {t("nav.logout")}
+                                }
+                            }
+                            if let Some(message) = logout_error.read().as_ref() {
+                                p {
+                                    class: "basis-full max-w-md text-right text-xs text-destructive",
+                                    role: "alert",
+                                    "{message}"
+                                }
                             }
                         }
                     }

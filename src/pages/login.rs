@@ -6,7 +6,7 @@ use crate::components::ui::loading::Spinner;
 use crate::utils::i18n::t;
 
 #[component]
-pub fn LoginPage() -> Element {
+pub fn LoginPage(logout_warning: Option<String>) -> Element {
     let mut loading = use_signal(|| false);
     let mut ready = use_signal(|| false);
     let mut config_error = use_signal::<Option<String>>(|| None);
@@ -47,6 +47,7 @@ pub fn LoginPage() -> Element {
     let is_loading = *loading.read();
     let error_message = config_error.read().clone();
     let oauth_error = login_error.read().clone();
+    let logout_warning = logout_warning.as_deref().and_then(logout_warning_message);
 
     if let Some(message) = error_message {
         return rsx! { ConfigErrorPanel { message } };
@@ -67,6 +68,13 @@ pub fn LoginPage() -> Element {
                 }
 
                 div { class: "rounded-lg border glass-panel p-6 shadow-sm space-y-4",
+                    if let Some(message) = logout_warning {
+                        div {
+                            class: "rounded-md border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-amber-700 dark:text-amber-300",
+                            role: "alert",
+                            "{message}"
+                        }
+                    }
                     if let Some(message) = oauth_error {
                         div { class: "rounded-md bg-destructive/10 p-3 text-sm text-destructive",
                             "{message}"
@@ -93,6 +101,24 @@ pub fn LoginPage() -> Element {
             }
         }
     }
+}
+
+fn logout_warning_message(code: &str) -> Option<String> {
+    let mut stages = Vec::new();
+    for item in code.split(',') {
+        match item {
+            "principal_logout" => stages.push("Principal Server session cleanup"),
+            "oauth_revoke" => stages.push("OAuth token revocation"),
+            _ => {}
+        }
+    }
+    if stages.is_empty() {
+        return None;
+    }
+    Some(format!(
+        "This browser session was closed, but {} was not confirmed. Sign in again and retry sign-out if remote cleanup is still required.",
+        stages.join(" and ")
+    ))
 }
 
 /// Hard error surface shown when `/config.json` is unreachable or missing
@@ -134,5 +160,18 @@ fn ConfigErrorPanel(message: String) -> Element {
                 }
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::logout_warning_message;
+
+    #[test]
+    fn logout_warning_codes_are_fixed_and_non_sensitive() {
+        let message = logout_warning_message("principal_logout,oauth_revoke").unwrap();
+        assert!(message.contains("Principal Server session cleanup"));
+        assert!(message.contains("OAuth token revocation"));
+        assert!(logout_warning_message("server body here").is_none());
     }
 }

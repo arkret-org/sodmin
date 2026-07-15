@@ -12,6 +12,7 @@ edition = "2024"
 # features pull native-only deps and are deliberately NOT enabled here).
 base64 = {workspace = true,default-features = false,features = ["alloc"]}
 chrono = {workspace = true,features = ["serde", "wasmbind"]}
+coauth-account-types = {workspace = true}
 coauth-admin-types = {workspace = true}
 arkret-core = {workspace = true,default-features = false}
 arkret-identifiers = {workspace = true,default-features = false}
@@ -124,6 +125,7 @@ resolver = "3"
 [workspace.dependencies]
 base64 = {version = "0.22",default-features = false}
 chrono = "0.4.45"
+coauth-account-types = {path = "../coauth/crates/account-types"}
 coauth-admin-types = {path = "../coauth/crates/admin-types"}
 arkret-core = {path = "../arkret-rust-sdk/crates/core",default-features = false}
 arkret-identifiers = {path = "../arkret-rust-sdk/crates/identifiers",default-features = false}

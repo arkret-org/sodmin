@@ -14,14 +14,30 @@ use crate::utils::net::session;
 #[component]
 pub fn NotAuthorizedPage() -> Element {
     let nav = use_navigator();
+    let mut logout_in_progress = use_signal(|| false);
+    let mut logout_error = use_signal(|| None::<String>);
     let user = session::current_user();
     let display_name = user.display_name.clone().unwrap_or_default();
     let user_id = user.id.clone().unwrap_or_default();
 
     let handle_logout = move |_evt: MouseEvent| {
+        logout_error.set(None);
+        logout_in_progress.set(true);
         spawn(async move {
-            let _ = auth::logout().await;
-            nav.replace(Route::LoginPage {});
+            let report = auth::logout().await;
+            if report.local_cookie_cleared() {
+                let logout_warning = report.login_warning_code();
+                if !report.fully_confirmed() {
+                    log::warn!(
+                        "local logout succeeded with incomplete upstream cleanup: {report:?}"
+                    );
+                }
+                logout_in_progress.set(false);
+                nav.replace(Route::LoginPage { logout_warning });
+            } else {
+                logout_error.set(Some(report.retry_message()));
+                logout_in_progress.set(false);
+            }
         });
     };
 
@@ -53,11 +69,25 @@ pub fn NotAuthorizedPage() -> Element {
                         }
                     }
                 }
+                if let Some(message) = logout_error.read().as_ref() {
+                    div {
+                        class: "rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive",
+                        role: "alert",
+                        "{message}"
+                    }
+                }
                 Button {
                     variant: ButtonVariant::Outline,
                     class: "w-full".to_string(),
+                    disabled: *logout_in_progress.read(),
                     onclick: handle_logout,
-                    {t("auth.sign_out")}
+                    if *logout_in_progress.read() {
+                        "Signing out..."
+                    } else if logout_error.read().is_some() {
+                        "Retry sign-out"
+                    } else {
+                        {t("auth.sign_out")}
+                    }
                 }
             }
         }

@@ -20,8 +20,9 @@
 //! - **Refresh** — when the cookie has expired the server returns 401, the client invokes
 //!   `handle_unauthorized` which calls `/oauth/token` (grant_type=refresh_token) (also with
 //!   `credentials: "include"`) and the server sets a new cookie. No JS-visible refresh_token.
-//! - **Logout** — `logout` POSTs to `/oauth/revoke` (same cookie credentials), then clears the
-//!   JS-visible session marker + userinfo + the SPA-side cached config.
+//! - **Logout** — `logout` records the Principal Server hard-logout, OAuth revoke, and coauth
+//!   browser-cookie logout outcomes separately. JS-visible session state is cleared only after the
+//!   cookie-owning coauth endpoint explicitly confirms browser-session termination.
 
 use std::cell::Cell;
 
@@ -52,6 +53,84 @@ pub(crate) const SESSION_ACTIVE_KEY: &str = "session_active";
 struct TextResponse {
     status: u16,
     text: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum LogoutStepStatus {
+    Confirmed,
+    Failed(String),
+}
+
+impl LogoutStepStatus {
+    fn is_confirmed(&self) -> bool {
+        matches!(self, Self::Confirmed)
+    }
+
+    fn failure(&self) -> Option<&str> {
+        match self {
+            Self::Confirmed => None,
+            Self::Failed(message) => Some(message),
+        }
+    }
+}
+
+/// Result of the three independent logout responsibilities. The Principal
+/// Server owns hard account-session cleanup, OAuth revoke is a separate token
+/// revocation signal, and coauth alone can expire its HttpOnly browser cookie.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct LogoutReport {
+    pub principal_logout: LogoutStepStatus,
+    pub oauth_revoke: LogoutStepStatus,
+    pub cookie_logout: LogoutStepStatus,
+}
+
+impl LogoutReport {
+    /// The only safe gate for clearing the SPA marker: JavaScript cannot inspect
+    /// the HttpOnly cookie, so a typed success from its owning endpoint is the
+    /// confirmation boundary.
+    pub fn local_cookie_cleared(&self) -> bool {
+        self.cookie_logout.is_confirmed()
+    }
+
+    pub fn fully_confirmed(&self) -> bool {
+        self.local_cookie_cleared()
+            && self.principal_logout.is_confirmed()
+            && self.oauth_revoke.is_confirmed()
+    }
+
+    /// Fixed, non-sensitive codes suitable for the login-page query string
+    /// after local cookie removal has already succeeded.
+    pub fn login_warning_code(&self) -> Option<String> {
+        if !self.local_cookie_cleared() {
+            return None;
+        }
+        let mut failed = Vec::new();
+        if !self.principal_logout.is_confirmed() {
+            failed.push("principal_logout");
+        }
+        if !self.oauth_revoke.is_confirmed() {
+            failed.push("oauth_revoke");
+        }
+        (!failed.is_empty()).then(|| failed.join(","))
+    }
+
+    /// User-facing retry guidance for the authenticated surface. This is used
+    /// only when cookie removal was not confirmed and the session marker stays
+    /// present, so the same button remains a valid retry path.
+    pub fn retry_message(&self) -> String {
+        let failures = [
+            self.principal_logout.failure(),
+            self.oauth_revoke.failure(),
+            self.cookie_logout.failure(),
+        ]
+        .into_iter()
+        .flatten()
+        .collect::<Vec<_>>()
+        .join("; ");
+        format!(
+            "Sign-out was not confirmed and your local session marker was kept. Retry sign-out. {failures}"
+        )
+    }
 }
 
 fn build_oauth_scope() -> String {
@@ -480,24 +559,111 @@ pub async fn refresh_if_expiring_soon() {
     let _ = refresh_oauth_token_singleflight().await;
 }
 
-pub async fn logout() -> Result<(), HttpError> {
-    // S5: the cookie carries the bearer; just hit /oauth/revoke with
-    // credentials: "include" so coauth can read it server-side and
-    // clear it via Set-Cookie.
-    let body = format!("client_id={OAUTH_CLIENT_ID}");
-    let _ = send_oauth_form_request("/oauth/revoke", &body).await;
-
-    // Principal-Server device logout, spec `ak.gate.account.command.logout`.
-    // The gateway routes this longer prefix to soland (the rest of
-    // `/_arkret/gate/*` goes to coauth), so it clears the soland-side session.
-    let _ = Request::post("/_arkret/gate/account/logout")
+async fn send_credentialed_empty_post(path: &str) -> Result<TextResponse, HttpError> {
+    let response = Request::post(path)
         .header("Accept", "application/json")
         .credentials(RequestCredentials::Include)
         .send()
-        .await;
+        .await
+        .map_err(|error| make_err(error.to_string()))?;
+    read_text_response(response).await
+}
 
+fn failed_request(label: &str, error: HttpError) -> LogoutStepStatus {
+    if error.status == 0 {
+        LogoutStepStatus::Failed(format!("{label} request failed before a response"))
+    } else {
+        LogoutStepStatus::Failed(format!("{label} request failed with HTTP {}", error.status))
+    }
+}
+
+fn rejected_response(label: &str, status: u16) -> LogoutStepStatus {
+    LogoutStepStatus::Failed(format!("{label} returned HTTP {status}"))
+}
+
+fn classify_oauth_revoke(response: Result<TextResponse, HttpError>) -> LogoutStepStatus {
+    match response {
+        Ok(response) if (200..300).contains(&response.status) => LogoutStepStatus::Confirmed,
+        Ok(response) => rejected_response("OAuth revoke", response.status),
+        Err(error) => failed_request("OAuth revoke", error),
+    }
+}
+
+fn classify_principal_logout(response: Result<TextResponse, HttpError>) -> LogoutStepStatus {
+    let response = match response {
+        Ok(response) if (200..300).contains(&response.status) => response,
+        Ok(response) => return rejected_response("Principal Server logout", response.status),
+        Err(error) => return failed_request("Principal Server logout", error),
+    };
+    let Ok(outcome) = serde_json::from_str::<arkret_core::AccountLogoutOutcome>(&response.text)
+    else {
+        return LogoutStepStatus::Failed(
+            "Principal Server logout returned an invalid response".to_owned(),
+        );
+    };
+    if outcome.ok && outcome.revoked {
+        LogoutStepStatus::Confirmed
+    } else {
+        LogoutStepStatus::Failed(
+            "Principal Server logout did not confirm session revocation".to_owned(),
+        )
+    }
+}
+
+fn classify_cookie_logout(response: Result<TextResponse, HttpError>) -> LogoutStepStatus {
+    let response = match response {
+        Ok(response) if (200..300).contains(&response.status) => response,
+        Ok(response) => return rejected_response("Browser cookie logout", response.status),
+        Err(error) => return failed_request("Browser cookie logout", error),
+    };
+    let Ok(outcome) = serde_json::from_str::<coauth_account_types::LogoutOutcome>(&response.text)
+    else {
+        return LogoutStepStatus::Failed(
+            "Browser cookie logout returned an invalid response".to_owned(),
+        );
+    };
+    if outcome.status == "success" {
+        LogoutStepStatus::Confirmed
+    } else {
+        LogoutStepStatus::Failed("Browser cookie logout did not confirm cookie removal".to_owned())
+    }
+}
+
+pub async fn logout() -> LogoutReport {
+    // The protocol hard-logout is authoritative for the account grant and
+    // Principal-side device session. It runs before the standalone OAuth
+    // revoke so token invalidation cannot prevent Principal-side cleanup.
+    let principal_logout = classify_principal_logout(
+        send_credentialed_empty_post("/_arkret/gate/account/logout").await,
+    );
+
+    // OAuth revocation remains a separate result. RFC 7009 success is conveyed
+    // by a 2xx response, including the already-revoked/unknown-token case.
+    let body = format!("client_id={OAUTH_CLIENT_ID}");
+    let oauth_revoke = classify_oauth_revoke(send_oauth_form_request("/oauth/revoke", &body).await);
+
+    // coauth owns the HttpOnly browser-session cookie. Always attempt this
+    // final local termination even when an upstream cleanup step failed; only
+    // its typed success can authorize clearing the JS-visible marker.
+    let cookie_logout =
+        classify_cookie_logout(send_credentialed_empty_post("/_coauth/account/auth/logout").await);
+
+    let report = LogoutReport {
+        principal_logout,
+        oauth_revoke,
+        cookie_logout,
+    };
+
+    finalize_logout_report(&report);
+    report
+}
+
+fn finalize_logout_report(report: &LogoutReport) -> bool {
+    if !report.local_cookie_cleared() {
+        return false;
+    }
     clear_session_marker();
-    Ok(())
+    true
 }
 
 /// Drop every JS-visible piece of session state so the next user on
@@ -528,7 +694,12 @@ pub fn is_authenticated() -> bool {
 
 #[cfg(test)]
 mod tests {
-    use super::{SESSION_ACTIVE_KEY, build_oauth_scope, extract_unsigned_id_token_nonce};
+    use super::{
+        LogoutReport, LogoutStepStatus, SESSION_ACTIVE_KEY, TextResponse, build_oauth_scope,
+        classify_cookie_logout, classify_oauth_revoke, classify_principal_logout,
+        extract_unsigned_id_token_nonce,
+    };
+    use crate::utils::net::error::HttpError;
     use crate::utils::security::crypto::base64url_encode;
 
     #[test]
@@ -555,13 +726,100 @@ mod tests {
             Some("n-123".to_string())
         );
     }
+
+    #[test]
+    fn oauth_revoke_failure_is_not_swallowed() {
+        let status = classify_oauth_revoke(Ok(TextResponse {
+            status: 503,
+            text: String::new(),
+        }));
+        assert_eq!(
+            status,
+            LogoutStepStatus::Failed("OAuth revoke returned HTTP 503".to_owned())
+        );
+
+        let transport = classify_oauth_revoke(Err(HttpError::message("offline")));
+        assert!(matches!(transport, LogoutStepStatus::Failed(_)));
+    }
+
+    #[test]
+    fn principal_logout_requires_explicit_revocation_confirmation() {
+        let not_revoked = classify_principal_logout(Ok(TextResponse {
+            status: 200,
+            text: r#"{"ok":true,"revoked":false}"#.to_owned(),
+        }));
+        assert!(matches!(not_revoked, LogoutStepStatus::Failed(_)));
+
+        let confirmed = classify_principal_logout(Ok(TextResponse {
+            status: 200,
+            text: r#"{"ok":true,"revoked":true}"#.to_owned(),
+        }));
+        assert_eq!(confirmed, LogoutStepStatus::Confirmed);
+    }
+
+    #[test]
+    fn cookie_logout_requires_typed_success_confirmation() {
+        let malformed = classify_cookie_logout(Ok(TextResponse {
+            status: 200,
+            text: "{}".to_owned(),
+        }));
+        assert!(matches!(malformed, LogoutStepStatus::Failed(_)));
+
+        let rejected = classify_cookie_logout(Ok(TextResponse {
+            status: 200,
+            text: r#"{"status":"failed"}"#.to_owned(),
+        }));
+        assert!(matches!(rejected, LogoutStepStatus::Failed(_)));
+
+        let confirmed = classify_cookie_logout(Ok(TextResponse {
+            status: 200,
+            text: r#"{"status":"success"}"#.to_owned(),
+        }));
+        assert_eq!(confirmed, LogoutStepStatus::Confirmed);
+    }
+
+    #[test]
+    fn unconfirmed_cookie_keeps_marker_gate_closed_and_exposes_retry() {
+        let report = LogoutReport {
+            principal_logout: LogoutStepStatus::Confirmed,
+            oauth_revoke: LogoutStepStatus::Confirmed,
+            cookie_logout: LogoutStepStatus::Failed(
+                "Browser cookie logout returned HTTP 502".to_owned(),
+            ),
+        };
+        assert!(!report.local_cookie_cleared());
+        assert!(!report.fully_confirmed());
+        assert!(report.login_warning_code().is_none());
+        assert!(report.retry_message().contains("Retry sign-out"));
+        assert!(!super::finalize_logout_report(&report));
+    }
+
+    #[test]
+    fn confirmed_cookie_allows_local_logout_but_preserves_upstream_warning() {
+        let report = LogoutReport {
+            principal_logout: LogoutStepStatus::Failed(
+                "Principal Server logout returned HTTP 503".to_owned(),
+            ),
+            oauth_revoke: LogoutStepStatus::Failed("OAuth revoke returned HTTP 503".to_owned()),
+            cookie_logout: LogoutStepStatus::Confirmed,
+        };
+        assert!(report.local_cookie_cleared());
+        assert!(!report.fully_confirmed());
+        assert_eq!(
+            report.login_warning_code().as_deref(),
+            Some("principal_logout,oauth_revoke")
+        );
+    }
 }
 
 #[cfg(all(test, target_arch = "wasm32"))]
 mod wasm_tests {
     use wasm_bindgen_test::*;
 
-    use super::compute_code_challenge;
+    use super::{
+        LogoutReport, LogoutStepStatus, SESSION_ACTIVE_KEY, compute_code_challenge,
+        finalize_logout_report, is_authenticated,
+    };
 
     wasm_bindgen_test_configure!(run_in_browser);
 
@@ -570,5 +828,26 @@ mod wasm_tests {
         let verifier = "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk";
         let challenge = compute_code_challenge(verifier).await.unwrap();
         assert_eq!(challenge, "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM");
+    }
+
+    #[wasm_bindgen_test]
+    fn marker_is_kept_until_cookie_logout_is_confirmed() {
+        crate::utils::storage::set_item(SESSION_ACTIVE_KEY, "1");
+        let unconfirmed = LogoutReport {
+            principal_logout: LogoutStepStatus::Confirmed,
+            oauth_revoke: LogoutStepStatus::Confirmed,
+            cookie_logout: LogoutStepStatus::Failed(
+                "Browser cookie logout returned HTTP 503".to_owned(),
+            ),
+        };
+        finalize_logout_report(&unconfirmed);
+        assert!(is_authenticated());
+
+        let confirmed = LogoutReport {
+            cookie_logout: LogoutStepStatus::Confirmed,
+            ..unconfirmed
+        };
+        finalize_logout_report(&confirmed);
+        assert!(!is_authenticated());
     }
 }
