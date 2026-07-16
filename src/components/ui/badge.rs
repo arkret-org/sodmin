@@ -1,10 +1,12 @@
-//! `Badge` — 已迁移到 yoface(`yoface::ui::badge::Badge`)。
+//! `Badge` — migrated to yoface (`yoface::ui::badge::Badge`).
 //!
-//! 本地保留这一薄**适配器**:sodmin 调用点用 `BadgeVariant::Default`(yoface
-//! 改名 `Primary`)与 `BadgeVariant::Success`(yoface 无对应语义)。适配器把
-//! 可映射的 4 个变体转交 yoface(css_module + Soft Orbit 令牌渲染),`Success`
-//! 因 yoface 无该语义,保留本地绿色样式 span 实现。`class` 命名 prop 透传为
-//! yoface attributes。~170 个调用点零改动。
+//! This thin **adapter** is kept locally: sodmin's call sites use
+//! `BadgeVariant::Default` (yoface renamed it `Primary`) and
+//! `BadgeVariant::Success` (yoface has no equivalent semantic). The adapter
+//! hands the 4 mappable variants over to yoface (rendered with css_module +
+//! the Soft Orbit tokens); `Success`, having no such semantic in yoface, keeps
+//! the local green-styled span implementation. The `class` named prop is
+//! passed through as yoface attributes. The ~170 call sites need zero changes.
 use dioxus::prelude::*;
 use yoface::ui::badge::{Badge as YBadge, BadgeVariant as YVariant};
 
@@ -29,7 +31,7 @@ pub fn Badge(
         BadgeVariant::Secondary => Some(YVariant::Secondary),
         BadgeVariant::Destructive => Some(YVariant::Destructive),
         BadgeVariant::Outline => Some(YVariant::Outline),
-        // yoface 无 success 语义,保留本地绿色 span。
+        // yoface has no success semantic; keep the local green span.
         BadgeVariant::Success => None,
     };
 

@@ -1,16 +1,19 @@
 use dioxus::prelude::*;
-// `PageHeader` 已迁移到 yoface(签名一致,渲染走 css_module + Soft Orbit 令牌)。
-// 直接 re-export,调用点零改动。
+// `PageHeader` has been migrated to yoface (the signature matches, and
+// rendering goes through css_module + the Soft Orbit tokens). Re-exported
+// directly, so call sites need zero changes.
 pub use yoface::ui::page_header::PageHeader;
 
 use crate::router::Route;
 
-// Breadcrumbs 渲染已迁移到 yoface(`yoface::ui::page_header::Breadcrumbs`,
-// `href: Option<String>`)。本地仅保留一层**薄适配器**:sodmin 调用点用
-// `crate::router::Route` 强类型路由(编译期校验路由存在),适配器把每个
-// `Route` 经 `Routable` 的 `Display`(`route.to_string()` 即 URL path)转成
-// yoface 期望的 `href` 字符串,再委托 yoface 渲染。原手写的
-// `nav`/`Link`/utility-class 实现已删除。
+// The Breadcrumbs rendering has been migrated to yoface
+// (`yoface::ui::page_header::Breadcrumbs`, `href: Option<String>`). Only a
+// **thin adapter** layer is kept locally: sodmin's call sites use the strongly
+// typed `crate::router::Route` (which validates at compile time that the route
+// exists), and the adapter converts each `Route` into the `href` string yoface
+// expects via `Routable`'s `Display` (`route.to_string()` is the URL path),
+// then delegates the rendering to yoface. The original hand-written
+// `nav`/`Link`/utility-class implementation has been deleted.
 #[derive(Debug, Clone, PartialEq)]
 pub struct BreadcrumbItem {
     pub label: String,

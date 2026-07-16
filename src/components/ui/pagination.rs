@@ -1,6 +1,8 @@
-//! `Pagination` / `CursorPagination` — 已迁移到 yoface
-//! (`yoface::ui::pagination::*`)。
+//! `Pagination` / `CursorPagination` — migrated to yoface
+//! (`yoface::ui::pagination::*`).
 //!
-//! yoface 版签名一致(新增可选 `prev_label` / `next_label`,有默认值),调用点
-//! 零改动;内部复用 yoface 的 `Button`,渲染走 css_module + Soft Orbit 令牌。
+//! The yoface versions' signatures match (with new optional `prev_label` /
+//! `next_label` props that have defaults), so call sites need zero changes.
+//! Internally they reuse yoface's `Button`, with rendering going through
+//! css_module + the Soft Orbit tokens.
 pub use yoface::ui::pagination::{CursorPagination, Pagination};

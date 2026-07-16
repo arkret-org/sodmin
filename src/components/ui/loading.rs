@@ -1,3 +1,4 @@
-//! 加载/骨架屏组件已迁移到 yoface(`yoface::ui::loading`,签名一致)。
-//! 直接 re-export,调用点零改动。
+//! The loading/skeleton components have been migrated to yoface
+//! (`yoface::ui::loading`, with matching signatures). Re-exported directly, so
+//! call sites need zero changes.
 pub use yoface::ui::loading::{PageSkeleton, Spinner, StatsSkeleton};

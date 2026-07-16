@@ -1,20 +1,24 @@
-//! Modal 家族:渲染实现已迁移到 yoface(`yoface::ui::modal`)。本地手写的
-//! `fixed inset-0 z-50 …` 遮罩 + 面板实现已删除。
+//! The Modal family: the rendering implementation has been migrated to yoface
+//! (`yoface::ui::modal`). The local hand-written `fixed inset-0 z-50 …`
+//! overlay + panel implementation has been deleted.
 //!
-//! 为避免在 ~20 处调用点逐个改 prop 名(其中 `destructive: bool` → `variant`
-//! 是类型变更、部分还是动态表达式,盲改易错),这里保留一层**薄适配器**,
-//! 把 sodmin 既有 prop 名透传/翻译到 yoface 的新 API:
+//! To avoid renaming props one by one across ~20 call sites (among them
+//! `destructive: bool` → `variant` is a type change, and some are dynamic
+//! expressions, which makes blind edits error-prone), a **thin adapter** layer
+//! is kept here that passes through / translates sodmin's existing prop names
+//! to yoface's new API:
 //!   * `DialogActions.confirm_text`/`cancel_text` → yoface `confirm_label`/`cancel_label`
 //!   * `DialogActions.destructive: bool` → yoface `variant: ButtonVariant::{Destructive,Primary}`
 //!   * `Modal.max_width: String` → yoface `Modal.class`
 //!
-//! `ModalOverlay` 签名一致,直接 re-export。
+//! `ModalOverlay`'s signature matches, so it is re-exported directly.
 use dioxus::prelude::*;
 use yoface::ui::button::ButtonVariant;
 pub use yoface::ui::modal::ModalOverlay;
 
-/// 适配器:本地 `max_width: String`(如 `"max-w-lg"`)映射为 yoface `Modal.class`
-/// (透传到容器,覆盖默认 max-width)。其余 prop 同名透传。
+/// Adapter: the local `max_width: String` (e.g. `"max-w-lg"`) maps to yoface's
+/// `Modal.class` (passed through to the container, overriding the default
+/// max-width). The remaining props pass through under the same names.
 #[component]
 pub fn Modal(
     open: bool,
@@ -34,7 +38,8 @@ pub fn Modal(
     }
 }
 
-/// 适配器:`confirm_text`/`cancel_text`/`destructive` → yoface 新 prop 名。
+/// Adapter: `confirm_text`/`cancel_text`/`destructive` → yoface's new prop
+/// names.
 #[component]
 pub fn DialogActions(
     confirm_text: String,

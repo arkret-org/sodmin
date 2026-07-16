@@ -1,6 +1,8 @@
-//! Checkbox 已迁移到 yoface(`yoface::ui::checkbox`)。
+//! Checkbox has been migrated to yoface (`yoface::ui::checkbox`).
 //!
-//! sodmin 的列表页表头「全选」与行选择都用三态变体,故本地 `Checkbox`
-//! 别名指向 yoface 的 `TristateCheckbox`(API 为本地两态版的超集:多一个
-//! `indeterminate`,默认 false)。`header_state` 纯函数同源直接 re-export。
+//! Both the "select all" header and the row selection on sodmin's list pages
+//! use the tristate variant, so the local `Checkbox` alias points at yoface's
+//! `TristateCheckbox` (whose API is a superset of the local two-state version:
+//! one extra `indeterminate`, defaulting to false). The `header_state` pure
+//! function is the same one, so it is re-exported directly.
 pub use yoface::ui::checkbox::{TristateCheckbox as Checkbox, header_state};

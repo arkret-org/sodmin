@@ -1,10 +1,12 @@
-//! `Button` — 已迁移到 yoface(`yoface::ui::button::Button`)。
+//! `Button` — migrated to yoface (`yoface::ui::button::Button`).
 //!
-//! 本地保留这一薄**适配器**:sodmin 调用点用 `ButtonVariant::Default`(yoface
-//! 改名为 `Primary`),且习惯以命名 prop 传 `class` / `disabled` / `type` /
-//! `onclick`(非 `Option`)。适配器把本地枚举映射到 yoface,并将这些命名 prop
-//! 透传为 yoface 的 attributes,渲染走 yoface css_module + Soft Orbit 令牌。
-//! 因此 ~140 个调用点零改动。
+//! This thin **adapter** is kept locally: sodmin's call sites use
+//! `ButtonVariant::Default` (yoface renamed it to `Primary`), and they are
+//! used to passing `class` / `disabled` / `type` / `onclick` as named props
+//! (not `Option`). The adapter maps the local enum onto yoface's and passes
+//! those named props through as yoface attributes, with rendering going
+//! through yoface's css_module + the Soft Orbit tokens. As a result, the ~140
+//! call sites need zero changes.
 use dioxus::prelude::*;
 use yoface::ui::button::{Button as YButton, ButtonSize as YSize, ButtonVariant as YVariant};
 

@@ -5,14 +5,19 @@ use crate::utils::net::telemetry;
 
 /// Shared inline error banner used on list/detail pages.
 ///
-/// 已迁移到 yoface:渲染交给 `yoface::ui::error_banner::ErrorBanner`(纯展示
-/// css_module 组件)。本地保留这一薄封装作为**适配器**,承担 yoface 共享库
-/// 刻意剥离的两项业务耦合(见 yoface README §3.2 接入说明):
-///   * i18n —— 把 `common.error` / `common.retry` 文案与 `error.<errcode>` 本地化在 sodmin
-///     侧解析后,经 `error_label` / `retry_label` / `detail` 传入 yoface 组件;
-///   * telemetry —— banner 挂载时按 `errcode` fire-and-forget 上报埋点。
+/// Migrated to yoface: rendering is handed to
+/// `yoface::ui::error_banner::ErrorBanner` (a purely presentational css_module
+/// component). This thin wrapper is kept locally as an **adapter**, taking on
+/// the two business couplings the yoface shared library deliberately stripped
+/// out (see the integration notes in yoface README §3.2):
+///   * i18n —— the `common.error` / `common.retry` copy and the `error.<errcode>` localization are
+///     resolved on the sodmin side, then passed into the yoface component via `error_label` /
+///     `retry_label` / `detail`;
+///   * telemetry —— when the banner mounts, report analytics by `errcode` in a fire-and-forget
+///     fashion.
 ///
-/// 对外签名与迁移前完全一致,因此 ~50 个调用点零改动。
+/// The outward signature is exactly the same as before the migration, so the
+/// ~50 call sites need zero changes.
 #[component]
 pub fn ErrorBanner(
     message: String,
