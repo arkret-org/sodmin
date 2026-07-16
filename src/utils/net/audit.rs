@@ -1,13 +1,20 @@
-//! Client-side admin audit helper
+//! Client-side admin audit breadcrumb
 //!
-//! Why this exists: per-row destructive mutations on the F1/F2/F3
-//! Applets / Agents / Directory admin pages must leave a structured
-//! breadcrumb in the browser console + any attached log sink, so an
-//! operator can correlate a sodmin click with the soland-side audit row
-//! it produced. The actual audit-log row is appended *server-side* by
-//! soland on receipt of `POST /_soland/admin/{resource}/{id}/{action}`;
-//! this client-side trace is purely a defensive UX aid (correlation +
-//! "did the click actually fire" debugging).
+//! Why this exists: per-row destructive mutations on the admin pages
+//! leave a structured breadcrumb in the browser console + any attached
+//! log sink, so an operator can correlate a sodmin click with the
+//! soland-side audit row it produced.
+//!
+//! This is a console-only correlation aid ("did the click actually
+//! fire"), never the audit of record. The authoritative row is appended
+//! *server-side* by soland while it handles the admin action itself —
+//! see `routing/admin/spec.rs` (`admin_account_state_action` →
+//! `append_audit_log`) and `routing/admin/actors.rs` — stamped with the
+//! authenticated session actor rather than a client-asserted one, and
+//! carrying the target id. sodmin therefore does not, and must not,
+//! post its own copy: `/_soland/self/audit/*` is the *client
+//! self-service* telemetry sink (it binds writes to the posting actor's
+//! own session and has no target field), not an admin audit surface.
 //!
 //! Output format is a single `log::info!` line shaped like:
 //! ```text
@@ -17,14 +24,9 @@
 //! The format is stable so a downstream `dioxus-logger` sink can parse
 //! it without re-deriving the schema.
 
-#[cfg(target_arch = "wasm32")]
-const ADMIN_AUDIT_USER_ACTION_PATH: &str = "/_soland/admin/audit/user-action";
-
 /// Outcome of an admin click — the toast variant on the page mirrors
 /// this. `Accepted` means the soland HTTP call returned 2xx; `Rejected`
-/// means it returned a non-2xx that wasn't a 404; `NotWired` means the
-/// soland surface returned 404 (i.e. soland hasn't shipped this admin
-/// endpoint yet, so the click was a no-op).
+/// means it returned a non-2xx.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum AdminAuditOutcome {
     Accepted,
@@ -103,100 +105,12 @@ pub fn emit_admin_audit(
     );
 }
 
-/// Wire shape POSTed to `/_soland/admin/audit/user-action`. The
-/// envelope is intentionally schema-stable so soland's reducer can map
-/// it straight to its audit row without a sodmin-specific adapter.
+/// Record an admin click that soland has already audited server-side.
 ///
-/// `target_type` + `target_id` mirror the local-only
-/// `format_admin_audit_line` triple; `outcome` carries the mapped HTTP
-/// status so the audit row distinguishes "soland accepted my click"
-/// from "soland 404'd the endpoint" without re-deriving the
-/// classification server-side.
-///
-/// The struct is consumed only by the wasm `emit_admin_audit_server`
-/// path and the unit tests below; native (non-wasm) builds never need
-/// it but keeping the shared definition keeps the test surface honest.
-#[cfg_attr(not(any(target_arch = "wasm32", test)), allow(dead_code))]
-#[derive(Debug, Clone, serde::Serialize)]
-pub struct AdminAuditClientEvent {
-    pub target_type: String,
-    pub target_id: String,
-    pub action: String,
-    pub outcome: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub note: Option<String>,
-}
-
-/// Build the wire payload for the `/_soland/admin/audit/user-action`
-/// POST. Pure helper — split out so we can unit-test the shape
-/// without compiling the wasm fetch path.
-#[cfg_attr(not(any(target_arch = "wasm32", test)), allow(dead_code))]
-pub fn build_client_event(
-    target: &str,
-    id: &str,
-    action: &str,
-    outcome: AdminAuditOutcome,
-    note: Option<&str>,
-) -> AdminAuditClientEvent {
-    AdminAuditClientEvent {
-        target_type: target.to_string(),
-        target_id: id.to_string(),
-        action: action.to_string(),
-        outcome: outcome.label().to_string(),
-        note: note
-            .map(str::trim)
-            .filter(|s| !s.is_empty())
-            .map(|s| s.to_string()),
-    }
-}
-
-/// Server-side admin audit POST. Mirrors [`emit_admin_audit`] but
-/// additionally fires a best-effort `POST
-/// /_soland/admin/audit/user-action` so the audit row also lands in
-/// the soland audit feed (not only the browser console).
-///
-/// 404 / 5xx is intentionally tolerated — soland may not have wired
-/// the user-action sink yet, and a missing audit-of-the-click should
-/// never break the actual click. We swallow the error and log a
-/// single line so the operator can see the POST happened even when
-/// the route is missing.
-#[cfg(target_arch = "wasm32")]
-pub fn emit_admin_audit_server(
-    target: &str,
-    id: &str,
-    action: &str,
-    outcome: AdminAuditOutcome,
-    note: Option<&str>,
-) {
-    // Local console line first so the breadcrumb always appears even
-    // if the network POST is queued / fails.
-    emit_admin_audit(target, id, action, outcome, note);
-
-    let payload = build_client_event(target, id, action, outcome, note);
-
-    dioxus::prelude::spawn(async move {
-        // `api_client` serializes `payload` internally; a serialize
-        // failure surfaces as an `HttpError` handled by the branch below.
-        let res: Result<crate::api::client::NoBody, _> =
-            crate::api::client::api_client(ADMIN_AUDIT_USER_ACTION_PATH, "POST", Some(&payload))
-                .await;
-        if let Err(e) = res {
-            // Don't toast — this is a fire-and-forget breadcrumb. Just
-            // surface in the console for the operator who's actively
-            // debugging audit wiring.
-            log::warn!(
-                "sodmin.admin.audit_server POST failed status={} err={}",
-                e.status,
-                e.message
-            );
-        }
-    });
-}
-
-/// Non-wasm fallback for tests and host-side compilation. The actual
-/// POST is wasm-only; this keeps `cargo check` on a host target from
-/// dragging in the gloo-net dependency in test mode.
-#[cfg(not(target_arch = "wasm32"))]
+/// Thin alias for [`emit_admin_audit`], kept as its own name so the call
+/// sites read as "this mutation is on the audit trail" — the trail being
+/// soland's `append_audit_log` row for the admin endpoint that was just
+/// called, which this line only correlates with.
 pub fn emit_admin_audit_server(
     target: &str,
     id: &str,
@@ -272,51 +186,6 @@ mod tests {
         assert!(!line.contains('\t'));
         // spaces preserved as separators
         assert!(line.contains("line1 line2 line3 tab"));
-    }
-
-    #[test]
-    fn client_event_payload_carries_outcome_label() {
-        let ev = build_client_event(
-            "agent",
-            "ag_01",
-            "approve",
-            AdminAuditOutcome::Accepted,
-            None,
-        );
-        assert_eq!(ev.target_type, "agent");
-        assert_eq!(ev.target_id, "ag_01");
-        assert_eq!(ev.action, "approve");
-        assert_eq!(ev.outcome, "accepted");
-        assert!(ev.note.is_none());
-    }
-
-    #[test]
-    fn client_event_drops_blank_note() {
-        let ev = build_client_event(
-            "agent",
-            "ag_01",
-            "suspend",
-            AdminAuditOutcome::Rejected,
-            Some("   "),
-        );
-        assert!(ev.note.is_none());
-    }
-
-    #[test]
-    fn client_event_serializes_to_stable_json() {
-        let ev = build_client_event(
-            "applet",
-            "ap_01",
-            "revoke",
-            AdminAuditOutcome::Rejected,
-            Some("hand-off to coauth"),
-        );
-        let json = serde_json::to_string(&ev).expect("json");
-        assert!(json.contains("\"target_type\":\"applet\""));
-        assert!(json.contains("\"target_id\":\"ap_01\""));
-        assert!(json.contains("\"action\":\"revoke\""));
-        assert!(json.contains("\"outcome\":\"rejected\""));
-        assert!(json.contains("\"note\":\"hand-off to coauth\""));
     }
 
     #[test]
