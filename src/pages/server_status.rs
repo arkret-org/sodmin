@@ -239,7 +239,7 @@ fn describe_body(describe: &ServerDescribeDocument) -> Element {
     // Round 4 — `trust_domain` is a required (validated) ServerDescribe
     // v2 field in the SDK type, so it is always present here.
     let trust_domain = describe.trust_domain.to_string();
-    let service_type = describe.service_type.clone();
+    let service_type = describe.service_type.as_str().to_owned();
     let protocol = describe.protocol_version.clone();
     // Service-proprietary top-level extensions (not part of the spec
     // ServiceDescribe shape) — read via the extension envelope.

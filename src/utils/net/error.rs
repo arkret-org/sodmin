@@ -96,23 +96,9 @@ impl fmt::Display for HttpError {
 impl std::error::Error for HttpError {}
 
 pub fn display_error(errcode: &str, status: u16, message: &str) -> String {
-    // P3A.8 — the soland reducer surfaces canonical AKP-0007 reason
-    // strings (e.g. `circle_realm_mismatch`,
-    // `circle_member_must_be_realm_member`) as the `errcode` field on
-    // 422 responses. These six are the spec's
-    // capability-action-registry reason codes; the SDK ships them as
-    // public constants and the admin UI maps them straight to the
-    // matching i18n key (`error.<reason>`). When an i18n string is
-    // present we render it; otherwise we fall back to the in-line
-    // English literal so brand-new codes still surface usefully.
-    // Global report #10 (candidate 8) — the three AKP-0007 reason codes
-    // the SDK ships as public constants are matched against
-    // `arkret_core::error::REASON_CIRCLE_*` rather than hand-copied
-    // literals, so a wire rename in the SDK breaks the build here. The
-    // remaining three (`circle_already_terminal`,
-    // `circle_capability_denied`, `circle_scope_rotation_in_progress`)
-    // are sodmin/soland-local admin reasons not yet promoted to a core
-    // constant, so they stay as literals.
+    // Registered Circle reason codes come from the generated SDK type so
+    // protocol renames fail at compile time. Local admin-only reasons remain
+    // literals and use the same i18n fallback path.
     let circle_reason: Option<&'static str> = match errcode {
         _ if errcode == arkret_core::error::ReasonCode::CIRCLE_REALM_MISMATCH => {
             Some("error.circle_realm_mismatch")
