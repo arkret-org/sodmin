@@ -2,14 +2,6 @@ use std::collections::BTreeMap;
 use std::fmt;
 use std::sync::OnceLock;
 
-use arkret_core::error::{
-    ERROR_CODE_AUTH_EXPIRED, ERROR_CODE_CAPABILITY_DENIED, ERROR_CODE_CAS_CONFLICT,
-    ERROR_CODE_CONFLICT, ERROR_CODE_CURSOR_EXPIRED, ERROR_CODE_CURSOR_INVALID,
-    ERROR_CODE_DUPLICATE_CONFLICT, ERROR_CODE_FAILED_PRECONDITION, ERROR_CODE_INVALID_PARAM,
-    ERROR_CODE_NOT_FOUND, ERROR_CODE_POLICY_DENIED, ERROR_CODE_POLICY_VIOLATION,
-    ERROR_CODE_RATE_LIMITED, ERROR_CODE_SCHEMA_VIOLATION, ERROR_CODE_SOFT_LOGGED_OUT,
-    ERROR_CODE_TEMPORARILY_UNAVAILABLE, ERROR_CODE_UNAUTHENTICATED,
-};
 use regex_lite::Regex;
 use serde::{Deserialize, Serialize};
 
@@ -121,16 +113,16 @@ pub fn display_error(errcode: &str, status: u16, message: &str) -> String {
     // `circle_capability_denied`, `circle_scope_rotation_in_progress`)
     // are sodmin/soland-local admin reasons not yet promoted to a core
     // constant, so they stay as literals.
-    use arkret_core::error::{
-        REASON_CIRCLE_MEMBER_MUST_BE_REALM_MEMBER, REASON_CIRCLE_NOT_ACTIVE,
-        REASON_CIRCLE_REALM_MISMATCH,
-    };
     let circle_reason: Option<&'static str> = match errcode {
-        _ if errcode == REASON_CIRCLE_REALM_MISMATCH => Some("error.circle_realm_mismatch"),
-        _ if errcode == REASON_CIRCLE_MEMBER_MUST_BE_REALM_MEMBER => {
+        _ if errcode == arkret_core::error::ReasonCode::CIRCLE_REALM_MISMATCH => {
+            Some("error.circle_realm_mismatch")
+        }
+        _ if errcode == arkret_core::error::ReasonCode::CIRCLE_MEMBER_MUST_BE_REALM_MEMBER => {
             Some("error.circle_member_must_be_realm_member")
         }
-        _ if errcode == REASON_CIRCLE_NOT_ACTIVE => Some("error.circle_not_active"),
+        _ if errcode == arkret_core::error::ReasonCode::CIRCLE_NOT_ACTIVE => {
+            Some("error.circle_not_active")
+        }
         "circle_already_terminal" => Some("error.circle_already_terminal"),
         "circle_capability_denied" => Some("error.circle_capability_denied"),
         "circle_scope_rotation_in_progress" => Some("error.circle_scope_rotation_in_progress"),
@@ -151,20 +143,20 @@ pub fn display_error(errcode: &str, status: u16, message: &str) -> String {
     // `schema_violation`). Match those literal registry codes only.
     let safe_message = redact_pii(message);
     let fallback = match errcode {
-        ERROR_CODE_NOT_FOUND => "Resource not found",
-        ERROR_CODE_UNAUTHENTICATED => "Authentication required",
-        ERROR_CODE_CAPABILITY_DENIED => "Administrator capability denied",
-        ERROR_CODE_RATE_LIMITED => "Rate limited",
-        ERROR_CODE_TEMPORARILY_UNAVAILABLE => "Service temporarily unavailable",
-        ERROR_CODE_SCHEMA_VIOLATION => "Request validation failed",
-        ERROR_CODE_POLICY_DENIED | ERROR_CODE_POLICY_VIOLATION => {
-            "Required policy approval is missing"
-        }
-        ERROR_CODE_AUTH_EXPIRED | ERROR_CODE_SOFT_LOGGED_OUT => "Session expired - sign in again",
-        ERROR_CODE_DUPLICATE_CONFLICT | ERROR_CODE_CONFLICT => {
-            "Request conflicted with a previous mutation"
-        }
-        ERROR_CODE_CAS_CONFLICT | ERROR_CODE_FAILED_PRECONDITION => {
+        arkret_core::error::ErrorCode::NOT_FOUND => "Resource not found",
+        arkret_core::error::ErrorCode::UNAUTHENTICATED => "Authentication required",
+        arkret_core::error::ErrorCode::CAPABILITY_DENIED => "Administrator capability denied",
+        arkret_core::error::ErrorCode::RATE_LIMITED => "Rate limited",
+        arkret_core::error::ErrorCode::TEMPORARILY_UNAVAILABLE => "Service temporarily unavailable",
+        arkret_core::error::ErrorCode::SCHEMA_VIOLATION => "Request validation failed",
+        arkret_core::error::ErrorCode::POLICY_DENIED
+        | arkret_core::error::ErrorCode::POLICY_VIOLATION => "Required policy approval is missing",
+        arkret_core::error::ErrorCode::AUTH_EXPIRED
+        | arkret_core::error::ErrorCode::SOFT_LOGGED_OUT => "Session expired - sign in again",
+        arkret_core::error::ErrorCode::DUPLICATE_CONFLICT
+        | arkret_core::error::ErrorCode::CONFLICT => "Request conflicted with a previous mutation",
+        arkret_core::error::ErrorCode::CAS_CONFLICT
+        | arkret_core::error::ErrorCode::FAILED_PRECONDITION => {
             "Precondition failed - refresh and retry"
         }
         _ => safe_message.as_str(),
@@ -247,11 +239,14 @@ pub fn should_reset_cursor_pagination(error: &HttpError, cursor: Option<&str>) -
     // the error-code-registry).
     matches!(
         (error.status, errcode),
-        (410, Some(ERROR_CODE_CURSOR_EXPIRED))
+        (410, Some(arkret_core::error::ErrorCode::CURSOR_EXPIRED))
             | (410, None)
             | (
                 400,
-                Some(ERROR_CODE_INVALID_PARAM | ERROR_CODE_CURSOR_INVALID)
+                Some(
+                    arkret_core::error::ErrorCode::INVALID_PARAM
+                        | arkret_core::error::ErrorCode::CURSOR_INVALID
+                )
             )
     )
 }
