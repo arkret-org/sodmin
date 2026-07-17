@@ -1,10 +1,10 @@
 //! DTO adapters for the multi-sig partial-signature admin surface.
 //!
-//! Pending rows come from `soland-core`. The partial-submit request/outcome
+//! Pending rows come from `soland-contracts`. The partial-submit request/outcome
 //! stays local because soland accepts raw partial signature material.
 
 use serde::{Deserialize, Serialize};
-pub use soland_core::admin::seal::{
+pub use soland_contracts::admin::seal::{
     MultisigPendingEntry as PendingMultisigSeal, MultisigPendingOutcome,
 };
 

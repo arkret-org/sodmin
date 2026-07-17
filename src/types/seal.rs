@@ -1,9 +1,9 @@
 //! Shared DTOs for the Notary / Seal / Control Move admin surface.
 //!
-//! The concrete wire shapes live in `soland-core` so the soland server and
+//! The concrete wire shapes live in `soland-contracts` so the soland server and
 //! sodmin admin UI use the same type definitions.
 
-pub use soland_core::admin::seal::{
+pub use soland_contracts::admin::seal::{
     AdminNotaryValue, BottomCandidateHead, BottomEntry, BottomKind, BottomKindExt,
     BottomRepairRequestBody, BottomRepairStrategy, CompactionOutcome, CompactionRequestBody,
     NotaryKind, NotaryReconfigRequestBody, SealDagSnapshot, SubmitControlMoveOutcome,

@@ -9,10 +9,10 @@
 //! count.
 //!
 //! The wire DTOs, the lag helpers, and the warn threshold constant now live
-//! in `soland-core` so this consumer and the soland producer share a single
-//! definition (mirrors the `soland_core::admin::seal` sharing pattern). This
+//! in `soland-contracts` so this consumer and the soland producer share a single
+//! definition (mirrors the `soland_contracts::admin::seal` sharing pattern). This
 //! module re-exports them so downstream reference points stay unchanged.
 
-pub use soland_core::admin::covered_seals::{
+pub use soland_contracts::admin::covered_seals::{
     CoveredSealsAdvanceOutcome, CoveredSealsSnapshot, DEFAULT_LAG_WARN_THRESHOLD,
 };
