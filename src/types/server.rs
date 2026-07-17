@@ -206,7 +206,10 @@ mod tests {
             describe.trust_domain.as_str(),
             "ak:trust_domain:soland.local"
         );
-        assert_eq!(describe.service_type, "principal_server");
+        assert_eq!(
+            describe.service_type,
+            arkret_core::models::ServiceType::PrincipalServer
+        );
         assert!(!describe.development_mode);
         assert_eq!(
             describe.claimed_profiles[0].profile_id,
