@@ -10,7 +10,7 @@ pub(crate) async fn get_jsonapi_first_page<T, U, F>(
     map: F,
 ) -> Result<PaginatedResponse<U>, HttpError>
 where
-    T: Default + DeserializeOwned,
+    T: DeserializeOwned,
     F: Fn(coauth_admin_types::SingleResource<T>) -> U,
 {
     let per_page = per_page.max(1).to_string();

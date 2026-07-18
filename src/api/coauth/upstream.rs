@@ -56,16 +56,6 @@ struct UpstreamProviderRequestBody {
     on_backchannel_logout: String,
 }
 
-#[derive(Debug, Clone, Deserialize, Default)]
-struct UpstreamProviderWire {
-    #[serde(default)]
-    issuer: Option<String>,
-    #[serde(default)]
-    created_at: Option<String>,
-    #[serde(default)]
-    disabled_at: Option<String>,
-}
-
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 #[non_exhaustive]
 pub struct CoauthUpstreamLink {
@@ -79,18 +69,6 @@ pub struct CoauthUpstreamLink {
     pub subject: Option<String>,
     #[serde(default)]
     pub created_at: Option<String>,
-}
-
-#[derive(Debug, Clone, Deserialize, Default)]
-struct UpstreamLinkWire {
-    #[serde(default)]
-    user_id: Option<String>,
-    #[serde(default)]
-    provider_id: String,
-    #[serde(default)]
-    subject: String,
-    #[serde(default)]
-    created_at: Option<String>,
 }
 
 pub async fn list_upstream_providers(
@@ -125,7 +103,7 @@ pub async fn create_upstream_provider(
         pkce_mode: "auto".to_owned(),
         on_backchannel_logout: "do_nothing".to_owned(),
     };
-    let resp: coauth_admin_types::SingleOutcome<UpstreamProviderWire> =
+    let resp: coauth_admin_types::SingleOutcome<coauth_admin_types::UpstreamOAuthProvider> =
         api_client(UPSTREAM_OAUTH_PROVIDERS_PATH, "POST", Some(&body)).await?;
     Ok(map_single_resource(resp, map_upstream_provider))
 }
@@ -167,7 +145,7 @@ pub async fn delete_upstream_link(id: &str) -> Result<(), HttpError> {
 }
 
 fn map_upstream_provider(
-    resource: coauth_admin_types::SingleResource<UpstreamProviderWire>,
+    resource: coauth_admin_types::SingleResource<coauth_admin_types::UpstreamOAuthProvider>,
 ) -> CoauthUpstreamProvider {
     let attrs = resource.attributes;
     CoauthUpstreamProvider {
@@ -175,12 +153,12 @@ fn map_upstream_provider(
         issuer: attrs.issuer,
         client_id: None,
         is_enabled: attrs.disabled_at.is_none(),
-        created_at: attrs.created_at,
+        created_at: Some(attrs.created_at.to_rfc3339()),
     }
 }
 
 fn map_upstream_link(
-    resource: coauth_admin_types::SingleResource<UpstreamLinkWire>,
+    resource: coauth_admin_types::SingleResource<coauth_admin_types::UpstreamOAuthLink>,
 ) -> CoauthUpstreamLink {
     let attrs = resource.attributes;
     CoauthUpstreamLink {
@@ -188,6 +166,6 @@ fn map_upstream_link(
         user_id: attrs.user_id,
         provider_id: Some(attrs.provider_id).filter(|value| !value.is_empty()),
         subject: Some(attrs.subject).filter(|value| !value.is_empty()),
-        created_at: attrs.created_at,
+        created_at: Some(attrs.created_at.to_rfc3339()),
     }
 }

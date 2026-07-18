@@ -30,22 +30,6 @@ pub struct CoauthRegistrationToken {
     pub is_revoked: bool,
 }
 
-#[derive(Debug, Clone, Deserialize, Default)]
-struct CoauthRegistrationTokenWire {
-    #[serde(default)]
-    token: String,
-    #[serde(default)]
-    usage_limit: Option<u32>,
-    #[serde(default)]
-    times_used: u32,
-    #[serde(default)]
-    expires_at: Option<String>,
-    #[serde(default)]
-    created_at: Option<String>,
-    #[serde(default)]
-    revoked_at: Option<String>,
-}
-
 #[derive(Debug, Clone, Serialize)]
 struct CreateRegistrationTokenBody {
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -70,7 +54,7 @@ pub async fn create_registration_token(
     let body = CreateRegistrationTokenBody {
         usage_limit: uses_allowed.map(|value| value.min(u32::MAX as u64) as u32),
     };
-    let resp: coauth_admin_types::SingleOutcome<CoauthRegistrationTokenWire> =
+    let resp: coauth_admin_types::SingleOutcome<coauth_admin_types::UserRegistrationToken> =
         api_client(USER_REGISTRATION_TOKENS_PATH, "POST", Some(&body)).await?;
     Ok(map_single_resource(resp, map_registration_token))
 }
@@ -85,7 +69,7 @@ pub async fn revoke_registration_token(id: &str) -> Result<(), HttpError> {
 }
 
 fn map_registration_token(
-    resource: coauth_admin_types::SingleResource<CoauthRegistrationTokenWire>,
+    resource: coauth_admin_types::SingleResource<coauth_admin_types::UserRegistrationToken>,
 ) -> CoauthRegistrationToken {
     let attrs = resource.attributes;
     let uses_allowed = attrs.usage_limit.map(u64::from);
@@ -99,8 +83,8 @@ fn map_registration_token(
         uses_allowed,
         uses_completed,
         uses_pending,
-        expires_at: attrs.expires_at,
-        created_at: attrs.created_at,
+        expires_at: attrs.expires_at.map(|value| value.to_rfc3339()),
+        created_at: Some(attrs.created_at.to_rfc3339()),
         is_revoked: attrs.revoked_at.is_some(),
     }
 }

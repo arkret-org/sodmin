@@ -55,38 +55,6 @@ pub struct CoauthPersonalSessionOneShot {
     pub access_token: Option<String>,
 }
 
-#[derive(Debug, Clone, Deserialize, Default)]
-struct OAuth2SessionWire {
-    #[serde(default)]
-    user_id: Option<String>,
-    #[serde(default)]
-    client_id: String,
-    #[serde(default)]
-    scope: String,
-    #[serde(default)]
-    human_name: Option<String>,
-    #[serde(default)]
-    created_at: Option<String>,
-    #[serde(default)]
-    finished_at: Option<String>,
-}
-
-#[derive(Debug, Clone, Deserialize, Default)]
-struct PersonalSessionWire {
-    #[serde(default)]
-    owner_user_id: Option<String>,
-    #[serde(default)]
-    actor_user_id: String,
-    #[serde(default)]
-    human_name: String,
-    #[serde(default)]
-    created_at: Option<String>,
-    #[serde(default)]
-    last_active_at: Option<String>,
-    #[serde(default)]
-    access_token: Option<String>,
-}
-
 pub async fn list_oauth2_sessions(
     _page: u64,
     per_page: u64,
@@ -113,7 +81,7 @@ pub async fn create_personal_session(
     name: &str,
 ) -> Result<CoauthPersonalSessionOneShot, HttpError> {
     let body = serde_json::json!({ "name": name });
-    let resp: coauth_admin_types::SingleOutcome<PersonalSessionWire> =
+    let resp: coauth_admin_types::SingleOutcome<coauth_admin_types::PersonalSession> =
         api_client(PERSONAL_SESSIONS_PATH, "POST", Some(&body)).await?;
     Ok(map_single_resource(resp, map_personal_session_oneshot))
 }
@@ -133,13 +101,13 @@ pub async fn regenerate_personal_session(
         "/_coauth/admin/personal-sessions/{}/regenerate",
         urlencoding::encode(id)
     );
-    let resp: coauth_admin_types::SingleOutcome<PersonalSessionWire> =
+    let resp: coauth_admin_types::SingleOutcome<coauth_admin_types::PersonalSession> =
         api_client(&url, "POST", NO_BODY).await?;
     Ok(map_single_resource(resp, map_personal_session_oneshot))
 }
 
 fn map_oauth2_session(
-    resource: coauth_admin_types::SingleResource<OAuth2SessionWire>,
+    resource: coauth_admin_types::SingleResource<coauth_admin_types::OAuthSession>,
 ) -> CoauthOAuth2Session {
     let attrs = resource.attributes;
     CoauthOAuth2Session {
@@ -148,13 +116,13 @@ fn map_oauth2_session(
         client_id: Some(attrs.client_id).filter(|value| !value.is_empty()),
         scope: Some(attrs.scope).filter(|value| !value.is_empty()),
         human_name: attrs.human_name,
-        created_at: attrs.created_at,
-        finished_at: attrs.finished_at,
+        created_at: Some(attrs.created_at.to_rfc3339()),
+        finished_at: attrs.finished_at.map(|value| value.to_rfc3339()),
     }
 }
 
 fn map_personal_session(
-    resource: coauth_admin_types::SingleResource<PersonalSessionWire>,
+    resource: coauth_admin_types::SingleResource<coauth_admin_types::PersonalSession>,
 ) -> CoauthPersonalSession {
     let attrs = resource.attributes;
     CoauthPersonalSessionRow {
@@ -166,13 +134,13 @@ fn map_personal_session(
             .flatten()
             .or_else(|| Some(attrs.actor_user_id).filter(|value| !value.is_empty())),
         name: Some(attrs.human_name).filter(|value| !value.is_empty()),
-        created_at: attrs.created_at,
-        last_active_at: attrs.last_active_at,
+        created_at: Some(attrs.created_at.to_rfc3339()),
+        last_active_at: attrs.last_active_at.map(|value| value.to_rfc3339()),
     }
 }
 
 fn map_personal_session_oneshot(
-    resource: coauth_admin_types::SingleResource<PersonalSessionWire>,
+    resource: coauth_admin_types::SingleResource<coauth_admin_types::PersonalSession>,
 ) -> CoauthPersonalSessionOneShot {
     let access_token = resource.attributes.access_token.clone();
     CoauthPersonalSessionOneShot {
