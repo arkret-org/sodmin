@@ -576,7 +576,7 @@ dependencies = [
  "serde",
  "serde_json",
  "sha2 0.10.9",
- "soland-core",
+ "soland-contracts",
  "subtle",
  "thiserror 2.0.18",
  "tokio",
@@ -4471,7 +4471,7 @@ dependencies = [
  "reqwest 0.13.4",
  "serde",
  "serde_json",
- "soland-core",
+ "soland-contracts",
  "urlencoding",
  "wasm-bindgen",
  "wasm-bindgen-futures",
@@ -4481,7 +4481,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "soland-core"
+name = "soland-contracts"
 version = "0.3.0"
 dependencies = [
  "arkret-core",
