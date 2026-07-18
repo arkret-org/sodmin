@@ -3,13 +3,9 @@
 //! emitting and parsing tokens (PKCE verifier, idempotency keys, OAuth
 //! state, id_token payloads).
 //!
-//! base64url is handled by the pure-Rust `base64` crate (`URL_SAFE_NO_PAD`
-//! engine) rather than the host `btoa`/`atob`: that avoids the Latin-1
-//! round-trip corruption `atob` causes for bytes > 0x7F (which silently
-//! mangled JWT payloads) and removes a JS boundary call from the hot path.
-
-use base64::Engine;
-use base64::engine::general_purpose::URL_SAFE_NO_PAD;
+//! base64url delegates to the shared Arkret canonical implementation rather
+//! than the host `btoa`/`atob`, avoiding Latin-1 round-trip corruption for
+//! bytes above 0x7F and keeping one canonical encoding implementation.
 
 /// Generate `len` cryptographically-secure random octets.
 ///
@@ -31,7 +27,7 @@ pub fn random_bytes(len: usize) -> Vec<u8> {
 }
 
 pub fn base64url_encode(data: &[u8]) -> String {
-    URL_SAFE_NO_PAD.encode(data)
+    arkret_core::base64url_encode(data)
 }
 
 /// Cryptographically random base64url token of `bytes` random octets.
@@ -39,11 +35,9 @@ pub fn random_token(bytes: usize) -> String {
     base64url_encode(&random_bytes(bytes))
 }
 
-/// Decode a base64url-encoded string (no padding). Tolerates a stray
-/// trailing `=` pad by stripping it first.
+/// Decode a canonical, unpadded base64url string.
 pub fn base64url_decode(encoded: &str) -> Option<Vec<u8>> {
-    let trimmed = encoded.trim_end_matches('=');
-    URL_SAFE_NO_PAD.decode(trimmed.as_bytes()).ok()
+    arkret_core::base64url_decode(encoded).ok()
 }
 
 #[cfg(test)]
@@ -61,9 +55,13 @@ mod tests {
     }
 
     #[test]
-    fn base64url_decode_tolerates_padding() {
-        // "Zm9v" == "foo"; with explicit padding stripped.
+    fn base64url_decode_accepts_canonical_input() {
         assert_eq!(base64url_decode("Zm9v"), Some(b"foo".to_vec()));
+    }
+
+    #[test]
+    fn base64url_decode_rejects_padding() {
+        assert_eq!(base64url_decode("Zg=="), None);
     }
 }
 

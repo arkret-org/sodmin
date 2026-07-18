@@ -10,7 +10,6 @@ edition = "2024"
 # Depend on the SDK core + identifiers crates (default features off so the
 # wasm bundle stays lean — the `client` / `keystore-*` / `salvo` / `mls`
 # features pull native-only deps and are deliberately NOT enabled here).
-base64 = {workspace = true,default-features = false,features = ["alloc"]}
 chrono = {workspace = true,features = ["serde", "wasmbind"]}
 coauth-account-types = {workspace = true}
 coauth-admin-types = {workspace = true}
@@ -123,7 +122,6 @@ subsecond-types   = { git = "https://github.com/arkret-org/dioxus", rev = "e59f9
 resolver = "3"
 
 [workspace.dependencies]
-base64 = {version = "0.22",default-features = false}
 chrono = "0.4.45"
 coauth-account-types = {path = "../coauth/crates/account-types"}
 coauth-admin-types = {path = "../coauth/crates/admin-types"}
