@@ -1,4 +1,4 @@
-use crate::api::client::{NO_BODY, NoBody, api_client, build_url};
+use crate::api::client::{NO_BODY, api_client, build_url};
 use crate::types::*;
 use crate::utils::net::error::HttpError;
 
@@ -21,6 +21,6 @@ pub async fn create_invite_token(req: &CreateInviteTokenRequest) -> Result<Invit
 
 pub async fn revoke_invite_token(id: &str) -> Result<(), HttpError> {
     let url = format!("/_soland/admin/invite-tokens/{}", urlencoding::encode(id));
-    let _: NoBody = api_client(&url, "DELETE", NO_BODY).await?;
+    let _: InviteToken = api_client(&url, "DELETE", NO_BODY).await?;
     Ok(())
 }

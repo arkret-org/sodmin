@@ -3499,6 +3499,7 @@ name = "soland-contracts"
 version = "0.3.0"
 dependencies = [
  "arkret-core",
+ "chrono",
  "serde",
  "serde_json",
 ]

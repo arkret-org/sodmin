@@ -1,5 +1,6 @@
 //! coauth admin audit feed.
 
+use coauth_admin_types::{AuditFeedOutcome, AuditSignatureStatus};
 use serde::{Deserialize, Serialize};
 
 use crate::api::client::{NO_BODY, api_client, build_url};
@@ -8,7 +9,7 @@ use crate::utils::net::error::HttpError;
 
 const AUDIT_FEED_PATH: &str = "/_coauth/admin/audit-feed";
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[non_exhaustive]
 pub struct CoauthAuditEntry {
     #[serde(default)]
@@ -27,30 +28,7 @@ pub struct CoauthAuditEntry {
     pub timestamp: Option<String>,
     #[serde(default)]
     pub source_ip: Option<String>,
-}
-
-#[derive(Debug, Clone, Deserialize, Default)]
-struct CoauthAuditFeedOutcome {
-    #[serde(default)]
-    data: Vec<CoauthAuditEntryWire>,
-}
-
-#[derive(Debug, Clone, Deserialize, Default)]
-struct CoauthAuditEntryWire {
-    #[serde(default)]
-    id: String,
-    #[serde(default)]
-    operation: String,
-    #[serde(default)]
-    admin_user_id: Option<String>,
-    #[serde(default)]
-    resource_type: String,
-    #[serde(default)]
-    resource_id: String,
-    #[serde(default)]
-    details: Option<serde_json::Value>,
-    #[serde(default)]
-    created_at: Option<String>,
+    pub signature_status: AuditSignatureStatus,
 }
 
 /// Multi-dimensional filter for `/_coauth/admin/audit-feed` queries. Empty
@@ -95,7 +73,7 @@ pub async fn list_audit_feed(
         params.push((k, v.as_str()));
     }
     let url = build_url(AUDIT_FEED_PATH, &params)?;
-    let resp: CoauthAuditFeedOutcome = api_client(&url, "GET", NO_BODY).await?;
+    let resp: AuditFeedOutcome = api_client(&url, "GET", NO_BODY).await?;
     let data = resp
         .data
         .into_iter()
@@ -106,8 +84,9 @@ pub async fn list_audit_feed(
             target_type: Some(entry.resource_type).filter(|value| !value.is_empty()),
             target_id: Some(entry.resource_id).filter(|value| !value.is_empty()),
             details: entry.details,
-            timestamp: entry.created_at,
+            timestamp: Some(entry.created_at.to_rfc3339()),
             source_ip: None,
+            signature_status: entry.signature_status,
         })
         .collect::<Vec<_>>();
     Ok(PaginatedResponse {

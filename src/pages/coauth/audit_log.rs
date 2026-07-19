@@ -171,6 +171,7 @@ pub fn AuditLogPage() -> Element {
                                     TableHead { {t("coauth.audit_log.col_detail")} }
                                     TableHead { {t("coauth.audit_log.timestamp")} }
                                     TableHead { {t("coauth.audit_log.source_ip")} }
+                                    TableHead { {t("coauth.audit_log.signature_status")} }
                                 }
                             }
                             TableBody {
@@ -191,6 +192,7 @@ pub fn AuditLogPage() -> Element {
                                             let details = audit_details_text(&entry.details);
                                             let ts = entry.timestamp.clone().unwrap_or_else(|| "-".to_string());
                                             let ip = entry.source_ip.clone().unwrap_or_else(|| "-".to_string());
+                                            let signature_status = format!("{:?}", entry.signature_status);
 
                                             rsx! {
                                                 TableRow {
@@ -203,6 +205,7 @@ pub fn AuditLogPage() -> Element {
                                                     TableCell { class: "max-w-[280px] whitespace-pre-wrap break-all text-xs text-muted-foreground".to_string(), "{details}" }
                                                     TableCell { class: "text-muted-foreground".to_string(), "{ts}" }
                                                     TableCell { "{ip}" }
+                                                    TableCell { "{signature_status}" }
                                                 }
                                             }
                                         }

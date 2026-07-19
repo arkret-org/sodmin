@@ -52,6 +52,7 @@ pub fn InviteTokenList() -> Element {
                                 TableRow {
                                     TableHead { {t("invite_tokens.id")} }
                                     TableHead { {t("invite_tokens.token")} }
+                                    TableHead { {t("invite_tokens.status")} }
                                     TableHead { {t("invite_tokens.uses_allowed")} }
                                     TableHead { {t("invite_tokens.uses_completed")} }
                                     TableHead { {t("invite_tokens.uses_pending")} }
@@ -73,12 +74,13 @@ pub fn InviteTokenList() -> Element {
                                         {
                                             let id = token.id.clone();
                                             let tok = token.token.clone();
-                                            let ua = token.uses_allowed.map(|v| v.to_string()).unwrap_or_else(|| t("invite_tokens.unlimited"));
+                                            let status = token.status.clone();
+                                            let ua = token.uses_allowed.to_string();
                                             let uc = token.uses_completed.to_string();
                                             let up = token.uses_pending.to_string();
-                                            let exp = token.expires_at.clone().unwrap_or_else(|| "-".to_string());
-                                            let rid = token.realm_id.clone().unwrap_or_else(|| "-".to_string());
-                                            let created = token.created_at.clone().unwrap_or_else(|| "-".to_string());
+                                            let exp = token.expires_at.as_ref().map(chrono::DateTime::to_rfc3339).unwrap_or_else(|| "-".to_string());
+                                            let rid = token.realm_id.clone();
+                                            let created = token.created_at.to_rfc3339();
 
                                             let id_for_delete = id.clone();
                                             let tok_for_copy = tok.clone();
@@ -119,6 +121,7 @@ pub fn InviteTokenList() -> Element {
                                                             }
                                                         }
                                                     }
+                                                    TableCell { "{status}" }
                                                     TableCell { "{ua}" }
                                                     TableCell { "{uc}" }
                                                     TableCell { "{up}" }
@@ -202,6 +205,7 @@ pub fn InviteTokenList() -> Element {
                         uses_allowed: uses_allowed.read().parse().ok(),
                         expires_at: if expires_at.read().is_empty() { None } else { Some(expires_at.read().clone()) },
                         realm_id: if realm_id.read().is_empty() { None } else { Some(realm_id.read().clone()) },
+                        ..CreateInviteTokenRequest::default()
                     };
                     spawn(async move {
                         match invite_tokens::create_invite_token(&req).await {
