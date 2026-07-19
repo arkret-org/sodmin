@@ -1,13 +1,13 @@
-//! Capability grant admin surface — SDK-authoritative types plus thin
+//! Capability grant admin surface — contract-authoritative types plus thin
 //! display helpers.
 //!
-//! The row is the SDK `arkret_core::models::CapabilitySummary` (D14
+//! The row is the shared `soland_contracts::admin::CapabilitySummary` (D14
 //! production projection of the authz read-index grant). sodmin adds no
 //! wire mirror; display-only conveniences live in [`CapabilitySummaryExt`].
 
-pub use arkret_core::models::CapabilitySummary;
+pub use soland_contracts::admin::CapabilitySummary;
 
-/// Display helpers for the SDK [`CapabilitySummary`].
+/// Display helpers for the shared [`CapabilitySummary`].
 pub trait CapabilitySummaryExt {
     fn actions_display(&self) -> String;
     fn resource_display(&self) -> String;

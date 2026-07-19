@@ -1,11 +1,11 @@
 //! Capability admin API — D14 production endpoint.
 //!
 //! `GET /_soland/admin/capabilities` is the typed cursor-paginated
-//! production query (SDK `AdminCapabilityList`). Revoked tombstones are
+//! production query (shared `AdminCapabilityList` contract). Revoked tombstones are
 //! included by default (`filter[state]=all` server default) so operators
 //! see the full grant ledger.
 
-use arkret_core::models::AdminCapabilityList;
+use soland_contracts::admin::AdminCapabilityList;
 
 use crate::api::client::{NO_BODY, api_client, build_url};
 use crate::utils::net::error::HttpError;

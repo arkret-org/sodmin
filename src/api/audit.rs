@@ -1,14 +1,14 @@
 //! Audit admin API — D14 production endpoint.
 //!
-//! `GET /_soland/admin/audit` is the typed production query (SDK
-//! `AdminAuditList`, newest first). All filtering happens server-side via
+//! `GET /_soland/admin/audit` is the typed production query (shared
+//! `AdminAuditList` contract, newest first). All filtering happens server-side via
 //! `filter[...]` / `since` / `until`; the old fetch-everything-then-filter
 //! client loop is gone. `target_type` / `target_id` / `source_ip` /
 //! `effective_scope` are not part of the durable audit record and are no
 //! longer query dimensions.
 
-use arkret_core::models::AdminAuditList;
 use chrono::{DateTime, NaiveDateTime, TimeZone, Utc};
+use soland_contracts::admin::AdminAuditList;
 
 use crate::api::client::{NO_BODY, api_client, build_url};
 use crate::utils::net::error::HttpError;

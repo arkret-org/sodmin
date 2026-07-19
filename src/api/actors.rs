@@ -1,10 +1,10 @@
 //! Actor admin API — D14 production endpoints.
 //!
 //! `GET /_soland/admin/actors` is the typed cursor-paginated production
-//! query (SDK `AdminActorList`); search is applied server-side via
-//! `filter[search]`. Account deactivation addresses accounts by DID.
+//! query (shared `AdminActorList` contract); search is applied server-side
+//! via `filter[search]`. Account deactivation addresses accounts by DID.
 
-use arkret_core::models::{AdminActor, AdminActorList};
+use soland_contracts::admin::{AdminActor, AdminActorList};
 
 use crate::api::client::{NO_BODY, NoBody, api_client, build_url};
 use crate::utils::net::error::HttpError;

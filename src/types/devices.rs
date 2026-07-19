@@ -1,11 +1,12 @@
-//! Device admin surface — SDK-authoritative types plus thin display helpers.
+//! Device admin surface — contract-authoritative types plus thin display
+//! helpers.
 //!
-//! The row is the SDK `arkret_core::models::AdminDevice` (D14 production
-//! projection); sodmin keeps no wire mirror or field aliases.
+//! The row is the shared `soland_contracts::admin::AdminDevice` (D14
+//! production projection); sodmin keeps no wire mirror or field aliases.
 
-pub use arkret_core::models::AdminDevice;
+pub use soland_contracts::admin::AdminDevice;
 
-/// Display helpers for the SDK [`AdminDevice`].
+/// Display helpers for the shared [`AdminDevice`].
 pub trait AdminDeviceExt {
     fn verification_label(&self) -> Option<&str>;
     /// RFC3339 rendering for the optional timestamps (`-` handled by the

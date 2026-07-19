@@ -1,10 +1,10 @@
 //! Device admin API — D14 production endpoint.
 //!
 //! `GET /_soland/admin/devices` is the typed cursor-paginated production
-//! query (SDK `AdminDeviceList`); `filter[name_or_id]` is applied
-//! server-side.
+//! query (shared `AdminDeviceList` contract); `filter[name_or_id]` is
+//! applied server-side.
 
-use arkret_core::models::AdminDeviceList;
+use soland_contracts::admin::AdminDeviceList;
 
 use crate::api::client::{NO_BODY, NoBody, api_client, build_url};
 use crate::utils::net::error::HttpError;
