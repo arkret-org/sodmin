@@ -54,6 +54,8 @@ dependencies = [
  "argon2",
  "arkret-canonical",
  "arkret-identifiers",
+ "arkret-keystore",
+ "arkret-models-collaboration",
  "arkret-models-identity",
  "arkret-signatures",
  "arkret-wire",
@@ -166,6 +168,7 @@ version = "0.3.0"
 dependencies = [
  "arkret-canonical",
  "arkret-identifiers",
+ "arkret-wire",
  "chrono",
  "getrandom 0.4.3",
  "serde",
@@ -191,6 +194,7 @@ dependencies = [
  "arkret-canonical",
  "arkret-egress-policy",
  "arkret-identifiers",
+ "arkret-keystore",
  "arkret-models-identity",
  "arkret-signatures",
  "arkret-wire",
@@ -223,6 +227,7 @@ dependencies = [
  "chrono",
  "chrono-tz",
  "hmac",
+ "regex",
  "serde",
  "serde_json",
  "sha2 0.11.0",
@@ -276,6 +281,7 @@ dependencies = [
 name = "arkret-models-integration"
 version = "0.3.0"
 dependencies = [
+ "arkret-models-identity",
  "arkret-wire",
  "chrono",
  "serde",
@@ -303,6 +309,8 @@ dependencies = [
 name = "arkret-schema"
 version = "0.3.0"
 dependencies = [
+ "arkret-canonical",
+ "arkret-identifiers",
  "arkret-wire",
  "chrono",
  "regex",
@@ -342,6 +350,7 @@ dependencies = [
  "arkret-canonical",
  "arkret-identifiers",
  "arkret-models-collaboration",
+ "arkret-models-crypto",
  "arkret-wire",
  "chrono",
  "hex",
@@ -357,10 +366,12 @@ dependencies = [
  "arkret-canonical",
  "arkret-identifiers",
  "chrono",
+ "getrandom 0.4.3",
  "hex",
  "serde",
  "serde_json",
  "thiserror 2.0.18",
+ "url",
 ]
 
 [[package]]
