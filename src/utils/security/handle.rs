@@ -2,8 +2,8 @@
 
 /// Format the operator-facing display sigil for a canonical handle.
 ///
-/// Given canonical bytes `<localpart>:<domain>(:<port>)?`, returns
-/// `@<localpart>:<domain>(:<port>)?`. Already-sigil input is accepted so
+/// Given canonical bytes `<prepared-localpart>:<lowercase-A-label-domain>`, returns
+/// `@<prepared-localpart>:<lowercase-A-label-domain>`. Already-sigil input is accepted so
 /// callers can render mixed data defensively.
 pub fn display_sigil(canonical: &str) -> String {
     let body = canonical
