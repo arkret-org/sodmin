@@ -159,7 +159,7 @@ mod tests {
             "id": "session-1",
             "user_id": "user-1",
             "name": "ops key",
-            "created_at": "2026-06-07T00:00:00Z",
+            "created_at": "2026-06-07T00:00:00.000Z",
             "token": "secret-token",
             "access_token": "secret-access-token"
         }))

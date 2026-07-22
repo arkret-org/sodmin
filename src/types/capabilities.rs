@@ -41,7 +41,7 @@ mod tests {
             "resource": "realm",
             "actions": ["ak.message.create"],
             "revoked": false,
-            "created_at": "2026-06-07T00:00:00Z"
+            "created_at": "2026-06-07T00:00:00.000Z"
         }))
         .expect("production-shaped grant summary should deserialize");
 
