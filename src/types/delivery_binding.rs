@@ -1,6 +1,6 @@
 //! DTO shapes for the delivery-binding admin surface.
 
-use arkret_core::ErrorCode;
+use arkret_wire::ErrorCode;
 use serde::{Deserialize, Serialize};
 
 // ── Delivery binding policy (T6.2 §3) ──

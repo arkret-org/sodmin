@@ -100,13 +100,13 @@ pub fn display_error(errcode: &str, status: u16, message: &str) -> String {
     // protocol renames fail at compile time. Local admin-only reasons remain
     // literals and use the same i18n fallback path.
     let circle_reason: Option<&'static str> = match errcode {
-        _ if errcode == arkret_core::error::ReasonCode::CIRCLE_REALM_MISMATCH => {
+        _ if errcode == arkret_wire::ReasonCode::CIRCLE_REALM_MISMATCH => {
             Some("error.circle_realm_mismatch")
         }
-        _ if errcode == arkret_core::error::ReasonCode::CIRCLE_MEMBER_MUST_BE_REALM_MEMBER => {
+        _ if errcode == arkret_wire::ReasonCode::CIRCLE_MEMBER_MUST_BE_REALM_MEMBER => {
             Some("error.circle_member_must_be_realm_member")
         }
-        _ if errcode == arkret_core::error::ReasonCode::CIRCLE_NOT_ACTIVE => {
+        _ if errcode == arkret_wire::ReasonCode::CIRCLE_NOT_ACTIVE => {
             Some("error.circle_not_active")
         }
         "circle_already_terminal" => Some("error.circle_already_terminal"),
@@ -129,20 +129,22 @@ pub fn display_error(errcode: &str, status: u16, message: &str) -> String {
     // `schema_violation`). Match those literal registry codes only.
     let safe_message = redact_pii(message);
     let fallback = match errcode {
-        arkret_core::error::ErrorCode::NOT_FOUND => "Resource not found",
-        arkret_core::error::ErrorCode::UNAUTHENTICATED => "Authentication required",
-        arkret_core::error::ErrorCode::CAPABILITY_DENIED => "Administrator capability denied",
-        arkret_core::error::ErrorCode::RATE_LIMITED => "Rate limited",
-        arkret_core::error::ErrorCode::TEMPORARILY_UNAVAILABLE => "Service temporarily unavailable",
-        arkret_core::error::ErrorCode::SCHEMA_VIOLATION => "Request validation failed",
-        arkret_core::error::ErrorCode::POLICY_DENIED
-        | arkret_core::error::ErrorCode::POLICY_VIOLATION => "Required policy approval is missing",
-        arkret_core::error::ErrorCode::AUTH_EXPIRED
-        | arkret_core::error::ErrorCode::SOFT_LOGGED_OUT => "Session expired - sign in again",
-        arkret_core::error::ErrorCode::DUPLICATE_CONFLICT
-        | arkret_core::error::ErrorCode::CONFLICT => "Request conflicted with a previous mutation",
-        arkret_core::error::ErrorCode::CAS_CONFLICT
-        | arkret_core::error::ErrorCode::FAILED_PRECONDITION => {
+        arkret_wire::ErrorCode::NOT_FOUND => "Resource not found",
+        arkret_wire::ErrorCode::UNAUTHENTICATED => "Authentication required",
+        arkret_wire::ErrorCode::CAPABILITY_DENIED => "Administrator capability denied",
+        arkret_wire::ErrorCode::RATE_LIMITED => "Rate limited",
+        arkret_wire::ErrorCode::TEMPORARILY_UNAVAILABLE => "Service temporarily unavailable",
+        arkret_wire::ErrorCode::SCHEMA_VIOLATION => "Request validation failed",
+        arkret_wire::ErrorCode::POLICY_DENIED | arkret_wire::ErrorCode::POLICY_VIOLATION => {
+            "Required policy approval is missing"
+        }
+        arkret_wire::ErrorCode::AUTH_EXPIRED | arkret_wire::ErrorCode::SOFT_LOGGED_OUT => {
+            "Session expired - sign in again"
+        }
+        arkret_wire::ErrorCode::DUPLICATE_CONFLICT | arkret_wire::ErrorCode::CONFLICT => {
+            "Request conflicted with a previous mutation"
+        }
+        arkret_wire::ErrorCode::CAS_CONFLICT | arkret_wire::ErrorCode::FAILED_PRECONDITION => {
             "Precondition failed - refresh and retry"
         }
         _ => safe_message.as_str(),
@@ -225,13 +227,12 @@ pub fn should_reset_cursor_pagination(error: &HttpError, cursor: Option<&str>) -
     // the error-code-registry).
     matches!(
         (error.status, errcode),
-        (410, Some(arkret_core::error::ErrorCode::CURSOR_EXPIRED))
+        (410, Some(arkret_wire::ErrorCode::CURSOR_EXPIRED))
             | (410, None)
             | (
                 400,
                 Some(
-                    arkret_core::error::ErrorCode::INVALID_PARAM
-                        | arkret_core::error::ErrorCode::CURSOR_INVALID
+                    arkret_wire::ErrorCode::INVALID_PARAM | arkret_wire::ErrorCode::CURSOR_INVALID
                 )
             )
     )
