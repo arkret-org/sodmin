@@ -9,11 +9,11 @@
 //! field.
 //!
 //! This module no longer carries its own copy of the algorithm: the
-//! authoritative, wasm-safe implementation now lives in `arkret-core`
-//! (`arkret_core::identity::primary_handle`, SPEC-CR-019),
+//! authoritative, wasm-safe implementation lives in `arkret-models-identity`
+//! (`arkret_models_identity::primary_handle`, SPEC-CR-019),
 //! and `arkret_core::models::{HandleClaim, HandleBindingState, Handle}`
 //! are the exact types the admin DTOs already re-export. We simply
-//! re-export the core helpers so inkson / soland / cotest / sodmin all
+//! re-export the owner helpers so inkson / soland / cotest / sodmin all
 //! agree on which claim wins from a single source of truth.
 //!
 //! The selection is a pure function of an explicit six-tuple:
@@ -29,6 +29,6 @@
 //! (earlier wins) → `created_at` (later wins) → canonical handle
 //! string (lexicographically smaller wins).
 
-pub use arkret_core::identity::primary_handle::{
+pub use arkret_models_identity::primary_handle::{
     PrimaryHandleSelectInput, SubjectRender, render_subject, select_primary_handle_string,
 };

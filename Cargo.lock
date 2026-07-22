@@ -3812,6 +3812,7 @@ dependencies = [
  "arkret-core",
  "arkret-identifiers",
  "arkret-models-discovery",
+ "arkret-models-identity",
  "chrono",
  "coauth-account-types",
  "coauth-admin-types",

@@ -16,6 +16,7 @@ coauth-admin-types = {workspace = true}
 arkret-core = {workspace = true,default-features = false}
 arkret-identifiers = {workspace = true,default-features = false}
 arkret-models-discovery = {workspace = true,default-features = false}
+arkret-models-identity = {workspace = true,default-features = false}
 dioxus = {workspace = true,features = ["minimal", "web", "router"]}
 dioxus-logger = {workspace = true}
 futures-util = {workspace = true,default-features = false,features = ["alloc"]}
@@ -129,6 +130,7 @@ coauth-admin-types = {path = "../coauth/crates/admin-types"}
 arkret-core = {path = "../arkret-rust-sdk/crates/core",default-features = false}
 arkret-identifiers = {path = "../arkret-rust-sdk/crates/identifiers",default-features = false}
 arkret-models-discovery = {path = "../arkret-rust-sdk/crates/models-discovery",default-features = false}
+arkret-models-identity = {path = "../arkret-rust-sdk/crates/models-identity",default-features = false}
 dioxus = {version = "0.7.9",default-features = false}
 dioxus-logger = "0.7.9"
 futures-util = {version = "0.3.32",default-features = false}
