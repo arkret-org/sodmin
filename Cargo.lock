@@ -91,12 +91,9 @@ version = "0.3.0"
 dependencies = [
  "arkret-auth",
  "arkret-canonical",
- "arkret-crypto",
  "arkret-event-draft",
- "arkret-hlc",
  "arkret-identifiers",
  "arkret-identity",
- "arkret-keystore",
  "arkret-models-collaboration",
  "arkret-models-crypto",
  "arkret-models-discovery",
@@ -107,36 +104,6 @@ dependencies = [
  "arkret-signatures",
  "arkret-state",
  "arkret-wire",
- "chrono",
- "chrono-tz",
- "getrandom 0.4.3",
- "hex",
- "hmac",
- "regex",
- "serde",
- "serde_json",
- "sha2 0.11.0",
- "subtle",
- "thiserror 2.0.18",
- "unicode-normalization",
- "url",
- "zeroize",
-]
-
-[[package]]
-name = "arkret-crypto"
-version = "0.3.0"
-dependencies = [
- "arkret-canonical",
- "arkret-models-crypto",
- "arkret-models-identity",
- "arkret-signatures",
- "arkret-wire",
- "chrono",
- "serde",
- "serde_json",
- "sha2 0.11.0",
- "thiserror 2.0.18",
 ]
 
 [[package]]
@@ -155,24 +122,12 @@ dependencies = [
  "arkret-identifiers",
  "arkret-models-collaboration",
  "arkret-models-crypto",
+ "arkret-models-identity",
  "arkret-models-integration",
  "arkret-wire",
  "chrono",
  "serde",
  "serde_json",
- "thiserror 2.0.18",
-]
-
-[[package]]
-name = "arkret-hlc"
-version = "0.3.0"
-dependencies = [
- "arkret-canonical",
- "arkret-identifiers",
- "arkret-wire",
- "chrono",
- "getrandom 0.4.3",
- "serde",
  "thiserror 2.0.18",
 ]
 
@@ -330,6 +285,7 @@ version = "0.3.0"
 dependencies = [
  "arkret-canonical",
  "arkret-models-collaboration",
+ "arkret-models-crypto",
  "arkret-models-discovery",
  "arkret-models-identity",
  "arkret-wire",
@@ -3855,6 +3811,7 @@ version = "0.3.0"
 dependencies = [
  "arkret-core",
  "arkret-identifiers",
+ "arkret-models-discovery",
  "chrono",
  "coauth-account-types",
  "coauth-admin-types",
