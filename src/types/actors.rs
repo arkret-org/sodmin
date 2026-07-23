@@ -6,7 +6,7 @@
 //! fields are `Option` on the wire and rendered as their answered values (the
 //! old "unwired" placeholder rendering is gone with the dev snapshot).
 
-pub use arkret_core::models::AccountStatus;
+pub use arkret_models_collaboration::objects::account_status::AccountStatus;
 pub use soland_contracts::admin::AdminActor;
 
 /// Display helpers for the shared [`AdminActor`].

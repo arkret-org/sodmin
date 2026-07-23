@@ -730,6 +730,7 @@ name = "coauth-admin-types"
 version = "0.3.0"
 dependencies = [
  "arkret-core",
+ "arkret-models-collaboration",
  "chrono",
  "coauth-data-model",
  "serde",
@@ -741,6 +742,7 @@ name = "coauth-data-model"
 version = "0.3.0"
 dependencies = [
  "arkret-core",
+ "arkret-models-collaboration",
  "chrono",
  "serde",
  "thiserror 2.0.18",
@@ -3811,6 +3813,8 @@ version = "0.3.0"
 dependencies = [
  "arkret-core",
  "arkret-identifiers",
+ "arkret-models-collaboration",
+ "arkret-models-crypto",
  "arkret-models-discovery",
  "arkret-models-identity",
  "arkret-wire",
@@ -3842,6 +3846,7 @@ dependencies = [
 name = "soland-contracts"
 version = "0.3.0"
 dependencies = [
+ "arkret-canonical",
  "arkret-core",
  "chrono",
  "serde",

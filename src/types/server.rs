@@ -1,7 +1,7 @@
 //! DTO shapes for the server status and describe admin surfaces.
 //!
 //! The `/_arkret/describe` payload is the SDK-authoritative
-//! [`ServiceDescribe`] (`arkret_core::models::api`). sodmin does not
+//! [`ServiceDescribe`] (`arkret_models_discovery`). sodmin does not
 //! mirror it; service-proprietary top-level extensions (coauth's
 //! `identity_registry_resolver`, `admin_audience`, …) are captured in a
 //! flattened `extra` envelope and read by the view layer on demand.
@@ -12,7 +12,7 @@ use std::collections::BTreeMap;
 // `CompatSurfaceEntry` element types are reachable through the SDK
 // directly; sodmin views consume them via the `ServiceDescribe`
 // fields and need no local re-export.)
-pub use arkret_core::models::ServiceDescribe;
+pub use arkret_models_discovery::ServiceDescribe;
 use serde::{Deserialize, Serialize};
 
 // ── Server info types ──
@@ -208,7 +208,7 @@ mod tests {
         );
         assert_eq!(
             describe.service_type,
-            arkret_core::models::ServiceType::PrincipalServer
+            arkret_wire::ServiceType::PrincipalServer
         );
         assert!(!describe.development_mode);
         assert_eq!(

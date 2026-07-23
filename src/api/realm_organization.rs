@@ -2,7 +2,7 @@
 
 use std::collections::BTreeSet;
 
-use arkret_core::models::RealmOrganizationRelationshipList;
+use arkret_models_collaboration::governance::realm_governance::RealmOrganizationRelationshipList;
 use coauth_admin_types::organization_admin::OrganizationControlView;
 
 use crate::api::client::{NO_BODY, api_client};

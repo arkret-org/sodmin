@@ -11,7 +11,7 @@
 //! This module no longer carries its own copy of the algorithm: the
 //! authoritative, wasm-safe implementation lives in `arkret-models-identity`
 //! (`arkret_models_identity::primary_handle`, SPEC-CR-019),
-//! and `arkret_core::models::{HandleClaim, HandleBindingState, Handle}`
+//! and `arkret_models_identity::{HandleClaim, HandleBindingState, Handle}`
 //! are the exact types the admin DTOs already re-export. We simply
 //! re-export the owner helpers so inkson / soland / cotest / sodmin all
 //! agree on which claim wins from a single source of truth.

@@ -2,7 +2,7 @@
 //! shipped in P2 (aa76b91): `GET /_arkret/self/keys/backups?series_id=...`
 //! plus the soland identity recovery extension endpoints.
 
-use arkret_core::models::{KeysBackupsList, RecoveryPolicySummary};
+use arkret_models_crypto::{KeysBackupsList, RecoveryPolicySummary};
 
 use crate::api::client::{NO_BODY, api_client, build_url};
 use crate::types::{ListResponse, RecoveryReceiptSummary};

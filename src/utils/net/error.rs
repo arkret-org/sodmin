@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 
 /// Admin-side projection of the spec/SDK canonical error envelope
 /// (`{ok, error:{code, message, retry_after_ms?, details?}, request_id}`,
-/// see `arkret_core::models::api::ErrorEnvelope`). We keep a flattened local
+/// see `arkret_wire::ErrorEnvelope`). We keep a flattened local
 /// shape — the wire envelope is parsed in [`from_wire`] — so the existing
 /// call sites (`body.errcode`, `required_scope`) keep working while the
 /// parse path reads the authoritative `error.code`.
@@ -39,7 +39,7 @@ impl AdminErrorEnvelope {
     /// body is not a canonical envelope (e.g. an opaque HTML 502 from the
     /// proxy), so callers fall back to a status-only message.
     pub fn from_wire(text: &str) -> Option<Self> {
-        let env: arkret_core::models::ErrorEnvelope = serde_json::from_str(text).ok()?;
+        let env: arkret_wire::ErrorEnvelope = serde_json::from_str(text).ok()?;
         let required_scope = env
             .error
             .details

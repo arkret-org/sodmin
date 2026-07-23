@@ -1,9 +1,11 @@
 //! Realm organization relationship and principal-control surface.
 
-use arkret_core::models::{
-    RealmOrganizationControlScope, RealmOrganizationIssuerRole, RealmOrganizationLifecyclePhase,
-    RealmOrganizationRelationship, RealmOrganizationRelationshipList,
+use arkret_models_collaboration::governance::realm_governance::{
+    RealmOrganizationLifecyclePhase, RealmOrganizationRelationshipList,
     RealmOrganizationRelationshipRow,
+};
+use arkret_models_collaboration::{
+    RealmOrganizationControlScope, RealmOrganizationIssuerRole, RealmOrganizationRelationship,
 };
 use coauth_admin_types::organization_admin::{
     OrganizationBootstrapAuthorization, OrganizationControlView, OrganizationDelegation,

@@ -1,8 +1,9 @@
-pub use arkret_core::models::{
-    DirectoryListHandlesForSubjectRequestBody as ListHandlesForSubjectRequest,
-    DirectorySubjectHandleList, HandleBindingState, HandleClaim,
-};
 pub use arkret_models_discovery::ops::HardeningStatus;
+pub use arkret_models_discovery::{
+    DirectoryListHandlesForSubjectRequestBody as ListHandlesForSubjectRequest,
+    DirectorySubjectHandleList,
+};
+pub use arkret_models_identity::{HandleBindingState, HandleClaim};
 use serde::{Deserialize, Serialize};
 
 // ── Pagination ──
