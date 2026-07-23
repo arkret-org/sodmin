@@ -27,7 +27,7 @@ pub fn random_bytes(len: usize) -> Vec<u8> {
 }
 
 pub fn base64url_encode(data: &[u8]) -> String {
-    arkret_core::base64url_encode(data)
+    arkret_canonical::base64url::base64url_encode(data)
 }
 
 /// Cryptographically random base64url token of `bytes` random octets.
@@ -37,7 +37,7 @@ pub fn random_token(bytes: usize) -> String {
 
 /// Decode a canonical, unpadded base64url string.
 pub fn base64url_decode(encoded: &str) -> Option<Vec<u8>> {
-    arkret_core::base64url_decode(encoded).ok()
+    arkret_canonical::base64url::base64url_decode(encoded).ok()
 }
 
 #[cfg(test)]

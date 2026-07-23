@@ -3811,7 +3811,7 @@ dependencies = [
 name = "sodmin"
 version = "0.3.0"
 dependencies = [
- "arkret-core",
+ "arkret-canonical",
  "arkret-identifiers",
  "arkret-models-collaboration",
  "arkret-models-crypto",

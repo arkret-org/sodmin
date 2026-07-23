@@ -1,6 +1,7 @@
 //! DTO shapes for the Realm admin surface.
 
-use arkret_core::{BlobRef, Discoverability, HistoryVisibility, JoinRule};
+use arkret_identifiers::BlobRef;
+use arkret_wire::{Discoverability, HistoryVisibility, JoinRule};
 use serde::{Deserialize, Serialize};
 
 use crate::types::HandleClaim;

@@ -595,7 +595,8 @@ fn classify_principal_logout(response: Result<TextResponse, HttpError>) -> Logou
         Ok(response) => return rejected_response("Principal Server logout", response.status),
         Err(error) => return failed_request("Principal Server logout", error),
     };
-    let Ok(outcome) = serde_json::from_str::<arkret_core::AccountLogoutOutcome>(&response.text)
+    let Ok(outcome) =
+        serde_json::from_str::<arkret_models_identity::AccountLogoutOutcome>(&response.text)
     else {
         return LogoutStepStatus::Failed(
             "Principal Server logout returned an invalid response".to_owned(),

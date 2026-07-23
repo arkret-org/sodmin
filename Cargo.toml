@@ -7,13 +7,13 @@ edition = "2024"
 
 [dependencies]
 # Global report #10 — sodmin previously hand-copied every protocol type.
-# Depend on the SDK core + identifiers crates (default features off so the
+# Depend on the precise protocol owner crates (default features off so the
 # wasm bundle stays lean — the `client` / `keystore-*` / `salvo` / `mls`
 # features pull native-only deps and are deliberately NOT enabled here).
 chrono = {workspace = true,features = ["serde", "wasmbind"]}
 coauth-account-types = {workspace = true}
 coauth-admin-types = {workspace = true}
-arkret-core = {workspace = true,default-features = false}
+arkret-canonical = {workspace = true,default-features = false}
 arkret-identifiers = {workspace = true,default-features = false}
 arkret-models-collaboration = {workspace = true,default-features = false}
 arkret-models-crypto = {workspace = true,default-features = false}
@@ -130,7 +130,7 @@ resolver = "3"
 chrono = "0.4.45"
 coauth-account-types = {path = "../coauth/crates/account-types"}
 coauth-admin-types = {path = "../coauth/crates/admin-types"}
-arkret-core = {path = "../arkret-rust-sdk/crates/core",default-features = false}
+arkret-canonical = {path = "../arkret-rust-sdk/crates/canonical",default-features = false}
 arkret-identifiers = {path = "../arkret-rust-sdk/crates/identifiers",default-features = false}
 arkret-models-collaboration = {path = "../arkret-rust-sdk/crates/models-collaboration",default-features = false}
 arkret-models-crypto = {path = "../arkret-rust-sdk/crates/models-crypto",default-features = false}
