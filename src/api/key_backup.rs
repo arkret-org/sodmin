@@ -1,5 +1,5 @@
 //! B-C key-backup admin surface — talks to the soland endpoints
-//! shipped in P2 (aa76b91): `GET /_arkret/self/keys/backups?series_id=...`
+//! deployment-local admin alias: `GET /_soland/admin/key-backups?series_id=...`
 //! plus the soland identity recovery extension endpoints.
 
 use arkret_models_crypto::{KeysBackupsList, RecoveryPolicySummary};
@@ -35,7 +35,7 @@ struct RecoveryReceiptsEnvelope {
     total: Option<u64>,
 }
 
-/// `GET /_arkret/self/keys/backups?series_id=&backup_class=` — list backup
+/// `GET /_soland/admin/key-backups?series_id=&backup_class=` — list backup
 /// envelopes grouped by series. Empty `series_id` returns the per-series
 /// frontier roll-up.
 pub async fn list_backups(
@@ -49,7 +49,7 @@ pub async fn list_backups(
     if let Some(c) = backup_class {
         params.push(("backup_class", c));
     }
-    let url = build_url("/_arkret/self/keys/backups", &params)?;
+    let url = build_url("/_soland/admin/key-backups", &params)?;
     api_client(&url, "GET", NO_BODY).await
 }
 

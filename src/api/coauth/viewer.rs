@@ -3,7 +3,7 @@
 use crate::api::client::{NO_BODY, api_client};
 use crate::utils::net::error::HttpError;
 
-const VIEWER_PATH: &str = "/_arkret/self/account/viewer";
+const VIEWER_PATH: &str = "/_soland/admin/viewer";
 
 pub type CoauthViewer = arkret_models_collaboration::account_lifecycle::AccountView;
 

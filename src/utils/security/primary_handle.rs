@@ -30,5 +30,5 @@
 //! string (lexicographically smaller wins).
 
 pub use arkret_models_identity::primary_handle::{
-    PrimaryHandleSelectInput, SubjectRender, render_subject, select_primary_handle_string,
+    PrimaryHandleSelectInput, select_primary_handle_string,
 };

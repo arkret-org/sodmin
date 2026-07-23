@@ -12,7 +12,8 @@ the Gitea workflow.
 | Variable | Required | Purpose |
 | --- | --- | --- |
 | `SOLAND_URL` | yes | Internal URL for the soland Principal Server upstream. Requests to `/_arkret/` and the `/_soland/admin/` operator surface proxy here. |
-| `COAUTH_URL` | recommended | Internal URL for coauth admin/auth endpoints. Enables `/auth/`, `/_arkret/gate/`, the coauth `/_soland/admin/*` resource roots, `/authorize`, `/oauth2/`, and `/.well-known/` proxy locations. |
+| `COAUTH_URL` | recommended | Internal URL for coauth admin/auth endpoints. Enables `/auth/`, `/_arkret/gate/`, the coauth `/_coauth/admin/*` resource roots, `/authorize`, `/oauth/`, and `/.well-known/` proxy locations. |
+| `STARID_PUBLIC_URL` | no | Public Starid base URL exposed through `/config.json`; enables the did:webvh resolver panels. |
 | `COAUTH_PUBLIC_URL` | recommended | Browser-facing coauth origin written to `/config.json` for OAuth2 PKCE redirects. |
 | `SODMIN_PORT` | no | nginx listen port. Defaults to `80`. |
 | `SODMIN_TELEMETRY_ENDPOINT` | no | P5 — opt-in browser-error telemetry sink. When set, `/config.json` exposes the URL and `utils::telemetry` POSTs structured (no-PII) error events. Operator must also flip `localStorage.sodmin_telemetry_opt_in=1`. |
@@ -34,10 +35,10 @@ CSP header and the routing table below.
 | `/_arkret/self/sync/` | `${SOLAND_URL}` | Sync long-poll. |
 | `/_arkret/find/directory/` | `${SOLAND_URL}` | Directory queries. |
 | `/_arkret/` (other trust circles) | `${SOLAND_URL}` | Remaining self/root/find/peer/open/edge surface. |
-| coauth `/_soland/admin/*` resource roots (accounts, claims, oauth2-sessions, personal-sessions, upstream-oauth-*, user-registration-tokens, connector-health, notification-*, audit-feed, bridge) | `${COAUTH_URL}` | coauth admin endpoints (RBAC enforced server-side); longest-prefix match wins over soland. |
+| coauth `/_coauth/admin/*` resource roots (accounts, claims, oauth2-sessions, personal-sessions, upstream-oauth-*, user-registration-tokens, connector-health, notification-*, audit-feed, bridge) | `${COAUTH_URL}` | coauth admin endpoints (RBAC enforced server-side); longest-prefix match wins over soland. |
 | `/_soland/admin/` (everything else) | `${SOLAND_URL}` | soland operator surface (spaces, moderation, federation, server, media, etc.). |
 | `/auth/` and `/_arkret/gate/` | `${COAUTH_URL}` | Token + session endpoints. |
-| `/authorize`, `/oauth2/`, `/.well-known/` | `${COAUTH_URL}` | OAuth2 PKCE strand + discovery. |
+| `/authorize`, `/oauth/`, `/.well-known/` | `${COAUTH_URL}` | OAuth2 PKCE strand + discovery. |
 | `*.wasm`, `*.js`, `*.css`, images | sodmin nginx (`Cache-Control: public, immutable`) | Bundle assets. |
 
 P5 — when `floria` (E2EE / matrix bridge) or `teabay` (developer
@@ -93,7 +94,7 @@ UI "hiding" of buttons and links is a usability affordance, **never** a
 security boundary. The backend (soland for admin endpoints, coauth for
 auth/identity endpoints) MUST enforce capability checks on every
 admin-scoped route, and MUST reject disallowed actions with
-`ak.error.capability_denied`. If a sodmin operator forges a request
+`capability_denied`. If a sodmin operator forges a request
 through DevTools or curl with a stale token, the server-side RBAC layer
 is the one that says no.
 
@@ -121,7 +122,7 @@ seeds the six actions:
 * `ak.circle.audit` (high risk, paired with `audit_pair_required` check)
 
 Without these grants every Circle admin call returns 403 with
-`ak.error.capability_denied`. The sodmin UI surfaces that as
+`capability_denied`. The sodmin UI surfaces that as
 "Administrator capability denied" — coauth side fix.
 
 `connect-src` in `docker-entrypoint.sh` MUST include the soland,

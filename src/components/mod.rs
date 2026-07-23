@@ -16,7 +16,6 @@ pub mod did_input;
 /// R3.2 (UI-SOD-5) — "handle changed since" history hint shown when a
 /// captured `handle_at_time` differs from the subject's current primary
 /// handle.
-pub mod handle_change_hint;
 pub mod header;
 pub mod keyboard_shortcuts;
 pub mod layout;

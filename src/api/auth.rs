@@ -39,7 +39,7 @@ use crate::utils::storage;
 
 const OAUTH_CLIENT_ID: &str = "sodmin";
 const COAUTH_ADMIN_SCOPE: &str = "urn:coauth:admin";
-const CK_ADMIN_SCOPE: &str = "urn:arkret:admin:*";
+const ARKRET_ADMIN_SCOPE: &str = "urn:arkret:admin:*";
 const PKCE_VERIFIER_KEY: &str = "pkce_code_verifier";
 const OAUTH_STATE_KEY: &str = "oauth_state";
 const OAUTH_NONCE_KEY: &str = "oauth_nonce";
@@ -134,7 +134,7 @@ impl LogoutReport {
 }
 
 fn build_oauth_scope() -> String {
-    format!("{COAUTH_ADMIN_SCOPE} {CK_ADMIN_SCOPE}")
+    format!("{COAUTH_ADMIN_SCOPE} {ARKRET_ADMIN_SCOPE}")
 }
 
 fn coauth_public_base() -> Option<String> {

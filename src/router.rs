@@ -81,9 +81,6 @@ pub enum Route {
         #[route("/realms/:realm_id/media-service")]
         RealmMediaService { realm_id: String },
 
-        #[route("/realms/:realm_id/identity-audit")]
-        RealmIdentityAudit { realm_id: String },
-
         #[route("/realms/:realm_id/organization")]
         RealmOrganization { realm_id: String },
 
@@ -383,11 +380,6 @@ fn RealmMediaService(realm_id: String) -> Element {
 #[component]
 fn RealmOrganization(realm_id: String) -> Element {
     rsx! { pages::realms::organization::OrganizationPage { realm_id } }
-}
-
-#[component]
-fn RealmIdentityAudit(realm_id: String) -> Element {
-    rsx! { pages::realms::identity_audit::IdentityAuditPage { realm_id } }
 }
 
 #[component]

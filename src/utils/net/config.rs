@@ -6,6 +6,8 @@
 pub struct RuntimeConfig {
     #[serde(default)]
     pub coauth_public_url: String,
+    #[serde(default)]
+    pub starid_public_url: String,
     /// P5 — optional opt-in browser-error telemetry endpoint. When set
     /// AND the operator has flipped `sodmin_telemetry_opt_in` in
     /// localStorage, `utils::net::telemetry::report_http_error` posts
