@@ -171,20 +171,12 @@ pub struct CoauthAccountRiskActionExecute {
     #[serde(default)]
     pub executed_at: Option<String>,
     #[serde(default)]
-    pub execution_mode: String,
-    #[serde(default)]
     pub execution_note: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub account:
         Option<coauth_admin_types::SingleOutcome<coauth_admin_types::AdminAccountAttributes>>,
     #[serde(default)]
-    pub mutation_endpoint: String,
-    #[serde(default)]
     pub allowed_next_transitions: Vec<String>,
-    #[serde(default)]
-    pub state_store_kind: String,
-    #[serde(default)]
-    pub todo: String,
 }
 
 type CoauthAccountClaimsEnvelope = coauth_admin_types::AdminAccountClaimsOutcome;

@@ -69,7 +69,7 @@ where
             h2 { class: "text-base font-semibold", {t("risk_action_panel.current_state_title")} }
             if current.lifecycle_state == "idle" {
                 p { class: "text-sm text-muted-foreground",
-                    {current.todo.clone().unwrap_or_else(|| t("risk_action_panel.no_state_recorded"))}
+                    {t("risk_action_panel.no_state_recorded")}
                 }
             } else {
                 {current_state_grid(current)}
@@ -134,7 +134,6 @@ where
                     div { {t("risk_action_panel.label_action")} span { class: "font-mono", "{proposal.action}" } }
                     div { {t("risk_action_panel.last_state")} span { class: "font-mono", "{proposal.proposal_state}" } }
                     div { {t("risk_action_panel.last_revision")} span { class: "font-mono", "{proposal.state_revision}" } }
-                    div { {t("risk_action_panel.last_execution_endpoint")} span { class: "font-mono", "{proposal.execution_endpoint}" } }
                 }
             }
 
@@ -354,17 +353,6 @@ fn current_state_grid(current: &coauth::CoauthAccountRiskActionCurrentState) -> 
         .recorded_by_handle
         .clone()
         .unwrap_or_else(|| "-".to_string());
-    let execution_endpoint = current
-        .execution_endpoint
-        .clone()
-        .unwrap_or_else(|| "-".to_string());
-    let mutation_endpoint = current
-        .mutation_endpoint
-        .clone()
-        .unwrap_or_else(|| "-".to_string());
-    let state_store_kind = current.state_store_kind.clone();
-    let todo = current.todo.clone().unwrap_or_else(|| "-".to_string());
-
     rsx! {
         div { class: "grid gap-2 text-sm md:grid-cols-2",
             {detail_row(&t("risk_action_panel.detail_lifecycle_state"), &current.lifecycle_state)}
@@ -380,10 +368,6 @@ fn current_state_grid(current: &coauth::CoauthAccountRiskActionCurrentState) -> 
             {detail_row(&t("risk_action_panel.detail_recorded_at"), &recorded_at)}
             {detail_row(&t("risk_action_panel.detail_recorded_by"), &recorded_by)}
             {detail_row(&t("risk_action_panel.detail_recorded_by_handle"), &recorded_by_handle)}
-            {detail_row(&t("risk_action_panel.detail_execution_endpoint"), &execution_endpoint)}
-            {detail_row(&t("risk_action_panel.detail_mutation_endpoint"), &mutation_endpoint)}
-            {detail_row(&t("risk_action_panel.detail_state_store"), &state_store_kind)}
-            {detail_row(&t("risk_action_panel.detail_backend_notes"), &todo)}
         }
     }
 }
@@ -427,11 +411,8 @@ fn history_entry_card(entry: &coauth::CoauthAccountRiskActionHistoryEntry) -> El
             div { {t("risk_action_panel.label_recorded_at")} span { class: "font-mono", "{recorded_at}" } }
             div { {t("risk_action_panel.label_recorded_by")} span { class: "font-mono", "{entry.recorded_by.as_deref().unwrap_or(\"missing\")}" } }
             div { {t("risk_action_panel.label_recorded_by_handle")} span { class: "font-mono", "{entry.recorded_by_handle.as_deref().unwrap_or(\"missing\")}" } }
-            div { {t("risk_action_panel.label_execution_endpoint")} span { class: "font-mono", "{entry.execution_endpoint.as_deref().unwrap_or(\"missing\")}" } }
-            div { {t("risk_action_panel.label_mutation_endpoint")} span { class: "font-mono", "{entry.mutation_endpoint.as_deref().unwrap_or(\"missing\")}" } }
             div { {t("risk_action_panel.label_approval_note")} span { class: "font-mono", "{entry.approval_note.as_deref().unwrap_or(\"missing\")}" } }
             div { {t("risk_action_panel.label_execution_note")} span { class: "font-mono", "{entry.execution_note.as_deref().unwrap_or(\"missing\")}" } }
-            div { {t("risk_action_panel.label_state_store")} span { class: "font-mono", "{entry.state_store_kind}" } }
         }
     }
 }
@@ -496,7 +477,7 @@ fn build_risk_action_execute_draft(
 
 fn format_risk_action_status(proposal: &coauth::CoauthAccountRiskActionProposal) -> String {
     format!(
-        "{}\nstate_record_id={}\nproposal_id={}\naction={}\nproposal_state={}\nstate_revision={}\ntransition_kind={}\napproval_mode={}\nexecution_endpoint={}\nrequested_at={}\nrequested_by={}\nrequested_by_handle={}\nticket={}\napproved_by={}\n\n{}",
+        "{}\nstate_record_id={}\nproposal_id={}\naction={}\nproposal_state={}\nstate_revision={}\ntransition_kind={}\napproval_mode={}\nrequested_at={}\nrequested_by={}\nrequested_by_handle={}\nticket={}\napproved_by={}",
         t("risk_action_panel.status_queued"),
         proposal.state_record_id,
         proposal.proposal_id,
@@ -505,7 +486,6 @@ fn format_risk_action_status(proposal: &coauth::CoauthAccountRiskActionProposal)
         proposal.state_revision,
         proposal.transition_kind,
         proposal.approval_mode,
-        proposal.execution_endpoint,
         proposal
             .requested_at
             .map(|dt| dt.to_rfc3339())
@@ -515,7 +495,6 @@ fn format_risk_action_status(proposal: &coauth::CoauthAccountRiskActionProposal)
         proposal.requested_by_handle.as_deref().unwrap_or("missing"),
         proposal.ticket.as_deref().unwrap_or("missing"),
         proposal.approved_by.as_deref().unwrap_or("pending"),
-        proposal.todo,
     )
 }
 
@@ -527,7 +506,7 @@ fn format_risk_action_approval_status(
     approval: &coauth::CoauthAccountRiskActionApproval,
 ) -> String {
     format!(
-        "{}\nstate_record_id={}\nproposal_id={}\naction={}\napproval_state={}\nstate_revision={}\ntransition_kind={}\napproved_at={}\napproved_by={}\napproved_by_handle={}\nexecution_endpoint={}\napproval_note={}\n\n{}",
+        "{}\nstate_record_id={}\nproposal_id={}\naction={}\napproval_state={}\nstate_revision={}\ntransition_kind={}\napproved_at={}\napproved_by={}\napproved_by_handle={}\napproval_note={}",
         t("risk_action_panel.status_approved"),
         approval.state_record_id,
         approval.proposal_id,
@@ -542,15 +521,13 @@ fn format_risk_action_approval_status(
             .unwrap_or("missing"),
         approval.approved_by.as_deref().unwrap_or("missing"),
         approval.approved_by_handle.as_deref().unwrap_or("missing"),
-        approval.execution_endpoint,
         approval.approval_note.as_deref().unwrap_or("missing"),
-        approval.todo,
     )
 }
 
 fn format_risk_action_execute_status(execution: &coauth::CoauthAccountRiskActionExecute) -> String {
     format!(
-        "{}\nstate_record_id={}\nproposal_id={}\naction={}\nexecution_state={}\nstate_revision={}\ntransition_kind={}\nexecuted_at={}\nexecution_mode={}\nmutation_endpoint={}\nexecution_note={}\n\n{}",
+        "{}\nstate_record_id={}\nproposal_id={}\naction={}\nexecution_state={}\nstate_revision={}\ntransition_kind={}\nexecuted_at={}\nexecution_note={}",
         t("risk_action_panel.status_executed"),
         execution.state_record_id,
         execution.proposal_id,
@@ -559,9 +536,6 @@ fn format_risk_action_execute_status(execution: &coauth::CoauthAccountRiskAction
         execution.state_revision,
         execution.transition_kind,
         execution.executed_at.as_deref().unwrap_or("missing"),
-        execution.execution_mode,
-        execution.mutation_endpoint,
         execution.execution_note.as_deref().unwrap_or("missing"),
-        execution.todo,
     )
 }
