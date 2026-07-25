@@ -199,7 +199,7 @@ fn render_link_graph(
     if outbound_rows.is_empty() && inbound_rows.is_empty() {
         return rsx! {
             p { class: "text-sm text-muted-foreground py-6 text-center",
-                {t("realm_links.graph_placeholder")}
+                {t("realm_links.graph_empty")}
             }
         };
     }

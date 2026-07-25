@@ -1,12 +1,9 @@
 //! T8.3 — aggregate production hardening dashboard.
 //!
-//! Every Arkret service (`soland`, `coauth`, `floria`, `starid`,
-//! `teabay`) exposes a non-sensitive `hardening` block on its
-//! `/health` endpoint. This page fans out across whichever services
-//! the operator has wired (via `coauth_public_url` /
-//! `starid_public_url` / the locally served principal), then renders a
-//! per-service checklist with green / red chips and an aggregate
-//! score across the whole deployment.
+//! This page fetches a non-sensitive `hardening` block from each service
+//! that Sodmin can actually address (the local Soland plus configured
+//! Coauth and Starid upstreams), then renders a per-service checklist
+//! with green / red chips and an aggregate score.
 //!
 //! Hardening status is intentionally coarse — no paths, hostnames, or
 //! token tails are returned by any service — so it's safe to publish
@@ -35,8 +32,7 @@ fn http_skip(message: &str) -> HttpError {
 /// (older deployments), or `unreachable` is set when the fetch
 /// failed.
 struct ServiceHardening {
-    /// Service slug used in URLs / DIDs (`soland`, `coauth`, `starid`,
-    /// `floria`, `teabay`).
+    /// Service slug used in URLs / DIDs (`soland`, `coauth`, `starid`).
     slug: &'static str,
     /// i18n key for the user-facing label.
     label_key: &'static str,
@@ -99,26 +95,6 @@ pub fn HardeningDashboard() -> Element {
                     Some(t("hardening.starid_not_configured"))
                 },
             ),
-            // floria / teabay /health are not currently proxied through
-            // sodmin. Surface them as informational entries so the
-            // operator sees the full deployment surface and knows where
-            // the next round of work is.
-            ServiceHardening {
-                slug: "floria",
-                label_key: "hardening.svc_floria",
-                description_key: "hardening.svc_floria_desc",
-                hardening: None,
-                not_configured_label: Some(t("hardening.floria_not_wired")),
-                unreachable: false,
-            },
-            ServiceHardening {
-                slug: "teabay",
-                label_key: "hardening.svc_teabay",
-                description_key: "hardening.svc_teabay_desc",
-                hardening: None,
-                not_configured_label: Some(t("hardening.teabay_not_wired")),
-                unreachable: false,
-            },
         ]
     };
 
