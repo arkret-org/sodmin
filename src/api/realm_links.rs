@@ -8,9 +8,8 @@
 //!
 //! The admin surface returns the outbound and/or inbound edge list
 //! for a single Realm so the operator can see who governs / mirrors /
-//! discovers them and vice-versa. The full graph view is a future
-//! enhancement; for now the page renders the rows as a simple list of
-//! chips.
+//! discovers them and vice-versa. The page renders both typed rows and
+//! their graph layout.
 
 use crate::api::client::{NO_BODY, api_client};
 use crate::types::{RealmLinkDirection, RealmLinkList};

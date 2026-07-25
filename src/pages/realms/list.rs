@@ -58,8 +58,8 @@ pub fn RealmList() -> Element {
                         if let Some(Ok(resp)) = data.read().as_ref() {
                             let rows: Vec<Vec<String>> = resp.data.iter().map(|s| vec![
                                 s.id.clone(),
-                                s.title.clone().unwrap_or_default(),
-                                s.type_label(),
+                                s.title.clone(),
+                                s.type_label().to_owned(),
                                 s.member_count.to_string(),
                                 if s.is_encrypted { "true".into() } else { "false".into() },
                                 if s.is_blocked { "blocked".into() } else { "active".into() },
@@ -127,7 +127,7 @@ pub fn RealmList() -> Element {
                                                             "{realm.id}"
                                                         }
                                                     }
-                                                    TableCell { {realm.title.as_deref().unwrap_or("-")} }
+                                                    TableCell { {realm.title.clone()} }
                                                     TableCell { {realm.type_label()} }
                                                     TableCell { "{realm.member_count}" }
                                                     TableCell {

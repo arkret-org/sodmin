@@ -25,7 +25,7 @@ pub fn RealmShow(realm_id: String) -> Element {
                 Some(Ok(realm)) => {
                     let breadcrumbs = vec![
                         BreadcrumbItem { label: t("nav.realms"), route: Some(Route::RealmList {}) },
-                        BreadcrumbItem { label: realm.title.as_deref().unwrap_or(&realm.id).to_string(), route: None },
+                        BreadcrumbItem { label: realm.title.clone(), route: None },
                     ];
                     rsx! {
                         Breadcrumbs {
@@ -33,12 +33,9 @@ pub fn RealmShow(realm_id: String) -> Element {
                         }
 
                         PageHeader {
-                            title: realm.title.as_deref().unwrap_or(&realm.id).to_string(),
-                            // P3A.6 — Principal Control vs Collaboration
-                            // Realm badge. Hidden when the field is absent
-                            // on older soland deployments.
-                            if let Some(ref cls) = realm.realm_class {
-                                RealmClassificationBadge { realm_class: cls.clone() }
+                            title: realm.title.clone(),
+                            if let Some(cls) = realm.realm_class {
+                                RealmClassificationBadge { realm_class: cls }
                             }
                         }
 
@@ -48,7 +45,7 @@ pub fn RealmShow(realm_id: String) -> Element {
                                 CardContent {
                                     div { class: "space-y-3",
                                     {field_row(t("realms.id"), realm.id.clone())}
-                                    {field_row(t("realms.type"), realm.type_label())}
+                                    {field_row(t("realms.type"), realm.type_label().to_owned())}
                                     {field_row(t("realms.discoverability"), realm.discoverability_label().unwrap_or_else(|| "-".to_string()))}
                                     {field_row(t("realms.creator"), realm.created_by.as_deref().unwrap_or("-").to_string())}
                                     {field_row(t("realms.members"), realm.member_count.to_string())}
