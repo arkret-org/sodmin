@@ -155,30 +155,33 @@ fn render_row(row: &DeliveryBindingHandoverRow) -> Element {
 mod tests {
     use super::*;
 
+    fn row(reason_code: &str) -> DeliveryBindingHandoverRow {
+        DeliveryBindingHandoverRow {
+            realm_id: "ak:realm:test".into(),
+            actor_id: "did:web:actor.example".into(),
+            previous_recipient_service_id: None,
+            new_recipient_service_id: None,
+            handover_frontier: Vec::new(),
+            reason_code: Some(reason_code.into()),
+            observed_at: None,
+        }
+    }
+
     #[test]
     fn classified_reason_maps_the_three_codes() {
-        let stale = DeliveryBindingHandoverRow {
-            reason_code: Some("delivery_binding_stale".into()),
-            ..Default::default()
-        };
+        let stale = row("delivery_binding_stale");
         assert_eq!(
             stale.classified_reason(),
             Some(ErrorCode::DeliveryBindingStale)
         );
 
-        let handed_over = DeliveryBindingHandoverRow {
-            reason_code: Some("delivery_binding_handed_over".into()),
-            ..Default::default()
-        };
+        let handed_over = row("delivery_binding_handed_over");
         assert_eq!(
             handed_over.classified_reason(),
             Some(ErrorCode::DeliveryBindingHandedOver)
         );
 
-        let historical = DeliveryBindingHandoverRow {
-            reason_code: Some("historical_only".into()),
-            ..Default::default()
-        };
+        let historical = row("historical_only");
         assert_eq!(
             historical.classified_reason(),
             Some(ErrorCode::HistoricalOnly)
