@@ -40,8 +40,22 @@ pub struct MediaRow {
     pub encrypted: bool,
     #[serde(default)]
     pub uploaded_by: Option<String>,
-    #[serde(default, alias = "size")]
     pub size_bytes: u64,
     #[serde(default)]
     pub created_at: Option<String>,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn media_row_requires_canonical_size_bytes() {
+        let legacy = serde_json::json!({"size": 42});
+        assert!(serde_json::from_value::<MediaRow>(legacy).is_err());
+
+        let row: MediaRow = serde_json::from_value(serde_json::json!({"size_bytes": 42}))
+            .expect("canonical size_bytes field");
+        assert_eq!(row.size_bytes, 42);
+    }
 }
