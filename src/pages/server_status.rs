@@ -96,18 +96,6 @@ pub fn ServerStatus() -> Element {
                             Some(t("server_status.service_coauth_not_configured"))
                         },
                     )}
-                    {service_describe_card(
-                        t("server_status.service_soland"),
-                        t("server_status.service_soland_hint"),
-                        None,
-                        Some(t("server_status.service_soland_not_configured")),
-                    )}
-                    {service_describe_card(
-                        t("server_status.service_floria"),
-                        t("server_status.service_floria_hint"),
-                        None,
-                        Some(t("server_status.service_floria_not_configured")),
-                    )}
                 }
             }
 
