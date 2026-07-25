@@ -15,4 +15,3 @@ pub mod notary;
 pub mod organization;
 pub mod seal_dag;
 pub mod show;
-pub mod signing_keys;

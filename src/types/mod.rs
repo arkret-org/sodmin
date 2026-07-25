@@ -56,6 +56,4 @@ pub use realms::*;
 pub mod server;
 pub use server::*;
 
-pub mod signing_key;
-
 pub mod spaces;

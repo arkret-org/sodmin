@@ -26,6 +26,5 @@ pub mod realm_organization;
 pub mod realms;
 pub mod seal;
 pub mod server;
-pub mod signing_key;
 pub mod spaces;
 pub mod starid;

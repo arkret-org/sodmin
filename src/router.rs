@@ -38,8 +38,6 @@ pub enum Route {
         RealmSealDag { realm_id: String },
         #[route("/realms/:realm_id/covered-seals")]
         RealmCoveredSeals { realm_id: String },
-        #[route("/realms/:realm_id/signing-keys")]
-        RealmSigningKeys { realm_id: String },
         #[route("/realms/:realm_id/multisig")]
         RealmMultiSig { realm_id: String },
         #[route("/spaces")]
@@ -292,11 +290,6 @@ fn SealBottom() -> Element {
 #[component]
 fn RealmCoveredSeals(realm_id: String) -> Element {
     rsx! { pages::realms::covered_seals::CoveredSealsPage { realm_id } }
-}
-
-#[component]
-fn RealmSigningKeys(realm_id: String) -> Element {
-    rsx! { pages::realms::signing_keys::SigningKeysPage { realm_id } }
 }
 
 #[component]

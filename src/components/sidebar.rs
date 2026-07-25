@@ -188,13 +188,6 @@ fn build_nav_sections() -> Vec<NavSection> {
                 "lock",
             ),
             NavItem::new(
-                t("nav.signing_keys"),
-                Route::RealmSigningKeys {
-                    realm_id: "_".to_string(),
-                },
-                "key",
-            ),
-            NavItem::new(
                 t("nav.multisig"),
                 Route::RealmMultiSig {
                     realm_id: "_".to_string(),

@@ -284,8 +284,8 @@ fn run() -> ExitCode {
     let realm_id = &args.realm_id;
 
     // Health probe + Stream H' GET endpoints. Mutating endpoints
-    // (rotate-signing-key, partial-signature submit, notary/reconfigure,
-    // bottom/repair, seal-dag/compact, covered-seals/advance) are
+    // (partial-signature submit, notary/reconfigure, bottom/repair,
+    // seal-dag/compact, covered-seals/advance) are
     // intentionally NOT exercised here — running them post-deploy would
     // mutate state. Smoke checks reachability + auth only.
     let checks = vec![
@@ -311,9 +311,6 @@ fn run() -> ExitCode {
             "GET",
             build_realm_url(base, realm_id, "bottom"),
         ),
-        // NOTE: former consent, components, signing-key describe, and
-        // covered_seals checks hit endpoints that soland does not mount.
-        // They were removed so the smoke signal is not a false negative.
         (
             "realms/multisig/pending (H'9)",
             "GET",
