@@ -21,7 +21,6 @@ use crate::types::coauth_devices::{
 };
 use crate::utils::destructive_reason::destructive_reason_error;
 use crate::utils::i18n::t;
-use crate::utils::net::error::format_optional_endpoint_error;
 
 #[component]
 pub fn AccountDevicesPage(account_id: String) -> Element {
@@ -178,10 +177,7 @@ pub fn AccountDevicesPage(account_id: String) -> Element {
                                     &t("coauth_devices.revoke_ok"),
                                     ToastVariant::Success,
                                 ),
-                                Err(e) => {
-                                    let msg = format_optional_endpoint_error("device revoke", &e);
-                                    show_toast(&msg, ToastVariant::Error);
-                                }
+                                Err(e) => show_toast(&e.message, ToastVariant::Error),
                             }
                             in_flight.set(None);
                             data.restart();

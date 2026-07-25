@@ -198,25 +198,6 @@ pub fn redact_pii(message: &str) -> String {
     out
 }
 
-/// Format an admin-mutation error for the 404-tolerant pattern used by the
-/// Stream H' actions (consent resolve, components refresh, covered_seals
-/// advance). When the backend hasn't wired the route yet, soland returns
-/// 404, and the admin sees a clearer "endpoint not yet wired" message
-/// rather than a generic "Resource not found". For non-404 errors the
-/// regular formatted message is returned unchanged.
-///
-/// Pure helper — no I/O — so it can be unit-tested without hitting the
-/// network. The action label is included in the not-yet-wired toast so
-/// operators know which feature is missing on the backend (e.g. "consent
-/// resolve endpoint not yet wired").
-pub fn format_optional_endpoint_error(action: &str, error: &HttpError) -> String {
-    if error.status == 404 {
-        format!("{action} endpoint not yet wired")
-    } else {
-        error.message.clone()
-    }
-}
-
 pub fn should_reset_cursor_pagination(error: &HttpError, cursor: Option<&str>) -> bool {
     if cursor.filter(|c| !c.trim().is_empty()).is_none() {
         return false;
@@ -241,19 +222,8 @@ pub fn should_reset_cursor_pagination(error: &HttpError, cursor: Option<&str>) -
 #[cfg(test)]
 mod tests {
     use super::{
-        AdminErrorEnvelope, HttpError, display_error, format_optional_endpoint_error, redact_pii,
-        should_reset_cursor_pagination,
+        AdminErrorEnvelope, HttpError, display_error, redact_pii, should_reset_cursor_pagination,
     };
-
-    fn err(status: u16, message: &str) -> HttpError {
-        HttpError {
-            message: message.to_owned(),
-            status,
-            body: None,
-            request_id: None,
-            retry_after_ms: None,
-        }
-    }
 
     fn err_with_code(status: u16, errcode: &str) -> HttpError {
         HttpError {
@@ -266,28 +236,6 @@ mod tests {
             request_id: None,
             retry_after_ms: None,
         }
-    }
-
-    #[test]
-    fn optional_endpoint_404_shows_not_yet_wired() {
-        let e = err(404, "Not Found");
-        let msg = format_optional_endpoint_error("consent resolve", &e);
-        assert!(msg.to_lowercase().contains("not yet wired"));
-        assert!(msg.contains("consent resolve"));
-    }
-
-    #[test]
-    fn optional_endpoint_non_404_returns_original_message() {
-        let e = err(500, "boom");
-        assert_eq!(
-            format_optional_endpoint_error("components refresh", &e),
-            "boom"
-        );
-        let e = err(409, "conflict");
-        assert_eq!(
-            format_optional_endpoint_error("covered_seals advance", &e),
-            "conflict"
-        );
     }
 
     #[test]

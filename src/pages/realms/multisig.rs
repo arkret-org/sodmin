@@ -6,8 +6,6 @@
 //! signer DIDs. When the current admin DID is in the missing-signers
 //! list, soland sets `admin_can_sign=true` on the row and the
 //! `Submit my partial signature` button activates.
-//!
-//! Follows the 404-tolerant pattern shared with the rest of Stream H'.
 
 use dioxus::prelude::*;
 
@@ -23,7 +21,6 @@ use crate::components::ui::table::*;
 use crate::components::ui::toast::{ToastVariant, show_toast};
 use crate::types::multisig::PendingMultisigSeal;
 use crate::utils::i18n::t;
-use crate::utils::net::error::format_optional_endpoint_error;
 
 #[component]
 pub fn MultiSigPage(realm_id: String) -> Element {
@@ -164,13 +161,10 @@ pub fn MultiSigPage(realm_id: String) -> Element {
                                                                                     ToastVariant::Success,
                                                                                 );
                                                                             }
-                                                                            Err(e) => {
-                                                                                let msg = format_optional_endpoint_error(
-                                                                                    "multisig partial",
-                                                                                    &e,
-                                                                                );
-                                                                                show_toast(&msg, ToastVariant::Error);
-                                                                            }
+                                                                            Err(e) => show_toast(
+                                                                                &e.message,
+                                                                                ToastVariant::Error,
+                                                                            ),
                                                                         }
                                                                         in_flight.set(None);
                                                                         data.restart();

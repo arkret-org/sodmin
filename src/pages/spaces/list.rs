@@ -4,8 +4,6 @@
 //! backed by `GET /_soland/admin/spaces`. Each row shows name, member
 //! count, lifecycle state and an "Open detail"
 //! button that links to the existing per-space detail page.
-//!
-//! 404-tolerant on the client side.
 
 use dioxus::prelude::*;
 

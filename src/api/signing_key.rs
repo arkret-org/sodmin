@@ -8,10 +8,6 @@
 //! - `POST /_soland/admin/realms/{realm_id}/notary/rotate-signing-key` — trigger a key rotation.
 //!   The principal-server generates a fresh key, swaps the worker's signer atomically, and reports
 //!   the new verification method id.
-//!
-//! Both routes follow the 404-tolerant pattern — when soland hasn't
-//! wired the route yet the caller surfaces a "not yet wired" toast
-//! rather than a generic error (see `pages/spaces/signing_keys.rs`).
 
 use crate::api::client::api_client;
 use crate::api::seal;

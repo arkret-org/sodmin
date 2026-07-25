@@ -1,6 +1,6 @@
 //! HTTP client for the soland Handle admin surface (T6.2 §2).
 //!
-//! Endpoints (all 404-tolerant — older servers may not yet expose them):
+//! Endpoints:
 //!
 //! - `GET /_soland/admin/handles` — paginated list of `ak.handle.*` cells visible to the current
 //!   admin scope.

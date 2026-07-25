@@ -10,7 +10,7 @@
 //!   the principal-server to manually fold the current governance Seal set into the covered_seals
 //!   cell. Used when MLS members are offline and can't ack on their own; the override is a coarse
 //!   hammer (it doesn't replace per-epoch MLS commits) so the page only surfaces it when lag >
-//!   threshold. On 404 the UI surfaces a "not yet wired" toast.
+//!   threshold.
 
 use crate::api::client::{NO_BODY, api_client};
 use crate::types::covered_seals::{CoveredSealsAdvanceOutcome, CoveredSealsSnapshot};

@@ -9,10 +9,6 @@
 //! warns the operator that production deployments must redeploy with a
 //! configured key (rotating an ephemeral key just spawns another
 //! ephemeral key, leaving notary signatures without stable DID binding).
-//!
-//! Follows the 404-tolerant pattern shared with the rest of Stream H' —
-//! when the soland route hasn't been wired the operator sees a clear
-//! "endpoint not yet wired" toast rather than a generic error.
 
 use dioxus::prelude::*;
 
@@ -28,7 +24,6 @@ use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::toast::{ToastVariant, show_toast};
 use crate::types::signing_key::SigningKeyOrigin;
 use crate::utils::i18n::t;
-use crate::utils::net::error::format_optional_endpoint_error;
 
 #[component]
 pub fn SigningKeysPage(realm_id: String) -> Element {
@@ -179,11 +174,7 @@ pub fn SigningKeysPage(realm_id: String) -> Element {
                                                     ToastVariant::Success,
                                                 ),
                                                 Err(e) => {
-                                                    let msg = format_optional_endpoint_error(
-                                                        "signing-key rotate",
-                                                        &e,
-                                                    );
-                                                    show_toast(&msg, ToastVariant::Error);
+                                                    show_toast(&e.message, ToastVariant::Error);
                                                 }
                                             }
                                             submitting.set(false);

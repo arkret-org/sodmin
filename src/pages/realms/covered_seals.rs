@@ -8,8 +8,7 @@
 //! "Manually advance covered_seals" override button is surfaced so
 //! the operator can fold the current governance Seal set into the MLS
 //! cover or-set when members are stuck offline. The override POSTs to
-//! `/_soland/admin/realms/{id}/mls/covered-seals/advance` and follows
-//! the same 404-tolerant pattern as the other Stream H' admin actions.
+//! `/_soland/admin/realms/{id}/mls/covered-seals/advance`.
 
 use dioxus::prelude::*;
 
@@ -26,7 +25,6 @@ use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::toast::{ToastVariant, show_toast};
 use crate::types::covered_seals::DEFAULT_LAG_WARN_THRESHOLD;
 use crate::utils::i18n::t;
-use crate::utils::net::error::format_optional_endpoint_error;
 
 #[component]
 pub fn CoveredSealsPage(realm_id: String) -> Element {
@@ -181,13 +179,7 @@ pub fn CoveredSealsPage(realm_id: String) -> Element {
                                     .replace("{lag}", &r.lag_count.to_string()),
                                 ToastVariant::Success,
                             ),
-                            Err(e) => {
-                                let msg = format_optional_endpoint_error(
-                                    "covered_seals advance",
-                                    &e,
-                                );
-                                show_toast(&msg, ToastVariant::Error);
-                            }
+                            Err(e) => show_toast(&e.message, ToastVariant::Error),
                         }
                         advancing.set(false);
                         data.restart();

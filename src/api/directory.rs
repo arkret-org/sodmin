@@ -7,11 +7,6 @@
 //! the directory applies disclosure policy / issuer trust / audience /
 //! Realm-intent filtering. The admin "Subject → Handles" operator view
 //! calls this to triage which handles a subject is currently bound to.
-//!
-//! 404-tolerant: directories that pre-date arkret-spec @ b56cab1 don't
-//! expose this endpoint yet — the page surfaces the error to the
-//! operator rather than crashing.
-
 use crate::api::client::api_client;
 use crate::types::{DirectorySubjectHandleList, ListHandlesForSubjectRequest};
 use crate::utils::net::error::HttpError;

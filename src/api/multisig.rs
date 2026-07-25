@@ -10,8 +10,6 @@
 //!   admin's partial signature toward the pending Seal. soland resolves the admin DID from the
 //!   bearer token, signs the Seal's `state_root` with the bound signing key, and folds the
 //!   resulting partial into the pending signature set.
-//!
-//! Both routes follow the 404-tolerant pattern.
 
 use crate::api::client::{NO_BODY, api_client};
 use crate::types::multisig::{
