@@ -123,7 +123,7 @@ pub fn MediaServicePage(realm_id: String) -> Element {
                                         p { class: "text-sm text-muted-foreground", {t("media_service.empty")} }
                                     } else {
                                         for (idx, focus) in foci.iter().enumerate() {
-                                            div { key: "{focus.focus_id.clone().unwrap_or_else(|| idx.to_string())}",
+                                            div { key: "{focus.focus_id}",
                                                 {render_focus_row(idx, focus)}
                                             }
                                         }
@@ -143,14 +143,11 @@ pub fn MediaServicePage(realm_id: String) -> Element {
 }
 
 fn render_focus_row(idx: usize, focus: &MediaServiceFocus) -> Element {
-    let focus_id = focus.focus_id.clone().unwrap_or_else(|| "-".to_string());
-    let focus_type = focus.focus_type.clone().unwrap_or_else(|| "-".to_string());
+    let focus_id = focus.focus_id.clone();
+    let focus_type = focus.focus_type.clone();
     let region = focus.region.clone().unwrap_or_else(|| "-".to_string());
-    let token_endpoint = focus
-        .token_endpoint
-        .clone()
-        .unwrap_or_else(|| "-".to_string());
-    let connect_url = focus.connect_url.clone().unwrap_or_else(|| "-".to_string());
+    let token_endpoint = focus.token_endpoint.clone();
+    let connect_url = focus.connect_url.clone();
     let health_endpoint = focus
         .health_endpoint
         .clone()
@@ -160,11 +157,7 @@ fn render_focus_row(idx: usize, focus: &MediaServiceFocus) -> Element {
         .clone()
         .unwrap_or_else(|| "-".to_string());
     let capabilities = focus.capabilities.clone();
-    let known_type = focus
-        .focus_type
-        .as_deref()
-        .map(|b| FOCUS_TYPES.contains(&b))
-        .unwrap_or(true);
+    let known_type = FOCUS_TYPES.contains(&focus.focus_type.as_str());
 
     rsx! {
         div {
