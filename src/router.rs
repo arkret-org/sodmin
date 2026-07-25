@@ -100,8 +100,6 @@ pub enum Route {
         #[route("/hardening")]
         HardeningDashboard {},
 
-        #[route("/deactivations/review")]
-        DeactivationReview {},
         #[route("/realms/:realm_id/destroy")]
         RealmDestroy { realm_id: String },
         #[route("/starid/resolver")]
@@ -310,11 +308,6 @@ fn SpaceShow(space_id: String) -> Element {
 #[component]
 fn MediaList() -> Element {
     rsx! { pages::media::MediaList {} }
-}
-
-#[component]
-fn DeactivationReview() -> Element {
-    rsx! { pages::deactivation_review::DeactivationReviewPage {} }
 }
 
 #[component]

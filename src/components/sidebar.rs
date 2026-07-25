@@ -150,12 +150,6 @@ fn build_nav_sections() -> Vec<NavSection> {
                 Route::StaridResolver {},
                 "fingerprint",
             ),
-            // Round R2/R3 T07 — deactivation fanout review.
-            NavItem::new(
-                "Deactivation review".to_string(),
-                Route::DeactivationReview {},
-                "alert-triangle",
-            ),
         ],
     ));
 

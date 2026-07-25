@@ -35,9 +35,3 @@ pub fn format_iso_datetime(value: &str) -> String {
         Err(_) => value.to_string(),
     }
 }
-
-pub fn format_optional_iso_datetime(value: Option<&str>) -> String {
-    value
-        .map(format_iso_datetime)
-        .unwrap_or_else(|| "-".to_string())
-}

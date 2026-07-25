@@ -3,7 +3,6 @@ pub mod audit;
 pub mod capabilities;
 pub mod coauth;
 pub mod dashboard;
-pub mod deactivation_review;
 pub mod devices;
 pub mod federation;
 pub mod handles;

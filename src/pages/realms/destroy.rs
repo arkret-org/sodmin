@@ -4,15 +4,11 @@
 //! route shell so an operator can navigate to `/realms/{id}/destroy`,
 //! tick the five normative bullets, type `DESTROY`, and trigger the
 //! `ak.realm.destroy` Control Move. After confirmation this page also reuses
-//! the 7-domain fanout panel + erasure-receipt block to surface the
-//! post-destroy cascade.
+//! the server acknowledgement.
 
 use dioxus::prelude::*;
 
 use crate::api::server;
-use crate::components::deactivation_fanout_panel::{
-    DeactivationFanoutPanel, ErasureReceiptStatus, FanoutDomain, FanoutState, placeholder_snapshot,
-};
 use crate::components::realm_destroy_dialog::RealmDestroyDialog;
 use crate::components::ui::button::{Button, ButtonVariant};
 use crate::components::ui::page_header::PageHeader;
@@ -25,7 +21,6 @@ pub fn DestroyPage(realm_id: String) -> Element {
     let mut destroyed = use_signal(|| false);
 
     let realm_id_for_dialog = realm_id.clone();
-    let realm_id_for_panel = realm_id.clone();
 
     rsx! {
         div { class: "space-y-6",
@@ -40,29 +35,10 @@ pub fn DestroyPage(realm_id: String) -> Element {
             }
 
             if *destroyed.read() {
-                {
-                    let mut snap = placeholder_snapshot(realm_id_for_panel.clone());
-                    // For `ak.realm.destroy` the panel renders the
-                    // erasure-receipt block as well. The placeholder
-                    // stays local-only until soland returns peer evidence.
-                    snap.erasure_receipt = Some(ErasureReceiptStatus {
-                        receipt_id: "receipt:01904100-0000-7000-8000-0000000000ff".into(),
-                        local_state: FanoutState::Succeeded,
-                        cross_ps_state: None,
-                        cross_ps_peers: Vec::new(),
-                    });
-                    rsx! {
-                        DeactivationFanoutPanel {
-                            snapshot: snap,
-                            on_retry: move |domain: FanoutDomain| {
-                                show_toast(
-                                    &t("realm_destroy.retry_unsupported")
-                                        .replace("{domain}", domain.slug()),
-                                    ToastVariant::Error,
-                                );
-                            }
-                        }
-                    }
+                div {
+                    class: "rounded-md border border-green-600/40 bg-green-600/10 px-3 py-2 text-sm",
+                    role: "status",
+                    {t("realm_destroy.completed")}
                 }
             } else {
                 p { class: "text-sm text-muted-foreground",
