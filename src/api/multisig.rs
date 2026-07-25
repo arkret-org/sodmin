@@ -13,8 +13,7 @@
 
 use crate::api::client::{NO_BODY, api_client};
 use crate::types::multisig::{
-    MultisigPendingOutcome, PendingMultisigSeal, SubmitPartialSignatureOutcome,
-    SubmitPartialSignatureRequest,
+    MultisigPendingOutcome, PartialSignatureBody, PartialSubmitOutcome, PendingMultisigSeal,
 };
 use crate::utils::net::error::HttpError;
 
@@ -35,13 +34,13 @@ pub async fn submit_partial(
     signer_did: &str,
     signature_b64: &str,
     kid: &str,
-) -> Result<SubmitPartialSignatureOutcome, HttpError> {
+) -> Result<PartialSubmitOutcome, HttpError> {
     let url = format!(
         "/_soland/admin/realms/{}/multisig/{}/partial",
         urlencoding::encode(realm_id),
         urlencoding::encode(seal_id),
     );
-    let body = SubmitPartialSignatureRequest {
+    let body = PartialSignatureBody {
         signer_did: signer_did.to_owned(),
         signature_b64: signature_b64.to_owned(),
         kid: kid.to_owned(),

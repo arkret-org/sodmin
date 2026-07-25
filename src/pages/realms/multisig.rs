@@ -19,7 +19,7 @@ use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::table::*;
 use crate::components::ui::toast::{ToastVariant, show_toast};
-use crate::types::multisig::PendingMultisigSeal;
+use crate::types::multisig::{PartialSubmitStatus, PendingMultisigSeal};
 use crate::utils::i18n::t;
 
 #[component]
@@ -148,15 +148,15 @@ pub fn MultiSigPage(realm_id: String) -> Element {
                                                                         .await;
                                                                         match res {
                                                                             Ok(r) => {
-                                                                                let met_suffix = if r.threshold_met() {
+                                                                                let met_suffix = if r.status == PartialSubmitStatus::Aggregated {
                                                                                     t("realm_multisig.toast_threshold_met_suffix")
                                                                                 } else {
                                                                                     String::new()
                                                                                 };
                                                                                 show_toast(
                                                                                     &t("realm_multisig.toast_partial_recorded")
-                                                                                        .replace("{collected}", &r.collected_partials.to_string())
-                                                                                        .replace("{threshold}", &r.threshold_k.to_string())
+                                                                                        .replace("{collected}", &r.collected.to_string())
+                                                                                        .replace("{threshold}", &r.threshold.to_string())
                                                                                         .replace("{met}", &met_suffix),
                                                                                     ToastVariant::Success,
                                                                                 );
