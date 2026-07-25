@@ -119,42 +119,6 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                             on_mutated: move |_| data_for_claims.restart(),
                         }
 
-                        {section_block(
-                            t("coauth_account_detail.session_grants"),
-                            if detail.session_grants.is_empty() {
-                                rsx! {
-                                    p { class: "text-sm text-muted-foreground",
-                                        {t("coauth_account_detail.session_grants_empty")}
-                                    }
-                                }
-                            } else {
-                                rsx! {
-                                    ul { class: "space-y-2",
-                                        for grant in detail.session_grants.iter() {
-                                            {
-                                                let subject = grant.subject.clone().unwrap_or_else(|| "-".to_string());
-                                                let scope = grant.scope.clone().unwrap_or_else(|| "-".to_string());
-                                                let state = grant.state.clone().unwrap_or_else(|| "-".to_string());
-                                                let issued_at = grant.issued_at.clone().unwrap_or_else(|| "-".to_string());
-                                                rsx! {
-                                                    li { class: "rounded-md border p-3",
-                                                        key: "{grant.grant_id}",
-                                                        div { class: "font-mono text-sm", "{grant.grant_id}" }
-                                                        div { class: "mt-2 grid gap-2 text-sm md:grid-cols-2",
-                                                            {detail_row(t("coauth_account_detail.subject"), &subject)}
-                                                            {detail_row(t("coauth_account_detail.scope"), &scope)}
-                                                            {detail_row(t("coauth_account_detail.state"), &state)}
-                                                            {detail_row(t("coauth_account_detail.issued_at"), &issued_at)}
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            },
-                        )}
-
                         {risk_action_panel::risk_action_panel(
                             &account_id,
                             &detail.risk_action_current,
@@ -214,10 +178,6 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                             p { class: "text-sm text-muted-foreground",
                                 {t("coauth_account_detail.claims_template")}
                                 span { class: "font-mono", "{detail.admin_bridge.account_claims_path_template}" }
-                            }
-                            p { class: "text-sm text-muted-foreground",
-                                {t("coauth_account_detail.session_grants_template")}
-                                span { class: "font-mono", "{detail.admin_bridge.account_session_grants_path_template}" }
                             }
                         }
                     }

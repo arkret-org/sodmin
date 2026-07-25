@@ -82,21 +82,6 @@ pub struct CoauthAccountClaim {
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 #[non_exhaustive]
-pub struct CoauthSessionGrantSummary {
-    #[serde(default)]
-    pub grant_id: String,
-    #[serde(default)]
-    pub subject: Option<String>,
-    #[serde(default)]
-    pub scope: Option<String>,
-    #[serde(default)]
-    pub state: Option<String>,
-    #[serde(default)]
-    pub issued_at: Option<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-#[non_exhaustive]
 pub struct CoauthRiskActionHook {
     #[serde(default)]
     pub endpoint: String,
@@ -120,8 +105,6 @@ pub struct CoauthAccountDetail {
     pub managed_dids: Vec<CoauthManagedDidBinding>,
     #[serde(default)]
     pub claims: Vec<CoauthAccountClaim>,
-    #[serde(default)]
-    pub session_grants: Vec<CoauthSessionGrantSummary>,
     #[serde(default)]
     pub risk_action_current: CoauthAccountRiskActionCurrentState,
     #[serde(default)]
@@ -180,12 +163,6 @@ pub struct CoauthAccountRiskActionExecute {
 }
 
 type CoauthAccountClaimsEnvelope = coauth_admin_types::AdminAccountClaimsOutcome;
-
-#[derive(Debug, Clone, Deserialize, Default)]
-struct CoauthAccountSessionGrantsEnvelope {
-    #[serde(default)]
-    data: Vec<CoauthSessionGrantSummary>,
-}
 
 #[derive(Debug, Clone, Deserialize, Default)]
 struct CoauthAdminPaginatedEnvelope<T> {
@@ -281,10 +258,6 @@ pub async fn get_account_detail(id: &str) -> Result<CoauthAccountDetail, HttpErr
     let summary_url = format!("/_coauth/admin/accounts/{}", urlencoding::encode(id));
     let dids_url = format!("/_coauth/admin/accounts/{}/dids", urlencoding::encode(id));
     let claims_url = format!("/_coauth/admin/accounts/{}/claims", urlencoding::encode(id));
-    let grants_url = format!(
-        "/_coauth/admin/accounts/{}/session-grants",
-        urlencoding::encode(id)
-    );
     let current_url = format!(
         "/_coauth/admin/accounts/{}/risk-action/current",
         urlencoding::encode(id)
@@ -293,11 +266,10 @@ pub async fn get_account_detail(id: &str) -> Result<CoauthAccountDetail, HttpErr
         "/_coauth/admin/accounts/{}/risk-action/history",
         urlencoding::encode(id)
     );
-    let (summary, dids, claims, session_grants, bridge, integration_manifest, current, history): (
+    let (summary, dids, claims, bridge, integration_manifest, current, history): (
         CoauthAdminSingleEnvelope<CoauthAdminAccountRecord>,
         CoauthAdminDidBindingsEnvelope,
         CoauthAccountClaimsEnvelope,
-        CoauthAccountSessionGrantsEnvelope,
         CoauthAdminBridgeDescribe,
         CoauthIntegrationManifest,
         CoauthAdminSingleEnvelope<CoauthAccountRiskActionCurrentState>,
@@ -306,7 +278,6 @@ pub async fn get_account_detail(id: &str) -> Result<CoauthAccountDetail, HttpErr
         api_client(&summary_url, "GET", NO_BODY),
         api_client(&dids_url, "GET", NO_BODY),
         api_client(&claims_url, "GET", NO_BODY),
-        api_client(&grants_url, "GET", NO_BODY),
         api_client(bridge_url, "GET", NO_BODY),
         api_client(integration_manifest_url, "GET", NO_BODY),
         api_client(&current_url, "GET", NO_BODY),
@@ -319,7 +290,6 @@ pub async fn get_account_detail(id: &str) -> Result<CoauthAccountDetail, HttpErr
             .into_iter()
             .map(map_admin_account_claim)
             .collect(),
-        session_grants: session_grants.data,
         risk_action_current: current.data.attributes,
         risk_action_history: history.data,
         managed_dids: dids.data.into_iter().map(map_admin_did_binding).collect(),
