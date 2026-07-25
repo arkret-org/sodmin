@@ -127,6 +127,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "arkret-schema"
+version = "0.3.0"
+dependencies = [
+ "arkret-canonical",
+ "arkret-identifiers",
+ "arkret-wire",
+ "chrono",
+ "regex",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+ "tracing",
+]
+
+[[package]]
 name = "arkret-wire"
 version = "0.3.0"
 dependencies = [
@@ -522,6 +537,7 @@ name = "coauth-admin-types"
 version = "0.3.0"
 dependencies = [
  "arkret-models-collaboration",
+ "arkret-schema",
  "chrono",
  "coauth-data-model",
  "serde",
@@ -533,6 +549,8 @@ name = "coauth-data-model"
 version = "0.3.0"
 dependencies = [
  "arkret-models-collaboration",
+ "arkret-schema",
+ "arkret-wire",
  "chrono",
  "serde",
  "thiserror 2.0.18",
