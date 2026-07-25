@@ -102,8 +102,6 @@ pub struct CoauthRiskActionHook {
     pub endpoint: String,
     #[serde(default)]
     pub approval_mode: String,
-    #[serde(default)]
-    pub todo: String,
 }
 
 pub use coauth_admin_types::{
@@ -337,12 +335,6 @@ pub async fn get_account_detail(id: &str) -> Result<CoauthAccountDetail, HttpErr
         risk_action_hook: CoauthRiskActionHook {
             endpoint: bridge.risk_action_path_template.replace("{account_id}", id),
             approval_mode: bridge.risk_action_approval_mode.clone(),
-            todo: if bridge.todos.is_empty() {
-                "Coauth account admin bridge advertises no outstanding operator follow-ups."
-                    .to_string()
-            } else {
-                bridge.todos.join(" ")
-            },
         },
         admin_bridge: bridge,
         integration_manifest,

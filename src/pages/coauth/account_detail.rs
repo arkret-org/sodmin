@@ -69,20 +69,11 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                             .surfaces
                             .iter()
                             .map(|surface| {
-                                format!(
-                                    "{} {} {} [{}]",
-                                    surface.method, surface.path, surface.contract, surface.stability
-                                )
+                                format!("{} {} {}", surface.method, surface.path, surface.contract)
                             })
                             .collect::<Vec<_>>()
                             .join(" | ")
                     };
-                    let integration_todos = if detail.integration_manifest.todos.is_empty() {
-                        t("coauth_account_detail.none")
-                    } else {
-                        detail.integration_manifest.todos.join(" ")
-                    };
-
                     rsx! {
                         div { class: "rounded-lg border p-4 space-y-2",
                             div { class: "text-lg font-semibold", "{display_name}" }
@@ -180,10 +171,6 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                                 span { class: "font-mono", "{detail.integration_manifest.contract}" }
                             }
                             p { class: "text-sm text-muted-foreground",
-                                {t("coauth_account_detail.version")}
-                                span { class: "font-mono", "{detail.integration_manifest.version}" }
-                            }
-                            p { class: "text-sm text-muted-foreground",
                                 {t("coauth_account_detail.service")}
                                 span { class: "font-mono", "{detail.integration_manifest.service}" }
                             }
@@ -203,17 +190,10 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                                 {t("coauth_account_detail.surfaces")}
                                 span { class: "font-mono", "{integration_surfaces}" }
                             }
-                            p { class: "text-sm text-muted-foreground",
-                                "{integration_todos}"
-                            }
                             h2 { class: "text-base font-semibold", {t("coauth_account_detail.admin_bridge_contract")} }
                             p { class: "text-sm text-muted-foreground",
                                 {t("coauth_account_detail.contract")}
                                 span { class: "font-mono", "{detail.admin_bridge.contract}" }
-                            }
-                            p { class: "text-sm text-muted-foreground",
-                                {t("coauth_account_detail.version")}
-                                span { class: "font-mono", "{detail.admin_bridge.version}" }
                             }
                             p { class: "text-sm text-muted-foreground",
                                 {t("coauth_account_detail.api_base")}

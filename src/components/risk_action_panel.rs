@@ -113,15 +113,8 @@ where
                 {t("risk_action_panel.hook_execute_template")}
                 span { class: "font-mono", "{bridge.risk_action_execute_path_template}" }
             }
-            p { class: "text-sm text-muted-foreground",
-                {t("risk_action_panel.hook_state_store")}
-                span { class: "font-mono", "{bridge.risk_action_state_store_kind}" }
-            }
-            // C34.2: the three example payloads are now typed shared
-            // structures from `coauth_admin_types::bridge_admin` instead
-            // of opaque `serde_json::Value`. Round-trip them through
-            // `serde_json` so the rendered string keeps the same JSON
-            // shape the SPA used to display.
+            // The three example payloads are shared typed structures.
+            // Round-trip them through `serde_json` for compact display.
             p { class: "text-sm text-muted-foreground",
                 {t("risk_action_panel.hook_proposal_example")}
                 span { class: "font-mono", "{serde_json::to_string(&bridge.risk_action_examples.proposal_request).unwrap_or_default()}" }
@@ -134,8 +127,6 @@ where
                 {t("risk_action_panel.hook_execute_example")}
                 span { class: "font-mono", "{serde_json::to_string(&bridge.risk_action_examples.execute_request).unwrap_or_default()}" }
             }
-            p { class: "text-sm text-muted-foreground", "{hook.todo}" }
-
             if let Some(proposal) = last_proposal() {
                 div { class: "rounded-md border p-3 space-y-1 text-sm text-muted-foreground",
                     div { {t("risk_action_panel.last_proposal")} span { class: "font-mono", "{proposal.proposal_id}" } }

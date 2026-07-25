@@ -2,11 +2,8 @@
 //!
 //! The `/_arkret/describe` payload is the SDK-authoritative
 //! [`ServiceDescribe`] (`arkret_models_discovery`). sodmin does not
-//! mirror it; service-proprietary top-level extensions (coauth's
-//! `identity_registry_resolver`, `admin_audience`, …) are captured in a
-//! flattened `extra` envelope and read by the view layer on demand.
-
-use std::collections::BTreeMap;
+//! mirror it; service-proprietary top-level extensions are read from the
+//! SDK model's flattened `extensions` map.
 
 // (The `ClaimedProfileEntry` / `VerifiedProfileEntry` /
 // `CompatSurfaceEntry` element types are reachable through the SDK
@@ -35,40 +32,13 @@ pub struct ServerInfo {
 /// [`ServiceDescribe`] (strict: `service_id: Did`,
 /// `trust_domain: TypedTrustDomainId`, `development_mode: bool`, …).
 /// Any additional top-level keys a service emits beyond the spec shape
-/// (e.g. coauth's `identity_registry_resolver` extension block) land in
-/// [`Self::extra`]; views read them via [`Self::extra_str`] so the wire
-/// type itself never grows hand-written mirrors of upstream extensions.
-/// (`Serialize` is only needed for the localStorage TTL cache used by
-/// the dashboard — `extra` always deserializes to a JSON object, so the
-/// flattened round-trip is well-formed.)
+/// land in [`ServiceDescribe::extensions`]; views read them via
+/// [`Self::extra_str`] so the wire type itself never grows hand-written
+/// mirrors of upstream extensions.
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(transparent)]
 pub struct ServerDescribeDocument {
-    #[serde(flatten)]
     pub description: ServiceDescribe,
-    /// Top-level keys not consumed by [`ServiceDescribe`].
-    #[serde(flatten)]
-    pub extra: ServerDescribeExtensions,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct ServerDescribeExtensions {
-    #[serde(flatten)]
-    fields: BTreeMap<String, serde_json::Value>,
-}
-
-impl ServerDescribeExtensions {
-    pub fn str_path(&self, path: &[&str]) -> Option<String> {
-        let mut current = path.first().and_then(|key| self.fields.get(*key))?;
-        for key in &path[1..] {
-            current = current.get(*key)?;
-        }
-        current.as_str().map(ToOwned::to_owned)
-    }
-
-    #[cfg(test)]
-    pub fn contains_key(&self, key: &str) -> bool {
-        self.fields.contains_key(key)
-    }
 }
 
 impl std::ops::Deref for ServerDescribeDocument {
@@ -83,11 +53,16 @@ impl ServerDescribeDocument {
     /// Walk `path` inside the extension envelope and return the string
     /// leaf, if any.
     pub fn extra_str(&self, path: &[&str]) -> Option<String> {
-        self.extra.str_path(path)
+        let mut current = path
+            .first()
+            .and_then(|key| self.description.extensions.get(*key))?;
+        for key in &path[1..] {
+            current = current.get(*key)?;
+        }
+        current.as_str().map(ToOwned::to_owned)
     }
 
-    /// Round 4 — render-time check used by the ServerDescribe v2 admin
-    /// view. When `development_mode == true` AND `verified_profiles` is
+    /// When `development_mode == true` and `verified_profiles` is
     /// non-empty the server is making contradictory claims (relaxed
     /// proof verifier breaks the verification chain). The UI surfaces a
     /// red warning banner in this case.
@@ -161,8 +136,7 @@ mod tests {
 
     use super::ServerDescribeDocument;
 
-    /// Minimal payload satisfying every REQUIRED `ServiceDescribe`
-    /// field (Round 4 ServiceDescribe v2 shape, as soland emits it).
+    /// Minimal payload satisfying every required `ServiceDescribe` field.
     fn base_describe() -> serde_json::Value {
         json!({
             "service_id": "did:web:soland.local",
@@ -187,7 +161,7 @@ mod tests {
                 "claim_kind": "self_claimed"
             }],
             "verified_profiles": [],
-            "experimental_features": ["events.replay.v2"],
+            "experimental_features": [],
             "compat_surfaces": [{
                 "name": "federation.bridge",
                 "kind": "external_interop"
@@ -260,7 +234,6 @@ mod tests {
             describe.extra_str(&["admin_audience"]),
             Some("urn:coauth:admin".to_string())
         );
-        // Spec fields must NOT leak into the extension envelope.
-        assert!(!describe.extra.contains_key("service_id"));
+        assert!(!describe.description.extensions.contains_key("service_id"));
     }
 }
