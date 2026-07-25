@@ -101,9 +101,8 @@ pub fn SpaceList() -> Element {
                                                 let space_id = row.id.clone();
                                                 let name = row.name.clone().unwrap_or_else(|| "-".to_string());
                                                 let members = row.member_count;
-                                                let typed = row.health_typed();
-                                                let label = t(typed.label());
-                                                let variant = health_badge_variant(&typed);
+                                                let label = t(row.health.label());
+                                                let variant = health_badge_variant(&row.health);
                                                 let created = row
                                                     .created_at
                                                     .clone()

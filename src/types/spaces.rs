@@ -6,7 +6,7 @@
 use serde::{Deserialize, Serialize};
 
 /// Lifecycle badge for a single Space container row.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum SpaceHealth {
     Active,
@@ -24,19 +24,10 @@ impl SpaceHealth {
             SpaceHealth::Tombstoned => "spaces.health_tombstoned",
         }
     }
-
-    pub fn from_wire(s: &str) -> Option<Self> {
-        match s {
-            "active" => Some(SpaceHealth::Active),
-            "archived" => Some(SpaceHealth::Archived),
-            "tombstoned" => Some(SpaceHealth::Tombstoned),
-            _ => None,
-        }
-    }
 }
 
 /// One Space row in the admin list.
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SpaceRow {
     #[serde(default)]
     pub id: String,
@@ -44,19 +35,11 @@ pub struct SpaceRow {
     pub name: Option<String>,
     #[serde(default)]
     pub member_count: u64,
-    /// Wire-format `SpaceHealth` (snake_case).
-    #[serde(default)]
-    pub health: String,
+    pub health: SpaceHealth,
     #[serde(default)]
     pub created_at: Option<String>,
     #[serde(default)]
     pub parent_space_id: Option<String>,
-}
-
-impl SpaceRow {
-    pub fn health_typed(&self) -> SpaceHealth {
-        SpaceHealth::from_wire(&self.health).unwrap_or(SpaceHealth::Active)
-    }
 }
 
 /// One node in the hierarchy tree derived from the admin Spaces snapshot.
@@ -96,30 +79,40 @@ mod tests {
     use super::*;
 
     #[test]
-    fn space_health_wire_round_trip() {
-        for (wire, label_key) in [
-            ("active", "spaces.health_active"),
-            ("archived", "spaces.health_archived"),
-            ("tombstoned", "spaces.health_tombstoned"),
+    fn space_health_wire_is_strict() {
+        for (wire, expected, label_key) in [
+            ("active", SpaceHealth::Active, "spaces.health_active"),
+            ("archived", SpaceHealth::Archived, "spaces.health_archived"),
+            (
+                "tombstoned",
+                SpaceHealth::Tombstoned,
+                "spaces.health_tombstoned",
+            ),
         ] {
-            let h = SpaceHealth::from_wire(wire).expect("variant");
+            let h: SpaceHealth = serde_json::from_str(&format!("\"{wire}\"")).expect("variant");
+            assert_eq!(h, expected);
             assert_eq!(h.label(), label_key);
         }
-        assert!(SpaceHealth::from_wire("nope").is_none());
+        assert!(serde_json::from_str::<SpaceHealth>("\"nope\"").is_err());
     }
 
     #[test]
-    fn space_row_health_typed_falls_back_to_active() {
-        let r = SpaceRow {
-            health: "garbage".into(),
-            ..Default::default()
-        };
-        assert_eq!(r.health_typed(), SpaceHealth::Active);
+    fn space_row_requires_known_health() {
+        let base = serde_json::json!({
+            "id": "space-1",
+            "name": "Space",
+            "member_count": 1,
+            "health": "archived"
+        });
+        let row: SpaceRow = serde_json::from_value(base.clone()).unwrap();
+        assert_eq!(row.health, SpaceHealth::Archived);
 
-        let r = SpaceRow {
-            health: "archived".into(),
-            ..Default::default()
-        };
-        assert_eq!(r.health_typed(), SpaceHealth::Archived);
+        let mut unknown = base.clone();
+        unknown["health"] = serde_json::json!("garbage");
+        assert!(serde_json::from_value::<SpaceRow>(unknown).is_err());
+
+        let mut missing = base;
+        missing.as_object_mut().unwrap().remove("health");
+        assert!(serde_json::from_value::<SpaceRow>(missing).is_err());
     }
 }
