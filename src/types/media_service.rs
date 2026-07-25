@@ -29,8 +29,7 @@ pub struct MediaServiceFocus {
 
 /// Effective `ak.component.realm.media_service.v1` cell for a Realm,
 /// surfaced read-only for sodmin. `service_id`,
-/// `e2ee_key_sources_allowed` and `foci` are all reducer-projected;
-/// nothing here is operator-mutable.
+/// `foci` is reducer-projected; nothing here is operator-mutable.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RealmMediaService {
     /// Realm identifier (security boundary).
@@ -38,8 +37,6 @@ pub struct RealmMediaService {
     /// Media service DID the foci are sealed to (absent until the Realm
     /// commits a media_service epoch).
     pub service_id: Option<String>,
-    #[serde(default)]
-    pub e2ee_key_sources_allowed: Vec<String>,
     #[serde(default)]
     pub foci: Vec<MediaServiceFocus>,
 }

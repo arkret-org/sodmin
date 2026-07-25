@@ -78,7 +78,6 @@ pub fn MediaServicePage(realm_id: String) -> Element {
             match &*media_data.read() {
                 Some(Ok(cell)) => {
                     let service_id = cell.service_id.clone().unwrap_or_else(|| "-".to_string());
-                    let allowed = cell.e2ee_key_sources_allowed.clone();
                     let foci = cell.foci.clone();
                     rsx! {
                         Card {
@@ -91,23 +90,6 @@ pub fn MediaServicePage(realm_id: String) -> Element {
                                     div { class: "space-y-1",
                                         p { class: "text-xs text-muted-foreground", {t("media_service.service_id")} }
                                         p { class: "text-sm font-mono break-all", "{service_id}" }
-                                    }
-                                    div { class: "space-y-2",
-                                        p { class: "text-xs text-muted-foreground", {t("media_service.e2ee_sources")} }
-                                        if allowed.is_empty() {
-                                            p { class: "text-sm text-muted-foreground", {t("media_service.e2ee_sources_empty")} }
-                                        } else {
-                                            div { class: "flex flex-wrap gap-1",
-                                                for src in allowed.iter() {
-                                                    Badge {
-                                                        key: "{src}",
-                                                        variant: BadgeVariant::Secondary,
-                                                        class: "font-mono text-xs".to_string(),
-                                                        "{src}"
-                                                    }
-                                                }
-                                            }
-                                        }
                                     }
                                 }
                             }

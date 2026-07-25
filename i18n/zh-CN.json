@@ -611,8 +611,6 @@
   "media.subtitle": "按 Actor 统计 Blob/media 使用量",
   "media.title": "媒体管理",
   "media_service.cell_title": "media_service epoch",
-  "media_service.e2ee_sources": "e2ee_key_sources_allowed",
-  "media_service.e2ee_sources_empty": "未声明 e2ee 密钥来源。",
   "media_service.empty": "当前 Realm 未配置 foci。",
   "media_service.foci_label": "Foci",
   "media_service.focus_backend": "backend",
