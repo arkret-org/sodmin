@@ -1,10 +1,9 @@
 //! Read-only "Starid resolver status" panel (round C35.4).
 //!
 //! Mirrors the upstream starid resolver's `/_arkret/root/identity/describe`
-//! envelope so the operator can see at a glance whether the writer is
-//! healthy, what version of the did:webvh log is at the head, how many
-//! witness attestations have been accepted, and how recently the log
-//! moved.
+//! canonical `ServiceDescribe` envelope so the operator can inspect the
+//! writer identity, protocol version, supported profiles, and Starid
+//! product extensions without maintaining a second protocol DTO.
 //!
 //! The panel is hidden when the deployment hasn't wired
 //! `starid_public_url` (see `utils::net::session::has_starid()`); the page
@@ -88,34 +87,13 @@ fn error_card(
 }
 
 fn describe_card(describe: StaridDescribe) -> Element {
-    let head = describe
-        .head_version_id
-        .clone()
-        .filter(|s| !s.is_empty())
+    let service_id = describe.service_id.as_str().to_string();
+    let registry_mode = describe
+        .extra_str(&["x_starid_registry_mode"])
         .unwrap_or_else(|| "-".to_string());
-    let witness = describe.witness_count.to_string();
-    let freshness = describe
-        .freshness
-        .map(|ts| ts.to_rfc3339_opts(chrono::SecondsFormat::Secs, true))
-        .unwrap_or_else(|| "-".to_string());
-    let service_id = if describe.service_id.is_empty() {
-        "-".to_string()
-    } else {
-        describe.service_id.clone()
-    };
-    let registry_mode = if describe.registry_mode.is_empty() {
-        "-".to_string()
-    } else {
-        describe.registry_mode.clone()
-    };
-    let protocol = if describe.protocol_version.is_empty() {
-        "-".to_string()
-    } else {
-        describe.protocol_version.clone()
-    };
-
-    let methods = describe.supported_methods.clone();
-    let profiles = describe.profiles.clone();
+    let protocol = describe.protocol_version.clone();
+    let methods = describe.extra_string_list(&["x_starid_supported_methods"]);
+    let profiles = describe.supported_profiles.clone();
 
     rsx! {
         Card {
@@ -125,10 +103,6 @@ fn describe_card(describe: StaridDescribe) -> Element {
                         CardTitle { class: "text-lg".to_string(), {t("starid_resolver.card_title")} }
                         CardDescription { {t("starid_resolver.card_subtitle")} }
                     }
-                    Badge {
-                        variant: status_variant(&describe),
-                        {status_label(&describe)}
-                    }
                 }
             }
             CardContent {
@@ -137,9 +111,6 @@ fn describe_card(describe: StaridDescribe) -> Element {
                         {info_cell(t("starid_resolver.service_id"), service_id)}
                         {info_cell(t("starid_resolver.registry_mode"), registry_mode)}
                         {info_cell(t("starid_resolver.protocol_version"), protocol)}
-                        {info_cell(t("starid_resolver.head_version_id"), head)}
-                        {info_cell(t("starid_resolver.witness_count"), witness)}
-                        {info_cell(t("starid_resolver.freshness"), freshness)}
                     }
 
                     div { class: "space-y-1",
@@ -193,89 +164,5 @@ fn info_cell(label: String, value: String) -> Element {
             p { class: "text-xs text-muted-foreground", "{label}" }
             p { class: "text-sm font-semibold break-all", "{value}" }
         }
-    }
-}
-
-/// Status badge variant: a "warming up" registry that has never
-/// witnessed activity (no head, no witnesses) reads as "Idle"; a head
-/// with at least one witness reads as "Healthy"; everything in between
-/// (head present, no witness yet) reads as "Pending witnesses".
-fn status_variant(describe: &StaridDescribe) -> BadgeVariant {
-    match status_class(describe) {
-        StatusClass::Healthy => BadgeVariant::Success,
-        StatusClass::PendingWitnesses => BadgeVariant::Outline,
-        StatusClass::Idle => BadgeVariant::Secondary,
-    }
-}
-
-fn status_label(describe: &StaridDescribe) -> String {
-    match status_class(describe) {
-        StatusClass::Healthy => t("starid_resolver.status_healthy"),
-        StatusClass::PendingWitnesses => t("starid_resolver.status_pending"),
-        StatusClass::Idle => t("starid_resolver.status_idle"),
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum StatusClass {
-    Healthy,
-    PendingWitnesses,
-    Idle,
-}
-
-fn status_class(describe: &StaridDescribe) -> StatusClass {
-    match (describe.head_version_id.is_some(), describe.witness_count) {
-        (true, n) if n > 0 => StatusClass::Healthy,
-        (true, _) => StatusClass::PendingWitnesses,
-        (false, _) => StatusClass::Idle,
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use chrono::TimeZone;
-
-    use super::*;
-
-    fn empty_describe() -> StaridDescribe {
-        StaridDescribe::default()
-    }
-
-    fn populated_describe() -> StaridDescribe {
-        StaridDescribe {
-            service_id: "did:web:starid.example".into(),
-            registry_mode: "writer".into(),
-            supported_methods: vec!["did:webvh".into(), "did:web".into()],
-            supported_receipts: vec!["starid-local-sha256-v1".into()],
-            protocol_version: "1.0".into(),
-            profiles: vec!["ak.identity.webvh.v1".into()],
-            head_version_id: Some("42-zABCDEF".into()),
-            witness_count: 3,
-            freshness: Some(
-                chrono::Utc
-                    .with_ymd_and_hms(2026, 5, 9, 10, 11, 12)
-                    .unwrap(),
-            ),
-            hardening: None,
-        }
-    }
-
-    #[test]
-    fn empty_describe_classifies_as_idle() {
-        let d = empty_describe();
-        assert_eq!(status_class(&d), StatusClass::Idle);
-    }
-
-    #[test]
-    fn head_without_witnesses_is_pending() {
-        let mut d = empty_describe();
-        d.head_version_id = Some("1-zSTART".into());
-        assert_eq!(status_class(&d), StatusClass::PendingWitnesses);
-    }
-
-    #[test]
-    fn head_with_witness_is_healthy() {
-        let d = populated_describe();
-        assert_eq!(status_class(&d), StatusClass::Healthy);
     }
 }

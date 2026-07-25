@@ -50,16 +50,35 @@ impl std::ops::Deref for ServerDescribeDocument {
 }
 
 impl ServerDescribeDocument {
-    /// Walk `path` inside the extension envelope and return the string
-    /// leaf, if any.
-    pub fn extra_str(&self, path: &[&str]) -> Option<String> {
+    /// Walk `path` inside the extension envelope.
+    pub fn extra_value<'a>(&'a self, path: &[&str]) -> Option<&'a serde_json::Value> {
         let mut current = path
             .first()
             .and_then(|key| self.description.extensions.get(*key))?;
         for key in &path[1..] {
             current = current.get(*key)?;
         }
-        current.as_str().map(ToOwned::to_owned)
+        Some(current)
+    }
+
+    /// Walk `path` inside the extension envelope and return the string
+    /// leaf, if any.
+    pub fn extra_str(&self, path: &[&str]) -> Option<String> {
+        self.extra_value(path)?.as_str().map(ToOwned::to_owned)
+    }
+
+    /// Return a string-array extension, dropping non-string elements.
+    pub fn extra_string_list(&self, path: &[&str]) -> Vec<String> {
+        self.extra_value(path)
+            .and_then(serde_json::Value::as_array)
+            .map(|items| {
+                items
+                    .iter()
+                    .filter_map(serde_json::Value::as_str)
+                    .map(ToOwned::to_owned)
+                    .collect()
+            })
+            .unwrap_or_default()
     }
 
     /// When `development_mode == true` and `verified_profiles` is

@@ -2,11 +2,11 @@
 //!
 //! This client exists so the sodmin "Starid resolver status" panel
 //! (round 35.4) can mirror the resolver's `/_arkret/root/identity/describe`
-//! response — service DID + protocol version, head version_id, witness
-//! count, and freshness.
+//! canonical `ServiceDescribe` response and its `x_starid_*` product
+//! extensions.
 
 use crate::api::client::{NO_BODY, api_client};
-pub use crate::api::contracts::starid::StaridDescribe;
+pub use crate::types::server::ServerDescribeDocument as StaridDescribe;
 use crate::utils::net::error::HttpError;
 use crate::utils::net::session;
 
@@ -34,45 +34,38 @@ mod tests {
     use super::*;
 
     #[test]
-    fn describe_round_trips_full_payload() {
+    fn describe_uses_canonical_service_describe_and_starid_extensions() {
         let raw = r#"{
             "service_id": "did:web:starid.example",
-            "registry_mode": "writer",
-            "supported_methods": ["did:webvh", "did:web"],
-            "supported_receipts": ["starid-local-sha256-v1"],
+            "trust_domain": "ak:trust_domain:starid.example",
+            "service_type": "identity_registry",
             "protocol_version": "1.0",
-            "profiles": ["ak.identity.webvh.v1", "ak.identity.registry.v1"],
-            "head_version_id": "42-zABCDEF",
-            "witness_count": 7,
-            "freshness": "2026-05-09T10:11:12Z"
+            "supported_profiles": ["ak.identity.webvh.v1"],
+            "supported_operations": ["ak.root.identity.registry.query.describe"],
+            "supported_bindings": [],
+            "supported_features": [],
+            "auth_metadata": {"mode": "production"},
+            "limits": {},
+            "plaintext_visibility": {},
+            "implemented_features": ["identity.webvh.writer"],
+            "claimed_profiles": [],
+            "verified_profiles": [],
+            "experimental_features": [],
+            "compat_surfaces": [],
+            "development_mode": false,
+            "x_starid_registry_mode": "writer",
+            "x_starid_supported_methods": ["did:webvh", "did:web"]
         }"#;
         let parsed: StaridDescribe = serde_json::from_str(raw).expect("parse");
-        assert_eq!(parsed.service_id, "did:web:starid.example");
-        assert_eq!(parsed.registry_mode, "writer");
-        assert_eq!(parsed.supported_methods, vec!["did:webvh", "did:web"]);
-        assert_eq!(parsed.head_version_id.as_deref(), Some("42-zABCDEF"));
-        assert_eq!(parsed.witness_count, 7);
-        assert!(parsed.freshness.is_some());
-        assert_eq!(parsed.profiles.len(), 2);
-    }
-
-    #[test]
-    fn describe_tolerates_pre_c35_4_payload() {
-        // Starid before round 35.4 only emitted the bridge-discovery
-        // fields. The aggregate cells must default to empty / zero so
-        // the panel still renders a healthy card instead of failing
-        // the JSON parse.
-        let raw = r#"{
-            "service_id": "did:web:starid.example",
-            "registry_mode": "writer",
-            "supported_methods": ["did:webvh"],
-            "supported_receipts": ["starid-local-sha256-v1"],
-            "protocol_version": "1.0",
-            "profiles": []
-        }"#;
-        let parsed: StaridDescribe = serde_json::from_str(raw).expect("parse");
-        assert_eq!(parsed.head_version_id, None);
-        assert_eq!(parsed.witness_count, 0);
-        assert!(parsed.freshness.is_none());
+        assert_eq!(parsed.service_id.as_str(), "did:web:starid.example");
+        assert_eq!(
+            parsed.extra_str(&["x_starid_registry_mode"]).as_deref(),
+            Some("writer")
+        );
+        assert_eq!(
+            parsed.extra_string_list(&["x_starid_supported_methods"]),
+            vec!["did:webvh", "did:web"]
+        );
+        assert_eq!(parsed.supported_profiles, vec!["ak.identity.webvh.v1"]);
     }
 }

@@ -5,7 +5,6 @@ pub mod capabilities;
 pub mod client;
 pub mod coauth;
 pub mod coauth_devices;
-pub mod contracts;
 pub mod covered_seals;
 pub mod delivery_binding;
 pub mod devices;
