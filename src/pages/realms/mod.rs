@@ -5,7 +5,6 @@ pub mod covered_seals;
 pub mod delivery_binding;
 /// Round R2/R3 — Realm destroy page (T07).
 pub mod destroy;
-pub mod federation_status;
 pub mod links;
 pub mod list;
 /// R3 (UI-3) — Realm `media_service.foci[]` read-only view.

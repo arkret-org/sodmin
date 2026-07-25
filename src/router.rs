@@ -42,9 +42,6 @@ pub enum Route {
         RealmSigningKeys { realm_id: String },
         #[route("/realms/:realm_id/multisig")]
         RealmMultiSig { realm_id: String },
-        #[route("/realms/:realm_id/federation-status")]
-        RealmFederationStatus { realm_id: String },
-
         #[route("/spaces")]
         SpaceList {},
         #[route("/spaces/:space_id")]
@@ -385,11 +382,6 @@ fn RealmOrganization(realm_id: String) -> Element {
 #[component]
 fn HandlesBySubject(subject: Option<String>) -> Element {
     rsx! { pages::handles_by_subject::HandlesBySubject { subject } }
-}
-
-#[component]
-fn RealmFederationStatus(realm_id: String) -> Element {
-    rsx! { pages::realms::federation_status::FederationStatusPage { realm_id } }
 }
 
 #[component]

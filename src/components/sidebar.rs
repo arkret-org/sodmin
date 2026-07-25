@@ -97,13 +97,6 @@ fn build_nav_sections() -> Vec<NavSection> {
             // B-C key-backup recovery admin (P3-B).
             NavItem::new("Key backup".to_string(), Route::KeyBackupList {}, "key"),
             NavItem::new(
-                t("nav.federation_status"),
-                Route::RealmFederationStatus {
-                    realm_id: "_".to_string(),
-                },
-                "globe",
-            ),
-            NavItem::new(
                 t("nav.delivery_binding"),
                 // Realm-rework: link to the Realm-scoped editor.
                 Route::RealmDeliveryBinding {
