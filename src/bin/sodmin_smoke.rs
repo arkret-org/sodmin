@@ -37,9 +37,6 @@ struct Args {
     base_url: String,
     token: Option<String>,
     realm_id: String,
-    /// When true, treat 404 as a soft pass. The default is strict so a
-    /// missing mounted route fails deployment smoke checks.
-    tolerate_404: bool,
     timeout_secs: u64,
 }
 
@@ -50,9 +47,6 @@ impl Args {
             .ok()
             .or_else(|| env::var("SOLAND_ADMIN_TOKEN").ok());
         let mut realm_id = env::var("SODMIN_SMOKE_REALM_ID").ok();
-        let mut tolerate_404 = env::var("SODMIN_SMOKE_TOLERATE_404")
-            .map(|v| matches!(v.as_str(), "1" | "true" | "yes"))
-            .unwrap_or(false);
         let mut timeout_secs = DEFAULT_TIMEOUT_SECS;
 
         let mut args = env::args().skip(1);
@@ -75,12 +69,6 @@ impl Args {
                         args.next()
                             .ok_or_else(|| "--realm-id requires a value".to_string())?,
                     );
-                }
-                "--strict" => {
-                    tolerate_404 = false;
-                }
-                "--tolerate-404" => {
-                    tolerate_404 = true;
                 }
                 "--timeout" => {
                     let raw = args
@@ -105,7 +93,6 @@ impl Args {
             base_url: base_url.trim_end_matches('/').to_string(),
             token,
             realm_id,
-            tolerate_404,
             timeout_secs,
         })
     }
@@ -115,7 +102,7 @@ fn print_help() {
     println!(
         "sodmin-smoke — soland admin endpoint smoke test\n\n\
 USAGE:\n  SODMIN_SMOKE_TOKEN=<BEARER> sodmin-smoke --base-url <URL> --realm-id <REALM_ID>\n\n\
-OPTIONS:\n  -u, --base-url     soland base URL (e.g. https://soland.example.com)\n  -t, --token        admin bearer token. PREFER the env var $SODMIN_SMOKE_TOKEN /\n                     $SOLAND_ADMIN_TOKEN — CLI args leak into shell history, CI\n                     logs, and the process table (/proc/<pid>/cmdline)\n  -r, --realm-id     Realm id to probe (Stream H' is per-Realm)\n      --strict       fail on 404 (default)\n      --tolerate-404 treat 404 as SKIP for optional endpoints\n      --timeout      per-request timeout in seconds (default {DEFAULT_TIMEOUT_SECS})\n  -h, --help         print this message\n"
+OPTIONS:\n  -u, --base-url     soland base URL (e.g. https://soland.example.com)\n  -t, --token        admin bearer token. PREFER the env var $SODMIN_SMOKE_TOKEN /\n                     $SOLAND_ADMIN_TOKEN — CLI args leak into shell history, CI\n                     logs, and the process table (/proc/<pid>/cmdline)\n  -r, --realm-id     Realm id to probe (Stream H' is per-Realm)\n      --timeout      per-request timeout in seconds (default {DEFAULT_TIMEOUT_SECS})\n  -h, --help         print this message\n"
     );
 }
 
@@ -123,8 +110,6 @@ OPTIONS:\n  -u, --base-url     soland base URL (e.g. https://soland.example.com)
 enum CheckOutcome {
     Pass,
     Fail,
-    /// Endpoint not yet wired on this deployment (404 with --tolerate-404).
-    Skip,
 }
 
 impl CheckOutcome {
@@ -132,21 +117,16 @@ impl CheckOutcome {
         match self {
             CheckOutcome::Pass => "PASS",
             CheckOutcome::Fail => "FAIL",
-            CheckOutcome::Skip => "SKIP",
         }
     }
 }
 
 /// Pure helper: classify an HTTP response status into a `CheckOutcome`.
-/// 2xx is always PASS; 404 is SKIP iff tolerate_404; everything else
-/// (including 4xx auth/validation and 5xx) is FAIL. Pulled out as a
-/// pure function so the policy can be unit-tested without sending
-/// requests.
-pub(crate) fn classify_status(status: u16, tolerate_404: bool) -> CheckOutcome {
+/// 2xx is PASS; every other status is FAIL. Pulled out as a pure function so
+/// the deployment-gate policy can be unit-tested without sending requests.
+pub(crate) fn classify_status(status: u16) -> CheckOutcome {
     if (200..300).contains(&status) {
         CheckOutcome::Pass
-    } else if status == 404 && tolerate_404 {
-        CheckOutcome::Skip
     } else {
         CheckOutcome::Fail
     }
@@ -198,7 +178,7 @@ struct CheckResult {
     detail: String,
 }
 
-fn run_check(client: &Client, name: &str, method: &str, url: &str, args: &Args) -> CheckResult {
+fn run_check(client: &Client, name: &str, method: &str, url: &str) -> CheckResult {
     let req = match method {
         "GET" => client.get(url),
         "POST" => client.post(url).body("{}"),
@@ -216,10 +196,9 @@ fn run_check(client: &Client, name: &str, method: &str, url: &str, args: &Args) 
     match req.send() {
         Ok(resp) => {
             let status = resp.status();
-            let outcome = classify_status(status.as_u16(), args.tolerate_404);
+            let outcome = classify_status(status.as_u16());
             let detail = match outcome {
                 CheckOutcome::Pass => "ok".to_string(),
-                CheckOutcome::Skip => "404 — endpoint not yet wired".to_string(),
                 CheckOutcome::Fail => format!(
                     "{} — {}",
                     status.as_u16(),
@@ -326,7 +305,7 @@ fn run() -> ExitCode {
 
     let mut results = Vec::with_capacity(checks.len());
     for (name, method, url) in checks {
-        let result = run_check(&client, name, method, &url, &args);
+        let result = run_check(&client, name, method, &url);
         let status_label = result
             .status
             .map(|s| s.to_string())
@@ -350,14 +329,10 @@ fn run() -> ExitCode {
         .iter()
         .filter(|r| r.outcome == CheckOutcome::Fail)
         .count();
-    let skip = results
-        .iter()
-        .filter(|r| r.outcome == CheckOutcome::Skip)
-        .count();
 
     println!();
     println!(
-        "Summary: {pass} pass / {fail} fail / {skip} skip (total {})",
+        "Summary: {pass} pass / {fail} fail (total {})",
         results.len()
     );
 
@@ -378,18 +353,17 @@ mod tests {
 
     #[test]
     fn classify_status_buckets_by_code() {
-        assert_eq!(classify_status(200, true), CheckOutcome::Pass);
-        assert_eq!(classify_status(204, true), CheckOutcome::Pass);
-        assert_eq!(classify_status(299, true), CheckOutcome::Pass);
-        // 404 → Skip when tolerated, Fail otherwise.
-        assert_eq!(classify_status(404, true), CheckOutcome::Skip);
-        assert_eq!(classify_status(404, false), CheckOutcome::Fail);
-        // 4xx that aren't 404 are always Fail (auth, validation, etc.).
-        assert_eq!(classify_status(401, true), CheckOutcome::Fail);
-        assert_eq!(classify_status(403, true), CheckOutcome::Fail);
+        assert_eq!(classify_status(200), CheckOutcome::Pass);
+        assert_eq!(classify_status(204), CheckOutcome::Pass);
+        assert_eq!(classify_status(299), CheckOutcome::Pass);
+        // Every 4xx fails, including a missing deployment route or realm.
+        assert_eq!(classify_status(400), CheckOutcome::Fail);
+        assert_eq!(classify_status(401), CheckOutcome::Fail);
+        assert_eq!(classify_status(403), CheckOutcome::Fail);
+        assert_eq!(classify_status(404), CheckOutcome::Fail);
         // 5xx is always Fail.
-        assert_eq!(classify_status(500, true), CheckOutcome::Fail);
-        assert_eq!(classify_status(503, true), CheckOutcome::Fail);
+        assert_eq!(classify_status(500), CheckOutcome::Fail);
+        assert_eq!(classify_status(503), CheckOutcome::Fail);
     }
 
     #[test]
@@ -435,6 +409,5 @@ mod tests {
     fn check_outcome_labels_match_summary() {
         assert_eq!(CheckOutcome::Pass.label(), "PASS");
         assert_eq!(CheckOutcome::Fail.label(), "FAIL");
-        assert_eq!(CheckOutcome::Skip.label(), "SKIP");
     }
 }

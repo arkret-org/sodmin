@@ -553,7 +553,6 @@ dependencies = [
  "arkret-wire",
  "chrono",
  "serde",
- "thiserror 2.0.18",
 ]
 
 [[package]]
