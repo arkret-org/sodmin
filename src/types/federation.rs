@@ -24,7 +24,7 @@ pub struct FederationOperation {
     pub realm_id: Option<String>,
     /// High-level operation type (e.g. `seal`, `delivery`).
     #[serde(default)]
-    pub operation_type: Option<String>,
+    pub operation_kind: Option<String>,
     /// Canonical event kind string.
     #[serde(default)]
     pub canonical_kind: Option<String>,

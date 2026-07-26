@@ -49,7 +49,7 @@ impl AuditFeedFilter {
         let _unsupported = (self.operation, self.target_id, self.since, self.until);
         [
             ("admin_user_id", self.actor_user_id),
-            ("resource_type", self.target_type),
+            ("resource_kind", self.target_type),
         ]
         .into_iter()
         .filter_map(|(k, v)| {
@@ -81,7 +81,7 @@ pub async fn list_audit_feed(
             id: entry.id,
             operation: entry.operation,
             actor_user_id: entry.admin_user_id,
-            target_type: Some(entry.resource_type).filter(|value| !value.is_empty()),
+            target_type: Some(entry.resource_kind).filter(|value| !value.is_empty()),
             target_id: Some(entry.resource_id).filter(|value| !value.is_empty()),
             details: entry.details,
             timestamp: Some(entry.created_at.to_rfc3339()),

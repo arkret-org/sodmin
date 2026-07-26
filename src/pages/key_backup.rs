@@ -105,7 +105,7 @@ pub fn KeyBackupList() -> Element {
                         }
                     }
                     div { class: "space-y-1",
-                        Label { class: "text-xs text-muted-foreground".to_string(), "backup_class" }
+                        Label { class: "text-xs text-muted-foreground".to_string(), "backup_kind" }
                         Input {
                             placeholder: "e.g. did_recovery".to_string(),
                             value: backup_class_filter.read().clone(),
@@ -153,7 +153,7 @@ pub fn KeyBackupList() -> Element {
                                 TableRow {
                                     TableHead { "backup_id" }
                                     TableHead { "actor_id" }
-                                    TableHead { "backup_class" }
+                                    TableHead { "backup_kind" }
                                     TableHead { "backup_version" }
                                     TableHead { "created_at" }
                                     TableHead { "ciphertext_digest" }
@@ -289,7 +289,7 @@ pub fn KeyBackupList() -> Element {
 }
 
 fn render_series_row(s: &KeyBackupSummary) -> Element {
-    let class = format!("{:?}", s.backup_class);
+    let class = format!("{:?}", s.backup_kind);
     let created_at = s.created_at.to_rfc3339();
     rsx! {
         TableRow {

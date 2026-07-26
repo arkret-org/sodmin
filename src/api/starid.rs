@@ -38,7 +38,7 @@ mod tests {
         let raw = r#"{
             "service_id": "did:web:starid.example",
             "trust_domain": "ak:trust_domain:starid.example",
-            "service_type": "identity_registry",
+            "service_kind": "identity_registry",
             "protocol_version": "1.0",
             "supported_profiles": ["ak.identity.webvh.v1"],
             "supported_operations": ["ak.root.identity.registry.query.describe"],

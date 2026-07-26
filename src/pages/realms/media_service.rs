@@ -31,8 +31,8 @@ pub const FOCUS_TYPES: &[&str] = &[
     "livekit",
     "mediasoup",
     "janus",
-    "arkret-native",
-    "moq-relay",
+    "arkret_native",
+    "moq_relay",
 ];
 
 #[component]

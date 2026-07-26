@@ -35,19 +35,19 @@ struct RecoveryReceiptsEnvelope {
     total: Option<u64>,
 }
 
-/// `GET /_soland/admin/key-backups?series_id=&backup_class=` — list backup
+/// `GET /_soland/admin/key-backups?series_id=&backup_kind=` — list backup
 /// envelopes grouped by series. Empty `series_id` returns the per-series
 /// frontier roll-up.
 pub async fn list_backups(
     series_id: Option<&str>,
-    backup_class: Option<&str>,
+    backup_kind: Option<&str>,
 ) -> Result<KeysBackupsList, HttpError> {
     let mut params: Vec<(&str, &str)> = Vec::with_capacity(2);
     if let Some(s) = series_id {
         params.push(("series_id", s));
     }
-    if let Some(c) = backup_class {
-        params.push(("backup_class", c));
+    if let Some(c) = backup_kind {
+        params.push(("backup_kind", c));
     }
     let url = build_url("/_soland/admin/key-backups", &params)?;
     api_client(&url, "GET", NO_BODY).await

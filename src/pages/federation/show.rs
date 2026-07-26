@@ -30,7 +30,7 @@ pub fn FederationShow(operation_id: String) -> Element {
                 Some(Ok(op)) => {
                     let operation_id = op.operation_id.clone();
                     let realm_id = op.realm_id.clone().unwrap_or_else(|| "-".to_string());
-                    let operation_type = op.operation_type.clone().unwrap_or_else(|| "-".to_string());
+                    let operation_kind = op.operation_kind.clone().unwrap_or_else(|| "-".to_string());
                     let canonical_kind = op.canonical_kind.clone().unwrap_or_else(|| "-".to_string());
                     let strand_id = op.strand_id.clone().unwrap_or_else(|| "-".to_string());
                     let track = op.track.clone().unwrap_or_else(|| "-".to_string());
@@ -48,7 +48,7 @@ pub fn FederationShow(operation_id: String) -> Element {
                                 div { class: "space-y-4",
                                     InfoRow { label: t("federation.operation_id"), value: operation_id }
                                     InfoRow { label: t("federation.realm_id"), value: realm_id }
-                                    InfoRow { label: t("federation.operation_type"), value: operation_type }
+                                    InfoRow { label: t("federation.operation_kind"), value: operation_kind }
                                     InfoRow { label: t("federation.canonical_kind"), value: canonical_kind }
                                     InfoRow { label: t("federation.strand_id"), value: strand_id }
                                     InfoRow { label: t("federation.track"), value: track }

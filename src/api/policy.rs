@@ -28,7 +28,7 @@ struct PolicyDocumentDto {
     #[serde(default)]
     subject_ref: String,
     #[serde(default)]
-    policy_type: String,
+    policy_kind: String,
     #[serde(default)]
     payload: PolicyDocumentPayload,
     #[serde(default)]
@@ -43,7 +43,7 @@ struct UpsertPolicyDocumentRequestBody {
     policy_id: Option<String>,
     scope: String,
     subject_ref: String,
-    policy_type: String,
+    policy_kind: String,
     effect: SolandPolicyEffect,
     actions: Vec<String>,
     resource: PolicyResource,
@@ -119,8 +119,8 @@ fn upsert_body(
             .clone()
             .filter(|s| !s.trim().is_empty())
             .unwrap_or_else(|| "*".to_string()),
-        policy_type: req
-            .policy_type
+        policy_kind: req
+            .policy_kind
             .clone()
             .filter(|s| !s.trim().is_empty())
             .unwrap_or_else(|| "*".to_string()),
@@ -221,7 +221,7 @@ fn policy_from_document(doc: PolicyDocumentDto) -> AdminPolicy {
     AdminPolicy {
         id: doc.policy_id,
         name,
-        policy_type: Some(doc.policy_type).filter(|s| !s.is_empty()),
+        policy_kind: Some(doc.policy_kind).filter(|s| !s.is_empty()),
         description,
         scope: Some(doc.scope).filter(|s| !s.is_empty()),
         subject_ref: Some(doc.subject_ref).filter(|s| !s.is_empty()),
@@ -236,7 +236,7 @@ fn policy_from_document(doc: PolicyDocumentDto) -> AdminPolicy {
 }
 
 pub fn request_targets_pin_policy(req: &CreatePolicyRequest) -> bool {
-    req.policy_type
+    req.policy_kind
         .as_deref()
         .is_some_and(text_targets_pin_policy)
         || req
@@ -263,7 +263,7 @@ fn policy_safety_from_document(doc: &PolicyDocumentDto) -> PolicySafetySummary {
                 .to_owned(),
         ),
         pin_summary: Some(pin_summary_from_payload(
-            &doc.policy_type,
+            &doc.policy_kind,
             doc.payload.as_value(),
         )),
         redacted_private_categories: private_pin_categories(doc.payload.as_value()),
@@ -271,7 +271,7 @@ fn policy_safety_from_document(doc: &PolicyDocumentDto) -> PolicySafetySummary {
 }
 
 fn policy_document_targets_pin(doc: &PolicyDocumentDto) -> bool {
-    text_targets_pin_policy(&doc.policy_type)
+    text_targets_pin_policy(&doc.policy_kind)
         || text_targets_pin_policy(&doc.policy_id)
         || value_targets_pin_policy(doc.payload.as_value())
 }
@@ -312,7 +312,7 @@ fn value_targets_pin_policy_in(value: &Value, context_key: Option<&str>) -> bool
 fn pin_text_context(key: &str) -> bool {
     matches!(
         key,
-        "policy_type"
+        "policy_kind"
             | "type"
             | "kind"
             | "action"
@@ -346,10 +346,10 @@ fn structural_pin_key(key: &str) -> bool {
     )
 }
 
-fn pin_summary_from_payload(policy_type: &str, payload: &Value) -> PinPolicySummary {
+fn pin_summary_from_payload(policy_kind: &str, payload: &Value) -> PinPolicySummary {
     let mut actions = BTreeSet::new();
-    if text_targets_pin_policy(policy_type) && policy_type.starts_with("ak.pin.") {
-        actions.insert(policy_type.to_owned());
+    if text_targets_pin_policy(policy_kind) && policy_kind.starts_with("ak.pin.") {
+        actions.insert(policy_kind.to_owned());
     }
     collect_pin_actions(payload, &mut actions);
 
@@ -742,7 +742,7 @@ mod tests {
             policy_id: "ak:policy:01HXY".to_owned(),
             scope: "ak:realm:01HXY".to_owned(),
             subject_ref: "did:web:admin.example".to_owned(),
-            policy_type: "ak.realm.policy.update".to_owned(),
+            policy_kind: "ak.realm.policy.update".to_owned(),
             payload: json!({
                 "resource": {
                     "name": "Realm policy",
@@ -768,7 +768,7 @@ mod tests {
             name: "Targeted deny".to_owned(),
             scope: Some("ak:realm:01HXY".to_owned()),
             subject_ref: Some("did:web:bob.example".to_owned()),
-            policy_type: Some("ak.message.send".to_owned()),
+            policy_kind: Some("ak.message.send".to_owned()),
             rules: Some(
                 json!({
                     "effect": "hard_deny",
@@ -805,7 +805,7 @@ mod tests {
             policy_id: "ak:policy:pins".to_owned(),
             scope: "ak:realm:01HXY".to_owned(),
             subject_ref: "*".to_owned(),
-            policy_type: "ak.profile.pinned_items.v1".to_owned(),
+            policy_kind: "ak.profile.pinned_items.v1".to_owned(),
             payload: json!({
                 "actions": ["ak.pin.add", "ak.pin.reorder"],
                 "resource": {
@@ -854,7 +854,7 @@ mod tests {
     #[test]
     fn pin_policy_mutation_requests_fail_closed_before_network() {
         let pin_by_type = CreatePolicyRequest {
-            policy_type: Some("ak.pin.add".to_owned()),
+            policy_kind: Some("ak.pin.add".to_owned()),
             ..Default::default()
         };
         assert!(request_targets_pin_policy(&pin_by_type));
@@ -866,14 +866,14 @@ mod tests {
         assert!(request_targets_pin_policy(&pin_by_rules));
 
         let ordinary = CreatePolicyRequest {
-            policy_type: Some("ak.message.create".to_owned()),
+            policy_kind: Some("ak.message.create".to_owned()),
             rules: Some(json!({"actions": ["ak.message.create"]}).into()),
             ..Default::default()
         };
         assert!(!request_targets_pin_policy(&ordinary));
 
         let ordinary_with_free_text = CreatePolicyRequest {
-            policy_type: Some("ak.message.create".to_owned()),
+            policy_kind: Some("ak.message.create".to_owned()),
             rules: Some(
                 json!({"resource": {"description": "mentions pin policy in prose"}}).into(),
             ),

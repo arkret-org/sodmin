@@ -85,7 +85,7 @@ pub fn FederationList() -> Element {
                                     TableRow {
                                         TableHead { {t("federation.operation_id")} }
                                         TableHead { {t("federation.realm_id")} }
-                                        TableHead { {t("federation.operation_type")} }
+                                        TableHead { {t("federation.operation_kind")} }
                                         TableHead { {t("federation.canonical_kind")} }
                                         TableHead { {t("federation.created_at")} }
                                     }
@@ -102,7 +102,7 @@ pub fn FederationList() -> Element {
                                             {
                                                 let operation_id = op.operation_id.clone();
                                                 let realm_id = op.realm_id.clone().unwrap_or_else(|| "-".to_string());
-                                                let operation_type = op.operation_type.clone().unwrap_or_else(|| "-".to_string());
+                                                let operation_kind = op.operation_kind.clone().unwrap_or_else(|| "-".to_string());
                                                 let canonical_kind = op.canonical_kind.clone().unwrap_or_else(|| "-".to_string());
                                                 let created_at = op.created_at.clone().unwrap_or_else(|| "-".to_string());
                                                 rsx! {
@@ -116,7 +116,7 @@ pub fn FederationList() -> Element {
                                                             }
                                                         }
                                                         TableCell { class: "text-muted-foreground".to_string(), "{realm_id}" }
-                                                        TableCell { Badge { variant: BadgeVariant::Secondary, "{operation_type}" } }
+                                                        TableCell { Badge { variant: BadgeVariant::Secondary, "{operation_kind}" } }
                                                         TableCell { class: "text-muted-foreground".to_string(), "{canonical_kind}" }
                                                         TableCell { class: "text-muted-foreground".to_string(), "{created_at}" }
                                                     }

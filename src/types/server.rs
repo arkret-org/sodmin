@@ -160,7 +160,7 @@ mod tests {
         json!({
             "service_id": "did:web:soland.local",
             "trust_domain": "ak:trust_domain:soland.local",
-            "service_type": "principal_server",
+            "service_kind": "principal_server",
             "protocol_version": "1.0",
             "supported_profiles": ["ak.profile.principal_server.v1"],
             "supported_operations": ["ak.self.events.command.submit"],
@@ -200,8 +200,8 @@ mod tests {
             "ak:trust_domain:soland.local"
         );
         assert_eq!(
-            describe.service_type,
-            arkret_wire::ServiceType::PrincipalServer
+            describe.service_kind,
+            arkret_wire::ServiceKind::PrincipalServer
         );
         assert!(!describe.development_mode);
         assert_eq!(

@@ -27,7 +27,7 @@ pub fn PolicyList() -> Element {
     let mut show_delete_dialog = use_signal(|| None::<String>);
     let mut editing_id = use_signal(|| None::<String>);
     let mut name = use_signal(String::new);
-    let mut policy_type = use_signal(String::new);
+    let mut policy_kind = use_signal(String::new);
     let mut scope = use_signal(String::new);
     let mut subject_ref = use_signal(|| "*".to_string());
     let mut is_enabled = use_signal(|| true);
@@ -57,7 +57,7 @@ pub fn PolicyList() -> Element {
                     onclick: move |_| {
                         editing_id.set(None);
                         name.set(String::new());
-                        policy_type.set(String::new());
+                        policy_kind.set(String::new());
                         scope.set(String::new());
                         subject_ref.set("*".to_string());
                         is_enabled.set(true);
@@ -87,7 +87,7 @@ pub fn PolicyList() -> Element {
                                     TableRow {
                                         TableHead { {t("policy.id")} }
                                         TableHead { {t("policy.name")} }
-                                        TableHead { {t("policy.policy_type")} }
+                                        TableHead { {t("policy.policy_kind")} }
                                         TableHead { {t("policy.scope")} }
                                         TableHead { "Subject" }
                                         TableHead { {t("policy.enabled")} }
@@ -109,7 +109,7 @@ pub fn PolicyList() -> Element {
                                             {
                                                 let id = p.id.clone();
                                                 let p_name = p.name.clone();
-                                                let p_type = p.policy_type.clone().unwrap_or_else(|| "-".to_string());
+                                                let p_type = p.policy_kind.clone().unwrap_or_else(|| "-".to_string());
                                                 let p_scope = p.scope.clone().unwrap_or_else(|| "-".to_string());
                                                 let p_scope_for_edit = p.scope.clone().unwrap_or_default();
                                                 let p_subject = p.subject_ref.clone().unwrap_or_else(|| "-".to_string());
@@ -151,7 +151,7 @@ pub fn PolicyList() -> Element {
                                                                     onclick: {
                                                                         let id = id_for_edit.clone();
                                                                         let n = p_name.clone();
-                                                                        let t = policy_for_edit.policy_type.clone().unwrap_or_default();
+                                                                        let t = policy_for_edit.policy_kind.clone().unwrap_or_default();
                                                                         let s = p_scope_for_edit.clone();
                                                                         let sr = p_subject_for_edit.clone();
                                                                         let e = p_enabled;
@@ -160,7 +160,7 @@ pub fn PolicyList() -> Element {
                                                                         move |_| {
                                                                             editing_id.set(Some(id.clone()));
                                                                             name.set(n.clone());
-                                                                            policy_type.set(t.clone());
+                                                                            policy_kind.set(t.clone());
                                                                             scope.set(s.clone());
                                                                             subject_ref.set(sr.clone());
                                                                             is_enabled.set(e);
@@ -258,11 +258,11 @@ pub fn PolicyList() -> Element {
                     }
                 }
                 div { class: "space-y-1",
-                    Label { r#for: "pol-type".to_string(), {t("policy.policy_type")} }
+                    Label { r#for: "pol-type".to_string(), {t("policy.policy_kind")} }
                     Input {
-                        value: policy_type.read().clone(),
+                        value: policy_kind.read().clone(),
                         disabled: *dialog_read_only.read(),
-                        oninput: move |evt: FormEvent| policy_type.set(evt.value()),
+                        oninput: move |evt: FormEvent| policy_kind.set(evt.value()),
                     }
                 }
                 div { class: "space-y-1",
@@ -340,7 +340,7 @@ pub fn PolicyList() -> Element {
                         dialog_loading.set(true);
                         let req = CreatePolicyRequest {
                             name: name.read().clone(),
-                            policy_type: if policy_type.read().is_empty() { None } else { Some(policy_type.read().clone()) },
+                            policy_kind: if policy_kind.read().is_empty() { None } else { Some(policy_kind.read().clone()) },
                             scope: if scope.read().is_empty() { None } else { Some(scope.read().clone()) },
                             subject_ref: if subject_ref.read().is_empty() { None } else { Some(subject_ref.read().clone()) },
                             rules: selected_policy.read().as_ref().and_then(|policy| policy.rules.clone()),

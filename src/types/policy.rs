@@ -79,7 +79,7 @@ pub struct AdminPolicy {
     #[serde(default)]
     pub name: String,
     #[serde(default)]
-    pub policy_type: Option<String>,
+    pub policy_kind: Option<String>,
     #[serde(default)]
     pub description: Option<String>,
     #[serde(default)]
@@ -174,7 +174,7 @@ pub struct PinPolicySummary {
 pub struct CreatePolicyRequest {
     pub name: String,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub policy_type: Option<String>,
+    pub policy_kind: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]

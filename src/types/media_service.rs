@@ -15,7 +15,7 @@ use serde::{Deserialize, Serialize};
 pub struct MediaServiceFocus {
     pub focus_id: String,
     /// SFU backend kind, e.g. `livekit` / `mediasoup` / `janus` /
-    /// `arkret-native` / `moq-relay`.
+    /// `arkret_native` / `moq_relay`.
     #[serde(rename = "type")]
     pub focus_type: String,
     pub region: Option<String>,

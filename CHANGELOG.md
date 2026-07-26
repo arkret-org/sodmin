@@ -18,7 +18,7 @@ the SDK pins down its 1.0 contract.
 > No version tag, no crates.io / Docker Hub / npm publish — git commit only.
 ## R3.2 — Spec sync 2026-05-28 (arkret-spec @ b56cab1)
 
-- Renamed roster `identity_state_digest` → `member_display_state_digest`; added roster v2 gated fields + `HandleClaim`/`HandleBindingState` mirrors (`claim_type` drops `service_handle`).
+- Renamed roster `identity_state_digest` → `member_display_state_digest`; added roster v2 gated fields + `HandleClaim`/`HandleBindingState` mirrors (`claim_kind` drops `service_handle`).
 - New `utils/primary_handle.rs` mirrors SDK §3.2.1 selection; actor/identity views derive the handle via selection (MemberIdentity handle fields removed).
 - New `/handles/by-subject` page calling `list_handles_for_subject` with a "Why am I seeing this?" tooltip; "handle changed since" hint on the identity-audit page.
 - Claim-set join + accepted_issuers policy + DID-doc holder preference deferred `TODO(R3.2.1)`.
@@ -27,7 +27,7 @@ the SDK pins down its 1.0 contract.
 ## R3 — Spec sync 2026-05-27 (arkret-spec @ b47ff6ec)
 
 - UI-1 / UI-2: Agent list status badges (`active` / `paused` / `deactivated`) with pause / resume / deactivate / rotate-key / grants actions wired to `/agents/{id}/deactivate`; draft / action_request / approve / reject lifecycle stubbed.
-- UI-3: Realm settings page `/realms/:realm_id/media-service` for editing `media_service.foci[]` (livekit / mediasoup / janus / arkret-native / moq-relay).
+- UI-3: Realm settings page `/realms/:realm_id/media-service` for editing `media_service.foci[]` (livekit / mediasoup / janus / arkret_native / moq_relay).
 - UI-4 / UI-5: Key-backup recovery policy and receipt data is rendered through `/key-backup`; handle homograph inline NFC + script-mixed warning on `/actors/create`.
 - UI-6: Server profile chip surface at `/server-status` showing declared / absent state for `accountable_principals.strict_reject.v1`, `media_service_binding.v1` (+ livekit / arkret_native), and `key_backup.memory_hard.v1`.
 - UI-7: localized en + zh-CN strings for the new errcodes (`pairing_request_expired`, `proof_invalid`, `agent_paused`, `agent_deactivated`, `accountability_grant_missing`, `handle_homograph_forbidden`, `participant_binding_invalid`) rendered via `ErrorBanner`.
