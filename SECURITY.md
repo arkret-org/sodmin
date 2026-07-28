@@ -26,8 +26,12 @@ Out-of-scope:
 
 Per spec, Circle is an intra-Realm cryptographic sub-boundary:
 - Circle member lists MUST NOT leak to directory services or push gateways in plaintext
-- `effective_scope` MUST match the encryption scope of the payload
-- `discussion_realm_ref` is hard-rejected on the wire (forbidden field)
+- The security scope of an Event lives in its producer-signed `scope_ref`
+  (`models/circle.md` §6.2 — the Event wire has exactly one scope field).
+  Object read projections MAY materialize `effective_scope`, which must equal
+  the creating Event's `scope_ref` and is never a writable source of truth.
+- An admin surface MUST NOT render Circle-scoped rows to an operator who is
+  not resolved against the Circle membership frontier of the row's scope.
 
 Violations of these invariants are treated as security issues.
 
