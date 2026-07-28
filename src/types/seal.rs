@@ -5,9 +5,8 @@
 
 pub use soland_contracts::admin::seal::{
     AdminNotaryValue, BottomCandidateHead, BottomEntry, BottomKind, BottomKindExt,
-    BottomRepairRequestBody, BottomRepairStrategy, CompactionOutcome, CompactionRequestBody,
-    NotaryKind, NotaryReconfigRequestBody, SealDagSnapshot, SubmitControlMoveOutcome,
-    bottom_kind_from_wire,
+    CompactionOutcome, CompactionRequestBody, NotaryKind, NotaryReconfigRequestBody,
+    SealDagSnapshot, SubmitControlMoveOutcome, bottom_kind_from_wire,
 };
 
 #[cfg(test)]

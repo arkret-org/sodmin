@@ -3,9 +3,8 @@
 
 use crate::api::client::{NO_BODY, api_client, build_url};
 use crate::types::seal::{
-    AdminNotaryValue, BottomEntry, BottomRepairRequestBody, BottomRepairStrategy,
-    CompactionOutcome, CompactionRequestBody, NotaryReconfigRequestBody, SealDagSnapshot,
-    SubmitControlMoveOutcome,
+    AdminNotaryValue, BottomEntry, CompactionOutcome, CompactionRequestBody,
+    NotaryReconfigRequestBody, SealDagSnapshot, SubmitControlMoveOutcome,
 };
 use crate::utils::net::error::HttpError;
 
@@ -33,20 +32,6 @@ pub async fn list_bottom_entries_global() -> Result<Vec<BottomEntry>, HttpError>
     api_client(&url, "GET", NO_BODY).await
 }
 
-pub async fn submit_bottom_repair(
-    realm_id: &str,
-    cell_id: &str,
-    strategy: BottomRepairStrategy,
-) -> Result<SubmitControlMoveOutcome, HttpError> {
-    let url = format!(
-        "/_soland/admin/realms/{}/bottom/{}/repair",
-        urlencoding::encode(realm_id),
-        urlencoding::encode(cell_id),
-    );
-    let req = BottomRepairRequestBody { strategy };
-    api_client(&url, "POST", Some(&req)).await
-}
-
 pub async fn get_seal_dag(realm_id: &str) -> Result<SealDagSnapshot, HttpError> {
     let url = format!(
         "/_soland/admin/realms/{}/seal-dag",
@@ -70,7 +55,6 @@ pub async fn trigger_compaction(realm_id: &str) -> Result<CompactionOutcome, Htt
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::types::seal::BottomCandidateHead;
 
     #[test]
     fn reconfig_request_body_renders_threshold_shape() {
@@ -100,29 +84,6 @@ mod tests {
         );
         assert!(body.get("single_did").is_none());
         assert!(body.get("open_set_members").is_none());
-    }
-
-    #[test]
-    fn repair_request_body_serializes_with_strategy_tag() {
-        let req = BottomRepairRequestBody {
-            strategy: BottomRepairStrategy::HeadInWinner {
-                head: BottomCandidateHead {
-                    event_id: "ak:event:0196419b-0000-7000-8000-000000000000".into(),
-                    issuer: Some("did:web:alice.example".into()),
-                    hlc: None,
-                    summary: None,
-                },
-                recovery_capability_ref: "ak:grant:recovery".into(),
-                state_witness_ref: format!("ak:seal:sha256:{}", "11".repeat(32)),
-                state_witness_inclusion_proof_ref: Some("ak:proof:state-witness".into()),
-            },
-        };
-        let encoded = serde_json::to_string(&req).unwrap();
-
-        assert!(encoded.contains("\"strategy\":\"head_in_winner\""));
-        assert!(encoded.contains("\"event_id\":\"ak:event:0196419b-0000-7000-8000-000000000000\""));
-        assert!(encoded.contains("\"recovery_capability_ref\":\"ak:grant:recovery\""));
-        assert!(encoded.contains("\"state_witness_ref\":\"ak:seal:sha256:"));
     }
 
     #[test]

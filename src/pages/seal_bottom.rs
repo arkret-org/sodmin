@@ -1,11 +1,9 @@
 //! Bottom-state diagnostics page (Stream H', H'3).
 //!
 //! Lists every cell currently in `Bottom` state across visible Realms and
-//! offers a "construct repair Control Move" shortcut per row. Picking the action
-//! pops a confirmation modal where the operator selects a typed
-//! `BottomRepairStrategy` (today: `head_in_winner` only; the page falls
-//! back to `manual` when no candidate heads are surfaced) before the
-//! POST.
+//! shows candidate heads for diagnosis. Recovery itself must be authored as a
+//! signed, protocol-registered Control Move on the ordinary Event submission
+//! rail; the admin UI does not synthesize or submit a repair wire object.
 
 use std::collections::HashMap;
 
@@ -13,30 +11,19 @@ use dioxus::prelude::*;
 
 use crate::api::seal;
 use crate::components::ui::badge::{Badge, BadgeVariant};
-use crate::components::ui::button::{Button, ButtonSize, ButtonVariant};
-use crate::components::ui::dialog::ConfirmDialog;
+use crate::components::ui::button::{Button, ButtonVariant};
 use crate::components::ui::empty_state::EmptyState;
 use crate::components::ui::error_banner::ErrorBanner;
 use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::table::*;
-use crate::components::ui::toast::{ToastVariant, show_toast};
-use crate::types::seal::{
-    BottomCandidateHead, BottomEntry, BottomKind, BottomKindExt, BottomRepairStrategy,
-    bottom_kind_from_wire,
-};
+use crate::types::seal::{BottomCandidateHead, BottomKind, BottomKindExt, bottom_kind_from_wire};
 use crate::utils::i18n::t;
 
 #[component]
 pub fn BottomDiagnosticsPage() -> Element {
     let mut data = use_resource(|| async { seal::list_bottom_entries_global().await });
 
-    // Pending repair confirmation. `None` = modal closed; `Some` = open
-    // with the entry + chosen strategy snapshot the user is about to
-    // submit. We hold the strategy in the signal too so re-renders
-    // during the in-flight POST don't lose the selected head.
-    let mut pending = use_signal::<Option<(BottomEntry, BottomRepairStrategy)>>(|| None);
-    let mut submitting = use_signal(|| false);
     // Per-row picker selection for multi-head conflict bottoms (continued
     // H'3): when `candidate_heads.len() > 1` the user picks which head to
     // promote *before* opening the confirm modal. Keyed by cell_id; absent
@@ -119,13 +106,11 @@ pub fn BottomDiagnosticsPage() -> Element {
                                                     TableCell { class: "text-right".to_string(),
                                                         {
                                                             let cell_id_for_select = entry_clone.cell_id.clone();
-                                                            let cell_id_for_button = entry_clone.cell_id.clone();
                                                             let candidate_count = entry_clone.candidate_heads.len();
                                                             let current_idx = *selected_heads
                                                                 .read()
                                                                 .get(&cell_id_for_select)
                                                                 .unwrap_or(&0usize);
-                                                            let entry_for_button = entry_clone.clone();
                                                             // Inline metadata for the currently-selected
                                                             // candidate head (issuer / hlc / summary).
                                                             // soland populates these fields when
@@ -162,18 +147,9 @@ pub fn BottomDiagnosticsPage() -> Element {
                                                                             "{meta}"
                                                                         }
                                                                     }
-                                                                    Button {
-                                                                        variant: ButtonVariant::Ghost,
-                                                                        size: ButtonSize::Sm,
-                                                                        onclick: move |_| {
-                                                                            let idx = *selected_heads
-                                                                                .read()
-                                                                                .get(&cell_id_for_button)
-                                                                                .unwrap_or(&0usize);
-                                                                            let strategy = repair_strategy_for_entry(&entry_for_button, idx);
-                                                                            pending.set(Some((entry_for_button.clone(), strategy)));
-                                                                        },
-                                                                        {t("seal_bottom.construct_repair")}
+                                                                    div {
+                                                                        class: "text-[10px] text-muted-foreground max-w-[240px] text-right",
+                                                                        "Submit a signed recovery Control Move through the Event API"
                                                                     }
                                                                 }
                                                             }
@@ -195,71 +171,6 @@ pub fn BottomDiagnosticsPage() -> Element {
                     }
                 },
                 None => rsx! { PageSkeleton {} },
-            }
-
-            // Confirmation modal. We render the dialog whenever
-            // `pending` is `Some`; the dialog itself short-circuits when
-            // `open=false`, so it's always cheap.
-            {
-                let (entry_opt, strategy_opt) = match &*pending.read() {
-                    Some((e, s)) => (Some(e.clone()), Some(s.clone())),
-                    None => (None, None),
-                };
-                let open = entry_opt.is_some();
-                let title = t("seal_bottom.confirm_title");
-                let description = match (&entry_opt, &strategy_opt) {
-                    (Some(e), Some(s)) => t("seal_bottom.confirm_description")
-                        .replace("{cell}", &e.cell_id)
-                        .replace("{kind}", &format_kind_label(&e.kind))
-                        .replace("{strategy}", s.label()),
-                    _ => String::new(),
-                };
-                let confirm_text = if *submitting.read() {
-                    t("seal_bottom.submitting")
-                } else {
-                    t("seal_bottom.submit")
-                };
-                rsx! {
-                    ConfirmDialog {
-                        open,
-                        title,
-                        description,
-                        confirm_text,
-                        cancel_text: t("common.cancel"),
-                        destructive: true,
-                        on_cancel: move |_| pending.set(None),
-                        on_confirm: move |_| {
-                            if *submitting.read() { return; }
-                            let snapshot = pending.read().clone();
-                            if let Some((entry, strategy)) = snapshot {
-                                submitting.set(true);
-                                spawn(async move {
-                                    let res = seal::submit_bottom_repair(
-                                        &entry.realm_id,
-                                        &entry.cell_id,
-                                        strategy,
-                                    )
-                                    .await;
-                                    match res {
-                                        Ok(r) => show_toast(
-                                            &t("seal_bottom.toast_repair")
-                                                .replace("{control_move_id}", &r.control_move_id),
-                                            ToastVariant::Success,
-                                        ),
-                                        Err(e) => show_toast(
-                                            &t("seal_bottom.toast_failed")
-                                                .replace("{message}", &e.message),
-                                            ToastVariant::Error,
-                                        ),
-                                    }
-                                    submitting.set(false);
-                                    pending.set(None);
-                                    data.restart();
-                                });
-                            }
-                        },
-                    }
-                }
             }
         }
     }
@@ -305,29 +216,6 @@ pub(crate) fn format_head_metadata(head: &BottomCandidateHead) -> Option<String>
     }
 }
 
-/// Pick the repair strategy for an entry given a user-selected head index.
-/// `HeadInWinner` now requires recovery and witness proof references that
-/// are not present in a bottom listing, so selection stays advisory until
-/// a complete repair payload is entered.
-pub(crate) fn repair_strategy_for_entry(
-    entry: &BottomEntry,
-    _head_idx: usize,
-) -> BottomRepairStrategy {
-    default_repair_strategy(entry)
-}
-
-/// Pick the default `BottomRepairStrategy` to seed into the confirmation
-/// modal. soland rejects incomplete repairs, so sodmin seeds a manual
-/// placeholder instead of synthesizing missing recovery proof references.
-pub(crate) fn default_repair_strategy(entry: &BottomEntry) -> BottomRepairStrategy {
-    BottomRepairStrategy::Manual {
-        note: Some(format!(
-            "Manual repair - bottom kind = {}",
-            format_kind_label(&entry.kind)
-        )),
-    }
-}
-
 pub(crate) fn format_kind_label(wire: &str) -> String {
     bottom_kind_from_wire(wire)
         .map(|k| k.label().to_string())
@@ -347,12 +235,9 @@ pub(crate) fn bottom_kind_variant(wire: &str) -> BadgeVariant {
 
 #[cfg(test)]
 mod tests {
-    use super::{
-        bottom_kind_variant, default_repair_strategy, format_head_metadata, format_head_option,
-        format_kind_label, repair_strategy_for_entry,
-    };
+    use super::{bottom_kind_variant, format_head_metadata, format_head_option, format_kind_label};
     use crate::components::ui::badge::BadgeVariant;
-    use crate::types::seal::{BottomCandidateHead, BottomEntry, BottomRepairStrategy};
+    use crate::types::seal::BottomCandidateHead;
 
     #[test]
     fn format_kind_label_falls_back_to_raw() {
@@ -388,26 +273,6 @@ mod tests {
     }
 
     #[test]
-    fn default_strategy_uses_manual_even_for_conflict_with_candidates() {
-        let entry = BottomEntry {
-            realm_id: "ak:realm:demo".into(),
-            cell_id: "ak:cell:ak.component.profile.v1:ak:space:demo".into(),
-            kind: "conflict".into(),
-            candidate_heads: vec![BottomCandidateHead {
-                event_id: "ak:event:abc".into(),
-                ..Default::default()
-            }],
-            ..Default::default()
-        };
-        match default_repair_strategy(&entry) {
-            BottomRepairStrategy::Manual { note } => {
-                assert!(note.unwrap_or_default().contains("Conflict"));
-            }
-            other => panic!("expected manual default, got {other:?}"),
-        }
-    }
-
-    #[test]
     fn format_head_option_truncates_long_event_ids() {
         let head = BottomCandidateHead {
             event_id: "ak:event:aaaabbbbccccddddeeeeffff".into(),
@@ -431,56 +296,6 @@ mod tests {
         assert!(label.starts_with("3: "));
         assert!(label.contains("ak:event:abc"));
         assert!(label.contains("set value=42"));
-    }
-
-    #[test]
-    fn repair_strategy_picker_requires_manual_payload() {
-        let entry = BottomEntry {
-            realm_id: "ak:realm:demo".into(),
-            cell_id: "ak:cell:ak.component.profile.v1:ak:space:demo".into(),
-            kind: "conflict".into(),
-            candidate_heads: vec![
-                BottomCandidateHead {
-                    event_id: "ak:event:1".into(),
-                    ..Default::default()
-                },
-                BottomCandidateHead {
-                    event_id: "ak:event:2".into(),
-                    ..Default::default()
-                },
-                BottomCandidateHead {
-                    event_id: "ak:event:3".into(),
-                    ..Default::default()
-                },
-            ],
-            ..Default::default()
-        };
-        match repair_strategy_for_entry(&entry, 2) {
-            BottomRepairStrategy::Manual { note } => {
-                assert!(note.unwrap_or_default().contains("Conflict"));
-            }
-            other => panic!("expected manual strategy, got {other:?}"),
-        }
-    }
-
-    #[test]
-    fn repair_strategy_picker_falls_back_when_index_out_of_bounds() {
-        let entry = BottomEntry {
-            realm_id: "ak:realm:demo".into(),
-            cell_id: "ak:cell:ak.component.profile.v1:ak:space:demo".into(),
-            kind: "conflict".into(),
-            candidate_heads: vec![BottomCandidateHead {
-                event_id: "ak:event:first".into(),
-                ..Default::default()
-            }],
-            ..Default::default()
-        };
-        match repair_strategy_for_entry(&entry, 99) {
-            BottomRepairStrategy::Manual { note } => {
-                assert!(note.unwrap_or_default().contains("Conflict"));
-            }
-            other => panic!("expected manual fallback, got {other:?}"),
-        }
     }
 
     #[test]
@@ -518,36 +333,5 @@ mod tests {
         let meta = format_head_metadata(&head).expect("metadata present");
         assert!(!meta.contains("issuer="));
         assert!(meta.contains("summary=only this"));
-    }
-
-    #[test]
-    fn default_strategy_falls_back_to_manual_when_no_candidates() {
-        // Non-conflict bottom kind with no candidate heads → manual.
-        let entry = BottomEntry {
-            realm_id: "ak:realm:demo".into(),
-            cell_id: "ak:cell:ak.component.member.state.v1:did:web:alice.example".into(),
-            kind: "schema_error".into(),
-            ..Default::default()
-        };
-        match default_repair_strategy(&entry) {
-            BottomRepairStrategy::Manual { note } => {
-                assert!(note.unwrap_or_default().contains("Schema Error"));
-            }
-            other => panic!("expected manual default, got {other:?}"),
-        }
-
-        // Conflict but candidate_heads empty → still manual (operator
-        // must hand-craft because nothing to pick).
-        let entry = BottomEntry {
-            realm_id: "ak:realm:demo".into(),
-            cell_id: "ak:cell:ak.component.profile.v1:ak:space:demo".into(),
-            kind: "conflict".into(),
-            candidate_heads: vec![],
-            ..Default::default()
-        };
-        assert!(matches!(
-            default_repair_strategy(&entry),
-            BottomRepairStrategy::Manual { .. }
-        ));
     }
 }
