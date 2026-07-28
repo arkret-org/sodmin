@@ -325,7 +325,6 @@ pub(crate) fn default_repair_strategy(entry: &BottomEntry) -> BottomRepairStrate
             "Manual repair - bottom kind = {}",
             format_kind_label(&entry.kind)
         )),
-        effects: vec![],
     }
 }
 
@@ -401,8 +400,7 @@ mod tests {
             ..Default::default()
         };
         match default_repair_strategy(&entry) {
-            BottomRepairStrategy::Manual { note, effects } => {
-                assert!(effects.is_empty());
+            BottomRepairStrategy::Manual { note } => {
                 assert!(note.unwrap_or_default().contains("Conflict"));
             }
             other => panic!("expected manual default, got {other:?}"),
@@ -458,8 +456,7 @@ mod tests {
             ..Default::default()
         };
         match repair_strategy_for_entry(&entry, 2) {
-            BottomRepairStrategy::Manual { note, effects } => {
-                assert!(effects.is_empty());
+            BottomRepairStrategy::Manual { note } => {
                 assert!(note.unwrap_or_default().contains("Conflict"));
             }
             other => panic!("expected manual strategy, got {other:?}"),
@@ -479,8 +476,7 @@ mod tests {
             ..Default::default()
         };
         match repair_strategy_for_entry(&entry, 99) {
-            BottomRepairStrategy::Manual { note, effects } => {
-                assert!(effects.is_empty());
+            BottomRepairStrategy::Manual { note } => {
                 assert!(note.unwrap_or_default().contains("Conflict"));
             }
             other => panic!("expected manual fallback, got {other:?}"),
@@ -534,8 +530,7 @@ mod tests {
             ..Default::default()
         };
         match default_repair_strategy(&entry) {
-            BottomRepairStrategy::Manual { note, effects } => {
-                assert!(effects.is_empty());
+            BottomRepairStrategy::Manual { note } => {
                 assert!(note.unwrap_or_default().contains("Schema Error"));
             }
             other => panic!("expected manual default, got {other:?}"),
