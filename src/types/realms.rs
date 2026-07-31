@@ -55,6 +55,16 @@ impl AdminRealm {
     }
 }
 
+fn wire_label<T>(value: &T) -> String
+where
+    T: Serialize,
+{
+    serde_json::to_value(value)
+        .ok()
+        .and_then(|value| value.as_str().map(ToOwned::to_owned))
+        .unwrap_or_else(|| "-".to_owned())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -93,14 +103,4 @@ mod tests {
         assert_eq!(realm.realm_class, None);
         assert_eq!(realm.type_label(), "-");
     }
-}
-
-fn wire_label<T>(value: &T) -> String
-where
-    T: Serialize,
-{
-    serde_json::to_value(value)
-        .ok()
-        .and_then(|value| value.as_str().map(ToOwned::to_owned))
-        .unwrap_or_else(|| "-".to_owned())
 }
