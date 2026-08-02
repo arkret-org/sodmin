@@ -64,6 +64,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "arkret-locale"
+version = "0.3.0"
+dependencies = [
+ "serde",
+]
+
+[[package]]
 name = "arkret-models-collaboration"
 version = "0.3.0"
 dependencies = [
@@ -118,6 +125,7 @@ name = "arkret-models-identity"
 version = "0.3.0"
 dependencies = [
  "arkret-canonical",
+ "arkret-locale",
  "arkret-wire",
  "chrono",
  "serde",
@@ -537,6 +545,7 @@ dependencies = [
 name = "coauth-admin-types"
 version = "0.3.0"
 dependencies = [
+ "arkret-identifiers",
  "arkret-models-collaboration",
  "arkret-schema",
  "chrono",
