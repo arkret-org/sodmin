@@ -988,7 +988,7 @@
   "risk_action_panel.reason_label": "Reason",
   "risk_action_panel.reason_placeholder": "Human-reviewed reason for this account action",
   "risk_action_panel.reason_ticket_required": "Reason and ticket are required before queuing a risk-action proposal.",
-  "risk_action_panel.signing_unavailable": "Risk-action approval now requires a detached EdDSA JWS from the authenticated admin DID. sodmin does not hold that signing key yet, so approval is disabled fail-closed.",
+  "risk_action_panel.signing_unavailable": "Risk-action approval now requires a detached Ed25519 JWS from the authenticated admin DID. sodmin does not hold that signing key yet, so approval is disabled fail-closed.",
   "risk_action_panel.state_machine_allowed_next": "Allowed next: ",
   "risk_action_panel.state_machine_help": "Buttons that map to a transition not in the allowed list are disabled. Reason and ticket are required before a proposal can be queued.",
   "risk_action_panel.state_machine_lifecycle": "Lifecycle: ",

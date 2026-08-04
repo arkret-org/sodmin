@@ -455,7 +455,7 @@ fn build_risk_action_approval_draft(
 }
 
 fn risk_action_approval_signing_available() -> bool {
-    // coauth requires a detached EdDSA JWS over the approval transcript.
+    // coauth requires a detached Ed25519 JWS over the approval transcript.
     // sodmin currently authenticates with a bearer token and does not possess
     // the admin DID private key, so the UI must not submit unverifiable
     // approvals.

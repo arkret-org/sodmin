@@ -988,7 +988,7 @@
   "risk_action_panel.reason_label": "原因",
   "risk_action_panel.reason_placeholder": "经人工审核的本次账户操作原因",
   "risk_action_panel.reason_ticket_required": "排队 risk-action 提案前必须填写原因与工单。",
-  "risk_action_panel.signing_unavailable": "Risk-action 审批现在要求由已认证的 admin DID 出具分离式 EdDSA JWS。sodmin 尚未持有该签名密钥,因此审批已按 fail-closed 原则禁用。",
+  "risk_action_panel.signing_unavailable": "Risk-action 审批现在要求由已认证的 admin DID 出具分离式 Ed25519 JWS。sodmin 尚未持有该签名密钥,因此审批已按 fail-closed 原则禁用。",
   "risk_action_panel.state_machine_allowed_next": "允许的下一步:",
   "risk_action_panel.state_machine_help": "映射到允许列表之外迁移的按钮已被禁用。排队提案前必须填写原因与工单。",
   "risk_action_panel.state_machine_lifecycle": "生命周期:",
