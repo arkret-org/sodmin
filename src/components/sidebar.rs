@@ -175,13 +175,6 @@ fn build_nav_sections() -> Vec<NavSection> {
                 "git-branch",
             ),
             NavItem::new(
-                t("nav.covered_seals"),
-                Route::RealmCoveredSeals {
-                    realm_id: "_".to_string(),
-                },
-                "lock",
-            ),
-            NavItem::new(
                 t("nav.multisig"),
                 Route::RealmMultiSig {
                     realm_id: "_".to_string(),

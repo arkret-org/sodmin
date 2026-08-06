@@ -264,7 +264,7 @@ fn run() -> ExitCode {
 
     // Health probe + Stream H' GET endpoints. Mutating endpoints
     // (partial-signature submit, notary/reconfigure, bottom/repair,
-    // seal-dag/compact, covered-seals/advance) are
+    // seal-dag/compact) are
     // intentionally NOT exercised here — running them post-deploy would
     // mutate state. Smoke checks reachability + auth only.
     let checks = vec![

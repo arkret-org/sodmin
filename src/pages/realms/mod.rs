@@ -1,6 +1,5 @@
 //! Admin pages for Realm security boundaries.
 
-pub mod covered_seals;
 /// Realm delivery-binding-policy read-only operations view.
 pub mod delivery_binding;
 /// Round R2/R3 — Realm destroy page (T07).

@@ -17,8 +17,6 @@ pub use capabilities::*;
 
 pub mod coauth_devices;
 
-pub mod covered_seals;
-
 pub mod delivery_binding;
 pub use delivery_binding::*;
 
