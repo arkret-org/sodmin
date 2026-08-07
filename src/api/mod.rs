@@ -8,7 +8,7 @@ pub mod coauth_devices;
 pub mod delivery_binding;
 pub mod devices;
 /// R3.2 (UI-SOD-4) — Directory service client
-/// (`ak.find.directory.query.list_handles_for_subject`).
+/// (`ak.find.directory.read.list_handles_for_subject`).
 pub mod directory;
 pub mod federation;
 pub mod handles;

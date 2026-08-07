@@ -499,7 +499,7 @@
   "handles_by_subject.primary_handle": "Primary handle（§3.2.1）",
   "handles_by_subject.results_title": "可见的 handle claim",
   "handles_by_subject.subject_id": "主体 ID",
-  "handles_by_subject.subtitle": "按 holder/principal DID 反查当前可见的已签名 handle claim（ak.find.directory.query.list_handles_for_subject）。",
+  "handles_by_subject.subtitle": "按 holder/principal DID 反查当前可见的已签名 handle claim（ak.find.directory.read.list_handles_for_subject）。",
   "handles_by_subject.title": "Subject → Handles",
   "handles_by_subject.why": "为什么我能看到它？",
   "handles_by_subject.why_binding": "binding_state",

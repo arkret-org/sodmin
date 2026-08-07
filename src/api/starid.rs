@@ -41,7 +41,7 @@ mod tests {
             "service_kind": "identity_registry",
             "protocol_version": "1.0",
             "supported_profiles": ["ak.identity.webvh.v1"],
-            "supported_operations": ["ak.root.identity.registry.query.describe"],
+            "supported_operations": ["ak.root.identity.registry.read.describe"],
             "supported_bindings": [],
             "supported_features": [],
             "auth_metadata": {"mode": "production"},
