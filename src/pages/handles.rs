@@ -18,6 +18,7 @@
 //! to canonical via [`utils::security::handle::normalize_to_canonical`] before
 //! they hit soland.
 
+use arkret_identifiers::is_did;
 use dioxus::prelude::*;
 
 use crate::api::handles;
@@ -37,7 +38,6 @@ use crate::router::Route;
 use crate::types::HandleReassignRequest;
 use crate::utils::destructive_reason::destructive_reason_error;
 use crate::utils::i18n::t;
-use crate::utils::security::did;
 use crate::utils::security::handle::display_sigil;
 
 const PAGE_SIZE: u64 = 25;
@@ -233,14 +233,14 @@ pub fn HandleList() -> Element {
             reason: Some(reassign_reason.read().clone()),
             reason_required: true,
             busy: *reassign_loading.read()
-                || !did::is_valid_did(new_subject_id.read().trim()),
+                || !is_did(new_subject_id.read().trim()),
             on_reason_change: move |reason| reassign_reason.set(reason),
             on_cancel: move |_| show_reassign.set(None),
             on_confirm: move |_| {
                 if let Some(id) = show_reassign.read().clone() {
                     let subject = new_subject_id.read().trim().to_string();
                     let reason = reassign_reason.read().trim().to_string();
-                    if !did::is_valid_did(&subject)
+                    if !is_did(&subject)
                         || destructive_reason_error(&reason, true).is_some()
                     {
                         return;
@@ -460,13 +460,13 @@ pub fn HandleShow(handle_id: String) -> Element {
             reason: Some(reassign_reason.read().clone()),
             reason_required: true,
             busy: *reassign_loading.read()
-                || !did::is_valid_did(new_subject_id.read().trim()),
+                || !is_did(new_subject_id.read().trim()),
             on_reason_change: move |reason| reassign_reason.set(reason),
             on_cancel: move |_| show_reassign.set(false),
             on_confirm: move |_| {
                 let subject = new_subject_id.read().trim().to_string();
                 let reason = reassign_reason.read().trim().to_string();
-                if !did::is_valid_did(&subject)
+                if !is_did(&subject)
                     || destructive_reason_error(&reason, true).is_some()
                 {
                     return;

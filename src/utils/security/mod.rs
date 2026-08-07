@@ -1,7 +1,4 @@
 pub mod crypto;
-/// DID input validation — delegates to the SDK scalar validator
-/// `arkret_identifiers::is_did` (global report #10, candidate 12).
-pub mod did;
 /// Handle display helpers for admin read-only views.
 pub mod handle;
 /// R3.2 (UI-SOD-3) — §3.2.1 primary handle selection (admin-SPA mirror

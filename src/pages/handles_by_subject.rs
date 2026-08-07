@@ -21,7 +21,7 @@
 //! re-derives the primary handle locally via the SDK-mirror
 //! [`crate::utils::security::primary_handle::select_primary_handle`].
 
-use arkret_identifiers::Did;
+use arkret_identifiers::{Did, is_did};
 use chrono::Utc;
 use dioxus::prelude::*;
 
@@ -36,7 +36,6 @@ use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::table::*;
 use crate::types::{HandleBindingState, HandleClaim, ListHandlesForSubjectRequest};
 use crate::utils::i18n::t;
-use crate::utils::security::did;
 use crate::utils::security::handle::display_sigil;
 use crate::utils::security::primary_handle::{
     PrimaryHandleSelectInput, select_primary_handle_string,
@@ -78,7 +77,7 @@ pub fn HandlesBySubject(subject: Option<String>) -> Element {
 
     let input_val = input.read().clone();
     let trimmed = input_val.trim().to_string();
-    let can_submit = did::is_valid_did(&trimmed);
+    let can_submit = is_did(&trimmed);
 
     rsx! {
         div { class: "space-y-6",
@@ -98,7 +97,7 @@ pub fn HandlesBySubject(subject: Option<String>) -> Element {
                         onsubmit: move |evt| {
                             evt.prevent_default();
                             let v = input.read().trim().to_string();
-                            if did::is_valid_did(&v) {
+                            if is_did(&v) {
                                 query.set(v);
                             }
                         },

@@ -4,11 +4,11 @@
 //! runs on every keystroke. Empty values are treated as untouched except for
 //! [`ValidationKind::Required`], which reports immediately.
 
+use arkret_identifiers::is_did;
 use dioxus::prelude::*;
 
 use crate::components::ui::input::Input;
 use crate::utils::i18n::t;
-use crate::utils::security::did;
 
 /// Validation rule enforced by [`ValidatedInput`].
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -23,7 +23,7 @@ impl ValidationKind {
     pub fn validate(&self, value: &str) -> Result<(), &'static str> {
         match self {
             ValidationKind::Did => {
-                if value.is_empty() || did::is_valid_did(value) {
+                if value.is_empty() || is_did(value) {
                     Ok(())
                 } else {
                     Err("did_input.invalid")
