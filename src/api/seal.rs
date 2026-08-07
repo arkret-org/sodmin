@@ -59,7 +59,7 @@ mod tests {
     #[test]
     fn reconfig_request_body_renders_threshold_shape() {
         let req = NotaryReconfigRequestBody {
-            realm_id: "ak:realm:0196419b-0000-7000-8000-000000000000".into(),
+            realm_id: "ak:realm:AY0Z0alJlPB4P2wAIOCSTs_yNX_lm1mM5r3mhhQuKIFb".into(),
             kind: "threshold".into(),
             threshold_k: Some(2),
             threshold_n: Some(3),
