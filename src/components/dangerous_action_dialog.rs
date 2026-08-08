@@ -7,8 +7,6 @@
 //!
 //! * device revoke -> the last 4 chars of the device ID
 //! * applet suspend/revoke -> the first 6 chars of the applet name
-//! * realm destroy -> the literal word `DESTROY` (see [`crate::components::realm_destroy_dialog`]
-//!   for the heavier variant with five normative-bullet checkboxes)
 //!
 //! Pure leaf component — it does not fetch or POST anything. The caller
 //! is responsible for the actual mutation when `on_confirm` fires.

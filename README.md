@@ -20,15 +20,29 @@ adapt to your local toolchain.
 
 ## Scope
 
+- **Deployment-local state (read/write)**: server configuration and diagnostics,
+  coauth account workflows, OAuth sessions, upstream providers, registration
+  tokens, owner-scoped policy documents, and issuer-local handle lifecycle.
+- **Service-attested state (trigger + inspect)**: account and session lifecycle
+  operations whose registered Arkret Events are signed by the authoritative
+  service itself, including `ak.account.status`, `ak.session.grant`, and
+  `ak.session.grant.state`.
+- **Principal/notary-key state (read-only)**: Realm membership, invites,
+  policies and lifecycle, device authorization/revocation, capabilities,
+  notary configuration, Seal governance, and multisig signature state.
 - **Dashboard**: server profile, health, storage and conformance status.
-- **Actors**: search, detail, devices, sessions, DID/handle and lifecycle status.
-- **Realms**: membership, invites, visibility, policy and destructive actions with audit context (a Realm is the security boundary; Spaces are navigation containers within it).
-- **Devices and capabilities**: trust state, key status, grants, delegations and effective permission review.
+- **Actors and devices**: search, detail, sessions, DID/handle lifecycle,
+  trust state, key status, grants, delegations and effective permission review.
+- **Realms**: read-only protocol projections with membership, invite, policy,
+  lifecycle, Notary and Seal audit context.
 - **Federation**: peers, service DIDs, transactions, replay/fork quarantine and verification status.
 - **Blob/media**: quota, metadata, retention and anti-enumeration diagnostics.
 - **coauth**: accounts, sessions, upstream providers, OAuth2 clients, registration tokens, notification channels and audit logs.
 
-`sodmin` does not implement Arkret reducers or authorization decisions. It consumes stable admin API contracts from `soland` and `coauth`.
+`sodmin` authenticates through coauth OAuth + HttpOnly cookies and holds no
+Arkret device or notary key. It does not implement Arkret reducers,
+authorization decisions, or principal-key Event authoring. Those writes belong
+in a key-holding client or notary workflow.
 
 ## Architecture
 
@@ -46,12 +60,13 @@ flowchart LR
 ## Realm vs Space
 
 - **Realm:** security boundary — membership, capability, E2EE, and federation
-  policies are administered here. URL prefix `/realms/:id/...`.
+  policy state is inspected here. URL prefix `/realms/:id/...`.
 - **Space:** navigation container — board, list, section, calendar bucket.
   Lives inside a Realm.
 
-The admin pages drive Realm boundary state through `/realms/:id/...`. The
-**Realm links** page exposes typed `ak.realm.link` edges between boundaries.
+The admin pages observe Realm boundary state through `/realms/:id/...`; changes
+must be authored by a key-holding client. The **Realm links** page exposes typed
+`ak.realm.link` edges between boundaries.
 
 ## Round R4 (protocol review closures)
 
@@ -84,9 +99,7 @@ normative source. The new admin pages:
 
 - **Deactivation review** (`/deactivations/review`) — 7-domain fanout
   panel (session / device / applet / keypackage / push / to-device /
-  capability) with per-domain retry. Reused on the Realm destroy page.
-- **Realm destroy** (`/realms/:realm_id/destroy`) — destructive
-  confirmation plus fanout and erasure receipt panels.
+  capability) with per-domain retry.
 - **Key backup** (`/key-backup`) — recovery policies and receipts from
   the root identity recovery API.
 

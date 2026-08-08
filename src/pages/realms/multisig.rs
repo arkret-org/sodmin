@@ -1,25 +1,23 @@
-//! Multi-sig partial-signature aggregation panel (Stream H', H'9).
+//! Read-only multi-sig aggregation status panel.
 //!
 //! Lists pending Seals for a Realm's notary cell that's configured as
 //! `threshold(k of n)` or `mixed`. Each row shows the seal_id, the
 //! `k of n` threshold, the count of partials collected, and the missing
-//! signer DIDs. When the current admin DID is in the missing-signers
-//! list, soland sets `admin_can_sign=true` on the row and the
-//! `Submit my partial signature` button activates.
+//! signer DIDs. Signature authoring and submission belongs in a client
+//! that holds the corresponding notary key.
 
 use dioxus::prelude::*;
 
 use crate::api::multisig;
 use crate::components::selection_required::{is_placeholder_resource_id, selection_required_state};
 use crate::components::ui::badge::{Badge, BadgeVariant};
-use crate::components::ui::button::{Button, ButtonSize, ButtonVariant};
+use crate::components::ui::button::{Button, ButtonVariant};
 use crate::components::ui::empty_state::EmptyState;
 use crate::components::ui::error_banner::ErrorBanner;
 use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::table::*;
-use crate::components::ui::toast::{ToastVariant, show_toast};
-use crate::types::multisig::{PartialSubmitStatus, PendingMultisigSeal};
+use crate::types::multisig::PendingMultisigSeal;
 use crate::utils::i18n::t;
 
 #[component]
@@ -33,8 +31,6 @@ pub fn MultiSigPage(realm_id: String) -> Element {
         let id = realm_id_for_fetch.clone();
         async move { multisig::list_pending(&id).await }
     });
-    // Per-row in-flight flag keyed by seal_id.
-    let mut in_flight = use_signal::<Option<String>>(|| None);
     let header_realm_id = realm_id.clone();
 
     rsx! {
@@ -70,15 +66,12 @@ pub fn MultiSigPage(realm_id: String) -> Element {
                                         TableHead { {t("realm_multisig.col_missing_signers")} }
                                         TableHead { {t("realm_multisig.col_state_root")} }
                                         TableHead { {t("realm_multisig.col_created")} }
-                                        TableHead { class: "text-right".to_string(), {t("realm_multisig.col_action")} }
                                     }
                                 }
                                 TableBody {
                                     for entry in pending.iter() {
                                         {
                                             let seal_id = entry.seal_id.clone();
-                                            let seal_id_for_btn = seal_id.clone();
-                                            let realm_id_for_btn = realm_id.clone();
                                             let threshold_label = entry.threshold_label();
                                             let collected = entry.collected_partials;
                                             let remaining = entry.remaining();
@@ -101,12 +94,6 @@ pub fn MultiSigPage(realm_id: String) -> Element {
                                                 .created_at
                                                 .clone()
                                                 .unwrap_or_else(|| "-".to_string());
-                                            let admin_can_sign = entry.admin_can_sign;
-                                            let row_in_flight = in_flight
-                                                .read()
-                                                .as_deref()
-                                                .map(|id| id == seal_id)
-                                                .unwrap_or(false);
                                             rsx! {
                                                 TableRow {
                                                     key: "{seal_id}",
@@ -118,64 +105,6 @@ pub fn MultiSigPage(realm_id: String) -> Element {
                                                     TableCell { class: "font-mono text-xs max-w-[260px] truncate".to_string(), "{missing_display}" }
                                                     TableCell { class: "font-mono text-xs max-w-[200px] truncate".to_string(), "{state_root}" }
                                                     TableCell { class: "text-muted-foreground".to_string(), "{created}" }
-                                                    TableCell { class: "text-right".to_string(),
-                                                        if admin_can_sign {
-                                                            Button {
-                                                                variant: ButtonVariant::Default,
-                                                                size: ButtonSize::Sm,
-                                                                disabled: row_in_flight,
-                                                                onclick: move |_| {
-                                                                    let pending_seal_id = seal_id_for_btn.clone();
-                                                                    let sid = realm_id_for_btn.clone();
-                                                                    let Some(signer_did) = prompt_required(&t("realm_multisig.prompt_signer_did")) else {
-                                                                        return;
-                                                                    };
-                                                                    let Some(signature_b64) = prompt_required(&t("realm_multisig.prompt_partial_signature")) else {
-                                                                        return;
-                                                                    };
-                                                                    let Some(kid) = prompt_required(&t("realm_multisig.prompt_key_id")) else {
-                                                                        return;
-                                                                    };
-                                                                    in_flight.set(Some(pending_seal_id.clone()));
-                                                                    spawn(async move {
-                                                                        let res = multisig::submit_partial(
-                                                                            &sid,
-                                                                            &pending_seal_id,
-                                                                            &signer_did,
-                                                                            &signature_b64,
-                                                                            &kid,
-                                                                        )
-                                                                        .await;
-                                                                        match res {
-                                                                            Ok(r) => {
-                                                                                let met_suffix = if r.status == PartialSubmitStatus::Aggregated {
-                                                                                    t("realm_multisig.toast_threshold_met_suffix")
-                                                                                } else {
-                                                                                    String::new()
-                                                                                };
-                                                                                show_toast(
-                                                                                    &t("realm_multisig.toast_partial_recorded")
-                                                                                        .replace("{collected}", &r.collected.to_string())
-                                                                                        .replace("{threshold}", &r.threshold.to_string())
-                                                                                        .replace("{met}", &met_suffix),
-                                                                                    ToastVariant::Success,
-                                                                                );
-                                                                            }
-                                                                            Err(e) => show_toast(
-                                                                                &e.message,
-                                                                                ToastVariant::Error,
-                                                                            ),
-                                                                        }
-                                                                        in_flight.set(None);
-                                                                        data.restart();
-                                                                    });
-                                                                },
-                                                                {t("realm_multisig.submit_partial")}
-                                                            }
-                                                        } else {
-                                                            span { class: "text-xs text-muted-foreground", "—" }
-                                                        }
-                                                    }
                                                 }
                                             }
                                         }
@@ -195,15 +124,6 @@ pub fn MultiSigPage(realm_id: String) -> Element {
             }
         }
     }
-}
-
-fn prompt_required(label: &str) -> Option<String> {
-    let value = web_sys::window()?
-        .prompt_with_message(label)
-        .ok()
-        .flatten()?;
-    let trimmed = value.trim().to_owned();
-    (!trimmed.is_empty()).then_some(trimmed)
 }
 
 /// Pick a badge variant for the "collected partials" cell. When the

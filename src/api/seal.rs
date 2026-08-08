@@ -2,10 +2,7 @@
 //! soland.
 
 use crate::api::client::{NO_BODY, api_client, build_url};
-use crate::types::seal::{
-    AdminNotaryValue, BottomEntry, CompactionOutcome, CompactionRequestBody,
-    NotaryReconfigRequestBody, SealDagSnapshot, SubmitControlMoveOutcome,
-};
+use crate::types::seal::{AdminNotaryValue, BottomEntry, SealDagSnapshot};
 use crate::utils::net::error::HttpError;
 
 pub async fn get_notary_value(realm_id: &str) -> Result<AdminNotaryValue, HttpError> {
@@ -14,17 +11,6 @@ pub async fn get_notary_value(realm_id: &str) -> Result<AdminNotaryValue, HttpEr
         urlencoding::encode(realm_id)
     );
     api_client(&url, "GET", NO_BODY).await
-}
-
-pub async fn submit_notary_reconfig(
-    req: &NotaryReconfigRequestBody,
-) -> Result<SubmitControlMoveOutcome, HttpError> {
-    let url = format!(
-        "/_soland/admin/realms/{}/notary/reconfigure",
-        urlencoding::encode(&req.realm_id)
-    );
-    let body = req.to_reconfigure_body();
-    api_client(&url, "POST", Some(&body)).await
 }
 
 pub async fn list_bottom_entries_global() -> Result<Vec<BottomEntry>, HttpError> {
@@ -38,63 +24,4 @@ pub async fn get_seal_dag(realm_id: &str) -> Result<SealDagSnapshot, HttpError> 
         urlencoding::encode(realm_id)
     );
     api_client(&url, "GET", NO_BODY).await
-}
-
-pub async fn trigger_compaction(realm_id: &str) -> Result<CompactionOutcome, HttpError> {
-    let url = format!(
-        "/_soland/admin/realms/{}/seal-dag/compact",
-        urlencoding::encode(realm_id)
-    );
-    let req = CompactionRequestBody {
-        realm_id: realm_id.to_string(),
-        max_control_moves: None,
-    };
-    api_client(&url, "POST", Some(&req)).await
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn reconfig_request_body_renders_threshold_shape() {
-        let req = NotaryReconfigRequestBody {
-            realm_id: "ak:realm:AY0Z0alJlPB4P2wAIOCSTs_yNX_lm1mM5r3mhhQuKIFb".into(),
-            kind: "threshold".into(),
-            threshold_k: Some(2),
-            threshold_n: Some(3),
-            threshold_dids: vec![
-                "did:web:a.example".into(),
-                "did:web:b.example".into(),
-                "did:web:c.example".into(),
-            ],
-            ..Default::default()
-        };
-        let body = req.to_reconfigure_body();
-
-        assert_eq!(body["kind"], "threshold");
-        assert_eq!(body["threshold_k"], 2);
-        assert_eq!(body["threshold_n"], 3);
-        assert_eq!(
-            body["threshold_dids"]
-                .as_array()
-                .map(|array| array.len())
-                .unwrap_or(0),
-            3
-        );
-        assert!(body.get("single_did").is_none());
-        assert!(body.get("open_set_members").is_none());
-    }
-
-    #[test]
-    fn compaction_request_body_default_omits_max_control_moves() {
-        let req = CompactionRequestBody {
-            realm_id: "ak:realm:demo".into(),
-            max_control_moves: None,
-        };
-        let encoded = serde_json::to_string(&req).unwrap();
-
-        assert!(encoded.contains("\"realm_id\":\"ak:realm:demo\""));
-        assert!(!encoded.contains("max_control_moves"));
-    }
 }

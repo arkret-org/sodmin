@@ -1,17 +1,13 @@
 use dioxus::prelude::*;
 
 use crate::api::invite_tokens;
-use crate::components::dangerous_action_dialog::{DangerousActionDialog, confirmation_suffix};
 use crate::components::ui::button::{Button, ButtonSize, ButtonVariant};
 use crate::components::ui::error_banner::ErrorBanner;
-use crate::components::ui::input::{Input, Label};
 use crate::components::ui::loading::PageSkeleton;
-use crate::components::ui::modal::{DialogActions, Modal};
 use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::pagination::Pagination;
 use crate::components::ui::table::*;
 use crate::components::ui::toast::{ToastVariant, show_toast};
-use crate::types::CreateInviteTokenRequest;
 use crate::utils::i18n::t;
 
 const PAGE_SIZE: u64 = 25;
@@ -19,12 +15,6 @@ const PAGE_SIZE: u64 = 25;
 #[component]
 pub fn InviteTokenList() -> Element {
     let mut page = use_signal(|| 1u64);
-    let mut show_create_dialog = use_signal(|| false);
-    let mut show_delete_dialog = use_signal(|| None::<String>);
-    let mut uses_allowed = use_signal(String::new);
-    let mut expires_at = use_signal(String::new);
-    let mut realm_id = use_signal(String::new);
-    let mut create_loading = use_signal(|| false);
 
     let page_val = *page.read();
 
@@ -37,11 +27,6 @@ pub fn InviteTokenList() -> Element {
             PageHeader {
                 title: t("invite_tokens.title"),
                 description: t("invite_tokens.subtitle"),
-                Button {
-                    variant: ButtonVariant::Default,
-                    onclick: move |_| show_create_dialog.set(true),
-                    {t("common.create")}
-                }
             }
 
             match &*data.read() {
@@ -59,7 +44,6 @@ pub fn InviteTokenList() -> Element {
                                     TableHead { {t("invite_tokens.expires_at")} }
                                     TableHead { {t("invite_tokens.realm_id")} }
                                     TableHead { {t("invite_tokens.created_at")} }
-                                    TableHead { class: "text-right".to_string(), {t("common.actions")} }
                                 }
                             }
                             TableBody {
@@ -82,7 +66,6 @@ pub fn InviteTokenList() -> Element {
                                             let rid = token.realm_id.clone();
                                             let created = token.created_at.to_rfc3339();
 
-                                            let id_for_delete = id.clone();
                                             let tok_for_copy = tok.clone();
 
                                             rsx! {
@@ -128,17 +111,6 @@ pub fn InviteTokenList() -> Element {
                                                     TableCell { class: "text-muted-foreground".to_string(), "{exp}" }
                                                     TableCell { class: "max-w-[150px] truncate".to_string(), "{rid}" }
                                                     TableCell { class: "text-muted-foreground".to_string(), "{created}" }
-                                                    TableCell { class: "text-right".to_string(),
-                                                        Button {
-                                                            variant: ButtonVariant::Ghost,
-                                                            size: ButtonSize::Sm,
-                                                            onclick: {
-                                                                let id = id_for_delete.clone();
-                                                                move |_| show_delete_dialog.set(Some(id.clone()))
-                                                            },
-                                                            {t("common.delete")}
-                                                        }
-                                                    }
                                                 }
                                             }
                                         }
@@ -165,86 +137,5 @@ pub fn InviteTokenList() -> Element {
             }
         }
 
-        Modal {
-            open: *show_create_dialog.read(),
-            title: t("invite_tokens.create"),
-            on_close: move |_| show_create_dialog.set(false),
-            div { class: "space-y-3",
-                div { class: "space-y-1",
-                    Label { r#for: "it-uses".to_string(), {t("invite_tokens.uses_allowed")} }
-                    Input {
-                        r#type: "number".to_string(),
-                        value: uses_allowed.read().clone(),
-                        oninput: move |evt: FormEvent| uses_allowed.set(evt.value()),
-                    }
-                }
-                div { class: "space-y-1",
-                    Label { r#for: "it-expires".to_string(), {t("invite_tokens.expires_at")} }
-                    Input {
-                        r#type: "datetime-local".to_string(),
-                        value: expires_at.read().clone(),
-                        oninput: move |evt: FormEvent| expires_at.set(evt.value()),
-                    }
-                }
-                div { class: "space-y-1",
-                    Label { r#for: "it-realm".to_string(), {t("invite_tokens.realm_id")} }
-                    Input {
-                        value: realm_id.read().clone(),
-                        oninput: move |evt: FormEvent| realm_id.set(evt.value()),
-                    }
-                }
-            }
-            DialogActions {
-                confirm_text: t("common.create"),
-                cancel_text: t("common.cancel"),
-                confirm_loading: *create_loading.read(),
-                on_cancel: move |_| show_create_dialog.set(false),
-                on_confirm: move |_| {
-                    create_loading.set(true);
-                    let req = CreateInviteTokenRequest {
-                        uses_allowed: uses_allowed.read().parse().ok(),
-                        expires_at: if expires_at.read().is_empty() { None } else { Some(expires_at.read().clone()) },
-                        realm_id: if realm_id.read().is_empty() { None } else { Some(realm_id.read().clone()) },
-                        ..CreateInviteTokenRequest::default()
-                    };
-                    spawn(async move {
-                        match invite_tokens::create_invite_token(&req).await {
-                            Ok(_) => {
-                                show_toast(&t("invite_tokens.toast_created"), ToastVariant::Success);
-                                show_create_dialog.set(false);
-                                data.restart();
-                            }
-                            Err(e) => show_toast(&format!("{}: {}", t("common.failed"), e.message), ToastVariant::Error),
-                        }
-                        create_loading.set(false);
-                    });
-                },
-            }
-        }
-
-        DangerousActionDialog {
-            open: show_delete_dialog.read().is_some(),
-            title: t("common.delete"),
-            description: t("invite_tokens.delete_confirm"),
-            confirmation_phrase: confirmation_suffix(show_delete_dialog.read().as_deref().unwrap_or(""), 4),
-            confirm_text: t("common.delete"),
-            cancel_text: t("common.cancel"),
-            on_confirm: move |_| {
-                if let Some(id) = show_delete_dialog.read().clone() {
-                    let id = id.clone();
-                    spawn(async move {
-                        match invite_tokens::revoke_invite_token(&id).await {
-                            Ok(_) => {
-                                show_toast(&t("invite_tokens.toast_deleted"), ToastVariant::Success);
-                                data.restart();
-                            }
-                            Err(e) => show_toast(&format!("{}: {}", t("common.failed"), e.message), ToastVariant::Error),
-                        }
-                    });
-                }
-                show_delete_dialog.set(None);
-            },
-            on_cancel: move |_| show_delete_dialog.set(None),
-        }
     }
 }

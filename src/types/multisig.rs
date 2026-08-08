@@ -4,8 +4,7 @@
 //! aliases for the pending-row names.
 
 pub use soland_contracts::admin::seal::{
-    MultisigPendingEntry as PendingMultisigSeal, MultisigPendingOutcome, PartialSignatureBody,
-    PartialSubmitOutcome, PartialSubmitStatus,
+    MultisigPendingEntry as PendingMultisigSeal, MultisigPendingOutcome,
 };
 
 #[cfg(test)]

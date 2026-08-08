@@ -14,13 +14,3 @@ pub async fn list_invite_tokens(
     )?;
     api_client(&url, "GET", NO_BODY).await
 }
-
-pub async fn create_invite_token(req: &CreateInviteTokenRequest) -> Result<InviteToken, HttpError> {
-    api_client("/_soland/admin/invite-tokens", "POST", Some(req)).await
-}
-
-pub async fn revoke_invite_token(id: &str) -> Result<(), HttpError> {
-    let url = format!("/_soland/admin/invite-tokens/{}", urlencoding::encode(id));
-    let _: InviteToken = api_client(&url, "DELETE", NO_BODY).await?;
-    Ok(())
-}

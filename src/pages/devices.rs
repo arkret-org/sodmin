@@ -1,12 +1,8 @@
-use std::collections::HashSet;
-
 use dioxus::prelude::*;
 
 use crate::api::devices;
-use crate::components::dangerous_action_dialog::DangerousActionDialog;
 use crate::components::ui::auto_refresh::{self, AutoRefreshPicker, RefreshInterval};
 use crate::components::ui::button::{Button, ButtonSize, ButtonVariant};
-use crate::components::ui::checkbox::{self, Checkbox};
 use crate::components::ui::error_banner::ErrorBanner;
 use crate::components::ui::input::SearchInput;
 use crate::components::ui::loading::PageSkeleton;
@@ -17,21 +13,15 @@ use crate::components::ui::toast::{ToastVariant, show_toast};
 use crate::types::AdminDeviceExt;
 use crate::utils::fmt::csv::{build_csv, export_to_csv};
 use crate::utils::fmt::search::matches_name_or_id;
-use crate::utils::futures::join_all as futures_join_all;
 use crate::utils::i18n::t;
 
 const PAGE_SIZE: u64 = 25;
-const BULK_CONCURRENCY: usize = 5;
 const AUTOREFRESH_STORAGE_KEY: &str = "sodmin.devices.autorefresh";
 
 #[component]
 pub fn DeviceList() -> Element {
     let mut search = use_signal(String::new);
     let mut cursor_stack = use_signal(|| vec![None::<String>]);
-    let mut show_revoke_dialog = use_signal(|| None::<String>);
-    let mut selected = use_signal::<HashSet<String>>(HashSet::new);
-    let mut show_bulk_dialog = use_signal(|| false);
-    let mut bulk_progress = use_signal::<Option<(usize, usize)>>(|| None);
     let mut autorefresh = use_signal(|| auto_refresh::load(AUTOREFRESH_STORAGE_KEY));
 
     let cursor_snapshot = cursor_stack.read().last().cloned().unwrap_or(None);
@@ -65,11 +55,7 @@ pub fn DeviceList() -> Element {
         }
     });
 
-    // Visible id set after filtering the current page. Cached via use_memo keyed
-    // on (data, search): previously the render `for` loop re-applied the same
-    // predicate (including search.read()) over resp.data, running the filter twice
-    // per frame. Now the filter is computed once and shared by render and the
-    // "select all" semantics.
+    // Visible ids are computed once and shared by rendering and CSV export.
     let visible_ids_memo = use_memo(move || match &*data.read() {
         Some(Ok(resp)) => resp
             .devices
@@ -82,13 +68,6 @@ pub fn DeviceList() -> Element {
         _ => Vec::new(),
     });
     let visible_ids: Vec<String> = visible_ids_memo.read().clone();
-    let selected_on_page = visible_ids
-        .iter()
-        .filter(|id| selected.read().contains(id.as_str()))
-        .count();
-    let (header_checked, header_indeterminate) =
-        checkbox::header_state(selected_on_page, visible_ids.len());
-    let selected_count = selected.read().len();
 
     rsx! {
         div { class: "space-y-6",
@@ -144,64 +123,16 @@ pub fn DeviceList() -> Element {
                 }
             }
 
-            if selected_count > 0 {
-                div { class: "flex items-center justify-between rounded-md border bg-accent/40 px-3 py-2",
-                    div { class: "text-sm text-foreground",
-                        {t("devices.selected_count").replace("{count}", &selected_count.to_string())}
-                    }
-                    div { class: "flex items-center gap-2",
-                        Button {
-                            variant: ButtonVariant::Outline,
-                            size: ButtonSize::Sm,
-                            onclick: move |_| selected.set(HashSet::new()),
-                            {t("devices.clear")}
-                        }
-                        Button {
-                            variant: ButtonVariant::Destructive,
-                            size: ButtonSize::Sm,
-                            onclick: move |_| show_bulk_dialog.set(true),
-                            {t("devices.bulk_revoke_selected").replace("{count}", &selected_count.to_string())}
-                        }
-                    }
-                }
-            }
-
             match &*data.read() {
                 Some(Ok(resp)) => {
                     let next_cursor = resp.next_cursor.clone();
                     let stack_depth = cursor_stack.read().len();
                     let visible_ids = visible_ids.clone();
-                    let visible_set: HashSet<String> = visible_ids.iter().cloned().collect();
                     rsx! {
                         div { class: "rounded-md border",
                             Table {
                                 TableHeader {
                                     TableRow {
-                                        TableHead {
-                                            class: "w-10".to_string(),
-                                            Checkbox {
-                                                id: "devices-select-all".to_string(),
-                                                aria_label: t("common.select_all_rows"),
-                                                checked: header_checked,
-                                                indeterminate: header_indeterminate,
-                                                onchange: move |_| {
-                                                    let mut cur = selected.read().clone();
-                                                    let all_selected = visible_set
-                                                        .iter()
-                                                        .all(|id| cur.contains(id));
-                                                    if all_selected {
-                                                        for id in visible_set.iter() {
-                                                            cur.remove(id);
-                                                        }
-                                                    } else {
-                                                        for id in visible_set.iter() {
-                                                            cur.insert(id.clone());
-                                                        }
-                                                    }
-                                                    selected.set(cur);
-                                                },
-                                            }
-                                        }
                                         TableHead { {t("devices.id")} }
                                         TableHead { {t("devices.actor_id")} }
                                         TableHead { {t("devices.display_name")} }
@@ -209,7 +140,6 @@ pub fn DeviceList() -> Element {
                                         TableHead { {t("devices.col_created")} }
                                         TableHead { {t("devices.col_updated")} }
                                         TableHead { {t("devices.col_revoked")} }
-                                        TableHead { class: "text-right".to_string(), {t("common.actions")} }
                                     }
                                 }
                                 TableBody {
@@ -230,31 +160,9 @@ pub fn DeviceList() -> Element {
                                                 let updated_at = device.updated_at_display().unwrap_or_else(|| "-".to_string());
                                                 let revoked_at = device.revoked_at_display().unwrap_or_else(|| "-".to_string());
 
-                                                let id_for_revoke = id.clone();
-                                                let id_for_check = id.clone();
-                                                let is_checked = selected.read().contains(&id);
-                                                let check_id = format!("dev-check-{}", id);
-
                                                 rsx! {
                                                     TableRow {
                                                         key: "{id}",
-                                                        TableCell {
-                                                            class: "w-10".to_string(),
-                                                            Checkbox {
-                                                                id: check_id,
-                                                                aria_label: format!("Select device {}", id),
-                                                                checked: is_checked,
-                                                                onchange: move |_| {
-                                                                    // Mutate in place to avoid cloning the whole HashSet on every toggle.
-                                                                    let mut sel = selected.write();
-                                                                    if sel.contains(&id_for_check) {
-                                                                        sel.remove(&id_for_check);
-                                                                    } else {
-                                                                        sel.insert(id_for_check.clone());
-                                                                    }
-                                                                },
-                                                            }
-                                                        }
                                                         TableCell { class: "font-medium".to_string(), "{id}" }
                                                         TableCell { class: "max-w-[200px] truncate".to_string(), "{actor_id}" }
                                                         TableCell { "{display_name}" }
@@ -262,17 +170,6 @@ pub fn DeviceList() -> Element {
                                                         TableCell { class: "text-muted-foreground".to_string(), "{created_at}" }
                                                         TableCell { class: "text-muted-foreground".to_string(), "{updated_at}" }
                                                         TableCell { class: "text-muted-foreground".to_string(), "{revoked_at}" }
-                                                        TableCell { class: "text-right".to_string(),
-                                                            Button {
-                                                                variant: ButtonVariant::Ghost,
-                                                                size: ButtonSize::Sm,
-                                                                onclick: {
-                                                                    let id = id_for_revoke.clone();
-                                                                    move |_| show_revoke_dialog.set(Some(id.clone()))
-                                                                },
-                                                                {t("capabilities.revoke")}
-                                                            }
-                                                        }
                                                     }
                                                 }
                                             }
@@ -313,154 +210,6 @@ pub fn DeviceList() -> Element {
                 },
                 None => rsx! { PageSkeleton {} },
             }
-
-            if let Some((done, total)) = *bulk_progress.read() {
-                div { class: "rounded-md border bg-muted/40 px-3 py-2 text-sm",
-                    {t("devices.bulk_progress").replace("{done}", &done.to_string()).replace("{total}", &total.to_string())}
-                }
-            }
-        }
-
-        // Single-row revoke confirmation.
-        {
-            let pending = show_revoke_dialog.read().clone();
-            let phrase = pending
-                .as_deref()
-                .map(|id| crate::components::dangerous_action_dialog::confirmation_suffix(id, 4))
-                .unwrap_or_default();
-            let pending_id_desc = pending.clone().unwrap_or_default();
-            rsx! {
-                DangerousActionDialog {
-                    open: pending.is_some(),
-                    title: t("devices.revoke_title"),
-                    description: t("devices.revoke_description").replace("{id}", &pending_id_desc),
-                    confirmation_phrase: phrase,
-                    confirm_text: t("common.revoke"),
-                    cancel_text: t("common.cancel"),
-                    on_confirm: move |_| {
-                        if let Some(id) = show_revoke_dialog.read().clone() {
-                            let id = id.clone();
-                            spawn(async move {
-                                match devices::revoke_device(&id).await {
-                                    Ok(_) => {
-                                        show_toast(&t("devices.toast_revoked"), ToastVariant::Success);
-                                        data.restart();
-                                    }
-                                    Err(e) => show_toast(
-                                        &t("devices.toast_failed").replace("{message}", &e.message),
-                                        ToastVariant::Error,
-                                    ),
-                                }
-                            });
-                        }
-                        show_revoke_dialog.set(None);
-                    },
-                    on_cancel: move |_| show_revoke_dialog.set(None),
-                }
-            }
-        }
-
-        // Bulk-revoke confirmation. Uses the literal phrase `REVOKE` to
-        // gate the destructive button — distinct ids per row don't
-        // generalise to a multi-row gate.
-        {
-            let open = *show_bulk_dialog.read();
-            let count = selected_count;
-            rsx! {
-                DangerousActionDialog {
-                    open,
-                    title: t("devices.bulk_revoke_title").replace("{count}", &count.to_string()),
-                    description: t("devices.bulk_revoke_description"),
-                    confirmation_phrase: "REVOKE".to_string(),
-                    confirm_text: t("devices.bulk_revoke_confirm"),
-                    cancel_text: t("common.cancel"),
-                    on_cancel: move |_| show_bulk_dialog.set(false),
-                    on_confirm: move |_| {
-                        let ids: Vec<String> = selected.read().iter().cloned().collect();
-                        show_bulk_dialog.set(false);
-                        if ids.is_empty() {
-                            return;
-                        }
-                        bulk_progress.set(Some((0, ids.len())));
-                        spawn(async move {
-                            let total = ids.len();
-                            let (ok, failed) = run_bulk_revoke(ids, BULK_CONCURRENCY, move |done| {
-                                bulk_progress.set(Some((done, total)));
-                            })
-                            .await;
-                            bulk_progress.set(None);
-                            selected.set(HashSet::new());
-                            data.restart();
-                            if !failed.is_empty() {
-                                let preview: Vec<String> = failed
-                                    .iter()
-                                    .take(3)
-                                    .map(|(id, msg)| format!("{}: {}", id, msg))
-                                    .collect();
-                                let suffix = if failed.len() > 3 {
-                                    t("devices.bulk_revoke_more_suffix")
-                                        .replace("{count}", &(failed.len() - 3).to_string())
-                                } else {
-                                    String::new()
-                                };
-                                show_toast(
-                                    &t("devices.bulk_revoke_failed_toast")
-                                        .replace("{ok}", &ok.to_string())
-                                        .replace("{total}", &total.to_string())
-                                        .replace("{failures}", &preview.join("; "))
-                                        .replace("{suffix}", &suffix),
-                                    ToastVariant::Error,
-                                );
-                            } else {
-                                show_toast(
-                                    &t("devices.bulk_revoke_success_toast")
-                                        .replace("{count}", &ok.to_string()),
-                                    ToastVariant::Success,
-                                );
-                            }
-                        });
-                    },
-                }
-            }
         }
     }
-}
-
-/// Bounded-concurrency bulk revoke. Walks `ids` in chunks of `concurrency`
-/// (sequential `join_all` chunks rather than a real channel — `wasm32`
-/// is single-threaded so the chunk pattern keeps the in-flight count at
-/// or below the cap without a buffered semaphore). Single-row failures
-/// don't abort the rest; the caller surfaces them via toast.
-async fn run_bulk_revoke<F>(
-    ids: Vec<String>,
-    concurrency: usize,
-    mut on_progress: F,
-) -> (usize, Vec<(String, String)>)
-where
-    F: FnMut(usize) + 'static,
-{
-    let mut ok = 0usize;
-    let mut failed: Vec<(String, String)> = Vec::new();
-    let mut done = 0usize;
-    let chunk = concurrency.max(1);
-    for batch in ids.chunks(chunk) {
-        let futures: Vec<_> = batch
-            .iter()
-            .cloned()
-            .map(|id| async move {
-                let res = devices::revoke_device(&id).await;
-                (id, res)
-            })
-            .collect();
-        let results = futures_join_all(futures).await;
-        for (id, res) in results {
-            done += 1;
-            match res {
-                Ok(_) => ok += 1,
-                Err(e) => failed.push((id, e.message)),
-            }
-        }
-        on_progress(done);
-    }
-    (ok, failed)
 }

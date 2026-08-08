@@ -6,8 +6,8 @@
 //!   admin scope.
 //! - `GET /_soland/admin/handles/{id}` — single handle row.
 //! - `GET /_soland/admin/handles/{id}/audit` — handle audit trail from the T3.2 audit table.
-//! - `POST /_soland/admin/handles/{id}/revoke` — publish a revoke Control Move.
-//! - `POST /_soland/admin/handles/{id}/reassign` — force a re-bind to a new subject DID.
+//! - `POST /_soland/admin/handles/{id}/revoke` — update issuer-local lifecycle state.
+//! - `POST /_soland/admin/handles/{id}/reassign` — re-bind the issuer-local name to a subject DID.
 
 use crate::api::client::{NO_BODY, api_client, build_url};
 use crate::types::*;

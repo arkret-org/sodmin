@@ -21,16 +21,9 @@ const keyboardRoutes = [
 
 // P5 — destructive strand keyboard reachability. Each entry seeds a
 // destructive button or modal trigger that MUST be reachable via Tab
-// alone. Where fixture-dependent (e.g. a specific realm id must exist
-// to render the destroy button), the test is skipped with a TODO
+// alone. Where fixture-dependent, the test is skipped with a TODO
 // marker so a future fixture-seeded run can flip the skip off.
 const destructiveStrands = [
-  {
-    name: "realm_destroy",
-    path: "/realms/destroy",
-    target: /destroy|tombstone|confirm|type.*destroy/i,
-    fixtureDependent: true,
-  },
   {
     name: "revoke_grant",
     path: "/capabilities",
@@ -88,8 +81,8 @@ test.describe("keyboard-only management strands", () => {
   }
 
   // P5 — destructive strands must also be Tab-reachable so a
-  // keyboard-only operator can drive realm-destroy / agent-deactivate
-  // / grant-revoke / binding-delete without a mouse.
+  // keyboard-only operator can drive the remaining authorized
+  // management operations without a mouse.
   for (const strand of destructiveStrands) {
     test(`destructive strand: ${strand.name} reaches the destructive control via Tab`, async ({
       page,

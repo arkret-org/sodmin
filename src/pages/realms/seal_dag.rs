@@ -1,23 +1,19 @@
-//! Seal DAG / compaction admin page (Stream H', H'4).
+//! Read-only Seal DAG and compaction audit page.
 //!
 //! Visualises the latest Seal leaves, covered events, the latest
-//! `state_root` and exposes a "trigger compaction" button that POSTs (today,
-//! stub-POSTs) to soland's Seal compaction endpoint.
+//! `state_root`, including the latest observed compaction Seal.
 
 use dioxus::prelude::*;
 
 use crate::api::seal;
-use crate::components::dangerous_action_dialog::DangerousActionDialog;
 use crate::components::selection_required::{is_placeholder_resource_id, selection_required_state};
 use crate::components::ui::badge::{Badge, BadgeVariant};
-use crate::components::ui::button::{Button, ButtonVariant};
 use crate::components::ui::card::*;
 use crate::components::ui::empty_state::EmptyState;
 use crate::components::ui::error_banner::ErrorBanner;
 use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::table::*;
-use crate::components::ui::toast::{ToastVariant, show_toast};
 use crate::utils::i18n::t;
 
 #[component]
@@ -32,9 +28,6 @@ pub fn SealDagPage(realm_id: String) -> Element {
         async move { seal::get_seal_dag(&id).await }
     });
 
-    let mut compacting = use_signal(|| false);
-    let mut show_compact_confirm = use_signal(|| false);
-    let realm_id_for_compact = realm_id.clone();
     let header_realm_id = realm_id.clone();
 
     rsx! {
@@ -42,12 +35,6 @@ pub fn SealDagPage(realm_id: String) -> Element {
             PageHeader {
                 title: t("realm_seal_dag.title").replace("{realm_id}", &header_realm_id),
                 description: t("realm_seal_dag.description"),
-                Button {
-                    variant: ButtonVariant::Default,
-                    disabled: *compacting.read(),
-                    onclick: move |_| show_compact_confirm.set(true),
-                    {t("realm_seal_dag.trigger_compaction")}
-                }
             }
 
             match &*data.read() {
@@ -184,39 +171,6 @@ pub fn SealDagPage(realm_id: String) -> Element {
                     }
                 },
                 None => rsx! { PageSkeleton {} },
-            }
-
-            DangerousActionDialog {
-                open: *show_compact_confirm.read(),
-                confirmation_phrase: "COMPACT".to_string(),
-                title: t("realm_seal_dag.confirm_title"),
-                description: t("realm_seal_dag.confirm_description")
-                    .replace("{realm_id}", &realm_id_for_compact),
-                confirm_text: t("realm_seal_dag.trigger_compaction"),
-                cancel_text: t("common.cancel"),
-                on_cancel: move |_| show_compact_confirm.set(false),
-                on_confirm: move |_| {
-                    if *compacting.read() {
-                        return;
-                    }
-                    show_compact_confirm.set(false);
-                    compacting.set(true);
-                    let id = realm_id_for_compact.clone();
-                    spawn(async move {
-                        match seal::trigger_compaction(&id).await {
-                            Ok(r) => show_toast(
-                                &t("realm_seal_dag.toast_signed").replace("{seal_id}", &r.seal_id),
-                                ToastVariant::Success,
-                            ),
-                            Err(e) => show_toast(
-                                &t("realm_seal_dag.toast_failed").replace("{err}", &e.message),
-                                ToastVariant::Error,
-                            ),
-                        }
-                        compacting.set(false);
-                        data.restart();
-                    });
-                },
             }
         }
     }

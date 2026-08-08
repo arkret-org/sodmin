@@ -2,8 +2,6 @@
 
 /// Realm delivery-binding-policy read-only operations view.
 pub mod delivery_binding;
-/// Round R2/R3 — Realm destroy page (T07).
-pub mod destroy;
 pub mod links;
 pub mod list;
 /// R3 (UI-3) — Realm `media_service.foci[]` read-only view.

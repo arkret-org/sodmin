@@ -1,20 +1,13 @@
-//! HTTP client for the multi-sig partial-signature aggregation admin
-//! endpoints (Stream H', H'9).
+//! HTTP client for read-only multi-signature aggregation status.
 //!
 //! Endpoints:
 //!
 //! - `GET  /_soland/admin/realms/{realm_id}/multisig/pending` — list pending Seals awaiting
 //!   threshold (`k of n`). Each row includes the seal_id, threshold, collected partials count, and
 //!   missing signers DIDs.
-//! - `POST /_soland/admin/realms/{realm_id}/multisig/{seal_id}/partial` — submit the current
-//!   admin's partial signature toward the pending Seal. soland resolves the admin DID from the
-//!   bearer token, signs the Seal's `state_root` with the bound signing key, and folds the
-//!   resulting partial into the pending signature set.
 
 use crate::api::client::{NO_BODY, api_client};
-use crate::types::multisig::{
-    MultisigPendingOutcome, PartialSignatureBody, PartialSubmitOutcome, PendingMultisigSeal,
-};
+use crate::types::multisig::{MultisigPendingOutcome, PendingMultisigSeal};
 use crate::utils::net::error::HttpError;
 
 /// List Seals awaiting partial signatures inside a Realm.
@@ -25,25 +18,4 @@ pub async fn list_pending(realm_id: &str) -> Result<Vec<PendingMultisigSeal>, Ht
     );
     let outcome: MultisigPendingOutcome = api_client(&url, "GET", NO_BODY).await?;
     Ok(outcome.entries)
-}
-
-/// Submit the current admin's partial signature toward a pending Seal.
-pub async fn submit_partial(
-    realm_id: &str,
-    seal_id: &str,
-    signer_did: &str,
-    signature_b64: &str,
-    kid: &str,
-) -> Result<PartialSubmitOutcome, HttpError> {
-    let url = format!(
-        "/_soland/admin/realms/{}/multisig/{}/partial",
-        urlencoding::encode(realm_id),
-        urlencoding::encode(seal_id),
-    );
-    let body = PartialSignatureBody {
-        signer_did: signer_did.to_owned(),
-        signature_b64: signature_b64.to_owned(),
-        kid: kid.to_owned(),
-    };
-    api_client(&url, "POST", Some(&body)).await
 }

@@ -36,6 +36,16 @@ the SDK pins down its 1.0 contract.
 
 ## [Unreleased]
 
+### Admin write boundary
+
+- Removed Realm destroy, Realm invite-token mutation, Arkret device revoke,
+  Notary reconfiguration, Seal compaction, and multisig partial-signature
+  authoring from the SPA. Their protocol projections remain available as
+  read-only operational and audit views.
+- Documented the three allowed surfaces: deployment-local writes,
+  service-attested account/session actions, and read-only principal/notary-key
+  state. sodmin continues to hold no Arkret device or notary key.
+
 ### AKP-0007 Circle rollout (P3A)
 
 UI surfaces for the encrypted-sub-boundary primitive shipped by

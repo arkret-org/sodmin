@@ -17,8 +17,6 @@ pub fn RealmShow(realm_id: String) -> Element {
         async move { realms::get_realm(&id).await }
     });
 
-    let realm_id_for_delete = realm_id.clone();
-
     rsx! {
         div { class: "space-y-6",
             match &*data.read() {
@@ -73,16 +71,6 @@ pub fn RealmShow(realm_id: String) -> Element {
                                             to: Route::RealmOrganization { realm_id: realm.id.clone() },
                                             class: "inline-flex w-full items-center justify-center rounded-md border border-border px-4 py-2 text-sm font-medium hover:bg-muted",
                                             {t("realm_organization.title")}
-                                        }
-                                        // `ak.realm.destroy` is irreversible at the principal
-                                        // server. Route through the dedicated destroy page
-                                        // (five normative-bullet checkboxes + typed `DESTROY`)
-                                        // instead of a one-click delete — the bare button
-                                        // previously fired DELETE with zero confirmation.
-                                        Link {
-                                            to: Route::RealmDestroy { realm_id: realm_id_for_delete.clone() },
-                                            class: "inline-flex w-full items-center justify-center rounded-md bg-destructive px-4 py-2 text-sm font-medium text-destructive-foreground hover:bg-destructive/90",
-                                            {t("realms.delete")}
                                         }
                                     }
                                 }

@@ -98,8 +98,6 @@ pub enum Route {
         #[route("/hardening")]
         HardeningDashboard {},
 
-        #[route("/realms/:realm_id/destroy")]
-        RealmDestroy { realm_id: String },
         #[route("/starid/resolver")]
         StaridResolver {},
 
@@ -301,11 +299,6 @@ fn SpaceShow(space_id: String) -> Element {
 #[component]
 fn MediaList() -> Element {
     rsx! { pages::media::MediaList {} }
-}
-
-#[component]
-fn RealmDestroy(realm_id: String) -> Element {
-    rsx! { pages::realms::destroy::DestroyPage { realm_id } }
 }
 
 #[component]

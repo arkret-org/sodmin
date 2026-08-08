@@ -19,7 +19,6 @@ pub mod header;
 pub mod keyboard_shortcuts;
 pub mod layout;
 pub mod realm_classification_badge;
-pub mod realm_destroy_dialog;
 pub mod risk_action_panel;
 pub mod selection_required;
 pub mod sidebar;

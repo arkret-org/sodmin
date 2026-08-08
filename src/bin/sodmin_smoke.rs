@@ -178,22 +178,8 @@ struct CheckResult {
     detail: String,
 }
 
-fn run_check(client: &Client, name: &str, method: &str, url: &str) -> CheckResult {
-    let req = match method {
-        "GET" => client.get(url),
-        "POST" => client.post(url).body("{}"),
-        other => {
-            return CheckResult {
-                name: name.to_string(),
-                method: other.to_string(),
-                status: None,
-                outcome: CheckOutcome::Fail,
-                detail: format!("unsupported method: {other}"),
-            };
-        }
-    };
-
-    match req.send() {
+fn run_check(client: &Client, name: &str, url: &str) -> CheckResult {
+    match client.get(url).send() {
         Ok(resp) => {
             let status = resp.status();
             let outcome = classify_status(status.as_u16());
@@ -207,7 +193,7 @@ fn run_check(client: &Client, name: &str, method: &str, url: &str) -> CheckResul
             };
             CheckResult {
                 name: name.to_string(),
-                method: method.to_string(),
+                method: "GET".to_string(),
                 status: Some(status.as_u16()),
                 outcome,
                 detail,
@@ -215,7 +201,7 @@ fn run_check(client: &Client, name: &str, method: &str, url: &str) -> CheckResul
         }
         Err(e) => CheckResult {
             name: name.to_string(),
-            method: method.to_string(),
+            method: "GET".to_string(),
             status: None,
             outcome: CheckOutcome::Fail,
             detail: format!("transport error: {e}"),
@@ -262,37 +248,29 @@ fn run() -> ExitCode {
     let base = &args.base_url;
     let realm_id = &args.realm_id;
 
-    // Health probe + Stream H' GET endpoints. Mutating endpoints
-    // (partial-signature submit, notary/reconfigure, bottom/repair,
-    // seal-dag/compact) are
-    // intentionally NOT exercised here — running them post-deploy would
-    // mutate state. Smoke checks reachability + auth only.
+    // Health probe + Stream H' read-only endpoints. Smoke checks
+    // reachability and authentication only.
     let checks = vec![
         (
             "health",
-            "GET",
             // soland's health probe is at the root `/health`, not under
             // the admin namespace (which has no `health` route).
             format!("{base}/health"),
         ),
         (
             "realms/notary (H'1/H'2)",
-            "GET",
             build_realm_url(base, realm_id, "notary"),
         ),
         (
             "realms/seal-dag (H'4)",
-            "GET",
             build_realm_url(base, realm_id, "seal-dag"),
         ),
         (
             "realms/bottom (H'3)",
-            "GET",
             build_realm_url(base, realm_id, "bottom"),
         ),
         (
             "realms/multisig/pending (H'9)",
-            "GET",
             build_realm_url(base, realm_id, "multisig/pending"),
         ),
     ];
@@ -304,8 +282,8 @@ fn run() -> ExitCode {
     println!();
 
     let mut results = Vec::with_capacity(checks.len());
-    for (name, method, url) in checks {
-        let result = run_check(&client, name, method, &url);
+    for (name, url) in checks {
+        let result = run_check(&client, name, &url);
         let status_label = result
             .status
             .map(|s| s.to_string())
@@ -376,15 +354,15 @@ mod tests {
     }
 
     #[test]
-    fn build_realm_url_handles_compound_suffix() {
+    fn build_realm_url_handles_compound_read_suffix() {
         let url = build_realm_url(
             "https://soland.example.com",
             "ak:realm:demo",
-            "seal-dag/compact",
+            "multisig/pending",
         );
         assert_eq!(
             url,
-            "https://soland.example.com/_soland/admin/realms/ak:realm:demo/seal-dag/compact"
+            "https://soland.example.com/_soland/admin/realms/ak:realm:demo/multisig/pending"
         );
     }
 
