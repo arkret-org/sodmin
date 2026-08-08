@@ -5,6 +5,17 @@ this file. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0
 this project is pre-1.0 so wire-breaking changes can land in any release until
 the SDK pins down its 1.0 contract.
 
+## Unreleased — SessionGrant issuer-ledger sync
+
+- Reclassified SessionGrant create, refresh, revoke, and regeneration as
+  Account Authority issuer-ledger operations. SessionGrant lifecycle is no
+  longer described as a service-attested Arkret Event.
+- Clarified that device revoke atomically terminalizes linked grants in
+  coauth; Principal Servers observe that terminal state through fresh
+  introspection rather than maintaining a second grant lifecycle truth.
+- Preserved the admin key boundary: sodmin neither drafts grant Events nor
+  obtains principal, device, recovery, or notary signing keys.
+
 ## R3.4 — Spec sync 2026-05-31 (arkret-spec @ c2848a4)
 
 - Synced protocol-facing names and fixtures to `c2848a4`: event envelope schema naming, `_ids` grant constraints, accountability principal vocabulary, `ak:rtc_participant:` media participants, agent session start fields, and key-backup signature algorithm naming where applicable.

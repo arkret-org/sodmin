@@ -68,8 +68,8 @@ self-skip when the local stack is not configured.
 `device-revoke.spec.ts` revokes a device on a target account, asserts
 the row badge transitions to Revoked, and cross-checks that the
 coauth audit feed shows both the device-revoke entry AND a
-session-grant cascade entry (proving the soland-side cascade-revoke
-landed on the canonical audit pipeline):
+session-grant cascade entry (proving the issuer-ledger lifecycle mutation
+landed on the canonical coauth audit pipeline):
 
 1. Login at `/login`
 2. Navigate to `/coauth/accounts`

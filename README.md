@@ -1,6 +1,6 @@
 # sodmin
 
-> **Spec target**: [arkret-spec @ c2848a4](../arkret-spec) (R3.4 sync 2026-05-31)
+> **Spec target**: [arkret-spec @ 409ebafb](../arkret-spec) (SessionGrant issuer-ledger and device-bootstrap decision-fence sync, 2026-08-08)
 
 Arkret administrator web UI for Principal Server and coauth deployments. The app is built with Dioxus and compiled to WebAssembly.
 
@@ -23,10 +23,14 @@ adapt to your local toolchain.
 - **Deployment-local state (read/write)**: server configuration and diagnostics,
   coauth account workflows, OAuth sessions, upstream providers, registration
   tokens, owner-scoped policy documents, and issuer-local handle lifecycle.
-- **Service-attested state (trigger + inspect)**: account and session lifecycle
-  operations whose registered Arkret Events are signed by the authoritative
-  service itself, including `ak.account.status`, `ak.session.grant`, and
-  `ak.session.grant.state`.
+- **Issuer-local credential state (trigger + inspect)**: coauth account and
+  session lifecycle operations backed by the Account Authority's durable
+  issuer ledger. Session grants are signed credentials with issuer-local
+  lifecycle state; they are not Arkret Events and sodmin does not draft or
+  submit grant Events.
+- **Service-attested Event state (trigger + inspect)**: lifecycle operations
+  that the protocol explicitly models as Events signed by the authoritative
+  service, such as `ak.account.status`.
 - **Principal/notary-key state (read-only)**: Realm membership, invites,
   policies and lifecycle, device authorization/revocation, capabilities,
   notary configuration, Seal governance, and multisig signature state.

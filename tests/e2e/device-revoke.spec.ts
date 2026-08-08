@@ -118,8 +118,8 @@ test.describe("Q9 device-revoke happy-path", () => {
 
     // 12. Cross-check the coauth audit feed surfaces a device-revoke
     //     entry AND at least one session-grant cascade entry — proves
-    //     the soland-side cascade-revoke landed on the canonical audit
-    //     pipeline, not just the local UI mutation.
+    //     the coauth issuer-ledger lifecycle mutation landed on the
+    //     canonical audit pipeline, not just the local UI mutation.
     await page.goto(`${BASE_URL}/coauth/audit-log`);
     await expect(page.getByText(revokeReason).first()).toBeVisible({
       timeout: 15_000,
