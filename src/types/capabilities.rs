@@ -34,7 +34,7 @@ mod tests {
     #[test]
     fn summary_parses_production_wire_shape() {
         let summary: CapabilitySummary = serde_json::from_value(serde_json::json!({
-            "grant_id": "ak:grant:01964137-0000-7000-8000-000000000001",
+            "grant_id": "ak:grant:AbhvODyrIRCskAIoS9IXLjMfD-Zsr8lwDpiCU_zLR4it",
             "realm_id": "ak:realm:Adzr6hWdpvvoBoHZ2PftHKATea_QnznMIDwV5k6POjOi",
             "issuer": "did:web:issuer.example",
             "subject": "did:web:subject.example",
