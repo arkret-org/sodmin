@@ -1,5 +1,5 @@
 //! P3A.6 — visual badge that distinguishes "Principal Control" Realms
-//! (those that back DID issuance / recovery / cross-signing) from
+//! (those that back DID issuance and recovery) from
 //! ordinary "Collaboration" Realms.
 //!
 //! Per AKP-0007 the classification is set at create time and is

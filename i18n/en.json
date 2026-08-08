@@ -553,7 +553,7 @@
   "key_backup.no_series": "No backup series found.",
   "key_backup.recovery_policies": "Recovery policies",
   "key_backup.recovery_receipts": "Recovery receipts",
-  "key_backup.subtitle": "Server-side cross-signing key backup",
+  "key_backup.subtitle": "Server-side encrypted recovery key backup",
   "key_backup.title": "Key backup",
   "keyboard_shortcuts.coauth_accounts": "Coauth Accounts",
   "keyboard_shortcuts.col_action": "Action",

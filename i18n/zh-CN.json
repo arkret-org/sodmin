@@ -553,7 +553,7 @@
   "key_backup.no_series": "未找到备份序列。",
   "key_backup.recovery_policies": "恢复策略",
   "key_backup.recovery_receipts": "恢复回执",
-  "key_backup.subtitle": "服务端交叉签名密钥备份",
+  "key_backup.subtitle": "服务端加密恢复密钥备份",
   "key_backup.title": "密钥备份",
   "keyboard_shortcuts.coauth_accounts": "Coauth 账户",
   "keyboard_shortcuts.col_action": "操作",
