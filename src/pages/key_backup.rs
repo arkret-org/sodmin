@@ -107,7 +107,7 @@ pub fn KeyBackupList() -> Element {
                     div { class: "space-y-1",
                         Label { class: "text-xs text-muted-foreground".to_string(), "backup_kind" }
                         Input {
-                            placeholder: "e.g. did_recovery".to_string(),
+                            placeholder: "e.g. secret_storage".to_string(),
                             value: backup_class_filter.read().clone(),
                             oninput: move |evt: FormEvent| backup_class_filter.set(evt.value()),
                         }
