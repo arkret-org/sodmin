@@ -140,6 +140,7 @@ fn build_nav_sections() -> Vec<NavSection> {
         vec![
             NavItem::new(t("nav.policy"), Route::PolicyList {}, "file-text"),
             NavItem::new(t("nav.server_status"), Route::ServerStatus {}, "activity"),
+            NavItem::new(t("nav.service_routes"), Route::ServiceRouteList {}, "route"),
             NavItem::new(
                 "Hardening".to_string(),
                 Route::HardeningDashboard {},
@@ -336,6 +337,10 @@ fn is_route_active(current: &Route, target: &Route) -> bool {
         Route::FederationList {} => matches!(
             current,
             Route::FederationList {} | Route::FederationShow { .. }
+        ),
+        Route::ServiceRouteList {} => matches!(
+            current,
+            Route::ServiceRouteList {} | Route::ServiceRouteShow { .. }
         ),
         Route::CoauthAccountList {} => matches!(
             current,

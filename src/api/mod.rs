@@ -25,5 +25,6 @@ pub mod realm_organization;
 pub mod realms;
 pub mod seal;
 pub mod server;
+pub mod service_routes;
 pub mod spaces;
 pub mod starid;

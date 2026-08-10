@@ -54,4 +54,7 @@ pub use realms::*;
 pub mod server;
 pub use server::*;
 
+pub mod service_routes;
+pub use service_routes::*;
+
 pub mod spaces;

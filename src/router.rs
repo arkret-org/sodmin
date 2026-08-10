@@ -95,6 +95,11 @@ pub enum Route {
         #[route("/server-status")]
         ServerStatus {},
 
+        #[route("/service-routes")]
+        ServiceRouteList {},
+        #[route("/service-routes/:service_id/:service_kind")]
+        ServiceRouteShow { service_id: String, service_kind: String },
+
         #[route("/hardening")]
         HardeningDashboard {},
 
@@ -309,6 +314,21 @@ fn FederationList() -> Element {
 #[component]
 fn FederationShow(operation_id: String) -> Element {
     rsx! { pages::federation::show::FederationShow { operation_id } }
+}
+
+#[component]
+fn ServiceRouteList() -> Element {
+    rsx! { pages::service_routes::list::ServiceRouteList {} }
+}
+
+#[component]
+fn ServiceRouteShow(service_id: String, service_kind: String) -> Element {
+    rsx! {
+        pages::service_routes::show::ServiceRouteShow {
+            service_id,
+            service_kind,
+        }
+    }
 }
 
 #[component]
