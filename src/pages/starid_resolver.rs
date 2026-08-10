@@ -88,6 +88,7 @@ fn error_card(
 
 fn describe_card(describe: StaridDescribe) -> Element {
     let service_id = describe.service_id.as_str().to_string();
+    let service_full_id = describe.service_resolution.full_id.as_str().to_string();
     let registry_mode = describe
         .extra_str(&["x_starid_registry_mode"])
         .unwrap_or_else(|| "-".to_string());
@@ -109,6 +110,7 @@ fn describe_card(describe: StaridDescribe) -> Element {
                 div { class: "space-y-4",
                     div { class: "grid gap-3 sm:grid-cols-2 lg:grid-cols-3",
                         {info_cell(t("starid_resolver.service_id"), service_id)}
+                        {info_cell(t("starid_resolver.service_full_id"), service_full_id)}
                         {info_cell(t("starid_resolver.registry_mode"), registry_mode)}
                         {info_cell(t("starid_resolver.protocol_version"), protocol)}
                     }

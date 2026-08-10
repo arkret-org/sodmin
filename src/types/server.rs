@@ -29,8 +29,9 @@ pub struct ServerInfo {
 /// `/_arkret/describe` response envelope.
 ///
 /// The protocol-authoritative fields deserialize into the SDK
-/// [`ServiceDescribe`] (strict: `service_id: Did`,
-/// `trust_domain: TypedTrustDomainId`, `development_mode: bool`, …).
+/// [`ServiceDescribe`] (strict: `service_id: ServiceId`, an exact
+/// `service_resolution` commitment, `trust_domain: TypedTrustDomainId`,
+/// `development_mode: bool`, …).
 /// Any additional top-level keys a service emits beyond the spec shape
 /// land in [`ServiceDescribe::extensions`]; views read them via
 /// [`Self::extra_str`] so the wire type itself never grows hand-written
@@ -50,6 +51,12 @@ impl std::ops::Deref for ServerDescribeDocument {
 }
 
 impl ServerDescribeDocument {
+    /// Enforce the SDK's semantic checks, including full-id-to-core-id
+    /// consistency for the published service resolution commitment.
+    pub fn validate(&self) -> arkret_wire::Result<()> {
+        self.description.validate()
+    }
+
     /// Walk `path` inside the extension envelope.
     pub fn extra_value<'a>(&'a self, path: &[&str]) -> Option<&'a serde_json::Value> {
         let mut current = path
@@ -158,7 +165,12 @@ mod tests {
     /// Minimal payload satisfying every required `ServiceDescribe` field.
     fn base_describe() -> serde_json::Value {
         json!({
-            "service_id": "did:web:soland.local",
+            "service_id": "ak:did_core:web:soland.local",
+            "service_resolution": {
+                "full_id": "did:web:soland.local",
+                "method_history_head": "fixture-head",
+                "version_id": "fixture-v1"
+            },
             "trust_domain": "ak:trust_domain:soland.local",
             "service_kind": "principal_server",
             "protocol_version": "1.0",
@@ -173,6 +185,7 @@ mod tests {
                     "implemented_surfaces": ["principal_server", "events_api_minimal"]
                 }
             },
+            "rate_limit_policy": { "policy_version": "1", "entries": [] },
             "plaintext_visibility": { "max_visibility": "private_plaintext", "data_classes": ["message_content"] },
             "implemented_features": ["events.describe"],
             "claimed_profiles": [{
@@ -194,7 +207,10 @@ mod tests {
         let describe: ServerDescribeDocument =
             serde_json::from_value(base_describe()).expect("soland describe should deserialize");
 
-        assert_eq!(describe.service_id.as_str(), "did:web:soland.local");
+        assert_eq!(describe.service_id.as_str(), "ak:did_core:web:soland.local");
+        describe
+            .validate()
+            .expect("describe semantics should validate");
         assert_eq!(
             describe.trust_domain.as_str(),
             "ak:trust_domain:soland.local"

@@ -12,14 +12,22 @@ pub async fn get_server_info() -> Result<ServerInfo, HttpError> {
 }
 
 pub async fn get_server_describe() -> Result<ServerDescribeDocument, HttpError> {
-    api_client(SERVER_DESCRIBE_PATH, "GET", NO_BODY).await
+    let document: ServerDescribeDocument = api_client(SERVER_DESCRIBE_PATH, "GET", NO_BODY).await?;
+    document
+        .validate()
+        .map_err(|error| HttpError::message(format!("invalid ServiceDescribe: {error}")))?;
+    Ok(document)
 }
 
 pub async fn get_coauth_server_describe() -> Result<ServerDescribeDocument, HttpError> {
     let url = crate::utils::net::session::coauth_public_url()
         .map(|base| format!("{}/_arkret/describe", base.trim_end_matches('/')))
         .unwrap_or_else(|| "/_arkret/describe".to_string());
-    api_client(&url, "GET", NO_BODY).await
+    let document: ServerDescribeDocument = api_client(&url, "GET", NO_BODY).await?;
+    document
+        .validate()
+        .map_err(|error| HttpError::message(format!("invalid ServiceDescribe: {error}")))?;
+    Ok(document)
 }
 
 pub async fn get_server_stats() -> Result<ServerStats, HttpError> {

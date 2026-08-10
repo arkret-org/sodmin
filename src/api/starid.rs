@@ -26,7 +26,16 @@ pub async fn get_describe() -> Result<Result<StaridDescribe, HttpError>, StaridN
         "{}/_arkret/root/identity/describe",
         base.trim_end_matches('/')
     );
-    Ok(api_client(&url, "GET", NO_BODY).await)
+    let document: StaridDescribe = match api_client(&url, "GET", NO_BODY).await {
+        Ok(document) => document,
+        Err(error) => return Ok(Err(error)),
+    };
+    if let Err(error) = document.validate() {
+        return Ok(Err(HttpError::message(format!(
+            "invalid ServiceDescribe: {error}"
+        ))));
+    }
+    Ok(Ok(document))
 }
 
 #[cfg(test)]
@@ -36,7 +45,12 @@ mod tests {
     #[test]
     fn describe_uses_canonical_service_describe_and_starid_extensions() {
         let raw = r#"{
-            "service_id": "did:web:starid.example",
+            "service_id": "ak:did_core:web:starid.example",
+            "service_resolution": {
+                "full_id": "did:web:starid.example",
+                "method_history_head": "fixture-head",
+                "version_id": "fixture-v1"
+            },
             "trust_domain": "ak:trust_domain:starid.example",
             "service_kind": "identity_registry",
             "protocol_version": "1.0",
@@ -46,6 +60,7 @@ mod tests {
             "supported_features": [],
             "auth_metadata": {"mode": "production"},
             "limits": {},
+            "rate_limit_policy": {"policy_version": "1", "entries": []},
             "plaintext_visibility": {},
             "implemented_features": ["identity.webvh.writer"],
             "claimed_profiles": [],
@@ -57,7 +72,10 @@ mod tests {
             "x_starid_supported_methods": ["did:webvh", "did:web"]
         }"#;
         let parsed: StaridDescribe = serde_json::from_str(raw).expect("parse");
-        assert_eq!(parsed.service_id.as_str(), "did:web:starid.example");
+        assert_eq!(parsed.service_id.as_str(), "ak:did_core:web:starid.example");
+        parsed
+            .validate()
+            .expect("describe semantics should validate");
         assert_eq!(
             parsed.extra_str(&["x_starid_registry_mode"]).as_deref(),
             Some("writer")
