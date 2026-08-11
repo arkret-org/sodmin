@@ -426,7 +426,9 @@ fn relationship_label(value: RealmOrganizationRelationship) -> String {
 
 fn issuer_role_label(value: RealmOrganizationIssuerRole) -> String {
     let key = match value {
-        RealmOrganizationIssuerRole::OrganizationDid => "realm_organization.role_organization_did",
+        RealmOrganizationIssuerRole::OrganizationPrincipalId => {
+            "realm_organization.role_organization_principal_id"
+        }
         RealmOrganizationIssuerRole::GovernanceService => {
             "realm_organization.role_governance_service"
         }

@@ -77,13 +77,13 @@ fn render_value_detail(v: &AdminNotaryValue) -> Element {
             }
         }
         Some(NotaryKind::SingleDid) => {
-            let did = v.single_did.clone().unwrap_or_else(|| "-".to_string());
+            let did = v.single_actor_id.clone().unwrap_or_else(|| "-".to_string());
             rsx! { div { class: "font-mono text-xs", "did: {did}" } }
         }
         Some(NotaryKind::Threshold) => {
             let k = v.threshold_k.unwrap_or(0);
             let n = v.threshold_n.unwrap_or(0);
-            let dids = v.threshold_dids.clone();
+            let dids = v.threshold_actor_ids.clone();
             rsx! {
                 div { class: "font-mono text-xs", "k/n: {k}/{n}" }
                 ul { class: "list-disc list-inside text-xs font-mono",
@@ -100,8 +100,11 @@ fn render_value_detail(v: &AdminNotaryValue) -> Element {
             }
         }
         Some(NotaryKind::Mixed) => {
-            let primary = v.mixed_primary.clone().unwrap_or_else(|| "-".to_string());
-            let recovery = v.mixed_recovery.clone();
+            let primary = v
+                .mixed_primary_actor_id
+                .clone()
+                .unwrap_or_else(|| "-".to_string());
+            let recovery = v.mixed_recovery_actor_ids.clone();
             rsx! {
                 div { class: "font-mono text-xs", "primary: {primary}" }
                 div { class: "text-xs text-muted-foreground", "recovery:" }

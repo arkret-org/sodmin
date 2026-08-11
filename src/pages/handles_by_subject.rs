@@ -21,7 +21,7 @@
 //! re-derives the primary handle locally via the SDK-mirror
 //! [`crate::utils::security::primary_handle::select_primary_handle`].
 
-use arkret_identifiers::{Did, is_did};
+use arkret_identifiers::DidCoreId;
 use chrono::Utc;
 use dioxus::prelude::*;
 
@@ -56,7 +56,7 @@ pub fn HandlesBySubject(subject: Option<String>) -> Element {
             if subject.trim().is_empty() {
                 return None;
             }
-            let subject = match Did::new(subject.trim().to_string()) {
+            let subject = match DidCoreId::new(subject.trim().to_string()) {
                 Ok(value) => value,
                 Err(_) => return None,
             };
@@ -77,7 +77,7 @@ pub fn HandlesBySubject(subject: Option<String>) -> Element {
 
     let input_val = input.read().clone();
     let trimmed = input_val.trim().to_string();
-    let can_submit = is_did(&trimmed);
+    let can_submit = DidCoreId::new(trimmed.clone()).is_ok();
 
     rsx! {
         div { class: "space-y-6",
@@ -97,7 +97,7 @@ pub fn HandlesBySubject(subject: Option<String>) -> Element {
                         onsubmit: move |evt| {
                             evt.prevent_default();
                             let v = input.read().trim().to_string();
-                            if is_did(&v) {
+                            if DidCoreId::new(v.clone()).is_ok() {
                                 query.set(v);
                             }
                         },
@@ -241,7 +241,11 @@ fn claim_row(claim: &HandleClaim, primary: Option<&str>) -> Element {
         .map(|h| h.canonical())
         .map(display_sigil)
         .unwrap_or_default();
-    let issuer = claim.issuer.clone().unwrap_or_else(|| "-".to_string());
+    let issuer = claim
+        .issuer
+        .as_ref()
+        .map(ToString::to_string)
+        .unwrap_or_else(|| "-".to_string());
     let expires = claim
         .expires_at
         .as_ref()

@@ -18,10 +18,10 @@ mod tests {
             kind_raw: "threshold".to_owned(),
             threshold_k: Some(2),
             threshold_n: Some(3),
-            threshold_dids: vec![
-                "did:web:a.example".to_owned(),
-                "did:web:b.example".to_owned(),
-                "did:web:c.example".to_owned(),
+            threshold_actor_ids: vec![
+                "ak:did_core:web:a.example".to_owned(),
+                "ak:did_core:web:b.example".to_owned(),
+                "ak:did_core:web:c.example".to_owned(),
             ],
             ..Default::default()
         };
