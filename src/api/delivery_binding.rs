@@ -4,9 +4,8 @@
 //! This surface is **read-only** in sodmin: realm policy writes are a
 //! general-management action that strands through events / inkson, not the
 //! operations console. sodmin only renders the effective policy
-//! (`allowed_recipient_services`, `binding_source_policy`,
-//! reducer-owned `policy_frontier`) plus the member-routability and
-//! handover diagnostics.
+//! (`allowed_recipient_services`, `binding_source_policy`) plus the
+//! member-routability and handover diagnostics.
 //!
 //! The admin endpoint is
 //! `/_soland/admin/realms/{id}/delivery-binding-policy` (GET only).

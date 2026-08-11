@@ -4,7 +4,7 @@
 //! Realm (the security boundary). This view is **read-only** in sodmin:
 //! mutating `allowed_recipient_services` / `binding_source_policy` is a
 //! general-management action that strands through events / inkson, not the
-//! operations console. `policy_frontier` is reducer-owned.
+//! operations console.
 //!
 //! Below the policy summary the page lists each Realm member with their
 //! effective `member_delivery_binding.recipient_service_id` and a
@@ -65,7 +65,6 @@ pub fn DeliveryBindingPage(realm_id: String) -> Element {
 
             match &*policy_data.read() {
                 Some(Ok(policy)) => {
-                    let frontier = policy.policy_frontier.clone().unwrap_or_else(|| "-".to_string());
                     let updated_at = policy.updated_at.clone().unwrap_or_else(|| "-".to_string());
                     let binding_source = policy.binding_source_policy.clone().unwrap_or_else(|| "-".to_string());
                     let allowed_list = policy.allowed_recipient_services.clone();
@@ -80,15 +79,9 @@ pub fn DeliveryBindingPage(realm_id: String) -> Element {
                                     // Read-only operations view. Realm
                                     // delivery-binding policy writes strand
                                     // through events / inkson, not sodmin.
-                                    div { class: "grid gap-3 sm:grid-cols-2",
-                                        div {
-                                            p { class: "text-xs text-muted-foreground", {t("delivery_binding.policy_frontier")} }
-                                            p { class: "text-sm font-mono break-all", "{frontier}" }
-                                        }
-                                        div {
-                                            p { class: "text-xs text-muted-foreground", {t("delivery_binding.updated_at")} }
-                                            p { class: "text-sm font-mono", "{updated_at}" }
-                                        }
+                                    div { class: "space-y-1",
+                                        p { class: "text-xs text-muted-foreground", {t("delivery_binding.updated_at")} }
+                                        p { class: "text-sm font-mono", "{updated_at}" }
                                     }
 
                                     div { class: "space-y-1",
