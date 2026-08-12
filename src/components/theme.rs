@@ -1,5 +1,3 @@
-use dioxus::prelude::*;
-
 use crate::utils::storage;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -53,32 +51,4 @@ pub fn apply_theme() {
 pub fn set_theme(theme: &str) {
     storage::set_item("theme", theme);
     apply_theme();
-}
-
-#[component]
-pub fn ThemeSwitcher() -> Element {
-    let mut current =
-        use_signal(|| storage::get_item("theme").unwrap_or_else(|| "system".to_string()));
-
-    rsx! {
-        div { class: "flex items-center gap-1 rounded-lg border p-1",
-            for (label, value) in [("Light", "light"), ("Dark", "dark"), ("System", "system")] {
-                button {
-                    class: {
-                        let is_active = *current.read() == value;
-                        if is_active {
-                            "px-2 py-1 text-xs rounded bg-primary text-primary-foreground"
-                        } else {
-                            "px-2 py-1 text-xs rounded hover:bg-muted"
-                        }
-                    },
-                    onclick: move |_| {
-                        set_theme(value);
-                        current.set(value.to_string());
-                    },
-                    "{label}"
-                }
-            }
-        }
-    }
 }

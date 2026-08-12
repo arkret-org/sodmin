@@ -951,7 +951,6 @@
   "server_status.not_configured": "Not Configured",
   "server_status.online": "Online",
   "server_status.openapi_version": "OpenAPI",
-  "server_status.profile.accountable_principals_strict_reject": "accountable_principals.strict_reject.v1 — fail-closed on missing accountability grants.",
   "server_status.profile.key_backup_memory_hard": "key_backup.memory_hard.v1 — Argon2id memory-hard key backup KDF.",
   "server_status.profile.media_service_binding": "media_service_binding.v1 — Realm-level foci binding profile.",
   "server_status.profiles_label": "Supported Profiles",

@@ -951,7 +951,6 @@
   "server_status.not_configured": "未配置",
   "server_status.online": "在线",
   "server_status.openapi_version": "OpenAPI",
-  "server_status.profile.accountable_principals_strict_reject": "accountable_principals.strict_reject.v1 —— 缺失 accountability grant 时 fail-closed。",
   "server_status.profile.key_backup_memory_hard": "key_backup.memory_hard.v1 —— Argon2id 内存密集型 KDF。",
   "server_status.profile.media_service_binding": "media_service_binding.v1 —— Realm 级 foci 绑定 profile。",
   "server_status.profiles_label": "支持的 Profile",

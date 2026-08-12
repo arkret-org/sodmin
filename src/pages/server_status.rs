@@ -763,10 +763,6 @@ fn r3_profile_status_section(profiles: &[String]) -> Element {
             "server_status.profile.media_service_binding",
         ),
         (
-            "ak.profile.accountable_principals.strict_reject.v1",
-            "server_status.profile.accountable_principals_strict_reject",
-        ),
-        (
             "ak.profile.key_backup.memory_hard.v1",
             "server_status.profile.key_backup_memory_hard",
         ),
