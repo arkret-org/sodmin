@@ -5,6 +5,9 @@ authors = ["Arkret Authors"]
 license = "AGPL-3.0-or-later"
 edition = "2024"
 
+[lints]
+workspace = true
+
 [dependencies]
 # Global report #10 — sodmin previously hand-copied every protocol type.
 # Depend on the precise protocol owner crates (default features off so the
@@ -125,6 +128,15 @@ subsecond-types   = { git = "https://github.com/arkret-org/dioxus", rev = "e59f9
 
 [workspace]
 resolver = "3"
+
+[workspace.lints.rust]
+unsafe_code = "deny"
+
+[workspace.lints.clippy]
+dbg_macro = "deny"
+mem_forget = "deny"
+todo = "deny"
+unimplemented = "deny"
 
 [workspace.dependencies]
 chrono = "0.4.45"
