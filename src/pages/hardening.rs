@@ -1,8 +1,8 @@
 //! T8.3 — aggregate production hardening dashboard.
 //!
 //! This page fetches a non-sensitive `hardening` block from each service
-//! that Sodmin can actually address (the local Soland plus configured
-//! Coauth and Starid upstreams), then renders a per-service checklist
+//! that Sodmin can actually address (the local Soland plus the
+//! configured Coauth upstream), then renders a per-service checklist
 //! with green / red chips and an aggregate score.
 //!
 //! Hardening status is intentionally coarse — no paths, hostnames, or
@@ -32,7 +32,7 @@ fn http_skip(message: &str) -> HttpError {
 /// (older deployments), or `unreachable` is set when the fetch
 /// failed.
 struct ServiceHardening {
-    /// Service slug used in URLs / DIDs (`soland`, `coauth`, `starid`).
+    /// Service slug used in URLs / DIDs (`soland`, `coauth`).
     slug: &'static str,
     /// i18n key for the user-facing label.
     label_key: &'static str,
@@ -54,17 +54,10 @@ pub fn HardeningDashboard() -> Element {
         }
         server::get_coauth_health().await
     });
-    let mut starid_health = use_resource(|| async {
-        if !crate::utils::net::session::has_starid() {
-            return Err(http_skip("starid not configured"));
-        }
-        server::get_starid_health().await
-    });
 
     let services: Vec<ServiceHardening> = {
         let soland = soland_health.read();
         let coauth = coauth_health.read();
-        let starid = starid_health.read();
         vec![
             service_from_health(
                 "soland",
@@ -82,17 +75,6 @@ pub fn HardeningDashboard() -> Element {
                     None
                 } else {
                     Some(t("hardening.coauth_not_configured"))
-                },
-            ),
-            service_from_health(
-                "starid",
-                "hardening.svc_starid",
-                "hardening.svc_starid_desc",
-                starid.as_ref(),
-                if crate::utils::net::session::has_starid() {
-                    None
-                } else {
-                    Some(t("hardening.starid_not_configured"))
                 },
             ),
         ]
@@ -113,7 +95,6 @@ pub fn HardeningDashboard() -> Element {
                     onclick: move |_| {
                         soland_health.restart();
                         coauth_health.restart();
-                        starid_health.restart();
                     },
                     {t("common.refresh")}
                 }

@@ -1,57 +1,39 @@
-//! DTO shapes for the Realm admin surface.
+//! Realm admin surface — contract-authoritative types plus thin display
+//! helpers.
+//!
+//! The row is the shared `soland_contracts::admin::AdminRealmItem`; sodmin
+//! keeps no wire mirror. The object carrying encryption / join-rule /
+//! history-visibility / realm-class boundary fields is a Realm. Space
+//! containers are represented separately by [`crate::types::spaces::SpaceRow`].
 
-use arkret_wire::{Discoverability, JoinRule};
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
+pub use soland_contracts::admin::{AdminRealmItem as AdminRealm, RealmClass};
 
-// ── Realm types (security boundary) ──
-//
-// The object that carries encryption / join-rule / history-visibility /
-// realm-class boundary fields is a Realm. Space containers are represented
-// separately by `spaces::SpaceRow`.
-
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
-#[serde(rename_all = "snake_case")]
-pub enum RealmClass {
-    PrincipalControl,
-    Collaboration,
+/// Display helpers for the shared [`AdminRealm`].
+pub trait AdminRealmExt {
+    fn discoverability_label(&self) -> Option<String>;
+    fn join_rule_label(&self) -> Option<String>;
+    /// Wire class string, `-` when the server reported no recognised class.
+    fn type_label(&self) -> &'static str;
+    /// RFC3339 rendering of the optional creation timestamp.
+    fn created_at_display(&self) -> Option<String>;
 }
 
-impl RealmClass {
-    pub fn as_str(self) -> &'static str {
-        match self {
-            Self::PrincipalControl => "principal_control",
-            Self::Collaboration => "collaboration",
-        }
-    }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AdminRealm {
-    pub id: String,
-    pub title: String,
-    pub discoverability: Option<Discoverability>,
-    pub created_by: Option<String>,
-    pub member_count: u64,
-    pub is_encrypted: bool,
-    pub is_blocked: bool,
-    pub topic: Option<String>,
-    pub created_at: Option<String>,
-    #[serde(rename = "default_join_rule")]
-    pub join_rule: Option<JoinRule>,
-    pub realm_class: Option<RealmClass>,
-}
-
-impl AdminRealm {
-    pub fn discoverability_label(&self) -> Option<String> {
+impl AdminRealmExt for AdminRealm {
+    fn discoverability_label(&self) -> Option<String> {
         self.discoverability.as_ref().map(wire_label)
     }
 
-    pub fn join_rule_label(&self) -> Option<String> {
-        self.join_rule.as_ref().map(wire_label)
+    fn join_rule_label(&self) -> Option<String> {
+        self.default_join_rule.as_ref().map(wire_label)
     }
 
-    pub fn type_label(&self) -> &'static str {
+    fn type_label(&self) -> &'static str {
         self.realm_class.map(RealmClass::as_str).unwrap_or("-")
+    }
+
+    fn created_at_display(&self) -> Option<String> {
+        self.created_at.map(|ts| ts.to_rfc3339())
     }
 }
 
@@ -69,38 +51,72 @@ where
 mod tests {
     use super::*;
 
-    fn valid_realm() -> serde_json::Value {
-        serde_json::json!({
+    #[test]
+    fn realm_class_and_discoverability_render_from_the_shared_row() {
+        let realm: AdminRealm = serde_json::from_value(serde_json::json!({
+            "kind": "realm",
             "id": "ak:realm:1",
+            "strand": {},
+            "strand_id": "ak:strand:1",
+            "realm_id": "ak:realm:1",
             "title": "Realm",
+            "topic": null,
+            "category": null,
+            "realm_class": "principal_control",
+            "discoverability": "invite_only",
+            "default_join_rule": "invite",
+            "tags": [],
+            "public": false,
             "member_count": 2,
+            "members": [],
+            "created_by": null,
+            "history_visibility": "shared",
             "is_encrypted": true,
             "is_blocked": false,
-            "realm_class": "principal_control"
-        })
-    }
+            "plaintext_visible_services": [],
+            "deleted": false,
+            "created_at": "2026-08-14T00:00:00.000Z",
+            "updated_at": null,
+        }))
+        .expect("shared realm row should deserialize");
 
-    #[test]
-    fn realm_requires_producer_fields_and_closed_class() {
-        let realm: AdminRealm = serde_json::from_value(valid_realm()).unwrap();
-        assert_eq!(realm.realm_class, Some(RealmClass::PrincipalControl));
         assert_eq!(realm.type_label(), "principal_control");
-
-        let mut missing = valid_realm();
-        missing.as_object_mut().unwrap().remove("is_blocked");
-        assert!(serde_json::from_value::<AdminRealm>(missing).is_err());
-
-        let mut unknown = valid_realm();
-        unknown["realm_class"] = serde_json::json!("PrincipalControl");
-        assert!(serde_json::from_value::<AdminRealm>(unknown).is_err());
+        assert_eq!(
+            realm.discoverability_label().as_deref(),
+            Some("invite_only")
+        );
+        assert!(realm.created_at_display().is_some());
     }
 
     #[test]
-    fn missing_optional_class_is_not_collaboration() {
-        let mut value = valid_realm();
-        value.as_object_mut().unwrap().remove("realm_class");
-        let realm: AdminRealm = serde_json::from_value(value).unwrap();
-        assert_eq!(realm.realm_class, None);
+    fn unknown_class_renders_as_dash_rather_than_guessing() {
+        let realm = AdminRealm {
+            kind: "realm".to_owned(),
+            id: "ak:realm:1".to_owned(),
+            strand: serde_json::json!({}),
+            strand_id: "ak:strand:1".to_owned(),
+            realm_id: "ak:realm:1".to_owned(),
+            title: "Realm".to_owned(),
+            topic: None,
+            category: None,
+            realm_class: None,
+            discoverability: None,
+            default_join_rule: None,
+            tags: Vec::new(),
+            public: false,
+            member_count: 0,
+            members: Vec::new(),
+            created_by: None,
+            history_visibility: None,
+            is_encrypted: false,
+            is_blocked: false,
+            plaintext_visible_services: Vec::new(),
+            deleted: false,
+            created_at: None,
+            updated_at: None,
+        };
         assert_eq!(realm.type_label(), "-");
+        assert!(realm.discoverability_label().is_none());
+        assert!(realm.created_at_display().is_none());
     }
 }

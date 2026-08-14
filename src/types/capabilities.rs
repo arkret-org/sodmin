@@ -29,6 +29,8 @@ impl CapabilitySummaryExt for CapabilitySummary {
 
 #[cfg(test)]
 mod tests {
+    use arkret_wire::CapabilityActionId;
+
     use super::{CapabilitySummary, CapabilitySummaryExt};
 
     #[test]
@@ -39,14 +41,17 @@ mod tests {
             "issuer": "did:web:issuer.example",
             "subject": "did:web:subject.example",
             "resource": "realm",
-            "actions": ["ak.message.create"],
+            "actions": [CapabilityActionId::MESSAGE_CREATE],
             "revoked": false,
             "created_at": "2026-06-07T00:00:00.000Z"
         }))
         .expect("production-shaped grant summary should deserialize");
 
         assert_eq!(summary.issuer, "did:web:issuer.example");
-        assert_eq!(summary.actions_display(), "ak.message.create");
+        assert_eq!(
+            summary.actions_display(),
+            CapabilityActionId::MESSAGE_CREATE
+        );
         assert_eq!(summary.resource_display(), "realm");
         assert!(!summary.revoked);
     }

@@ -23,4 +23,3 @@ pub mod seal_bottom;
 pub mod server_status;
 pub mod service_routes;
 pub mod spaces;
-pub mod starid_resolver;

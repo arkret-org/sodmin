@@ -25,11 +25,12 @@ pub async fn list_federation_operations(
         .drain(..)
         .filter(|op| {
             needle.is_empty()
-                || op.operation_id.to_ascii_lowercase().contains(&needle)
                 || op
-                    .realm_id
-                    .as_deref()
-                    .is_some_and(|value| value.to_ascii_lowercase().contains(&needle))
+                    .operation_id
+                    .as_str()
+                    .to_ascii_lowercase()
+                    .contains(&needle)
+                || op.realm_id.as_str().to_ascii_lowercase().contains(&needle)
         })
         .collect::<Vec<_>>();
     Ok(ListResponse {
@@ -54,7 +55,7 @@ pub async fn get_federation_operation(
         if let Some(op) = page
             .data
             .into_iter()
-            .find(|op| op.operation_id == operation_id)
+            .find(|op| op.operation_id.as_str() == operation_id)
         {
             return Ok(op);
         }

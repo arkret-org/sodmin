@@ -110,16 +110,16 @@ pub fn MediaList() -> Element {
                                         for row in data.data.iter() {
                                             {
                                                 let filename = row.filename.clone().unwrap_or_else(|| "-".to_string());
-                                                let media_type = row.media_type.clone().unwrap_or_else(|| "-".to_string());
+                                                let media_type = row.media_type.clone();
                                                 let realm_id = row.realm_id.clone().unwrap_or_else(|| "-".to_string());
-                                                let uploaded_by = row.uploaded_by.clone().unwrap_or_else(|| "-".to_string());
+                                                let uploaded_by = row.uploaded_by.clone();
                                                 let size = yoface::utils::format::format_bytes(row.size_bytes);
                                                 let encrypted = if row.encrypted {
                                                     t("media.encrypted_yes")
                                                 } else {
                                                     t("media.encrypted_no")
                                                 };
-                                                let created = row.created_at.clone().unwrap_or_else(|| "-".to_string());
+                                                let created = row.created_at.to_rfc3339();
                                                 rsx! {
                                                     TableRow {
                                                         TableCell { "{filename}" }
@@ -170,9 +170,7 @@ fn metric_tile(label: &str, value: String) -> Element {
     }
 }
 
-fn actor_media_section(
-    resp: &crate::types::ListResponse<crate::types::ActorMediaStatistics>,
-) -> Element {
+fn actor_media_section(resp: &crate::types::ActorMediaStatisticsList) -> Element {
     rsx! {
         div { class: "rounded-md border",
             Table {

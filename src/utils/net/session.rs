@@ -61,21 +61,6 @@ pub fn has_coauth() -> bool {
     coauth_public_url().is_some()
 }
 
-/// Origin of the upstream starid did:webvh resolver this deployment
-/// federates against. Populated by `pages::login` once `/config.json`
-/// has been fetched. The Starid resolver status panel hides itself
-/// when this is unset.
-pub fn starid_public_url() -> Option<String> {
-    storage::get_item("starid_public_url")
-}
-
-/// Convenience for the sidebar / dashboard surfaces that hide the
-/// Starid resolver status panel when the operator has not configured
-/// a starid public URL.
-pub fn has_starid() -> bool {
-    starid_public_url().is_some()
-}
-
 // NOTE: there is intentionally no client-side admin-scope / bridge
 // gating here. The sidebar derives its visibility from the deployment
 // facts above (`has_coauth()`); server-side RBAC is the only

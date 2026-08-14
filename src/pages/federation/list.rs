@@ -11,6 +11,7 @@ use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::pagination::CursorPagination;
 use crate::components::ui::table::*;
 use crate::router::Route;
+use crate::types::federation::FederationOperationExt;
 use crate::utils::i18n::t;
 
 const PAGE_SIZE: u64 = 25;
@@ -100,11 +101,11 @@ pub fn FederationList() -> Element {
                                     } else {
                                         for op in data.data.iter() {
                                             {
-                                                let operation_id = op.operation_id.clone();
-                                                let realm_id = op.realm_id.clone().unwrap_or_else(|| "-".to_string());
-                                                let operation_kind = op.operation_kind.clone().unwrap_or_else(|| "-".to_string());
-                                                let canonical_kind = op.canonical_kind.clone().unwrap_or_else(|| "-".to_string());
-                                                let created_at = op.created_at.clone().unwrap_or_else(|| "-".to_string());
+                                                let operation_id = op.operation_id.as_str().to_owned();
+                                                let realm_id = op.realm_id.as_str().to_owned();
+                                                let operation_kind = op.operation_kind_label();
+                                                let canonical_kind = op.canonical_kind_label();
+                                                let created_at = op.created_at_display();
                                                 rsx! {
                                                     TableRow {
                                                         key: "{operation_id}",

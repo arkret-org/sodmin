@@ -75,10 +75,11 @@ async fn list_filtered_media(
 
 fn media_row_matches(row: &MediaRow, needle: &str) -> bool {
     [
+        Some(row.sha256.as_str()),
         row.filename.as_deref(),
-        row.media_type.as_deref(),
+        Some(row.media_type.as_str()),
         row.realm_id.as_deref(),
-        row.uploaded_by.as_deref(),
+        Some(row.uploaded_by.as_str()),
     ]
     .into_iter()
     .flatten()
@@ -89,6 +90,6 @@ pub async fn get_media_statistics() -> Result<MediaStatistics, HttpError> {
     api_client("/_soland/admin/media/statistics", "GET", NO_BODY).await
 }
 
-pub async fn list_media_by_actor() -> Result<ListResponse<ActorMediaStatistics>, HttpError> {
+pub async fn list_media_by_actor() -> Result<ActorMediaStatisticsList, HttpError> {
     api_client("/_soland/admin/media/by-actor", "GET", NO_BODY).await
 }

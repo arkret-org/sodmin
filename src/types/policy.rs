@@ -6,28 +6,6 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(transparent)]
-pub struct PolicyDocumentPayload(serde_json::Value);
-
-impl Default for PolicyDocumentPayload {
-    fn default() -> Self {
-        Self(serde_json::json!({}))
-    }
-}
-
-impl PolicyDocumentPayload {
-    pub fn as_value(&self) -> &serde_json::Value {
-        &self.0
-    }
-}
-
-impl From<serde_json::Value> for PolicyDocumentPayload {
-    fn from(value: serde_json::Value) -> Self {
-        Self(value)
-    }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-#[serde(transparent)]
 pub struct PolicyRuleSet(serde_json::Value);
 
 impl Default for PolicyRuleSet {
@@ -47,16 +25,6 @@ impl PolicyRuleSet {
 }
 
 impl From<serde_json::Value> for PolicyRuleSet {
-    fn from(value: serde_json::Value) -> Self {
-        Self(value)
-    }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-#[serde(transparent)]
-pub struct PolicyResource(serde_json::Value);
-
-impl From<serde_json::Value> for PolicyResource {
     fn from(value: serde_json::Value) -> Self {
         Self(value)
     }

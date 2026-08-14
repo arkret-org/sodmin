@@ -4,7 +4,6 @@ set -eu
 SOLAND_URL="${SOLAND_URL:-}"
 COAUTH_URL="${COAUTH_URL:-}"
 COAUTH_PUBLIC_URL="${COAUTH_PUBLIC_URL:-}"
-STARID_PUBLIC_URL="${STARID_PUBLIC_URL:-}"
 SODMIN_TELEMETRY_ENDPOINT="${SODMIN_TELEMETRY_ENDPOINT:-}"
 SODMIN_PORT="${SODMIN_PORT:-80}"
 
@@ -96,9 +95,8 @@ json_escape() {
     # Escape backslash first, then double-quote.
     printf '%s' "$1" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g'
 }
-printf '{"coauth_public_url":"%s","starid_public_url":"%s","telemetry_endpoint":"%s"}' \
+printf '{"coauth_public_url":"%s","telemetry_endpoint":"%s"}' \
     "$(json_escape "$COAUTH_PUBLIC_URL")" \
-    "$(json_escape "$STARID_PUBLIC_URL")" \
     "$(json_escape "$SODMIN_TELEMETRY_ENDPOINT")" \
     > /runtime/config.json
 

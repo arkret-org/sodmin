@@ -7,6 +7,7 @@ use crate::components::ui::info_row::InfoRow;
 use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::{BreadcrumbItem, Breadcrumbs, PageHeader};
 use crate::router::Route;
+use crate::types::federation::FederationOperationExt;
 use crate::utils::i18n::t;
 
 #[component]
@@ -28,14 +29,14 @@ pub fn FederationShow(operation_id: String) -> Element {
 
             match &*operation_data.read() {
                 Some(Ok(op)) => {
-                    let operation_id = op.operation_id.clone();
-                    let realm_id = op.realm_id.clone().unwrap_or_else(|| "-".to_string());
-                    let operation_kind = op.operation_kind.clone().unwrap_or_else(|| "-".to_string());
-                    let canonical_kind = op.canonical_kind.clone().unwrap_or_else(|| "-".to_string());
+                    let operation_id = op.operation_id.as_str().to_owned();
+                    let realm_id = op.realm_id.as_str().to_owned();
+                    let operation_kind = op.operation_kind_label();
+                    let canonical_kind = op.canonical_kind_label();
                     let strand_id = op.strand_id.clone().unwrap_or_else(|| "-".to_string());
                     let track = op.track.clone().unwrap_or_else(|| "-".to_string());
                     let digest = op.digest.clone().unwrap_or_else(|| "-".to_string());
-                    let created_at = op.created_at.clone().unwrap_or_else(|| "-".to_string());
+                    let created_at = op.created_at_display();
                     rsx! {
                         PageHeader {
                             title: operation_id.clone(),

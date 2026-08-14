@@ -42,10 +42,7 @@ pub async fn list_spaces(
             .into_iter()
             .filter(|row| {
                 row.id.to_ascii_lowercase().contains(&needle)
-                    || row
-                        .name
-                        .as_deref()
-                        .is_some_and(|name| name.to_ascii_lowercase().contains(&needle))
+                    || row.name.to_ascii_lowercase().contains(&needle)
             })
             .collect()
     };
@@ -100,5 +97,32 @@ fn space_node(row: &SpaceRow) -> SpaceHierarchyNode {
         space_id: row.id.clone(),
         name: row.name.clone(),
         member_count: row.member_count,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn row(id: &str, parent: Option<&str>) -> SpaceRow {
+        serde_json::from_value(serde_json::json!({
+            "id": id,
+            "name": format!("Space {id}"),
+            "realm_id": "ak:realm:1",
+            "kind": "list",
+            "member_count": 3,
+            "health": "active",
+            "created_at": "2026-08-14T00:00:00.000Z",
+            "parent_space_id": parent,
+        }))
+        .expect("shared space row should deserialize")
+    }
+
+    #[test]
+    fn hierarchy_node_projects_the_shared_row() {
+        let node = space_node(&row("ak:space:1", None));
+        assert_eq!(node.space_id, "ak:space:1");
+        assert_eq!(node.name, "Space ak:space:1");
+        assert_eq!(node.member_count, 3);
     }
 }

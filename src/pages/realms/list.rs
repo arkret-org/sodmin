@@ -12,6 +12,7 @@ use crate::components::ui::pagination::CursorPagination;
 use crate::components::ui::table::*;
 use crate::components::ui::toast::{ToastVariant, show_toast};
 use crate::router::Route;
+use crate::types::realms::AdminRealmExt;
 use crate::utils::fmt::csv::{build_csv, export_to_csv};
 use crate::utils::i18n::t;
 
@@ -63,7 +64,7 @@ pub fn RealmList() -> Element {
                                 s.member_count.to_string(),
                                 if s.is_encrypted { "true".into() } else { "false".into() },
                                 if s.is_blocked { "blocked".into() } else { "active".into() },
-                                s.created_at.clone().unwrap_or_default(),
+                                s.created_at_display().unwrap_or_default(),
                             ]).collect();
                             let csv = build_csv(
                                 &["id", "title", "realm_class", "member_count", "encrypted", "status", "created_at"],
@@ -142,7 +143,7 @@ pub fn RealmList() -> Element {
                                                             {t("realms.active")}
                                                         }
                                                     }
-                                                    TableCell { {realm.created_at.as_deref().unwrap_or("-")} }
+                                                    TableCell { {realm.created_at_display().unwrap_or_else(|| "-".to_string())} }
                                                 }
                                             }
                                         }

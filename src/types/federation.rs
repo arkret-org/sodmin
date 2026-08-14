@@ -1,43 +1,36 @@
-//! DTO shapes for the federation admin surface.
+//! Federation admin surface — contract-authoritative row plus thin display
+//! helpers.
 //!
 //! `GET /_soland/admin/federation` returns a cursor-paginated stream of
-//! **federation operations** (not peer-health rows). The wire shape is
-//! produced by soland's `admin_federation_items`
-//! (`soland/crates/server/src/routing/admin/collection.rs`). Each item is a
-//! single federated operation projected from the persistence layer.
+//! **federation operations** (not peer-health rows). The row is the shared
+//! `soland_contracts::admin::AdminFederationOperation`, produced by soland's
+//! `admin_federation_items`
+//! (`soland/crates/http/src/routing/admin/collection.rs`).
 
-use serde::{Deserialize, Serialize};
+pub use soland_contracts::admin::AdminFederationOperation as FederationOperation;
 
-// ── Federation operation row ──
+/// Display helpers for the shared [`FederationOperation`].
+pub trait FederationOperationExt {
+    /// Wire string for the operation kind (`create` / `update` / ...).
+    fn operation_kind_label(&self) -> String;
+    /// Canonical Event kind wire string.
+    fn canonical_kind_label(&self) -> String;
+    fn created_at_display(&self) -> String;
+}
 
-/// One federated operation as projected by soland's admin federation
-/// endpoint. Strongly typed against the server's `json!` shape so a field
-/// rename on the server breaks compilation here rather than silently
-/// returning empty columns.
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct FederationOperation {
-    /// Stable identifier for the operation; also the detail-page key.
-    #[serde(default)]
-    pub operation_id: String,
-    /// Realm the operation belongs to.
-    #[serde(default)]
-    pub realm_id: Option<String>,
-    /// High-level operation type (e.g. `seal`, `delivery`).
-    #[serde(default)]
-    pub operation_kind: Option<String>,
-    /// Canonical event kind string.
-    #[serde(default)]
-    pub canonical_kind: Option<String>,
-    /// Discussion strand the operation projects into, when applicable.
-    #[serde(default)]
-    pub strand_id: Option<String>,
-    /// Discussion track, when applicable.
-    #[serde(default)]
-    pub track: Option<String>,
-    /// Operation digest (absent when digest computation failed server-side).
-    #[serde(default)]
-    pub digest: Option<String>,
-    /// Server-side creation timestamp (RFC 3339).
-    #[serde(default)]
-    pub created_at: Option<String>,
+impl FederationOperationExt for FederationOperation {
+    fn operation_kind_label(&self) -> String {
+        serde_json::to_value(&self.operation_kind)
+            .ok()
+            .and_then(|value| value.as_str().map(ToOwned::to_owned))
+            .unwrap_or_else(|| "-".to_owned())
+    }
+
+    fn canonical_kind_label(&self) -> String {
+        self.canonical_kind.as_str().to_owned()
+    }
+
+    fn created_at_display(&self) -> String {
+        self.created_at.to_rfc3339()
+    }
 }

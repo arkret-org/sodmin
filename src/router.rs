@@ -103,9 +103,6 @@ pub enum Route {
         #[route("/hardening")]
         HardeningDashboard {},
 
-        #[route("/starid/resolver")]
-        StaridResolver {},
-
         #[route("/coauth/audit-log")]
         CoauthAuditLog {},
         #[route("/coauth/accounts")]
@@ -404,11 +401,6 @@ fn ServerStatus() -> Element {
 #[component]
 fn HardeningDashboard() -> Element {
     rsx! { pages::hardening::HardeningDashboard {} }
-}
-
-#[component]
-fn StaridResolver() -> Element {
-    rsx! { pages::starid_resolver::StaridResolverPage {} }
 }
 
 #[component]

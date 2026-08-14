@@ -7,6 +7,7 @@ use crate::components::ui::error_banner::ErrorBanner;
 use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::{BreadcrumbItem, Breadcrumbs, PageHeader};
 use crate::router::Route;
+use crate::types::realms::AdminRealmExt;
 use crate::utils::i18n::t;
 
 #[component]
@@ -50,7 +51,7 @@ pub fn RealmShow(realm_id: String) -> Element {
                                     {field_row(t("realms.encrypted"), if realm.is_encrypted { t("common.yes") } else { t("common.no") })}
                                     {field_row(t("realms.join_rule"), realm.join_rule_label().unwrap_or_else(|| "-".to_string()))}
                                     {field_row(t("realms.status"), if realm.is_blocked { t("realms.blocked") } else { t("realms.active") })}
-                                    {field_row(t("realms.created_at"), realm.created_at.as_deref().unwrap_or("-").to_string())}
+                                    {field_row(t("realms.created_at"), realm.created_at_display().unwrap_or_else(|| "-".to_string()))}
                                         if let Some(ref topic) = realm.topic {
                                             div { class: "pt-2",
                                                 p { class: "text-sm text-muted-foreground mb-1", {t("realms.topic")} }

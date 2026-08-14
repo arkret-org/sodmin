@@ -1,3 +1,4 @@
+use arkret_wire::event_kind_str;
 use dioxus::prelude::*;
 
 use crate::api::audit;
@@ -130,9 +131,9 @@ pub fn AuditLog() -> Element {
                             },
                         }
                     }
-                    // P3A.5 — AKP-0007 event-kind filter dropdown.
-                    // The ak.circle.* event kinds match the SDK's
-                    // event-kind registry exactly.
+                    // P3A.5 — AKP-0007 event-kind filter dropdown. The values
+                    // come straight from the SDK's generated event-kind
+                    // registry, so a registry rename breaks this build.
                     div { class: "space-y-1",
                         Label { class: "text-xs text-muted-foreground".to_string(), {t("audit.filter_event_kind")} }
                         select {
@@ -142,14 +143,14 @@ pub fn AuditLog() -> Element {
                                 draft.write().kind = evt.value();
                             },
                             option { value: "", "—" }
-                            option { value: "ak.circle.create", {t("audit.filter_event_kind_circle_create")} }
-                            option { value: "ak.circle.update", {t("audit.filter_event_kind_circle_update")} }
-                            option { value: "ak.circle.archive", {t("audit.filter_event_kind_circle_archive")} }
-                            option { value: "ak.circle.restore", {t("audit.filter_event_kind_circle_restore")} }
-                            option { value: "ak.circle.tombstone", {t("audit.filter_event_kind_circle_tombstone")} }
-                            option { value: "ak.circle.member.state", {t("audit.filter_event_kind_circle_member_state")} }
-                            option { value: "ak.capability.grant", {t("audit.filter_event_kind_capability_grant")} }
-                            option { value: "ak.capability.revoke", {t("audit.filter_event_kind_capability_revoke")} }
+                            option { value: event_kind_str::CIRCLE_CREATE, {t("audit.filter_event_kind_circle_create")} }
+                            option { value: event_kind_str::CIRCLE_UPDATE, {t("audit.filter_event_kind_circle_update")} }
+                            option { value: event_kind_str::CIRCLE_ARCHIVE, {t("audit.filter_event_kind_circle_archive")} }
+                            option { value: event_kind_str::CIRCLE_RESTORE, {t("audit.filter_event_kind_circle_restore")} }
+                            option { value: event_kind_str::CIRCLE_TOMBSTONE, {t("audit.filter_event_kind_circle_tombstone")} }
+                            option { value: event_kind_str::CIRCLE_MEMBER_STATE, {t("audit.filter_event_kind_circle_member_state")} }
+                            option { value: event_kind_str::CAPABILITY_GRANT, {t("audit.filter_event_kind_capability_grant")} }
+                            option { value: event_kind_str::CAPABILITY_REVOKE, {t("audit.filter_event_kind_capability_revoke")} }
                         }
                     }
                 }

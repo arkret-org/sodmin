@@ -27,4 +27,3 @@ pub mod seal;
 pub mod server;
 pub mod service_routes;
 pub mod spaces;
-pub mod starid;

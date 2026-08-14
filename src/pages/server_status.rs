@@ -1,3 +1,4 @@
+use arkret_wire::ProfileId;
 use dioxus::prelude::*;
 
 use crate::api::server;
@@ -99,42 +100,38 @@ pub fn ServerStatus() -> Element {
                 }
             }
 
-            // Component-level status panel (admin /server/status).
+            // Reachability probe (admin /server/status). The endpoint runs no
+            // component health checks, so this panel must not present itself
+            // as a component roll-up: the previous mirror invented an
+            // `{ok, results}` shape the server never sent, every field
+            // defaulted, and the page reported "Issues Detected" on every
+            // healthy node without a word of explanation.
             div { class: "space-y-4",
-                h2 { class: "text-xl font-semibold tracking-tight", {t("server_status.components_title")} }
+                h2 { class: "text-xl font-semibold tracking-tight", {t("server_status.probe_title")} }
                 match &status_result {
                     Some(Ok(status)) => rsx! {
                         div { class: "flex items-center gap-4 mb-4",
-                            if status.ok {
-                                Badge { variant: BadgeVariant::Success, class: "text-base px-4 py-1".to_string(), {t("server_status.healthy")} }
+                            if status.is_ok() {
+                                Badge { variant: BadgeVariant::Success, class: "text-base px-4 py-1".to_string(), {t("server_status.reachable")} }
                             } else {
-                                Badge { variant: BadgeVariant::Destructive, class: "text-base px-4 py-1".to_string(), {t("server_status.issues")} }
+                                Badge { variant: BadgeVariant::Destructive, class: "text-base px-4 py-1".to_string(), {t("server_status.unreachable")} }
                             }
+                            span { class: "text-xs text-muted-foreground", {t("server_status.probe_hint")} }
                         }
                         div { class: "grid gap-4 md:grid-cols-2 lg:grid-cols-3",
-                            for component in status.results.iter() {
-                                Card {
-                                    CardContent { class: "p-4".to_string(),
-                                        div { class: "flex items-center justify-between",
-                                            div { class: "space-y-1",
-                                                p { class: "font-medium",
-                                                    {component.label.as_deref().unwrap_or("Unknown").to_string()}
-                                                }
-                                                if !component.ok {
-                                                    if let Some(ref reason) = component.reason {
-                                                        p { class: "text-xs text-destructive mt-1", "{reason}" }
-                                                    }
-                                                }
-                                            }
-                                            if component.ok {
-                                                Badge { variant: BadgeVariant::Success, "OK" }
-                                            } else {
-                                                Badge { variant: BadgeVariant::Destructive, "Error" }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
+                            {info_cell(t("server_status.probe_service_id"), status.service_id.clone())}
+                            {info_cell(t("server_status.probe_storage"), status.storage.clone())}
+                            {info_cell(t("server_status.probe_checked_by"), status.checked_by.clone())}
+                            {info_cell(t("server_status.probe_generated_at"), status.generated_at.clone())}
+                            {info_cell(t("server_status.probe_realms"), status.counts.realms.to_string())}
+                            {info_cell(
+                                t("server_status.probe_accounts"),
+                                status.counts.accounts.map(|value| value.to_string()).unwrap_or_else(|| "-".to_string()),
+                            )}
+                            {info_cell(
+                                t("server_status.probe_devices"),
+                                status.counts.devices.map(|value| value.to_string()).unwrap_or_else(|| "-".to_string()),
+                            )}
                         }
                     },
                     Some(Err(error)) => rsx! {
@@ -753,17 +750,18 @@ fn dev_posture_card(describe: &ServerDescribeDocument) -> Element {
 /// R3 (UI-6) — render a single-line status row per "new R3 profile" so
 /// the operator can see at a glance which of them the server has
 /// declared in `ak.server.read.describe.supported_profiles`. The list of
-/// known R3 profiles is held here (not in i18n) because it tracks the
-/// spec one-for-one and the i18n value is only the human label.
+/// known R3 profiles is held here (not in i18n) because the wire ids come
+/// from the SDK's generated profile registry and the i18n value is only the
+/// human label.
 fn r3_profile_status_section(profiles: &[String]) -> Element {
     // (wire profile id, i18n key for the description copy).
     let known: &[(&str, &str)] = &[
         (
-            "ak.profile.media_service_binding.v1",
+            ProfileId::MEDIA_SERVICE_BINDING_V1,
             "server_status.profile.media_service_binding",
         ),
         (
-            "ak.profile.key_backup.memory_hard.v1",
+            ProfileId::KEY_BACKUP_MEMORY_HARD_V1,
             "server_status.profile.key_backup_memory_hard",
         ),
     ];

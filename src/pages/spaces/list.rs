@@ -17,7 +17,7 @@ use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::table::*;
 use crate::router::Route;
-use crate::types::spaces::SpaceHealth;
+use crate::types::spaces::{SpaceHealth, SpaceHealthExt};
 use crate::utils::i18n::t;
 
 const PAGE_SIZE: u64 = 25;
@@ -99,14 +99,11 @@ pub fn SpaceList() -> Element {
                                         for row in page.data.iter() {
                                             {
                                                 let space_id = row.id.clone();
-                                                let name = row.name.clone().unwrap_or_else(|| "-".to_string());
+                                                let name = row.name.clone();
                                                 let members = row.member_count;
                                                 let label = t(row.health.label());
                                                 let variant = health_badge_variant(&row.health);
-                                                let created = row
-                                                    .created_at
-                                                    .clone()
-                                                    .unwrap_or_else(|| "-".to_string());
+                                                let created = row.created_at.to_rfc3339();
                                                 let detail_route = Route::SpaceShow {
                                                     space_id: space_id.clone(),
                                                 };

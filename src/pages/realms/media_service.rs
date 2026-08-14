@@ -128,8 +128,14 @@ fn render_focus_row(idx: usize, focus: &MediaServiceFocus) -> Element {
     let focus_id = focus.focus_id.clone();
     let focus_type = focus.focus_type.clone();
     let region = focus.region.clone().unwrap_or_else(|| "-".to_string());
-    let token_endpoint = focus.token_endpoint.clone();
-    let connect_url = focus.connect_url.clone();
+    // A spec-conformant descriptor always carries both
+    // (`media-service-binding.md` §2); rendering `-` is how the operator
+    // sees that this Realm's cell is incomplete.
+    let token_endpoint = focus
+        .token_endpoint
+        .clone()
+        .unwrap_or_else(|| "-".to_string());
+    let connect_url = focus.connect_url.clone().unwrap_or_else(|| "-".to_string());
     let health_endpoint = focus
         .health_endpoint
         .clone()

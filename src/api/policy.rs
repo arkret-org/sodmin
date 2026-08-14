@@ -1,72 +1,25 @@
 use std::collections::BTreeSet;
 
-use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
+use soland_contracts::admin::policy::{
+    AdminPolicyDocument, AdminPolicyDocumentPage, AdminPolicyPayload, PolicyEffect,
+    UpsertPolicyDocumentRequestBody,
+};
 
 use crate::api::client::{NO_BODY, NoBody, api_client, build_url};
 use crate::types::policy::{
     AdminPolicy, AdminPolicyListOutcome, CreatePolicyRequest, PinPolicySummary, PolicyAuditEntry,
-    PolicyDocumentPayload, PolicyEvidenceItem, PolicyGuardrailSummary, PolicyObligation,
-    PolicyResource, PolicyRuleSet, PolicySafetySummary,
+    PolicyEvidenceItem, PolicyGuardrailSummary, PolicyObligation, PolicyRuleSet,
+    PolicySafetySummary,
 };
 use crate::utils::net::error::HttpError;
-
-#[derive(Debug, Clone, Deserialize, Default)]
-struct PolicyDocumentsEnvelope {
-    #[serde(default)]
-    policies: Vec<PolicyDocumentDto>,
-    #[serde(default)]
-    next_cursor: Option<String>,
-}
-
-#[derive(Debug, Clone, Deserialize, Default)]
-struct PolicyDocumentDto {
-    #[serde(default)]
-    policy_id: String,
-    #[serde(default)]
-    scope: String,
-    #[serde(default)]
-    subject_ref: String,
-    #[serde(default)]
-    policy_kind: String,
-    #[serde(default)]
-    payload: PolicyDocumentPayload,
-    #[serde(default)]
-    active: bool,
-    #[serde(default)]
-    updated_at: Option<String>,
-}
-
-#[derive(Debug, Clone, Serialize)]
-struct UpsertPolicyDocumentRequestBody {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    policy_id: Option<String>,
-    scope: String,
-    subject_ref: String,
-    policy_kind: String,
-    effect: SolandPolicyEffect,
-    actions: Vec<String>,
-    resource: PolicyResource,
-    obligations: Vec<PolicyObligation>,
-    active: bool,
-}
-
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
-#[serde(rename_all = "snake_case")]
-enum SolandPolicyEffect {
-    Allow,
-    SoftDeny,
-    HardDeny,
-    RequireReview,
-    Quarantine,
-}
 
 pub async fn list_policies(
     _cursor: Option<&str>,
     _limit: u64,
 ) -> Result<AdminPolicyListOutcome, HttpError> {
     let url = build_url("/_soland/self/policies", &[])?;
-    let resp: PolicyDocumentsEnvelope = api_client(&url, "GET", NO_BODY).await?;
+    let resp: AdminPolicyDocumentPage = api_client(&url, "GET", NO_BODY).await?;
     Ok(AdminPolicyListOutcome {
         data: resp
             .policies
@@ -83,7 +36,8 @@ pub async fn create_policy(req: &CreatePolicyRequest) -> Result<AdminPolicy, Htt
         return Err(pin_policy_unavailable_error());
     }
     let body = upsert_body(None, req)?;
-    let resp: PolicyDocumentDto = api_client("/_soland/self/policies", "POST", Some(&body)).await?;
+    let resp: AdminPolicyDocument =
+        api_client("/_soland/self/policies", "POST", Some(&body)).await?;
     Ok(policy_from_document(resp))
 }
 
@@ -92,7 +46,8 @@ pub async fn update_policy(id: &str, req: &CreatePolicyRequest) -> Result<AdminP
         return Err(pin_policy_unavailable_error());
     }
     let body = upsert_body(Some(id.to_string()), req)?;
-    let resp: PolicyDocumentDto = api_client("/_soland/self/policies", "POST", Some(&body)).await?;
+    let resp: AdminPolicyDocument =
+        api_client("/_soland/self/policies", "POST", Some(&body)).await?;
     Ok(policy_from_document(resp))
 }
 
@@ -134,22 +89,14 @@ fn upsert_body(
 
 fn payload_parts(
     req: &CreatePolicyRequest,
-) -> Result<
-    (
-        SolandPolicyEffect,
-        Vec<String>,
-        PolicyResource,
-        Vec<PolicyObligation>,
-    ),
-    HttpError,
-> {
+) -> Result<(PolicyEffect, Vec<String>, Value, Vec<Value>), HttpError> {
     let rules = req.rules.clone().unwrap_or_default();
     let rules_value = rules.as_value();
     let effect = match rules_value.get("effect").and_then(Value::as_str) {
-        Some(value) => policy_effect_from_wire(value).ok_or_else(|| {
+        Some(value) => PolicyEffect::from_wire(value).ok_or_else(|| {
             HttpError::message(format!("unsupported policy effect from server: {value}"))
         })?,
-        None => SolandPolicyEffect::Allow,
+        None => PolicyEffect::Allow,
     };
     let actions = rules_value
         .get("actions")
@@ -166,44 +113,29 @@ fn payload_parts(
     let obligations = rules_value
         .get("obligations")
         .and_then(Value::as_array)
-        .map(|items| {
-            items
-                .iter()
-                .cloned()
-                .map(PolicyObligation::from)
-                .collect::<Vec<_>>()
-        })
+        .cloned()
         .unwrap_or_default();
-    let resource = PolicyResource::from(json!({
+    let resource = json!({
         "name": req.name,
         "description": req.description,
         "priority": req.priority,
         "rules": rules.into_value(),
-    }));
+    });
     Ok((effect, actions, resource, obligations))
 }
 
-fn policy_effect_from_wire(value: &str) -> Option<SolandPolicyEffect> {
-    match value {
-        "allow" => Some(SolandPolicyEffect::Allow),
-        "soft_deny" => Some(SolandPolicyEffect::SoftDeny),
-        "hard_deny" => Some(SolandPolicyEffect::HardDeny),
-        "require_review" => Some(SolandPolicyEffect::RequireReview),
-        "quarantine" => Some(SolandPolicyEffect::Quarantine),
-        _ => None,
-    }
-}
-
-fn policy_from_document(doc: PolicyDocumentDto) -> AdminPolicy {
-    let payload = doc.payload.as_value();
-    let guardrails = policy_guardrails_from_payload(payload);
+fn policy_from_document(doc: AdminPolicyDocument) -> AdminPolicy {
+    // The guardrail and pin heuristics scan operator-authored JSON, so they
+    // stay on `Value`; everything the contract types stays typed.
+    let payload = payload_value(&doc.payload);
+    let guardrails = policy_guardrails_from_payload(&payload);
     let safety = policy_safety_from_document(&doc);
     let rules = if safety.pin_summary.is_some() {
         Some(PolicyRuleSet::from(pin_policy_public_rules(&safety)))
     } else {
-        Some(PolicyRuleSet::from(payload.clone()))
+        Some(PolicyRuleSet::from(payload))
     };
-    let resource = payload.get("resource").cloned().unwrap_or(Value::Null);
+    let resource = doc.payload.resource.clone();
     let name = resource
         .get("name")
         .and_then(Value::as_str)
@@ -230,7 +162,7 @@ fn policy_from_document(doc: PolicyDocumentDto) -> AdminPolicy {
         is_enabled: doc.active,
         priority,
         created_at: None,
-        updated_at: doc.updated_at,
+        updated_at: Some(arkret_canonical::format_timestamp_canonical(doc.updated_at)),
         safety,
     }
 }
@@ -251,10 +183,15 @@ fn pin_policy_unavailable_error() -> HttpError {
     )
 }
 
-fn policy_safety_from_document(doc: &PolicyDocumentDto) -> PolicySafetySummary {
+fn payload_value(payload: &AdminPolicyPayload) -> Value {
+    serde_json::to_value(payload).unwrap_or(Value::Null)
+}
+
+fn policy_safety_from_document(doc: &AdminPolicyDocument) -> PolicySafetySummary {
     if !policy_document_targets_pin(doc) {
         return PolicySafetySummary::default();
     }
+    let payload = payload_value(&doc.payload);
 
     PolicySafetySummary {
         read_only: true,
@@ -262,18 +199,15 @@ fn policy_safety_from_document(doc: &PolicyDocumentDto) -> PolicySafetySummary {
             "pin policy summary standard surface unavailable; raw private fields are redacted"
                 .to_owned(),
         ),
-        pin_summary: Some(pin_summary_from_payload(
-            &doc.policy_kind,
-            doc.payload.as_value(),
-        )),
-        redacted_private_categories: private_pin_categories(doc.payload.as_value()),
+        pin_summary: Some(pin_summary_from_payload(&doc.policy_kind, &payload)),
+        redacted_private_categories: private_pin_categories(&payload),
     }
 }
 
-fn policy_document_targets_pin(doc: &PolicyDocumentDto) -> bool {
+fn policy_document_targets_pin(doc: &AdminPolicyDocument) -> bool {
     text_targets_pin_policy(&doc.policy_kind)
         || text_targets_pin_policy(&doc.policy_id)
-        || value_targets_pin_policy(doc.payload.as_value())
+        || value_targets_pin_policy(&payload_value(&doc.payload))
 }
 
 fn text_targets_pin_policy(value: &str) -> bool {
@@ -690,9 +624,16 @@ fn nested_string_field(value: &Value, parent: &str, keys: &[&str]) -> Option<Str
 
 #[cfg(test)]
 mod tests {
+    use chrono::{DateTime, Utc};
     use serde_json::json;
 
     use super::*;
+
+    fn fixture_timestamp() -> DateTime<Utc> {
+        DateTime::parse_from_rfc3339("2026-08-14T00:00:00Z")
+            .expect("fixture timestamp")
+            .with_timezone(&Utc)
+    }
 
     #[test]
     fn policy_guardrails_extract_approval_evidence_and_audit_trail() {
@@ -738,21 +679,24 @@ mod tests {
 
     #[test]
     fn policy_from_document_carries_guardrail_summary() {
-        let doc = PolicyDocumentDto {
+        let doc = AdminPolicyDocument {
             policy_id: "ak:policy:01HXY".to_owned(),
+            owner: "did:web:admin.example".to_owned(),
             scope: "ak:realm:01HXY".to_owned(),
             subject_ref: "did:web:admin.example".to_owned(),
             policy_kind: "ak.realm.policy.update".to_owned(),
-            payload: json!({
-                "resource": {
+            payload: AdminPolicyPayload {
+                effect: PolicyEffect::Allow,
+                actions: Vec::new(),
+                resource: json!({
                     "name": "Realm policy",
                     "priority": 3,
                     "audit_trail": [{"action": "policy.create"}]
-                }
-            })
-            .into(),
+                }),
+                obligations: Vec::new(),
+            },
             active: true,
-            updated_at: None,
+            updated_at: fixture_timestamp(),
         };
 
         let policy = policy_from_document(doc);
@@ -801,25 +745,27 @@ mod tests {
 
     #[test]
     fn pin_policy_document_is_read_only_and_redacts_private_material() {
-        let doc = PolicyDocumentDto {
+        let doc = AdminPolicyDocument {
             policy_id: "ak:policy:pins".to_owned(),
+            owner: "did:web:admin.example".to_owned(),
             scope: "ak:realm:01HXY".to_owned(),
             subject_ref: "*".to_owned(),
             policy_kind: "ak.profile.pinned_items.v1".to_owned(),
-            payload: json!({
-                "actions": ["ak.pin.add", "ak.pin.reorder"],
-                "resource": {
+            payload: AdminPolicyPayload {
+                effect: PolicyEffect::Allow,
+                actions: vec!["ak.pin.add".to_owned(), "ak.pin.reorder".to_owned()],
+                resource: json!({
                     "name": "Realm pins",
                     "pin_scope": {"kind": "realm", "id": "ak:realm:01HXY"},
                     "quota": {"max_pins_per_scope": 5, "period": "PT1H"},
                     "note_visibility": "encrypted",
                     "account_data_key": "ak.search.index_manifest.v1:secret-realm-key",
                     "search_index": {"shard_key": "super-secret-token"}
-                }
-            })
-            .into(),
+                }),
+                obligations: Vec::new(),
+            },
             active: true,
-            updated_at: None,
+            updated_at: fixture_timestamp(),
         };
 
         let policy = policy_from_document(doc);

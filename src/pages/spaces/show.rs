@@ -47,10 +47,7 @@ pub fn SpaceShow(space_id: String) -> Element {
                     let parent_count = if tree.parent.is_some() { 1 } else { 0 };
                     let child_count = tree.children.len();
                     let depth_label = depth_summary_label(parent_count, child_count);
-                    let center_name = tree
-                        .name
-                        .clone()
-                        .unwrap_or_else(|| "-".to_string());
+                    let center_name = tree.name.clone();
                     let center_id = tree.space_id.clone();
                     rsx! {
                         if parent_count == 0 && child_count == 0 {
@@ -108,7 +105,7 @@ fn HierarchyRow(node: SpaceHierarchyNode, kind_label: String, indent: u32) -> El
     let pad_class = if indent == 0 { "pl-0" } else { "pl-4" };
     let id = node.space_id.clone();
     let id_for_link = id.clone();
-    let name = node.name.clone().unwrap_or_else(|| "-".to_string());
+    let name = node.name.clone();
     let members = node.member_count;
     rsx! {
         div { class: "flex items-center gap-2 {pad_class}",

@@ -146,11 +146,6 @@ fn build_nav_sections() -> Vec<NavSection> {
                 Route::HardeningDashboard {},
                 "shield",
             ),
-            NavItem::new(
-                t("nav.starid_resolver"),
-                Route::StaridResolver {},
-                "fingerprint",
-            ),
         ],
     ));
 

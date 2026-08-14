@@ -34,7 +34,7 @@ pub async fn get_server_stats() -> Result<ServerStats, HttpError> {
     api_client(SERVER_STATS_PATH, "GET", NO_BODY).await
 }
 
-pub async fn get_server_status() -> Result<ServerStatusOutcome, HttpError> {
+pub async fn get_server_status() -> Result<ServerStatus, HttpError> {
     api_client(SERVER_STATUS_PATH, "GET", NO_BODY).await
 }
 
@@ -57,14 +57,6 @@ pub async fn get_soland_health() -> Result<HealthEnvelope, HttpError> {
 /// T8.3 — fetch coauth `/health` against the configured upstream URL.
 pub async fn get_coauth_health() -> Result<HealthEnvelope, HttpError> {
     let url = crate::utils::net::session::coauth_public_url()
-        .map(|base| format!("{}/health", base.trim_end_matches('/')))
-        .unwrap_or_else(|| "/health".to_string());
-    api_client(&url, "GET", NO_BODY).await
-}
-
-/// T8.3 — fetch starid `/health` against the configured upstream URL.
-pub async fn get_starid_health() -> Result<HealthEnvelope, HttpError> {
-    let url = crate::utils::net::session::starid_public_url()
         .map(|base| format!("{}/health", base.trim_end_matches('/')))
         .unwrap_or_else(|| "/health".to_string());
     api_client(&url, "GET", NO_BODY).await

@@ -13,7 +13,6 @@ the Gitea workflow.
 | --- | --- | --- |
 | `SOLAND_URL` | yes | Internal URL for the soland Principal Server upstream. Requests to `/_arkret/` and the `/_soland/admin/` operator surface proxy here. |
 | `COAUTH_URL` | recommended | Internal URL for coauth admin/auth endpoints. Enables `/auth/`, `/_arkret/gate/`, the coauth `/_coauth/admin/*` resource roots, `/authorize`, `/oauth/`, and `/.well-known/` proxy locations. |
-| `STARID_PUBLIC_URL` | no | Public Starid base URL exposed through `/config.json`; enables the did:webvh resolver panels. |
 | `COAUTH_PUBLIC_URL` | recommended | Browser-facing coauth origin written to `/config.json` for OAuth2 PKCE redirects. |
 | `SODMIN_PORT` | no | nginx listen port. Defaults to `80`. |
 | `SODMIN_TELEMETRY_ENDPOINT` | no | P5 — opt-in browser-error telemetry sink. When set, `/config.json` exposes the URL and `utils::telemetry` POSTs structured (no-PII) error events. Operator must also flip `localStorage.sodmin_telemetry_opt_in=1`. |

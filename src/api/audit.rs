@@ -99,6 +99,8 @@ fn parse_audit_time(value: &str) -> Option<DateTime<Utc>> {
 
 #[cfg(test)]
 mod tests {
+    use arkret_wire::event_kind_str;
+
     use super::*;
 
     #[test]
@@ -122,11 +124,14 @@ mod tests {
     fn filter_drops_empty_fields_and_unparsable_times() {
         let query = AuditFilter {
             action: Some("  ".to_owned()),
-            kind: Some("ak.circle.create".to_owned()),
+            kind: Some(event_kind_str::CIRCLE_CREATE.to_owned()),
             since: Some("yesterday".to_owned()),
             ..Default::default()
         }
         .into_query();
-        assert_eq!(query, vec![("filter[kind]", "ak.circle.create".to_owned())]);
+        assert_eq!(
+            query,
+            vec![("filter[kind]", event_kind_str::CIRCLE_CREATE.to_owned())]
+        );
     }
 }

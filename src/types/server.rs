@@ -1,9 +1,13 @@
-//! DTO shapes for the server status and describe admin surfaces.
+//! Server status / info / stats / describe admin surfaces.
+//!
+//! `/_soland/admin/server/{info,stats,status}` are deployment-local operator
+//! endpoints whose shapes live in `soland_contracts::admin`; sodmin keeps no
+//! wire mirror of them.
 //!
 //! The `/_arkret/describe` payload is the SDK-authoritative
-//! [`ServiceDescribe`] (`arkret_models_discovery`). sodmin does not
-//! mirror it; service-proprietary top-level extensions are read from the
-//! SDK model's flattened `extensions` map.
+//! [`ServiceDescribe`] (`arkret_models_discovery`). sodmin does not mirror it
+//! either; service-proprietary top-level extensions are read from the SDK
+//! model's flattened `extensions` map.
 
 // (The `ClaimedProfileEntry` / `VerifiedProfileEntry` /
 // `CompatSurfaceEntry` element types are reachable through the SDK
@@ -11,20 +15,10 @@
 // fields and need no local re-export.)
 pub use arkret_models_discovery::ServiceDescribe;
 use serde::{Deserialize, Serialize};
-
-// ── Server info types ──
-
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct ServerInfo {
-    #[serde(default)]
-    pub server_version: String,
-    #[serde(default)]
-    pub protocol_version: Option<String>,
-    #[serde(default)]
-    pub server_name: Option<String>,
-    #[serde(default)]
-    pub uptime: Option<u64>,
-}
+pub use soland_contracts::admin::{
+    AdminServerInfo as ServerInfo, AdminServerStats as ServerStats,
+    AdminServerStatus as ServerStatus,
+};
 
 /// `/_arkret/describe` response envelope.
 ///
@@ -74,20 +68,6 @@ impl ServerDescribeDocument {
         self.extra_value(path)?.as_str().map(ToOwned::to_owned)
     }
 
-    /// Return a string-array extension, dropping non-string elements.
-    pub fn extra_string_list(&self, path: &[&str]) -> Vec<String> {
-        self.extra_value(path)
-            .and_then(serde_json::Value::as_array)
-            .map(|items| {
-                items
-                    .iter()
-                    .filter_map(serde_json::Value::as_str)
-                    .map(ToOwned::to_owned)
-                    .collect()
-            })
-            .unwrap_or_default()
-    }
-
     /// When `development_mode == true` and `verified_profiles` is
     /// non-empty the server is making contradictory claims (relaxed
     /// proof verifier breaks the verification chain). The UI surfaces a
@@ -114,53 +94,12 @@ impl ServerDescribeDocument {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct ServerStats {
-    #[serde(default)]
-    pub actor_count: u64,
-    #[serde(default)]
-    pub active_actor_count: u64,
-    #[serde(default)]
-    pub realm_count: u64,
-    #[serde(default)]
-    pub report_count: u64,
-    #[serde(default)]
-    pub federation_peer_count: u64,
-    #[serde(default)]
-    pub applet_count: u64,
-    #[serde(default)]
-    pub agent_count: u64,
-    #[serde(default)]
-    pub blob_count: u64,
-    #[serde(default)]
-    pub blob_total_size: u64,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct ServerStatusComponent {
-    #[serde(default)]
-    pub ok: bool,
-    #[serde(default)]
-    pub label: Option<String>,
-    #[serde(default)]
-    pub category: Option<String>,
-    #[serde(default)]
-    pub reason: Option<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct ServerStatusOutcome {
-    #[serde(default)]
-    pub ok: bool,
-    #[serde(default)]
-    pub results: Vec<ServerStatusComponent>,
-}
-
 #[cfg(test)]
 mod tests {
+    use arkret_wire::{ProfileId, ServiceOperationId};
     use serde_json::json;
 
-    use super::ServerDescribeDocument;
+    use super::{ServerDescribeDocument, ServerStatus};
 
     /// Minimal payload satisfying every required `ServiceDescribe` field.
     fn base_describe() -> serde_json::Value {
@@ -174,8 +113,8 @@ mod tests {
             "trust_domain": "ak:trust_domain:soland.local",
             "service_kind": "principal_server",
             "protocol_version": "1.0",
-            "supported_profiles": ["ak.profile.principal_server.v1"],
-            "supported_operations": ["ak.self.events.command.submit"],
+            "supported_profiles": [ProfileId::PRINCIPAL_SERVER_V1],
+            "supported_operations": [ServiceOperationId::SELF_EVENTS_COMMAND_SUBMIT],
             "supported_bindings": [],
             "supported_features": ["events.describe", "events.submit"],
             "auth_metadata": { "mode": "production" },
@@ -189,7 +128,7 @@ mod tests {
             "plaintext_visibility": { "max_visibility": "private_plaintext", "data_classes": ["message_content"] },
             "implemented_features": ["events.describe"],
             "claimed_profiles": [{
-                "profile_id": "ak.profile.principal_server.v1",
+                "profile_id": ProfileId::PRINCIPAL_SERVER_V1,
                 "claim_kind": "self_claimed"
             }],
             "verified_profiles": [],
@@ -222,7 +161,7 @@ mod tests {
         assert!(!describe.development_mode);
         assert_eq!(
             describe.claimed_profiles[0].profile_id,
-            "ak.profile.principal_server.v1"
+            ProfileId::PRINCIPAL_SERVER_V1
         );
         assert_eq!(describe.compat_surfaces[0].name, "federation.bridge");
         assert_eq!(
@@ -270,5 +209,22 @@ mod tests {
             Some("urn:coauth:admin".to_string())
         );
         assert!(!describe.description.extensions.contains_key("service_id"));
+    }
+
+    #[test]
+    fn server_status_parses_the_producer_shape() {
+        let status: ServerStatus = serde_json::from_value(json!({
+            "status": "ok",
+            "service_id": "ak:did_core:web:soland.local",
+            "storage": "postgres",
+            "development_mode": true,
+            "checked_by": "did:web:alice.example",
+            "generated_at": "2026-08-14T00:00:00.000Z",
+            "counts": { "accounts": 4, "devices": null, "realms": 2 },
+        }))
+        .expect("soland status should deserialize");
+
+        assert!(status.is_ok());
+        assert_eq!(status.counts.devices, None);
     }
 }
