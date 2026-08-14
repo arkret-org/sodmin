@@ -213,7 +213,7 @@ pub fn should_reset_cursor_pagination(error: &HttpError, cursor: Option<&str>) -
             | (
                 400,
                 Some(
-                    arkret_wire::ErrorCode::INVALID_PARAM | arkret_wire::ErrorCode::CURSOR_INVALID
+                    arkret_wire::ErrorCode::PARAM_INVALID | arkret_wire::ErrorCode::CURSOR_INVALID
                 )
             )
     )
@@ -245,11 +245,11 @@ mod tests {
             Some("ak:cursor:abc")
         ));
         assert!(should_reset_cursor_pagination(
-            &err_with_code(400, "invalid_param"),
+            &err_with_code(400, "param_invalid"),
             Some("ak:cursor:abc")
         ));
         assert!(!should_reset_cursor_pagination(
-            &err_with_code(400, "invalid_param"),
+            &err_with_code(400, "param_invalid"),
             None
         ));
         assert!(!should_reset_cursor_pagination(
