@@ -24,10 +24,10 @@ use crate::router::Route;
 use crate::types::MediaServiceFocus;
 use crate::utils::i18n::t;
 
-/// The focus backend types accepted by the arkret-spec media_service
+/// The focus backend kinds accepted by the arkret-spec media_service
 /// binding profile (`ak.profile.media_service_binding.v1`). Used only to
-/// flag an unrecognized type in the read-only view.
-pub const FOCUS_TYPES: &[&str] = &[
+/// flag an unrecognized `focus_kind` in the read-only view.
+pub const FOCUS_KINDS: &[&str] = &[
     "livekit",
     "mediasoup",
     "janus",
@@ -126,16 +126,13 @@ pub fn MediaServicePage(realm_id: String) -> Element {
 
 fn render_focus_row(idx: usize, focus: &MediaServiceFocus) -> Element {
     let focus_id = focus.focus_id.clone();
-    let focus_type = focus.focus_type.clone();
+    let focus_kind = focus.focus_kind.clone();
     let region = focus.region.clone().unwrap_or_else(|| "-".to_string());
-    // A spec-conformant descriptor always carries both
-    // (`media-service-binding.md` §2); rendering `-` is how the operator
-    // sees that this Realm's cell is incomplete.
-    let token_endpoint = focus
-        .token_endpoint
-        .clone()
-        .unwrap_or_else(|| "-".to_string());
-    let connect_url = focus.connect_url.clone().unwrap_or_else(|| "-".to_string());
+    // Both are normative required fields (`media-service-binding.md` §2), so a
+    // focus that reaches this page always carries them: a descriptor missing
+    // either one fails the shared contract's decode before it gets here.
+    let token_endpoint = focus.token_endpoint.clone();
+    let connect_url = focus.connect_url.clone();
     let health_endpoint = focus
         .health_endpoint
         .clone()
@@ -145,14 +142,14 @@ fn render_focus_row(idx: usize, focus: &MediaServiceFocus) -> Element {
         .clone()
         .unwrap_or_else(|| "-".to_string());
     let capabilities = focus.capabilities.clone();
-    let known_type = FOCUS_TYPES.contains(&focus.focus_type.as_str());
+    let known_kind = FOCUS_KINDS.contains(&focus.focus_kind.as_str());
 
     rsx! {
         div {
             class: "rounded-md border p-3 space-y-2",
             div { class: "flex items-center justify-between",
                 p { class: "text-xs text-muted-foreground", {t("media_service.focus_index").replace("{n}", &(idx + 1).to_string())} }
-                if !known_type {
+                if !known_kind {
                     Badge { variant: BadgeVariant::Destructive, {t("media_service.unknown_backend")} }
                 }
             }
@@ -163,7 +160,7 @@ fn render_focus_row(idx: usize, focus: &MediaServiceFocus) -> Element {
                 }
                 div { class: "space-y-1",
                     p { class: "text-xs text-muted-foreground", {t("media_service.focus_backend")} }
-                    p { class: "text-sm font-mono", "{focus_type}" }
+                    p { class: "text-sm font-mono", "{focus_kind}" }
                 }
                 div { class: "space-y-1",
                     p { class: "text-xs text-muted-foreground", {t("media_service.focus_region")} }
