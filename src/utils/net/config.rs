@@ -3,6 +3,7 @@
 /// storage on app boot so `utils::net::session::coauth_public_url` can read
 /// it back from any layer.
 #[derive(Debug, Clone, Default, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct RuntimeConfig {
     #[serde(default)]
     pub coauth_public_url: String,
@@ -12,6 +13,21 @@ pub struct RuntimeConfig {
     /// structured (no-PII) error events here.
     #[serde(default)]
     pub telemetry_endpoint: String,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn runtime_config_rejects_misspelled_security_relevant_keys() {
+        let error = serde_json::from_value::<RuntimeConfig>(serde_json::json!({
+            "coauth_public_url": "https://auth.example",
+            "telemetery_endpoint": "https://collector.example"
+        }))
+        .expect_err("unknown deployment keys must not be silently ignored");
+        assert!(error.to_string().contains("telemetery_endpoint"));
+    }
 }
 
 /// Why `/config.json` could not be turned into a usable runtime config.

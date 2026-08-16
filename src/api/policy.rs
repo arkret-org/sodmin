@@ -215,7 +215,7 @@ fn text_targets_pin_policy(value: &str) -> bool {
     value == "ak.pin"
         || value == "ak.pin.*"
         || value.starts_with("ak.pin.")
-        || value.contains("ak.profile.pinned_items")
+        || value.contains(arkret_wire::ProfileId::PINNED_ITEMS_V1)
         || value.contains("pinned_items")
         || value.contains("pin_policy")
         || value.contains("pin.policy")
@@ -469,9 +469,9 @@ fn add_private_category_for_text(value: &str, categories: &mut BTreeSet<String>)
     let normalized = value.to_ascii_lowercase().replace('-', "_");
     if normalized.contains("account_data")
         || normalized.contains("accountdata")
-        || normalized.contains("ak.search.index_manifest")
-        || normalized.contains("ak.saved")
-        || normalized.contains("ak.reminders")
+        || normalized.contains(arkret_wire::AccountDataKey::SEARCH_INDEX_MANIFEST_V1)
+        || normalized.contains(arkret_wire::AccountDataKey::SAVED_V1)
+        || normalized.contains(arkret_wire::AccountDataKey::REMINDERS_V1)
     {
         categories.insert("private account-data".to_owned());
     }

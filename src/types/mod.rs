@@ -32,9 +32,6 @@ pub use handles::*;
 pub mod invite_tokens;
 pub use invite_tokens::*;
 
-pub mod key_backup;
-pub use key_backup::*;
-
 pub mod media;
 pub use media::*;
 

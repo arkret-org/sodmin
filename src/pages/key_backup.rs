@@ -1,11 +1,10 @@
 //! B-C key-backup admin page (`/key-backup`).
 //!
-//! Three panes:
+//! Two panes:
 //!   1. Backup series list with frontier status + per-series 3-class 409 counters
 //!      (`series_chain_broken` / `series_seq_not_monotonic` / `series_predecessor_not_found`).
 //!   2. Recovery policy history (read-only; spec `recovery_policy_summary` rows — policy publish
 //!      requires a principal-signed `auth_data` transcript the admin UI cannot mint).
-//!   3. Recovery receipt history.
 
 use arkret_models_crypto::{KeyBackupSummary, RecoveryPolicySummary};
 use dioxus::prelude::*;
@@ -73,19 +72,6 @@ pub fn KeyBackupList() -> Element {
         }
     });
 
-    let receipts_principal_q = principal_filter.read().clone();
-    let mut receipts_data = use_resource(move || {
-        let principal_q = receipts_principal_q.clone();
-        async move {
-            let principal_id = if principal_q.is_empty() {
-                None
-            } else {
-                Some(principal_q.as_str())
-            };
-            key_backup::list_recovery_receipts(None, principal_id).await
-        }
-    });
-
     rsx! {
         div { class: "space-y-6",
             PageHeader {
@@ -136,7 +122,6 @@ pub fn KeyBackupList() -> Element {
                         size: ButtonSize::Sm,
                         onclick: move |_| {
                             policies_data.restart();
-                            receipts_data.restart();
                         },
                         {t("key_backup.apply_recovery_filter")}
                     }
@@ -223,62 +208,6 @@ pub fn KeyBackupList() -> Element {
                         ErrorBanner {
                             message: e.message.clone(),
                             on_retry: move |_| policies_data.restart(),
-                        }
-                    },
-                    None => rsx! { PageSkeleton {} },
-                }
-            }
-
-            // ── Recovery receipt history ──
-            div { class: "rounded-md border",
-                div { class: "p-3 border-b font-medium text-sm", {t("key_backup.recovery_receipts")} }
-                match &*receipts_data.read() {
-                    Some(Ok(resp)) => rsx! {
-                        Table {
-                            TableHeader {
-                                TableRow {
-                                    TableHead { "receipt_id" }
-                                    TableHead { "recovery_session_id" }
-                                    TableHead { "policy_id" }
-                                    TableHead { "completed_at" }
-                                    TableHead { "outcome" }
-                                }
-                            }
-                            TableBody {
-                                if resp.data.is_empty() {
-                                    TableRow {
-                                        TableCell { colspan: 99,
-                                            class: "text-center text-muted-foreground py-6".to_string(),
-                                            {t("key_backup.no_receipts")}
-                                        }
-                                    }
-                                } else {
-                                    for r in resp.data.iter() {
-                                        TableRow {
-                                            key: "{r.receipt_id}",
-                                            TableCell { class: "font-mono text-xs".to_string(), "{r.receipt_id}" }
-                                            TableCell { class: "font-mono text-xs".to_string(), "{r.recovery_session_id}" }
-                                            TableCell { class: "font-mono text-xs".to_string(), "{r.policy_id}" }
-                                            TableCell { class: "text-xs".to_string(),
-                                                "{r.completed_at.clone().unwrap_or_else(|| \"-\".into())}"
-                                            }
-                                            TableCell {
-                                                if r.outcome == "completed" {
-                                                    Badge { variant: BadgeVariant::Default, "completed" }
-                                                } else {
-                                                    Badge { variant: BadgeVariant::Outline, "{r.outcome}" }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    Some(Err(e)) => rsx! {
-                        ErrorBanner {
-                            message: e.message.clone(),
-                            on_retry: move |_| receipts_data.restart(),
                         }
                     },
                     None => rsx! { PageSkeleton {} },
