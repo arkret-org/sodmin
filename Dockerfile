@@ -46,15 +46,26 @@ COPY sodmin/ /workspace/sodmin
 
 WORKDIR /workspace/sodmin
 
+# `yoface` is a private cargo git dependency (github.com/arkret-org/yoface),
+# not a sibling copied above. `sodmin/.cargo/config.toml` sets
+# `net.git-fetch-with-cli`, so cargo asks git for credentials and git asks this
+# helper, which reads the mounted build secret at call time — the token stays
+# in the tmpfs mount and never lands in a layer or the image. Pass it with
+#   docker build --secret id=github_token,env=GITHUB_TOKEN ...
+RUN git config --global credential.helper \
+    '!f() { echo username=x-access-token; echo "password=$(cat /run/secrets/github_token)"; }; f'
+
 # Pre-fetch deps so source-only changes don't redownload the world.
 RUN --mount=type=cache,id=sodmin-cargo-registry,target=/usr/local/cargo/registry \
     --mount=type=cache,id=sodmin-cargo-git,target=/usr/local/cargo/git \
+    --mount=type=secret,id=github_token,required=true \
     cargo fetch --locked
 
 RUN --network=default \
     --mount=type=cache,id=sodmin-cargo-registry,target=/usr/local/cargo/registry \
     --mount=type=cache,id=sodmin-cargo-git,target=/usr/local/cargo/git \
     --mount=type=cache,id=sodmin-target,target=/workspace/sodmin/target \
+    --mount=type=secret,id=github_token,required=true \
     for i in 1 2 3; do dx build --release --debug-symbols false && break || echo "Retry $i..." && sleep 10; done && \
     dist_dir="$(find /workspace/sodmin/target/dx -type d -path '*/release/web/public' | head -n 1)" && \
     test -n "$dist_dir" && \

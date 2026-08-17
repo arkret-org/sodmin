@@ -79,7 +79,7 @@ fresh admin surfaces on top of R2/R3. See [`CHANGELOG.md`](CHANGELOG.md)
 `[Unreleased]` and [`../_sodmin_soland_todos.md`](../_sodmin_soland_todos.md) for the canonical
 wire-breaking list. New admin views:
 
-- **`ServiceDescribe` v2 detail** — all 17 fields rendered; the
+- **`ServiceDescribe` detail** — all 17 required fields rendered; the
   combination `development_mode=true` + non-empty `verified_profiles`
   paints red.
 - **Delivery-binding handover panel** — shows the new error codes

@@ -24,7 +24,7 @@ pub use soland_contracts::admin::{
 ///
 /// The protocol-authoritative fields deserialize into the SDK
 /// [`ServiceDescribe`] (strict: `service_id: ServiceId`, an exact
-/// `service_resolution` commitment, `trust_domain: TypedTrustDomainId`,
+/// `service_resolution` commitment, `trust_domain: TrustDomainId`,
 /// `development_mode: bool`, …).
 /// Any additional top-level keys a service emits beyond the spec shape
 /// land in [`ServiceDescribe::extensions`]; views read them via

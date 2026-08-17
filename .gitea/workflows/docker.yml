@@ -204,6 +204,11 @@ jobs:
         shell: bash
         env:
           TAGS: ${{ steps.tags.outputs.tags }}
+          # Read inside the build by the Dockerfile's credential helper so
+          # cargo can fetch the private `yoface` git dependency. Must be a
+          # GitHub PAT with read access to arkret-org/yoface — the Gitea
+          # `CI_REPO_TOKEN` cannot authenticate against github.com.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_COM_TOKEN }}
         run: |
           set -euo pipefail
 
@@ -217,6 +222,7 @@ jobs:
             --load \
             --platform linux/arm64 \
             --pull \
+            --secret id=github_token,env=GITHUB_TOKEN \
             "${tag_args[@]}" \
             -f sodmin/Dockerfile \
             .

@@ -166,4 +166,4 @@ urlencoding = "2.1.3"
 wasm-bindgen = "0.2.123"
 wasm-bindgen-futures = "0.4.73"
 web-sys = "0.3.100"
-yoface = {path = "../yoface"}
+yoface = {git = "https://github.com/arkret-org/yoface",branch = "main"}

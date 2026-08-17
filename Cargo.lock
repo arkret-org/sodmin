@@ -112,6 +112,7 @@ dependencies = [
  "sha2 0.11.0",
  "thiserror 2.0.18",
  "unicode-normalization",
+ "uuid",
 ]
 
 [[package]]
@@ -4872,6 +4873,7 @@ checksum = "4d93c89cdc2d3a63c3ec48ffe926931bdc069eafa8e4402fe6d8f790c9d1e576"
 [[package]]
 name = "yoface"
 version = "0.1.0"
+source = "git+https://github.com/arkret-org/yoface?branch=main#9e401e59d633dcee4130bf4892c0792c6b554da2"
 dependencies = [
  "dioxus",
  "dioxus-icons",

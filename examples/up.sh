@@ -122,7 +122,6 @@ listeners_replacement = (
     "    - name: discovery\n"
     "    - name: human\n"
     "    - name: oauth\n"
-    "    - name: compat\n"
     "    - name: restapi\n"
     "    - name: assets\n"
     "    - name: adminapi\n"

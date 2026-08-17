@@ -225,7 +225,7 @@ fn describe_body(describe: &ServerDescribeDocument) -> Element {
     let resolution_history_head = describe.service_resolution.method_history_head.clone();
     let resolution_version_id = describe.service_resolution.version_id.clone();
     // Round 4 — `trust_domain` is a required (validated) ServerDescribe
-    // v2 field in the SDK type, so it is always present here.
+    // field in the SDK type, so it is always present here.
     let trust_domain = describe.trust_domain.to_string();
     let service_kind = describe.service_kind.as_str().to_owned();
     let protocol = describe.protocol_version.clone();
@@ -245,8 +245,8 @@ fn describe_body(describe: &ServerDescribeDocument) -> Element {
     let features = describe.supported_features.clone();
     let implemented = describe.implemented_features.clone();
     let operations = describe.supported_operations.clone();
-    // ServiceDescribe v1 strong-typed `supported_bindings`; render each as
-    // JSON so the free-form chip section keeps reading `kind` / `base_url`.
+    // ServiceDescribe carries strong-typed `supported_bindings`; render each
+    // as JSON so the free-form chip section keeps reading `kind` / `base_url`.
     let bindings: Vec<serde_json::Value> = describe
         .supported_bindings
         .iter()
@@ -275,9 +275,9 @@ fn describe_body(describe: &ServerDescribeDocument) -> Element {
     // banner above the rest of the card.
     let dev_with_verified = describe.dev_mode_with_verified_profiles();
 
-    // ServiceDescribe v1 replaced the free-form top-level `rate_limit` with a
-    // typed `rate_limit_policy` (or `rate_limit_policy_id`). Render it as JSON
-    // so the existing free-form panel keeps working.
+    // ServiceDescribe carries a typed `rate_limit_policy` (or
+    // `rate_limit_policy_id`); there is no free-form top-level `rate_limit`.
+    // Render it as JSON so the existing free-form panel keeps working.
     let rate_limit_value = describe
         .rate_limit_policy
         .as_ref()
@@ -345,7 +345,7 @@ fn describe_body(describe: &ServerDescribeDocument) -> Element {
             }
 
             // Round 4 — chip lists for the four list-shaped ServerDescribe
-            // v2 fields: supported_profiles / supported_features /
+            // fields: supported_profiles / supported_features /
             // implemented_features / supported_operations. Each renders
             // as a flat strip of mono chips; conformance buckets render
             // separately below.
@@ -557,7 +557,7 @@ fn format_number(value: f64) -> String {
     }
 }
 
-/// Round 4 — uniform helper for the chip-list ServerDescribe v2 fields
+/// Round 4 — uniform helper for the chip-list ServerDescribe fields
 /// (supported_profiles / supported_features / implemented_features /
 /// supported_operations). Returns an empty fragment when the slice is
 /// empty so we don't clutter the card with `-` rows.
