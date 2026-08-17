@@ -602,13 +602,13 @@ fn conformance_section(describe: &ServerDescribeDocument, dev_mode_active: bool)
         .map(|profile| profile.profile_id.clone())
         .collect::<Vec<_>>();
     let experimental = describe.experimental_features.clone();
-    let compat = describe
-        .compat_surfaces
+    let interop = describe
+        .interop_surfaces
         .iter()
         .map(|surface| surface.name.clone())
         .collect::<Vec<_>>();
 
-    if verified.is_empty() && claimed.is_empty() && experimental.is_empty() && compat.is_empty() {
+    if verified.is_empty() && claimed.is_empty() && experimental.is_empty() && interop.is_empty() {
         return rsx! {};
     }
 
@@ -638,11 +638,11 @@ fn conformance_section(describe: &ServerDescribeDocument, dev_mode_active: bool)
                     ConformanceTone::Experimental,
                 )}
             }
-            if !compat.is_empty() {
+            if !interop.is_empty() {
                 {conformance_bucket(
-                    t("server_status.compat_surfaces"),
-                    &compat,
-                    ConformanceTone::Compat,
+                    t("server_status.interop_surfaces"),
+                    &interop,
+                    ConformanceTone::Interop,
                 )}
             }
         }
@@ -655,7 +655,7 @@ enum ConformanceTone {
     VerifiedBlockedByDev,
     Claimed,
     Experimental,
-    Compat,
+    Interop,
 }
 
 fn conformance_bucket(label: String, items: &[String], tone: ConformanceTone) -> Element {
@@ -680,7 +680,7 @@ fn conformance_bucket(label: String, items: &[String], tone: ConformanceTone) ->
             "\u{1F9EA}",
             Some(t("server_status.experimental_warning")),
         ),
-        ConformanceTone::Compat => (
+        ConformanceTone::Interop => (
             "bg-gray-500/10 text-gray-700 dark:text-gray-300 border border-gray-500/30",
             "\u{1F50C}",
             None,

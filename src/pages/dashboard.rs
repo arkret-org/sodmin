@@ -151,10 +151,10 @@ pub fn Dashboard() -> Element {
                 .collect::<Vec<_>>()
         })
         .unwrap_or_default();
-    let compat_surfaces = describe_data
+    let interop_surfaces = describe_data
         .as_ref()
         .map(|d| {
-            d.compat_surfaces
+            d.interop_surfaces
                 .iter()
                 .map(|entry| entry.name.clone())
                 .collect::<Vec<_>>()
@@ -275,7 +275,7 @@ pub fn Dashboard() -> Element {
                     div { class: "grid gap-3 md:grid-cols-2 xl:grid-cols-4",
                         {metadata_cell(t("dashboard.verified_profiles"), join_or_dash(&verified_profiles))}
                         {metadata_cell(t("dashboard.claimed_profiles"), join_or_dash(&claimed_profiles))}
-                        {metadata_cell(t("dashboard.compat_surfaces"), join_or_dash(&compat_surfaces))}
+                        {metadata_cell(t("dashboard.interop_surfaces"), join_or_dash(&interop_surfaces))}
                         {metadata_cell(t("dashboard.experimental_features"), join_or_dash(&experimental_features))}
                     }
                 }

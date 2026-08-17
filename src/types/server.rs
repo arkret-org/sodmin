@@ -10,7 +10,7 @@
 //! model's flattened `extensions` map.
 
 // (The `ClaimedProfileEntry` / `VerifiedProfileEntry` /
-// `CompatSurfaceEntry` element types are reachable through the SDK
+// `InteropSurfaceEntry` element types are reachable through the SDK
 // directly; sodmin views consume them via the `ServiceDescribe`
 // fields and need no local re-export.)
 pub use arkret_models_discovery::ServiceDescribe;
@@ -133,7 +133,7 @@ mod tests {
             }],
             "verified_profiles": [],
             "experimental_features": [],
-            "compat_surfaces": [{
+            "interop_surfaces": [{
                 "name": "federation.bridge",
                 "kind": "external_interop"
             }],
@@ -163,7 +163,7 @@ mod tests {
             describe.claimed_profiles[0].profile_id,
             ProfileId::PRINCIPAL_SERVER_V1
         );
-        assert_eq!(describe.compat_surfaces[0].name, "federation.bridge");
+        assert_eq!(describe.interop_surfaces[0].name, "federation.bridge");
         assert_eq!(
             describe.limits.extensions["profile_status"]["conformance"],
             "limited_reference"
