@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 /// (`{ok, error:{code, message, retry_after_ms?, details?}, request_id}`,
 /// see `arkret_wire::ErrorEnvelope`). We keep a flattened local
 /// shape — the wire envelope is parsed in [`from_wire`] — so the existing
-/// call sites (`body.errcode`, `required_scope`) keep working while the
+/// call sites (`body.errcode`) keep working while the
 /// parse path reads the authoritative `error.code`.
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AdminErrorEnvelope {
@@ -21,13 +21,6 @@ pub struct AdminErrorEnvelope {
     pub error: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub retry_after_ms: Option<u64>,
-    /// D.1 — soland may attach the capability scope required for the
-    /// failing action on 401/403 envelopes (e.g.
-    /// `ak:scope:realm:01HXY/admin.write`). The canonical envelope nests
-    /// this under `error.details.required_scope`; [`from_wire`] lifts it
-    /// to this field for the UI.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub required_scope: Option<String>,
     #[serde(flatten)]
     pub extra: BTreeMap<String, serde_json::Value>,
 }
@@ -40,17 +33,10 @@ impl AdminErrorEnvelope {
     /// proxy), so callers fall back to a status-only message.
     pub fn from_wire(text: &str) -> Option<Self> {
         let env: arkret_wire::ErrorEnvelope = serde_json::from_str(text).ok()?;
-        let required_scope = env
-            .error
-            .details
-            .get("required_scope")
-            .and_then(|v| v.as_str())
-            .map(str::to_owned);
         Some(AdminErrorEnvelope {
             errcode: env.error.code,
             error: Some(env.error.message).filter(|m| !m.is_empty()),
             retry_after_ms: env.error.retry_after_ms,
-            required_scope,
             extra: BTreeMap::new(),
         })
     }
@@ -274,7 +260,7 @@ mod tests {
     fn redact_pii_preserves_diagnostic_ids() {
         // UUIDs and short cursor tokens stay readable so admins can grep
         // logs.
-        let raw = "actor=urn:ak:actor:01HQX cursor=eyAB12";
+        let raw = "request=ak:request:0198fe3a-91c0-7b2d-8f41-6c0a55d31e77 cursor=eyAB12";
         assert_eq!(redact_pii(raw), raw);
     }
 
@@ -314,27 +300,23 @@ mod tests {
     }
 
     #[test]
-    fn from_wire_reads_canonical_envelope_and_lifts_required_scope() {
+    fn from_wire_reads_canonical_envelope_code_and_message() {
         use super::AdminErrorEnvelope;
         // Canonical spec/SDK envelope: bare registry code under
-        // `error.code`, required_scope nested in `error.details`.
-        let raw = r#"{"ok":false,"error":{"code":"capability_denied","message":"denied","details":{"required_scope":"ak:scope:realm:01HXY/admin.write"}},"request_id":"req_1"}"#;
+        // `error.code`, human message under `error.message`.
+        let raw = r#"{"ok":false,"error":{"code":"capability_denied","message":"denied"},"request_id":"req_1"}"#;
         let env = AdminErrorEnvelope::from_wire(raw).expect("parse");
         assert_eq!(env.errcode, "capability_denied");
-        assert_eq!(
-            env.required_scope.as_deref(),
-            Some("ak:scope:realm:01HXY/admin.write")
-        );
+        assert_eq!(env.error.as_deref(), Some("denied"));
     }
 
     #[test]
-    fn from_wire_reads_retry_after_and_omits_absent_scope() {
+    fn from_wire_reads_retry_after() {
         use super::AdminErrorEnvelope;
         let raw = r#"{"ok":false,"error":{"code":"rate_limited","message":"slow down","retry_after_ms":2000},"request_id":"req_2"}"#;
         let env = AdminErrorEnvelope::from_wire(raw).expect("parse");
         assert_eq!(env.errcode, "rate_limited");
         assert_eq!(env.retry_after_ms, Some(2000));
-        assert!(env.required_scope.is_none());
     }
 
     #[test]

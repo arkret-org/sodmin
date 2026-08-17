@@ -136,7 +136,7 @@ server {
         try_files /index.html =503;
     }
 
-    # P5 — deep healthcheck that also verifies upstream soland
+    # Deep healthcheck that also verifies upstream soland
     # connectivity. Container orchestrators (k8s, nomad) can use this
     # as a readiness probe so a sodmin pod is not advertised "ready"
     # while soland is unreachable. Errors (DNS failure, network down,

@@ -1,7 +1,7 @@
 pub mod crypto;
 /// Handle display helpers for admin read-only views.
 pub mod handle;
-/// R3.2 (UI-SOD-3) — §3.2.1 primary handle selection (admin-SPA mirror
+/// §3.2.1 primary handle selection (admin-SPA mirror
 /// of the SDK `select_primary_handle` helper). `MemberIdentity` no
 /// longer carries handle fields; the UI derives the display handle by
 /// running this deterministic selection over the visible claim set.

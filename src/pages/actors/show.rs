@@ -41,7 +41,7 @@ pub fn ActorShow(actor_id: String) -> Element {
                             title: actor.display_name.as_deref().unwrap_or(&actor.id).to_string(),
                         }
 
-                        // Round 4 — when the local 7-domain fanout
+                        // When the local 7-domain fanout
                         // succeeded but federation peers have not all
                         // confirmed, surface the in-progress state
                         // explicitly. Silently rendering "Deactivated"

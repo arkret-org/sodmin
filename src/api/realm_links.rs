@@ -1,5 +1,5 @@
 //! HTTP client for the soland Realm link-graph admin surface
-//! (R5.2, Round R1.2 — `ak.realm.link` projection).
+//! (the `ak.realm.link` projection).
 //!
 //! A "Realm link" is a typed edge between two security boundaries.
 //! Examples: `governed_by` (parent for capability inheritance),

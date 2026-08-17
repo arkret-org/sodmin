@@ -224,7 +224,7 @@ fn describe_body(describe: &ServerDescribeDocument) -> Element {
     let service_full_id = describe.service_resolution.full_id.to_string();
     let resolution_history_head = describe.service_resolution.method_history_head.clone();
     let resolution_version_id = describe.service_resolution.version_id.clone();
-    // Round 4 — `trust_domain` is a required (validated) ServerDescribe
+    // `trust_domain` is a required (validated) ServerDescribe
     // field in the SDK type, so it is always present here.
     let trust_domain = describe.trust_domain.to_string();
     let service_kind = describe.service_kind.as_str().to_owned();
@@ -270,7 +270,7 @@ fn describe_body(describe: &ServerDescribeDocument) -> Element {
         "production".to_string()
     };
     let development_mode_is_dev = describe.development_mode;
-    // Round 4 — when development_mode + verified_profiles both present,
+    // When development_mode + verified_profiles are both present,
     // the server is making contradictory claims. Surface a loud red
     // banner above the rest of the card.
     let dev_with_verified = describe.dev_mode_with_verified_profiles();
@@ -302,7 +302,7 @@ fn describe_body(describe: &ServerDescribeDocument) -> Element {
 
     rsx! {
         div { class: "space-y-4",
-            // Round 4 — verified-profiles-in-dev-mode contradiction
+            // Verified-profiles-in-dev-mode contradiction
             // banner. Renders ABOVE the dev-mode chip so operators can't
             // miss the most important wire-correctness issue.
             if dev_with_verified {
@@ -344,20 +344,20 @@ fn describe_body(describe: &ServerDescribeDocument) -> Element {
                 {info_cell(t("server_status.admin_auth_mode"), admin_auth_mode)}
             }
 
-            // Round 4 — chip lists for the four list-shaped ServerDescribe
+            // Chip lists for the four list-shaped ServerDescribe
             // fields: supported_profiles / supported_features /
             // implemented_features / supported_operations. Each renders
             // as a flat strip of mono chips; conformance buckets render
             // separately below.
             {chip_section(t("server_status.profiles_label"), &profiles)}
-            {r3_profile_status_section(&profiles)}
+            {profile_declaration_section(&profiles)}
             {chip_section(t("server_status.features_label"), &features)}
             {chip_section(t("server_status.implemented_features"), &implemented)}
             {chip_section(t("server_status.supported_operations"), &operations)}
 
             {binding_chip_section(t("server_status.supported_bindings"), &bindings)}
 
-            // Round 4 — limits + rate_limit as raw JSON. Free-form per
+            // Limits + rate_limit as raw JSON. Free-form per
             // SDK; UI cannot assume a fixed key set.
             div { class: "grid gap-3 sm:grid-cols-2",
                 div { class: "space-y-1",
@@ -557,7 +557,7 @@ fn format_number(value: f64) -> String {
     }
 }
 
-/// Round 4 — uniform helper for the chip-list ServerDescribe fields
+/// Uniform helper for the chip-list ServerDescribe fields
 /// (supported_profiles / supported_features / implemented_features /
 /// supported_operations). Returns an empty fragment when the slice is
 /// empty so we don't clutter the card with `-` rows.
@@ -747,13 +747,13 @@ fn dev_posture_card(describe: &ServerDescribeDocument) -> Element {
     }
 }
 
-/// R3 (UI-6) — render a single-line status row per "new R3 profile" so
-/// the operator can see at a glance which of them the server has
-/// declared in `ak.server.read.describe.supported_profiles`. The list of
-/// known R3 profiles is held here (not in i18n) because the wire ids come
-/// from the SDK's generated profile registry and the i18n value is only the
-/// human label.
-fn r3_profile_status_section(profiles: &[String]) -> Element {
+/// Renders a single-line status row per known optional profile so the
+/// operator can see at a glance which of them the server has declared in
+/// `ak.server.read.describe.supported_profiles`. The list of known
+/// profiles is held here (not in i18n) because the wire ids come from the
+/// SDK's generated profile registry and the i18n value is only the human
+/// label.
+fn profile_declaration_section(profiles: &[String]) -> Element {
     // (wire profile id, i18n key for the description copy).
     let known: &[(&str, &str)] = &[
         (
@@ -769,7 +769,7 @@ fn r3_profile_status_section(profiles: &[String]) -> Element {
     rsx! {
         div { class: "space-y-1",
             p { class: "text-xs font-semibold uppercase tracking-wider text-muted-foreground",
-                "R3 profile toggles"
+                {t("server_status.profile_declaration_title")}
             }
             ul { class: "text-xs space-y-1",
                 for (wire, key) in known.iter() {

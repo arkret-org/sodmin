@@ -108,7 +108,7 @@ mod tests {
         serde_json::from_value(serde_json::json!({
             "id": id,
             "name": format!("Space {id}"),
-            "realm_id": "ak:realm:1",
+            "realm_id": "ak:realm:ATumA-899wMAX4JSfO0b40Ppp5ik4VP0CG74lq-8UjYg",
             "kind": "list",
             "member_count": 3,
             "health": "active",
@@ -120,9 +120,18 @@ mod tests {
 
     #[test]
     fn hierarchy_node_projects_the_shared_row() {
-        let node = space_node(&row("ak:space:1", None));
-        assert_eq!(node.space_id, "ak:space:1");
-        assert_eq!(node.name, "Space ak:space:1");
+        let node = space_node(&row(
+            "ak:space:AVX7ebly5NnDPvZ6X2AdCALS2TlVGPEDv2mXBOJl2YKj",
+            None,
+        ));
+        assert_eq!(
+            node.space_id,
+            "ak:space:AVX7ebly5NnDPvZ6X2AdCALS2TlVGPEDv2mXBOJl2YKj"
+        );
+        assert_eq!(
+            node.name,
+            "Space ak:space:AVX7ebly5NnDPvZ6X2AdCALS2TlVGPEDv2mXBOJl2YKj"
+        );
         assert_eq!(node.member_count, 3);
     }
 }

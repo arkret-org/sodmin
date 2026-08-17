@@ -1,6 +1,6 @@
-//! Round 4 — delivery-binding handover panel.
+//! Delivery-binding handover panel.
 //!
-//! Renders the round-4 error-code triple
+//! Renders the handover error-code triple
 //! (`delivery_binding_stale` / `delivery_binding_handed_over` /
 //! `historical_only`) as discrete rows so the operator can:
 //!
@@ -102,7 +102,7 @@ fn render_row(row: &DeliveryBindingHandoverRow) -> Element {
         .clone()
         .unwrap_or_else(|| "-".to_string());
     let observed_at = row.observed_at.clone().unwrap_or_else(|| "-".to_string());
-    // Round 4 — render the handover_frontier vector as a chip strip;
+    // Render the handover_frontier vector as a chip strip;
     // each entry is a `ak:event:*` ref. Long vectors are common, so
     // a compact pill list reads better than an inline string.
     let frontier = row.handover_frontier.clone();
@@ -157,7 +157,7 @@ mod tests {
 
     fn row(reason_code: &str) -> DeliveryBindingHandoverRow {
         DeliveryBindingHandoverRow {
-            realm_id: "ak:realm:test".into(),
+            realm_id: "ak:realm:AWTBjgRH5aE_aJLYZzA-BJ4C0RJCw16DIs9TIhgRAhCz".into(),
             actor_id: "did:web:actor.example".into(),
             previous_recipient_service_id: None,
             new_recipient_service_id: None,

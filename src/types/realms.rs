@@ -55,10 +55,10 @@ mod tests {
     fn realm_class_and_discoverability_render_from_the_shared_row() {
         let realm: AdminRealm = serde_json::from_value(serde_json::json!({
             "kind": "realm",
-            "id": "ak:realm:1",
+            "id": "ak:realm:AUwZORI60DxE1STM676ap_m1sIzBcRRCjoewWDPyAjx-",
             "strand": {},
-            "strand_id": "ak:strand:1",
-            "realm_id": "ak:realm:1",
+            "strand_id": "ak:strand:AbZyWjHz86aXMxPVsi5SUW9QgFqny2SpKW_jkeUm61xz",
+            "realm_id": "ak:realm:AUwZORI60DxE1STM676ap_m1sIzBcRRCjoewWDPyAjx-",
             "title": "Realm",
             "topic": null,
             "category": null,
@@ -92,10 +92,10 @@ mod tests {
     fn unknown_class_renders_as_dash_rather_than_guessing() {
         let realm = AdminRealm {
             kind: "realm".to_owned(),
-            id: "ak:realm:1".to_owned(),
+            id: "ak:realm:AWASxhHncyxoEbHwACOwwtlRkQ3MT2gAAiT3ZBg5sMbb".to_owned(),
             strand: serde_json::json!({}),
-            strand_id: "ak:strand:1".to_owned(),
-            realm_id: "ak:realm:1".to_owned(),
+            strand_id: "ak:strand:AYzCUBVUFQVBJnnZypYi4P4yj_gqjnlbjCrh1wq0Kx6Z".to_owned(),
+            realm_id: "ak:realm:AWASxhHncyxoEbHwACOwwtlRkQ3MT2gAAiT3ZBg5sMbb".to_owned(),
             title: "Realm".to_owned(),
             topic: None,
             category: None,

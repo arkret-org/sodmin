@@ -79,9 +79,9 @@ mod tests {
     #[test]
     fn space_row_requires_the_full_producer_shape() {
         let base = serde_json::json!({
-            "id": "ak:space:1",
+            "id": "ak:space:AaRjkifqF_BCAMvNiejGgtBBGiw19WNl2qDz_8ro1FF3",
             "name": "Space",
-            "realm_id": "ak:realm:1",
+            "realm_id": "ak:realm:AW9pPoBBLuc_y-_fP1sxa6uOtCeZjiCax_YHAkXb9-2H",
             "kind": "list",
             "member_count": 1,
             "health": "archived",
@@ -90,7 +90,10 @@ mod tests {
         });
         let row: SpaceRow = serde_json::from_value(base.clone()).expect("row parses");
         assert_eq!(row.health, SpaceHealth::Archived);
-        assert_eq!(row.realm_id, "ak:realm:1");
+        assert_eq!(
+            row.realm_id,
+            "ak:realm:AW9pPoBBLuc_y-_fP1sxa6uOtCeZjiCax_YHAkXb9-2H"
+        );
 
         let mut missing = base;
         missing

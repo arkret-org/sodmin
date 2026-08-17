@@ -72,6 +72,10 @@ pub struct AdminPolicy {
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq)]
 pub struct PolicyGuardrailSummary {
+    /// Operator-authored capability scope label read out of the open
+    /// `AdminPolicyPayload.resource` blob of the soland-private admin
+    /// policy contract. It is a free-form operator string, never an
+    /// `ak:<kind>` protocol object id, and no spec schema defines it.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub required_scope: Option<String>,
     #[serde(default)]

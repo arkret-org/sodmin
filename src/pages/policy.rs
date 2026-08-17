@@ -35,7 +35,6 @@ pub fn PolicyList() -> Element {
     let mut dialog_loading = use_signal(|| false);
     let mut selected_policy = use_signal(|| None::<AdminPolicy>);
     let mut dialog_error = use_signal(|| None::<String>);
-    let mut dialog_required_scope = use_signal(|| None::<String>);
     let mut dialog_read_only = use_signal(|| false);
     let mut page_error = use_signal(|| None::<String>);
 
@@ -64,7 +63,6 @@ pub fn PolicyList() -> Element {
                         priority.set(0);
                         selected_policy.set(None);
                         dialog_error.set(None);
-                        dialog_required_scope.set(None);
                         dialog_read_only.set(false);
                         show_dialog.set(true);
                     },
@@ -167,7 +165,6 @@ pub fn PolicyList() -> Element {
                                                                             priority.set(pr);
                                                                             selected_policy.set(Some(policy.clone()));
                                                                             dialog_error.set(None);
-                                                                            dialog_required_scope.set(None);
                                                                             dialog_read_only.set(read_only);
                                                                             show_dialog.set(true);
                                                                         }
@@ -306,13 +303,6 @@ pub fn PolicyList() -> Element {
                 if let Some(message) = dialog_error.read().clone() {
                     ErrorBanner { message }
                 }
-                if let Some(required_scope) = dialog_required_scope.read().clone() {
-                    div { class: "rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm",
-                        div { class: "font-medium text-destructive", {t("policy.permission_required")} }
-                        div { class: "mt-1 text-muted-foreground", {t("policy.permission_missing_required_scope")} }
-                        div { class: "mt-2 font-mono text-xs break-all", "{required_scope}" }
-                    }
-                }
                 if let Some(policy) = selected_policy.read().clone() {
                     PolicyGuardrailPanel { policy }
                 }
@@ -368,12 +358,10 @@ pub fn PolicyList() -> Element {
                                         ToastVariant::Success,
                                     );
                                     dialog_error.set(None);
-                                    dialog_required_scope.set(None);
                                     show_dialog.set(false);
                                     data.restart();
                                 }
                                 Err(e) => {
-                                    dialog_required_scope.set(required_scope_from_error(&e));
                                     let message = policy_mutation_error_message(&e);
                                     dialog_error.set(Some(message.clone()));
                                     show_toast(&format!("Failed: {message}"), ToastVariant::Error);
@@ -649,21 +637,8 @@ fn PolicyAuditRow(entry: PolicyAuditEntry) -> Element {
     }
 }
 
-fn required_scope_from_error(error: &HttpError) -> Option<String> {
-    error
-        .body
-        .as_ref()
-        .and_then(|body| body.required_scope.clone())
-}
-
 fn policy_mutation_error_message(error: &HttpError) -> String {
-    if let Some(required_scope) = required_scope_from_error(error) {
-        format!(
-            "{}: {}",
-            t("policy.permission_missing_required_scope"),
-            required_scope
-        )
-    } else if let Some(request_id) = error.request_id.as_deref() {
+    if let Some(request_id) = error.request_id.as_deref() {
         format!("{} ({request_id})", error.message)
     } else {
         error.message.clone()

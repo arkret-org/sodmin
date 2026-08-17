@@ -139,11 +139,11 @@ After rollback:
 ## Other operator-driven strands
 
 - **Recovery policy rotation** — see
-  [`admin-onboarding.md` → R3 admin flowcharts → Recovery policy
+  [`admin-onboarding.md` → Admin flowcharts → Recovery policy
   rotation](./admin-onboarding.md#recovery-policy-rotation).
 - **Realm media_service foci configuration** — see
-  [`admin-onboarding.md` → R3 admin flowcharts → Realm media_service
+  [`admin-onboarding.md` → Admin flowcharts → Realm media_service
   foci[] configuration](./admin-onboarding.md#realm-media_servicefoci-configuration).
 - **Agent lifecycle (pause / resume / deactivate)** — see
-  [`admin-onboarding.md` → R3 admin flowcharts → Agent
+  [`admin-onboarding.md` → Admin flowcharts → Agent
   lifecycle](./admin-onboarding.md#agent-lifecycle-provisioning--pause--resume--deactivate).

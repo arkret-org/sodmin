@@ -1,4 +1,4 @@
-//! P5 — minimal opt-in browser error telemetry.
+//! Minimal opt-in browser error telemetry.
 //!
 //! This module is intentionally tiny: when the deployment exposes a
 //! same-origin telemetry endpoint value in `/config.json` AND the operator

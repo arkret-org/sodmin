@@ -274,34 +274,39 @@ mod tests {
 
     #[test]
     fn format_head_option_truncates_long_event_ids() {
+        // A canonical Event id is a typed prefix plus a 44-char Event
+        // token, so it always exceeds the 16-char display budget.
+        const EVENT_ID: &str = "ak:event:Ac9bKig7-unBOQMz5BcjOs49xMFR2tl5pu-TdGEcjFJC";
         let head = BottomCandidateHead {
-            event_id: "ak:event:aaaabbbbccccddddeeeeffff".into(),
+            event_id: EVENT_ID.into(),
             ..Default::default()
         };
         let label = format_head_option(0, &head);
         // 1-indexed, truncated with ellipsis at 16 chars of the event id.
         assert!(label.starts_with("1: "));
         assert!(label.contains("\u{2026}"));
-        assert!(!label.contains("ffff"));
+        assert!(label.contains(&EVENT_ID[..16]));
+        assert!(!label.contains(EVENT_ID));
     }
 
     #[test]
     fn format_head_option_includes_summary_when_present() {
+        const EVENT_ID: &str = "ak:event:ATcTe_f_cv-nerIieV4h3tbHIMdJdXrRUA8Uq3xjiWL3";
         let head = BottomCandidateHead {
-            event_id: "ak:event:abc".into(),
+            event_id: EVENT_ID.into(),
             summary: Some("set value=42".into()),
             ..Default::default()
         };
         let label = format_head_option(2, &head);
         assert!(label.starts_with("3: "));
-        assert!(label.contains("ak:event:abc"));
+        assert!(label.contains(&EVENT_ID[..16]));
         assert!(label.contains("set value=42"));
     }
 
     #[test]
     fn head_metadata_is_none_when_no_optional_fields_populated() {
         let head = BottomCandidateHead {
-            event_id: "ak:event:1".into(),
+            event_id: "ak:event:AUfvPX-MgC7_kR8a94E_q3H5u1UOlDnu2sGTxqR3loCf".into(),
             ..Default::default()
         };
         assert!(format_head_metadata(&head).is_none());
@@ -312,7 +317,7 @@ mod tests {
         // All three populated: ordering is issuer · hlc · summary so the
         // operator gets a stable, predictable line.
         let head = BottomCandidateHead {
-            event_id: "ak:event:1".into(),
+            event_id: "ak:event:Aan7Ux1oCI9l8IvWpnGPzeHRG0hhQwfugg_05hRHt5MP".into(),
             issuer: Some("did:web:alice.example".into()),
             hlc: Some("01J9-0001-abcd".into()),
             summary: Some("set value=42".into()),
@@ -325,7 +330,7 @@ mod tests {
         // sometimes serializes "" instead of `null` and we must not show
         // a bare "issuer=" key.
         let head = BottomCandidateHead {
-            event_id: "ak:event:1".into(),
+            event_id: "ak:event:Aan7Ux1oCI9l8IvWpnGPzeHRG0hhQwfugg_05hRHt5MP".into(),
             issuer: Some(String::new()),
             hlc: None,
             summary: Some("only this".into()),

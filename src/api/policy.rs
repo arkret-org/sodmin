@@ -641,10 +641,10 @@ mod tests {
             "effect": "require_review",
             "actions": ["ak.realm.policy.update"],
             "resource": {
-                "required_scope": "ak:scope:realm:01HXY/admin.write",
+                "required_scope": "realm.admin.write",
                 "approval_evidence": [{
                     "kind": "human_approval",
-                    "evidence_ref": "ak:approval:01HXY",
+                    "evidence_ref": "ak:event:Aa-XDJ66vTapNhYhwHWSDwNsiA2MQQQ7lLx-iCzgfgaH",
                     "approved_by": "did:web:admin.example",
                     "decision": "approved",
                     "request_canonical_digest": "sha256:abc",
@@ -664,7 +664,7 @@ mod tests {
         let guardrails = policy_guardrails_from_payload(&payload);
         assert_eq!(
             guardrails.required_scope.as_deref(),
-            Some("ak:scope:realm:01HXY/admin.write")
+            Some("realm.admin.write")
         );
         assert_eq!(guardrails.approval_evidence.len(), 1);
         assert_eq!(guardrails.approval_evidence[0].kind, "human_approval");
@@ -680,9 +680,9 @@ mod tests {
     #[test]
     fn policy_from_document_carries_guardrail_summary() {
         let doc = AdminPolicyDocument {
-            policy_id: "ak:policy:01HXY".to_owned(),
+            policy_id: "ak:policy:9f18274d-cb85-75eb-9891-eff82acff4c0".to_owned(),
             owner: "did:web:admin.example".to_owned(),
-            scope: "ak:realm:01HXY".to_owned(),
+            scope: "ak:realm:ASrEhTMQSRXph9wD98UfShBx6MNM7ISQiBIDT0Ayiozq".to_owned(),
             subject_ref: "did:web:admin.example".to_owned(),
             policy_kind: "ak.realm.policy.update".to_owned(),
             payload: AdminPolicyPayload {
@@ -710,7 +710,7 @@ mod tests {
     fn upsert_body_preserves_subject_ref_and_hard_deny_effect() {
         let req = CreatePolicyRequest {
             name: "Targeted deny".to_owned(),
-            scope: Some("ak:realm:01HXY".to_owned()),
+            scope: Some("ak:realm:AcTCbPKkRYcSVLkuEFQjnPuFXfCsFvSRZDAjCsho3_b-".to_owned()),
             subject_ref: Some("did:web:bob.example".to_owned()),
             policy_kind: Some("ak.message.send".to_owned()),
             rules: Some(
@@ -724,7 +724,11 @@ mod tests {
             ..Default::default()
         };
 
-        let body = upsert_body(Some("ak:policy:deny-bob".to_owned()), &req).unwrap();
+        let body = upsert_body(
+            Some("ak:policy:f54a950e-b8e5-70af-92bd-4f27a495b754".to_owned()),
+            &req,
+        )
+        .unwrap();
         let encoded = serde_json::to_value(body).unwrap();
 
         assert_eq!(encoded["subject_ref"], "did:web:bob.example");
@@ -746,9 +750,9 @@ mod tests {
     #[test]
     fn pin_policy_document_is_read_only_and_redacts_private_material() {
         let doc = AdminPolicyDocument {
-            policy_id: "ak:policy:pins".to_owned(),
+            policy_id: "ak:policy:577e618f-3aed-75d9-9cb2-8fc1199b163a".to_owned(),
             owner: "did:web:admin.example".to_owned(),
-            scope: "ak:realm:01HXY".to_owned(),
+            scope: "ak:realm:AcjPhXNC5Rr73hdU3Lep53Z0K69AczAn915GJwCtexkF".to_owned(),
             subject_ref: "*".to_owned(),
             policy_kind: "ak.profile.pinned_items.v1".to_owned(),
             payload: AdminPolicyPayload {
@@ -756,7 +760,7 @@ mod tests {
                 actions: vec!["ak.pin.add".to_owned(), "ak.pin.reorder".to_owned()],
                 resource: json!({
                     "name": "Realm pins",
-                    "pin_scope": {"kind": "realm", "id": "ak:realm:01HXY"},
+                    "pin_scope": {"kind": "realm", "id": "ak:realm:AcjPhXNC5Rr73hdU3Lep53Z0K69AczAn915GJwCtexkF"},
                     "quota": {"max_pins_per_scope": 5, "period": "PT1H"},
                     "note_visibility": "encrypted",
                     "account_data_key": "ak.search.index_manifest.v1:secret-realm-key",

@@ -1,4 +1,4 @@
-//! R3.2 (UI-SOD-4) — "Subject → Handles" directory admin page.
+//! "Subject → Handles" directory admin page.
 //!
 //! Route: `/handles/by-subject?subject=did:...`
 //!

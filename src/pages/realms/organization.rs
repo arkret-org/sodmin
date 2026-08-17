@@ -259,10 +259,7 @@ fn principal_control_row(
     let row_key = delegation
         .map(|row| row.delegation_ref.clone())
         .unwrap_or_else(|| format!("{}:control", control.organization_did));
-    let control_stream = control
-        .control_stream_ref
-        .clone()
-        .unwrap_or_else(|| dash.clone());
+    let control_stream = control.control_stream_ref.clone();
     let issuer_role = delegation
         .map(|row| issuer_role_label(row.issuer_role))
         .unwrap_or_else(|| dash.clone());

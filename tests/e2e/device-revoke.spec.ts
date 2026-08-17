@@ -1,7 +1,7 @@
-// Round 27 Q9 — happy-path device revoke + cascade-revoke Playwright e2e.
+// Happy-path device revoke + cascade-revoke Playwright e2e.
 //
 // Drives the sodmin SPA against a sodmin dev instance + a coauth + soland
-// dev stack. The test exercises the round-24 B6 device admin page:
+// dev stack. The test exercises the per-account device admin page:
 // boot the SPA, sign the admin in, navigate to the accounts list, open
 // an account detail page, jump to the per-account device list, click
 // Revoke on a target device, confirm the destructive ConfirmDialog,
@@ -9,7 +9,7 @@
 // coauth audit feed surfaces the cascade-revoke session-grant entries
 // emitted by the soland side.
 //
-// Pattern matches the round-26 `risk-action.spec.ts` shape — identical
+// Pattern matches the `risk-action.spec.ts` shape — identical
 // env-var contract, identical "self-skip when env vars unset" behaviour.
 //
 // Skip behaviour: if any of `SODMIN_E2E_BASE_URL`,
@@ -29,7 +29,7 @@ const ADMIN_PASSWORD = process.env.SODMIN_E2E_ADMIN_PASSWORD || "";
 const ACCOUNT_ID = process.env.SODMIN_E2E_ACCOUNT_ID || "";
 const DEVICE_ID = process.env.SODMIN_E2E_DEVICE_ID || "";
 
-test.describe("Q9 device-revoke happy-path", () => {
+test.describe("device-revoke happy-path", () => {
   test.beforeAll(async () => {
     if (
       !BASE_URL ||
@@ -72,7 +72,7 @@ test.describe("Q9 device-revoke happy-path", () => {
     await page.goto(`${BASE_URL}/coauth/accounts/${ACCOUNT_ID}`);
     await expect(page.getByText(ACCOUNT_ID)).toBeVisible({ timeout: 10_000 });
 
-    // 6. Jump to the per-account device list (round-24 B6).
+    // 6. Jump to the per-account device list.
     await page.goto(`${BASE_URL}/coauth/accounts/${ACCOUNT_ID}/devices`);
     await expect(
       page.getByRole("heading", { name: /devices|设备/i }),

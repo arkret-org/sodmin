@@ -19,7 +19,7 @@ const keyboardRoutes = [
   { name: "policy", path: "/policy", target: /name|type|scope|enabled|create/i },
 ];
 
-// P5 — destructive strand keyboard reachability. Each entry seeds a
+// Destructive strand keyboard reachability. Each entry seeds a
 // destructive button or modal trigger that MUST be reachable via Tab
 // alone. Where fixture-dependent, the test is skipped with a TODO
 // marker so a future fixture-seeded run can flip the skip off.
@@ -80,7 +80,7 @@ test.describe("keyboard-only management strands", () => {
     });
   }
 
-  // P5 — destructive strands must also be Tab-reachable so a
+  // Destructive strands must also be Tab-reachable so a
   // keyboard-only operator can drive the remaining authorized
   // management operations without a mouse.
   for (const strand of destructiveStrands) {
@@ -88,7 +88,7 @@ test.describe("keyboard-only management strands", () => {
       page,
     }) => {
       if (strand.fixtureDependent) {
-        // TODO(P5-fixture): seed the fixture (realm id, agent id,
+        // TODO(e2e-fixture): seed the fixture (realm id, agent id,
         // coauth account id) so the destructive control actually
         // renders and the assertion can become unconditional.
         test.skip(

@@ -1,8 +1,8 @@
-//! Round 4 — DID-shaped input field with inline regex validation.
+//! DID-shaped input field with inline regex validation.
 //!
 //! Wraps the standard [`Input`] component and surfaces a local
-//! validation error when the current value does not match the round-4
-//! tightened DID grammar (`^did:[a-z0-9]+:[^\s]+$`). Empty values are
+//! validation error when the current value does not match the
+//! DID grammar (`^did:[a-z0-9]+:[^\s]+$`). Empty values are
 //! allowed (so the field can render before the operator types
 //! anything); validation only fires on non-empty input.
 //!

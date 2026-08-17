@@ -110,8 +110,8 @@ pub fn DidBindingPanel(
                 }
                 div { class: "space-y-2",
                     Label { r#for: "new-did".to_string(), {t("did_binding_panel.field_did")} }
-                    // P5 — ValidatedInput for the round-4 DID grammar,
-                    // identical validation to `arkret_identifiers::is_did`.
+                    // ValidatedInput enforces the DID grammar with
+                    // validation identical to `arkret_identifiers::is_did`.
                     ValidatedInput {
                         kind: ValidationKind::Did,
                         placeholder: "did:webvh:example.org:account:alice".to_string(),

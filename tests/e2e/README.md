@@ -8,7 +8,7 @@ The authenticated high-risk management specs in this directory are manual
 or seeded-stack checks: they require admin credentials plus account, device,
 or policy ids and are intentionally not reported as automated CI coverage.
 
-## Q2 — happy-path risk-action
+## Happy-path risk-action
 
 `risk-action.spec.ts` drives the full risk-action approval strand:
 
@@ -35,7 +35,7 @@ export SODMIN_E2E_ACCOUNT_ID=01HXY...
 npm install
 npx playwright install chromium
 
-# 4. Run the round-26 suite
+# 4. Run the whole suite
 npx playwright test -c tests/e2e/playwright.config.ts
 ```
 
@@ -52,18 +52,18 @@ explicitly provisions those variables and seeded backend data.
 | `SODMIN_E2E_ACCOUNT_ID` unset                     | skip    |
 | All env vars set + dev stack running              | run     |
 
-## Phase 3 — high-traffic page smoke
+## High-traffic page smoke
 
 `high-traffic-pages.spec.ts` adds authenticated route-level smokes for
 the server-ops surfaces (dashboard, actors, spaces, federation,
 deactivation, audit, policy, server status). Governance pages
 (moderation/applets/agents/directory/circles) were removed from sodmin
-in the P3 ops-level consolidation and now live in inkson, so they are no
+in the ops-level consolidation and now live in inkson, so they are no
 longer smoked here. These tests use the shared `SODMIN_E2E_BASE_URL`,
 `SODMIN_E2E_ADMIN_EMAIL`, and `SODMIN_E2E_ADMIN_PASSWORD` env vars and
 self-skip when the local stack is not configured.
 
-## Q9 — happy-path device revoke + cascade audit (round 27)
+## Happy-path device revoke + cascade audit
 
 `device-revoke.spec.ts` revokes a device on a target account, asserts
 the row badge transitions to Revoked, and cross-checks that the

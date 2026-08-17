@@ -21,7 +21,7 @@ pub struct AuditFilter {
     pub action: Option<String>,
     pub actor_id: Option<String>,
     pub realm_id: Option<String>,
-    /// AKP-0007 (P3A.5) — event-kind filter (`ak.circle.create`, ...);
+    /// AKP-0007 event-kind filter (`ak.circle.create`, ...);
     /// matches the action or the payload `kind`/`type` server-side.
     pub kind: Option<String>,
     pub since: Option<String>,

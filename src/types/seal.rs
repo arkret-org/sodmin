@@ -33,10 +33,10 @@ mod tests {
     #[test]
     fn seal_dag_deserializes_current_field_names() {
         let snapshot: SealDagSnapshot = serde_json::from_value(serde_json::json!({
-            "realm_id": "ak:realm:demo",
-            "covered_event_digests": ["ak:event:1"],
+            "realm_id": "ak:realm:AdMiEvn36jc6t91sjSYuDEZkZX0Ci3UXAX2YuCRDT2GQ",
+            "covered_event_digests": ["ak:event:AVxWLctdfSsE1Zydw00Ka5bXOeyQ9ocw6ZlO7eAhe5i3"],
             "leaves": [{
-                "seal_id": "ak:seal:1",
+                "seal_id": "ak:seal:sha256:c53617efdd06a540dfc23c88a059db52bcb4a8c94fee2428a05ed80674230056",
                 "control_event_count": 1
             }]
         }))
@@ -44,9 +44,12 @@ mod tests {
 
         assert_eq!(
             snapshot.covered_event_digests,
-            vec!["ak:event:1".to_owned()]
+            vec!["ak:event:AVxWLctdfSsE1Zydw00Ka5bXOeyQ9ocw6ZlO7eAhe5i3".to_owned()]
         );
-        assert_eq!(snapshot.leaves[0].seal_id, "ak:seal:1");
+        assert_eq!(
+            snapshot.leaves[0].seal_id,
+            "ak:seal:sha256:c53617efdd06a540dfc23c88a059db52bcb4a8c94fee2428a05ed80674230056"
+        );
     }
 
     #[test]

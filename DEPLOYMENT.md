@@ -15,12 +15,12 @@ the Gitea workflow.
 | `COAUTH_URL` | recommended | Internal URL for coauth admin/auth endpoints. Enables `/auth/`, `/_arkret/gate/`, the coauth `/_coauth/admin/*` resource roots, `/authorize`, `/oauth/`, and `/.well-known/` proxy locations. |
 | `COAUTH_PUBLIC_URL` | recommended | Browser-facing coauth origin written to `/config.json` for OAuth2 PKCE redirects. |
 | `SODMIN_PORT` | no | nginx listen port. Defaults to `80`. |
-| `SODMIN_TELEMETRY_ENDPOINT` | no | P5 — opt-in browser-error telemetry sink. When set, `/config.json` exposes the URL and `utils::telemetry` POSTs structured (no-PII) error events. Operator must also flip `localStorage.sodmin_telemetry_opt_in=1`. |
+| `SODMIN_TELEMETRY_ENDPOINT` | no | Opt-in browser-error telemetry sink. When set, `/config.json` exposes the URL and `utils::telemetry` POSTs structured (no-PII) error events. Operator must also flip `localStorage.sodmin_telemetry_opt_in=1`. |
 
 ## Port / Path Routing Table
 
 The sodmin container is a single nginx instance serving a Dioxus/WASM SPA
-plus reverse-proxy locations for upstream services. P5 — operators
+plus reverse-proxy locations for upstream services. Operators
 fronting additional services should update both `connect-src` in the
 CSP header and the routing table below.
 
@@ -28,7 +28,7 @@ CSP header and the routing table below.
 | --- | --- | --- |
 | `/` (SPA fall-through) | sodmin nginx | Serves `index.html`; SPA router takes over. |
 | `/healthz` | sodmin nginx | Static liveness probe — serves `index.html` so missing bundle returns 503. |
-| `/healthz/deep` | sodmin nginx → `${SOLAND_URL}/healthz` | P5 — readiness probe; returns 503 if soland is unreachable within 2s. |
+| `/healthz/deep` | sodmin nginx → `${SOLAND_URL}/healthz` | Readiness probe; returns 503 if soland is unreachable within 2s. |
 | `/config.json` | sodmin nginx | Runtime config rendered at boot from env. |
 | `/_arkret/self/events/` | `${SOLAND_URL}` | Event ingestion. |
 | `/_arkret/self/sync/` | `${SOLAND_URL}` | Sync long-poll. |
@@ -40,7 +40,7 @@ CSP header and the routing table below.
 | `/authorize`, `/oauth/`, `/.well-known/` | `${COAUTH_URL}` | OAuth2 PKCE strand + discovery. |
 | `*.wasm`, `*.js`, `*.css`, images | sodmin nginx (`Cache-Control: public, immutable`) | Bundle assets. |
 
-P5 — when `floria` (E2EE / matrix bridge) or `teabay` (developer
+When `floria` (E2EE / matrix bridge) or `teabay` (developer
 console) are fronted alongside sodmin, the recommended pattern is a
 separate nginx in front of all three, with sodmin keeping its own
 SPA-only fall-through. Inline proxy entries in `docker-entrypoint.sh`
@@ -82,7 +82,7 @@ The nginx template sets CSP, `X-Frame-Options: DENY`, `Referrer-Policy: no-refer
 
 The CSP `script-src` directive includes `'wasm-unsafe-eval'` (required
 by the Dioxus WASM bundle) but intentionally OMITS `'unsafe-eval'` and
-`'unsafe-inline'`. P5 — new agent-UI dialogs use the existing
+`'unsafe-inline'`. New agent-UI dialogs use the existing
 `ConfirmDialog` / `DangerousActionDialog` Dioxus primitives and do not
 introduce any inline-script or eval-based dialog framework; the strict
 CSP is preserved.
@@ -97,7 +97,7 @@ admin-scoped route, and MUST reject disallowed actions with
 through DevTools or curl with a stale token, the server-side RBAC layer
 is the one that says no.
 
-P5 — the new `GrantedCapabilitiesView` component (rendered above the
+The `GrantedCapabilitiesView` component (rendered above the
 agent provision wizard and other destructive forms) shows the
 operator's current grant list before submission to reduce the
 "click → 403 surprise" loop, but the destructive button is still
@@ -106,7 +106,7 @@ action.
 
 ## AKP-0007 Circle administration
 
-Sodmin's `/circles/*` surfaces (P3A.3) call into soland's `/_arkret/self/circles/*`
+Sodmin's `/circles/*` surfaces call into soland's `/_arkret/self/circles/*`
 admin layer. Before an operator can use those pages, coauth must have
 issued the matching `ak.circle.*` capability grants to the operator's
 admin DID — typically via the Coauth Capabilities admin page at

@@ -17,7 +17,7 @@ pub fn LoginPage(logout_warning: Option<String>) -> Element {
             match crate::utils::net::config::load_runtime_config().await {
                 Ok(cfg) => {
                     crate::utils::storage::set_item("coauth_public_url", &cfg.coauth_public_url);
-                    // P5 — propagate the optional telemetry endpoint
+                    // Propagate the optional telemetry endpoint
                     // into localStorage so `utils::net::telemetry` can pick
                     // it up the first time a report fires.
                     crate::utils::net::telemetry::set_endpoint(&cfg.telemetry_endpoint);

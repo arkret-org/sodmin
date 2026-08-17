@@ -1,4 +1,4 @@
-//! P3A.6 — visual badge that distinguishes "Principal Control" Realms
+//! Visual badge that distinguishes "Principal Control" Realms
 //! (those that back DID issuance and recovery) from
 //! ordinary "Collaboration" Realms.
 //!

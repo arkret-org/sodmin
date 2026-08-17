@@ -29,8 +29,8 @@ pub fn ErrorBanner(
     let retry_label = t("common.retry");
     let error_label = t("common.error");
 
-    // R3 P1 backfill (ENG-5) — fire-and-forget telemetry ping when the
-    // banner mounts with a known wire errcode. No-op when telemetry is
+    // Fire-and-forget telemetry ping when the banner mounts with a known
+    // wire errcode. No-op when telemetry is
     // disabled / the user has not opted in (see `utils::net::telemetry`).
     {
         let telemetry_code = errcode.clone();
@@ -41,7 +41,7 @@ pub fn ErrorBanner(
         });
     }
 
-    // R3 (UI-7) — when the server returned a known wire code, look up the
+    // When the server returned a known wire code, look up the
     // localized copy via `error.<errcode>`. Falls back to None (no detail
     // line) when the key is missing.
     let detail = errcode.as_deref().and_then(|c| {

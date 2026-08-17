@@ -72,12 +72,12 @@ The admin pages observe Realm boundary state through `/realms/:id/...`; changes
 must be authored by a key-holding client. The **Realm links** page exposes typed
 `ak.realm.link` edges between boundaries.
 
-## Round R4 (protocol review closures)
+## Protocol review closures
 
-Spec round 4 (`arkret-spec` range `2a4d39b..a77b995`, 8 commits) lands
-fresh admin surfaces on top of R2/R3. See [`CHANGELOG.md`](CHANGELOG.md)
-`[Unreleased]` and [`../_sodmin_soland_todos.md`](../_sodmin_soland_todos.md) for the canonical
-wire-breaking list. New admin views:
+These admin views close out protocol review findings. See
+[`CHANGELOG.md`](CHANGELOG.md) `[Unreleased]` and
+[`../_sodmin_soland_todos.md`](../_sodmin_soland_todos.md) for the canonical
+wire-breaking list.
 
 - **`ServiceDescribe` detail** — all 17 required fields rendered; the
   combination `development_mode=true` + non-empty `verified_profiles`
@@ -94,12 +94,11 @@ wire-breaking list. New admin views:
   pages must surface this state instead of a silent "fully-deactivated"
   rendering.
 
-## Round R2/R3 admin surfaces
+## Deactivation and key-backup surfaces
 
-Spec rounds 2+3 (2026-05-20) added several operator surfaces — see
-[`CHANGELOG.md`](CHANGELOG.md) `[Unreleased]` and
-[`../arkret-spec`](../arkret-spec) for the
-normative source. The new admin pages:
+Two further operator surfaces — see [`CHANGELOG.md`](CHANGELOG.md)
+`[Unreleased]` and [`../arkret-spec`](../arkret-spec) for the
+normative source:
 
 - **Deactivation review** (`/deactivations/review`) — 7-domain fanout
   panel (session / device / applet / keypackage / push / to-device /

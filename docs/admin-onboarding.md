@@ -9,7 +9,7 @@ do real work. The strand is:
 3. **First login** — the admin opens sodmin in a browser and completes the OAuth2 PKCE strand.
 4. **Capability grant strand** — coauth issues the `ak.*` admin scopes the admin needs to drive sodmin.
 
-P5 — until an admin has both a bound DID **and** the right capability
+Until an admin has both a bound DID **and** the right capability
 grants, sodmin will surface every destructive action with a "not in
 your grant list" hint via the `GrantedCapabilitiesView` component,
 and the backend will reject any forged request with
@@ -18,7 +18,7 @@ and the backend will reject any forged request with
 ## 1. Admin DID Setup
 
 Each administrator is identified by a Decentralized Identifier (DID)
-under the round-4 grammar `^did:[a-z0-9]+:[^\s]+$`. Method segments
+under the grammar `^did:[a-z0-9]+:[^\s]+$`. Method segments
 MUST be lowercase ASCII alphanumeric — no `.`/`-`/`_`/`:`.
 
 Examples that pass the SDK normalizer:
@@ -99,7 +99,7 @@ For sodmin administration the recommended starter grant set is:
 | Capability | Why |
 | --- | --- |
 | `ak.agent.manage` | Meta-scope for the 11 personal-agent admin endpoints. |
-| `ak.circle.create` / `ak.circle.manage` | Create and administer Circles (P3A.4). |
+| `ak.circle.create` / `ak.circle.manage` | Create and administer Circles. |
 | `ak.realm.admin` | Destroy / classify Realms. |
 | `ak.audit.read` | Read the audit log on `/audit`. |
 
@@ -109,7 +109,7 @@ DID, not the coauth `sub`), pick the scope, and submit. The grant
 is published as a Move and becomes visible to the admin on their
 next page load.
 
-<!-- TODO(screenshot): /capabilities — grant capability dialog with the round-4 ValidatedInput on the grantee DID field -->
+<!-- TODO(screenshot): /capabilities — grant capability dialog with the DID-validated input on the grantee DID field -->
 
 Verify the grants landed on the admin's account by opening any
 destructive form (e.g. **Provision new agent** on `/agents/personal`).
@@ -129,7 +129,7 @@ from a higher-privileged admin or via the coauth bootstrap migration.
 For deployment topology and the full port / path routing table see
 [DEPLOYMENT.md](../DEPLOYMENT.md).
 
-## R3 admin flowcharts
+## Admin flowcharts
 
 The flowcharts below are the canonical reference for the three most common
 operational lifecycle strands admins drive from sodmin. They are intentionally
@@ -182,7 +182,7 @@ read on-call without rendering.
 
 Notes:
 
-- The historical `/agents/{id}/revoke` path is gone in R3. Any "Revoke"
+- The historical `/agents/{id}/revoke` path is gone. Any "Revoke"
   button in older builds of sodmin must be replaced with "Deactivate".
 - Pause is reversible; Deactivate is not. The wizard requires a typed-out
   confirmation phrase before deactivate to prevent fat-fingering.

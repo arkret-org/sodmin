@@ -4,15 +4,15 @@ pub mod claims_panel;
 /// chars of device ID) and /applets/admin suspend / revoke (first 6
 /// chars of applet name).
 pub mod dangerous_action_dialog;
-/// Round 4 — delivery-binding handover panel (`delivery_binding_stale`
+/// Delivery-binding handover panel (`delivery_binding_stale`
 /// / `delivery_binding_handed_over` / `historical_only`).
 pub mod delivery_binding_handover_panel;
 pub mod dev_mode_banner;
 pub mod did_binding_panel;
-/// Round 4 — DID-shaped input field with inline regex validation
+/// DID-shaped input field with inline regex validation
 /// (`^did:[a-z0-9]+:[^\s]+$`).
 pub mod did_input;
-/// R3.2 (UI-SOD-5) — "handle changed since" history hint shown when a
+/// "Handle changed since" history hint shown when a
 /// captured `handle_at_time` differs from the subject's current primary
 /// handle.
 pub mod header;

@@ -212,7 +212,7 @@ where
             request_id: response_rid,
             retry_after_ms,
         };
-        // P5 — fire-and-forget opt-in telemetry. Internal no-op when
+        // Fire-and-forget opt-in telemetry. Internal no-op when
         // disabled / endpoint unset; never blocks the caller.
         crate::utils::net::telemetry::report_http_error(url, &err);
         return Err(err);

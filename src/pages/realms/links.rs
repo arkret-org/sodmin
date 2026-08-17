@@ -1,4 +1,4 @@
-//! R5.2 — Realm link-graph admin page.
+//! Realm link-graph admin page.
 //!
 //! Renders the outbound (`this Realm → others`) and inbound
 //! (`others → this Realm`) `ak.realm.link` rows for a single Realm.

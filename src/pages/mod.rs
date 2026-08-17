@@ -6,12 +6,12 @@ pub mod dashboard;
 pub mod devices;
 pub mod federation;
 pub mod handles;
-/// R3.2 (UI-SOD-4) — Subject → Handles directory page
+/// Subject → Handles directory page
 /// (`ak.find.directory.read.list_handles_for_subject`).
 pub mod handles_by_subject;
 pub mod hardening;
 pub mod invite_tokens;
-/// B-C key-backup recovery admin (P3-B).
+/// Key-backup recovery admin (backup blobs + recovery policy).
 pub mod key_backup;
 pub mod login;
 pub mod media;

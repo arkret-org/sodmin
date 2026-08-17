@@ -21,7 +21,7 @@ struct DraftFilter {
     realm_id: String,
     since: String,
     until: String,
-    /// P3A.5 — AKP-0007 event kind filter. Empty = no filter.
+    /// AKP-0007 event kind filter. Empty = no filter.
     kind: String,
 }
 
@@ -131,7 +131,7 @@ pub fn AuditLog() -> Element {
                             },
                         }
                     }
-                    // P3A.5 — AKP-0007 event-kind filter dropdown. The values
+                    // AKP-0007 event-kind filter dropdown. The values
                     // come straight from the SDK's generated event-kind
                     // registry, so a registry rename breaks this build.
                     div { class: "space-y-1",

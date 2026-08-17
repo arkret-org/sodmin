@@ -1,5 +1,4 @@
-//! R3.2 (arkret-spec @ b56cab1, UI-SOD-3) — §3.2.1 primary handle
-//! selection, admin-SPA surface.
+//! §3.2.1 primary handle selection, admin-SPA surface.
 //!
 //! `MemberIdentity` no longer carries `primary_handle` / `handles[]`;
 //! handle lifecycle has moved entirely onto signed

@@ -1,5 +1,4 @@
-//! R3.2 (UI-SOD-4) — Directory service client for the Subject → Handles
-//! admin page.
+//! Directory service client for the Subject → Handles admin page.
 //!
 //! `ak.find.directory.read.list_handles_for_subject` is the inverse of
 //! `resolve_handle`: given a known holder/principal DID it returns the

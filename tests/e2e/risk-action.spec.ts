@@ -1,4 +1,4 @@
-// Round 26 Q2 — happy-path risk-action approval Playwright e2e.
+// Happy-path risk-action approval Playwright e2e.
 //
 // Drives the sodmin SPA against a sodmin dev instance + a soland dev
 // stack. The test is intentionally narrow: it boots the SPA, signs the
@@ -21,7 +21,7 @@ const ADMIN_EMAIL = process.env.SODMIN_E2E_ADMIN_EMAIL || "";
 const ADMIN_PASSWORD = process.env.SODMIN_E2E_ADMIN_PASSWORD || "";
 const ACCOUNT_ID = process.env.SODMIN_E2E_ACCOUNT_ID || "";
 
-test.describe("Q2 risk-action happy-path", () => {
+test.describe("risk-action happy-path", () => {
   test.beforeAll(async () => {
     if (!BASE_URL || !ADMIN_EMAIL || !ADMIN_PASSWORD || !ACCOUNT_ID) {
       test.skip(

@@ -11,7 +11,7 @@
 //! SODMIN_SMOKE_TOKEN=$SOLAND_ADMIN_TOKEN \
 //! cargo run --bin sodmin-smoke -- \
 //!     --base-url https://soland.example.com \
-//!     --realm-id ak:realm:demo
+//!     --realm-id ak:realm:AXtI0JHl403DNDFAoBki57-5cESsvwc5LMyLnrl7o-A8
 //! ```
 //!
 //! A `--token` flag exists for ad-hoc local use only; prefer the env var
@@ -157,7 +157,7 @@ fn urlencoding_encode(s: &str) -> String {
             }
             b':' => {
                 // Colon is allowed in URI path segments per RFC 3986
-                // (pchar) and `ak:realm:...` ids depend on it. Leaving
+                // (pchar) and Arkret typed ids depend on it. Leaving
                 // it un-encoded keeps the smoke output readable.
                 out.push(':');
             }
@@ -346,10 +346,14 @@ mod tests {
 
     #[test]
     fn build_realm_url_strips_trailing_base_slash() {
-        let url = build_realm_url("https://soland.example.com/", "ak:realm:demo", "notary");
+        let url = build_realm_url(
+            "https://soland.example.com/",
+            "ak:realm:AXtI0JHl403DNDFAoBki57-5cESsvwc5LMyLnrl7o-A8",
+            "notary",
+        );
         assert_eq!(
             url,
-            "https://soland.example.com/_soland/admin/realms/ak:realm:demo/notary"
+            "https://soland.example.com/_soland/admin/realms/ak:realm:AXtI0JHl403DNDFAoBki57-5cESsvwc5LMyLnrl7o-A8/notary"
         );
     }
 
@@ -357,20 +361,25 @@ mod tests {
     fn build_realm_url_handles_compound_read_suffix() {
         let url = build_realm_url(
             "https://soland.example.com",
-            "ak:realm:demo",
+            "ak:realm:AXtI0JHl403DNDFAoBki57-5cESsvwc5LMyLnrl7o-A8",
             "multisig/pending",
         );
         assert_eq!(
             url,
-            "https://soland.example.com/_soland/admin/realms/ak:realm:demo/multisig/pending"
+            "https://soland.example.com/_soland/admin/realms/ak:realm:AXtI0JHl403DNDFAoBki57-5cESsvwc5LMyLnrl7o-A8/multisig/pending"
         );
     }
 
     #[test]
     fn urlencoding_encode_preserves_colon_and_alnum() {
-        // `ak:realm:01J9` is the typical id shape — colons MUST stay
-        // unescaped or the URL becomes unreadable in logs.
-        assert_eq!(urlencoding_encode("ak:realm:01J9"), "ak:realm:01J9");
+        // A canonical Realm id (typed prefix + 44-char Event token) is
+        // the shape that matters — colons MUST stay unescaped or the
+        // URL becomes unreadable in logs, and the base64url payload
+        // charset (`-`, `_`, alnum) must survive untouched.
+        assert_eq!(
+            urlencoding_encode("ak:realm:AWUvBcFWRWKrAZRDsCI8hvY2qbeiJiDwRmeiHGgPL0_U"),
+            "ak:realm:AWUvBcFWRWKrAZRDsCI8hvY2qbeiJiDwRmeiHGgPL0_U"
+        );
         assert_eq!(urlencoding_encode("abc-123_~."), "abc-123_~.");
     }
 

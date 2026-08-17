@@ -94,7 +94,7 @@ fn build_nav_sections() -> Vec<NavSection> {
         vec![
             NavItem::new(t("nav.federation"), Route::FederationList {}, "globe"),
             NavItem::new(t("nav.media"), Route::MediaList {}, "image"),
-            // B-C key-backup recovery admin (P3-B).
+            // Key-backup recovery admin (backup blobs + recovery policy).
             NavItem::new("Key backup".to_string(), Route::KeyBackupList {}, "key"),
             NavItem::new(
                 t("nav.delivery_binding"),
@@ -104,7 +104,7 @@ fn build_nav_sections() -> Vec<NavSection> {
                 },
                 "shield",
             ),
-            // R5.2 — Realm link-graph (outbound / inbound
+            // Realm link-graph (outbound / inbound
             // `ak.realm.link` rows). Sits next to delivery binding
             // so the operator can pivot from a single Realm's
             // routing policy to its boundary topology.
@@ -115,7 +115,7 @@ fn build_nav_sections() -> Vec<NavSection> {
                 },
                 "link",
             ),
-            // R3 (UI-3) — Realm media_service.foci[] read-only view.
+            // Realm media_service.foci[] read-only view.
             NavItem::new(
                 t("media_service.title"),
                 Route::RealmMediaService {
