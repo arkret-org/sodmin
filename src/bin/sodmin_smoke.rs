@@ -8,7 +8,7 @@
 //! (CLI args leak into shell history, CI logs, and `/proc/<pid>/cmdline`):
 //!
 //! ```ignore
-//! SODMIN_SMOKE_TOKEN=$SOLAND_ADMIN_TOKEN \
+//! SODMIN_SMOKE_TOKEN=<BEARER> \
 //! cargo run --bin sodmin-smoke -- \
 //!     --base-url https://soland.example.com \
 //!     --realm-id ak:realm:AXtI0JHl403DNDFAoBki57-5cESsvwc5LMyLnrl7o-A8
@@ -43,9 +43,7 @@ struct Args {
 impl Args {
     fn parse() -> Result<Self, String> {
         let mut base_url = env::var("SODMIN_SMOKE_BASE_URL").ok();
-        let mut token = env::var("SODMIN_SMOKE_TOKEN")
-            .ok()
-            .or_else(|| env::var("SOLAND_ADMIN_TOKEN").ok());
+        let mut token = env::var("SODMIN_SMOKE_TOKEN").ok();
         let mut realm_id = env::var("SODMIN_SMOKE_REALM_ID").ok();
         let mut timeout_secs = DEFAULT_TIMEOUT_SECS;
 
@@ -102,7 +100,7 @@ fn print_help() {
     println!(
         "sodmin-smoke — soland admin endpoint smoke test\n\n\
 USAGE:\n  SODMIN_SMOKE_TOKEN=<BEARER> sodmin-smoke --base-url <URL> --realm-id <REALM_ID>\n\n\
-OPTIONS:\n  -u, --base-url     soland base URL (e.g. https://soland.example.com)\n  -t, --token        admin bearer token. PREFER the env var $SODMIN_SMOKE_TOKEN /\n                     $SOLAND_ADMIN_TOKEN — CLI args leak into shell history, CI\n                     logs, and the process table (/proc/<pid>/cmdline)\n  -r, --realm-id     Realm id to probe (Stream H' is per-Realm)\n      --timeout      per-request timeout in seconds (default {DEFAULT_TIMEOUT_SECS})\n  -h, --help         print this message\n"
+OPTIONS:\n  -u, --base-url     soland base URL (e.g. https://soland.example.com)\n  -t, --token        admin bearer token. PREFER the env var $SODMIN_SMOKE_TOKEN\n                     — CLI args leak into shell history, CI logs, and the\n                     process table (/proc/<pid>/cmdline)\n  -r, --realm-id     Realm id to probe (Stream H' is per-Realm)\n      --timeout      per-request timeout in seconds (default {DEFAULT_TIMEOUT_SECS})\n  -h, --help         print this message\n"
     );
 }
 

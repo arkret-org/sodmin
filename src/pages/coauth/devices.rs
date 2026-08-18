@@ -252,7 +252,6 @@ mod tests {
     fn revoke_button_visible_only_when_row_revocable() {
         let r = CoauthDeviceRow {
             id: "d1".into(),
-            account_id: None,
             display_name: None,
             risk_level: CoauthDeviceRiskLevel::Unknown,
             mfa_state: CoauthDeviceMfaState::Unknown,

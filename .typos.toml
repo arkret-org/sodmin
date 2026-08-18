@@ -8,4 +8,4 @@ RTO = "RTO"
 alikes = "alikes"
 
 [files]
-extend-exclude = ["**/*.js", "**/*.css", "**/*.html", "examples/*/static/**/*.*"]
+extend-exclude = ["**/*.js", "**/*.css", "**/*.html"]

@@ -1,12 +1,29 @@
-//! DTO shapes for the per-account device admin surface.
+//! Minimal **client adapter** for coauth's per-account device admin surface.
 //!
-//! coauth owns the device list and cascade revocation. The admin UI reads the
-//! account-scoped list from coauth and POSTs the revoke request back to coauth.
+//! This is deliberately NOT a copy of a contract type. coauth's authoritative
+//! `DeviceRecord` / `DeviceRiskLevel` / `DeviceMfaState` live in the
+//! `coauth-backend` implementation crate
+//! (`crates/backend/src/handlers/admin/v1/devices.rs`), whose fields are
+//! private and which derives `Serialize` only. `coauth-admin-types` — the
+//! audited product-contract crate sodmin is allowed to depend on — has no
+//! device module, and sodmin is the sole external consumer of this surface.
+//! Per the workspace boundary policy (§2.3 rule 4: one-off / single external
+//! consumer of a private product interface), the consumer keeps its own
+//! minimal read-only adapter rather than widening the shared contract crate.
+//!
+//! Scope rules for this file:
+//!
+//! - decode only — no `Serialize`, this surface is never sent back as a body;
+//! - only fields the admin UI actually renders. coauth may return more; serde drops the rest. Do
+//!   not mirror the server struct field-for-field.
+//!
+//! If a second Rust consumer ever appears, promote these shapes into
+//! `coauth-admin-types` instead of copying this file.
 
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 
 /// Risk level reported by coauth for a registered device.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum CoauthDeviceRiskLevel {
     Low,
@@ -27,7 +44,7 @@ impl CoauthDeviceRiskLevel {
 }
 
 /// MFA state reported by coauth for a registered device.
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum CoauthDeviceMfaState {
     Verified,
@@ -46,10 +63,13 @@ impl CoauthDeviceMfaState {
 }
 
 /// One row in the coauth per-account device list.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+///
+/// `account_id` is intentionally absent: the page already knows the account
+/// from its route parameter, so echoing it back into the row would be a
+/// contract mirror with no reader.
+#[derive(Debug, Clone, Deserialize)]
 pub struct CoauthDeviceRow {
     pub id: String,
-    pub account_id: Option<String>,
     pub display_name: Option<String>,
     pub risk_level: CoauthDeviceRiskLevel,
     pub mfa_state: CoauthDeviceMfaState,
@@ -75,7 +95,6 @@ mod tests {
     fn row(id: &str, revoked_at: Option<&str>) -> CoauthDeviceRow {
         CoauthDeviceRow {
             id: id.into(),
-            account_id: Some("01JZ9PK6HKFY0MM7C0TMZ1X8N7".into()),
             display_name: None,
             risk_level: CoauthDeviceRiskLevel::Unknown,
             mfa_state: CoauthDeviceMfaState::Unknown,
@@ -112,6 +131,9 @@ mod tests {
         );
     }
 
+    /// The payload below is coauth's full `DeviceRecord`; the adapter must
+    /// decode it while silently dropping the fields the UI does not render
+    /// (here: `account_id`).
     #[test]
     fn deserializes_current_coauth_device_record() {
         let row: CoauthDeviceRow = serde_json::from_value(serde_json::json!({
