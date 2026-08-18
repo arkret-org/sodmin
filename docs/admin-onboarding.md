@@ -241,7 +241,7 @@ Notes:
     │  - paste connect_url (the SFU/relay control endpoint)
     │  - choose issuer_kid (from soland's active kid set)
     │  - sodmin synthesizes focus_id using the canonical rules:
-    │      ak:focus:<backend>:<region>:<disambiguator>
+    │      <backend>:<region>:<disambiguator>
     │  - validate (region matches [a-z0-9-]+, length checks)
     │  - save draft
     ▼
