@@ -2,7 +2,6 @@
   "name": "sodmin",
   "version": "0.3.0",
   "description": "Arkret administrator web UI (Playwright e2e harness).",
-  "main": "index.js",
   "directories": {
     "example": "examples"
   },

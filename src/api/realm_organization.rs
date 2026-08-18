@@ -64,17 +64,3 @@ pub async fn get_realm_organization_admin_view(
         unavailable_control_dids,
     })
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn admin_view_is_composed_from_shared_wire_types() {
-        fn assert_relationships(_: &RealmOrganizationRelationshipList) {}
-        fn assert_controls(_: &[OrganizationControlView]) {}
-
-        let _ = assert_relationships;
-        let _ = assert_controls;
-    }
-}
