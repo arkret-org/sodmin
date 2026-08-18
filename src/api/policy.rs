@@ -93,9 +93,13 @@ fn payload_parts(
     let rules = req.rules.clone().unwrap_or_default();
     let rules_value = rules.as_value();
     let effect = match rules_value.get("effect").and_then(Value::as_str) {
-        Some(value) => PolicyEffect::from_wire(value).ok_or_else(|| {
-            HttpError::message(format!("unsupported policy effect from server: {value}"))
-        })?,
+        // The wire spelling lives in the SDK type's serde impl (spec
+        // four-value `policy_effect` closed set); decision-only values such
+        // as `soft_deny` / `hard_deny` are rejected here.
+        Some(value) => serde_json::from_value::<PolicyEffect>(Value::String(value.to_owned()))
+            .map_err(|_| {
+                HttpError::message(format!("unsupported policy effect from server: {value}"))
+            })?,
         None => PolicyEffect::Allow,
     };
     let actions = rules_value
@@ -707,7 +711,7 @@ mod tests {
     }
 
     #[test]
-    fn upsert_body_preserves_subject_ref_and_hard_deny_effect() {
+    fn upsert_body_preserves_subject_ref_and_deny_effect() {
         let req = CreatePolicyRequest {
             name: "Targeted deny".to_owned(),
             scope: Some("ak:realm:AcTCbPKkRYcSVLkuEFQjnPuFXfCsFvSRZDAjCsho3_b-".to_owned()),
@@ -715,7 +719,7 @@ mod tests {
             policy_kind: Some("ak.message.send".to_owned()),
             rules: Some(
                 json!({
-                    "effect": "hard_deny",
+                    "effect": "deny",
                     "actions": ["ak.message.send"]
                 })
                 .into(),
@@ -732,15 +736,17 @@ mod tests {
         let encoded = serde_json::to_value(body).unwrap();
 
         assert_eq!(encoded["subject_ref"], "did:web:bob.example");
-        assert_eq!(encoded["effect"], "hard_deny");
+        assert_eq!(encoded["effect"], "deny");
         assert_eq!(encoded["actions"], json!(["ak.message.send"]));
     }
 
     #[test]
     fn upsert_body_rejects_unknown_policy_effect() {
+        // `soft_deny` is a Policy Server decision value, not a rule effect —
+        // the spec `policy_effect` closed set rejects it.
         let req = CreatePolicyRequest {
             name: "Bad effect".to_owned(),
-            rules: Some(json!({"effect": "deny"}).into()),
+            rules: Some(json!({"effect": "soft_deny"}).into()),
             ..Default::default()
         };
 
