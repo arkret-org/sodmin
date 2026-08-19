@@ -6,7 +6,7 @@
 //! site can pick a value that's distinctive but cheap to type:
 //!
 //! * device revoke -> the last 4 chars of the device ID
-//! * applet suspend/revoke -> the first 6 chars of the applet name
+//! * handle revoke / reassign -> the last 4 chars of the handle ID
 //!
 //! Pure leaf component — it does not fetch or POST anything. The caller
 //! is responsible for the actual mutation when `on_confirm` fires.

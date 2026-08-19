@@ -18,7 +18,7 @@
 //!
 //! Output format is a single `log::info!` line shaped like:
 //! ```text
-//! sodmin.admin.action target=applet id=… action=approve outcome=accepted note=…
+//! sodmin.admin.action target=account id=… action=deactivate outcome=accepted note=…
 //! ```
 //!
 //! The format is stable so a downstream `dioxus-logger` sink can parse
@@ -45,10 +45,10 @@ impl AdminAuditOutcome {
 /// Format an admin audit line. Pure helper so we can unit-test the
 /// shape without spinning up a `log::` sink.
 ///
-/// `target` is the resource name (`applet`, `agent`, `directory`),
-/// `id` is the row identity from the listing, `action` is the click
-/// verb (`approve` / `suspend` / `revoke` / `reject`), `outcome` mirrors
-/// the HTTP outcome, and `note` is an optional operator-supplied string.
+/// `target` is the resource name (`account`), `id` is the row identity
+/// from the listing, `action` is the click verb (`deactivate`),
+/// `outcome` mirrors the HTTP outcome, and `note` is an optional
+/// operator-supplied string.
 pub fn format_admin_audit_line(
     target: &str,
     id: &str,
@@ -91,7 +91,9 @@ fn redact_note(note: &str) -> String {
 
 /// Emit an admin audit trace via `log::info!`. Thin wrapper around
 /// [`format_admin_audit_line`] — the page-side call sites use this so
-/// they never have to format the line themselves.
+/// they never have to format the line themselves. The line only
+/// correlates with the authoritative server-side audit row soland
+/// appended while handling the admin endpoint that was just called.
 pub fn emit_admin_audit(
     target: &str,
     id: &str,
@@ -103,22 +105,6 @@ pub fn emit_admin_audit(
         "{}",
         format_admin_audit_line(target, id, action, outcome, note)
     );
-}
-
-/// Record an admin click that soland has already audited server-side.
-///
-/// Thin alias for [`emit_admin_audit`], kept as its own name so the call
-/// sites read as "this mutation is on the audit trail" — the trail being
-/// soland's `append_audit_log` row for the admin endpoint that was just
-/// called, which this line only correlates with.
-pub fn emit_admin_audit_server(
-    target: &str,
-    id: &str,
-    action: &str,
-    outcome: AdminAuditOutcome,
-    note: Option<&str>,
-) {
-    emit_admin_audit(target, id, action, outcome, note);
 }
 
 #[cfg(test)]
@@ -134,16 +120,16 @@ mod tests {
     #[test]
     fn audit_line_is_single_line_and_grep_friendly() {
         let line = format_admin_audit_line(
-            "applet",
-            "ap_01HXY",
-            "approve",
+            "account",
+            "acct_01HXY",
+            "deactivate",
             AdminAuditOutcome::Accepted,
             None,
         );
         assert!(!line.contains('\n'));
-        assert!(line.contains("target=applet"));
-        assert!(line.contains("id=ap_01HXY"));
-        assert!(line.contains("action=approve"));
+        assert!(line.contains("target=account"));
+        assert!(line.contains("id=acct_01HXY"));
+        assert!(line.contains("action=deactivate"));
         assert!(line.contains("outcome=accepted"));
         assert!(!line.contains("note="));
     }
@@ -151,9 +137,9 @@ mod tests {
     #[test]
     fn audit_line_includes_note_when_present() {
         let line = format_admin_audit_line(
-            "agent",
-            "ag_01",
-            "suspend",
+            "account",
+            "acct_01",
+            "deactivate",
             AdminAuditOutcome::Accepted,
             Some("temporary"),
         );
@@ -163,9 +149,9 @@ mod tests {
     #[test]
     fn audit_line_drops_blank_note() {
         let line = format_admin_audit_line(
-            "agent",
-            "ag_01",
-            "suspend",
+            "account",
+            "acct_01",
+            "deactivate",
             AdminAuditOutcome::Accepted,
             Some("   "),
         );
@@ -175,9 +161,9 @@ mod tests {
     #[test]
     fn audit_note_strips_newlines() {
         let line = format_admin_audit_line(
-            "agent",
-            "ag_01",
-            "revoke",
+            "account",
+            "acct_01",
+            "deactivate",
             AdminAuditOutcome::Rejected,
             Some("line1\nline2\rline3\ttab"),
         );
@@ -192,9 +178,9 @@ mod tests {
     fn audit_note_truncates_long_notes() {
         let long = "a".repeat(500);
         let line = format_admin_audit_line(
-            "directory",
-            "d_01",
-            "reject",
+            "account",
+            "acct_01",
+            "deactivate",
             AdminAuditOutcome::Accepted,
             Some(&long),
         );

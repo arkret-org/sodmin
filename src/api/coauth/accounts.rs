@@ -146,8 +146,6 @@ pub struct CoauthAccountRiskActionExecute {
     #[serde(default)]
     pub execution_state: String,
     #[serde(default)]
-    pub mutation_kind: String,
-    #[serde(default)]
     pub state_revision: u64,
     #[serde(default)]
     pub transition_kind: String,

@@ -94,15 +94,12 @@ wire-breaking list.
   pages must surface this state instead of a silent "fully-deactivated"
   rendering.
 
-## Deactivation and key-backup surfaces
+## Key-backup surface
 
-Two further operator surfaces — see [`CHANGELOG.md`](CHANGELOG.md)
+One further operator surface — see [`CHANGELOG.md`](CHANGELOG.md)
 `[Unreleased]` and [`../arkret-spec`](../arkret-spec) for the
 normative source:
 
-- **Deactivation review** (`/deactivations/review`) — 7-domain fanout
-  panel (session / device / applet / keypackage / push / to-device /
-  capability) with per-domain retry.
 - **Key backup** (`/key-backup`) — recovery policies and receipts from
   the root identity recovery API.
 

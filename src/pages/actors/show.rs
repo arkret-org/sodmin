@@ -11,7 +11,7 @@ use crate::components::ui::toast::{ToastVariant, show_toast};
 use crate::router::Route;
 use crate::types::AdminActorExt;
 use crate::utils::i18n::t;
-use crate::utils::net::audit::{AdminAuditOutcome, emit_admin_audit_server};
+use crate::utils::net::audit::{AdminAuditOutcome, emit_admin_audit};
 
 #[component]
 pub fn ActorShow(actor_id: String) -> Element {
@@ -135,11 +135,11 @@ pub fn ActorShow(actor_id: String) -> Element {
                                 match actors::deactivate_account(&aid).await {
                                     Ok(_) => {
                                         show_toast(&t("actors.deactivated"), ToastVariant::Success);
-                                        emit_admin_audit_server("account", &aid, "deactivate", AdminAuditOutcome::Accepted, None);
+                                        emit_admin_audit("account", &aid, "deactivate", AdminAuditOutcome::Accepted, None);
                                     }
                                     Err(e) => {
                                         show_toast(&e.message, ToastVariant::Error);
-                                        emit_admin_audit_server("account", &aid, "deactivate", AdminAuditOutcome::Rejected, Some(&e.message));
+                                        emit_admin_audit("account", &aid, "deactivate", AdminAuditOutcome::Rejected, Some(&e.message));
                                     }
                                 }
                                 data.restart();
