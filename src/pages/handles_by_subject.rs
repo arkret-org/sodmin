@@ -251,11 +251,7 @@ fn claim_row(claim: &HandleClaim, primary: Option<&str>) -> Element {
         .as_ref()
         .map(|dt| dt.to_rfc3339())
         .unwrap_or_else(|| "-".to_string());
-    let created = claim
-        .created_at
-        .as_ref()
-        .map(|dt| dt.to_rfc3339())
-        .unwrap_or_else(|| "-".to_string());
+    let created = claim.created_at.to_rfc3339();
     let (binding_label, binding_variant) = binding_badge(claim.binding_state);
     let is_primary = matches!(
         (claim.handle.as_ref().map(|h| h.canonical()), primary),

@@ -373,12 +373,7 @@ fn identity_registry_endpoint(describe: &ServerDescribeDocument) -> Option<Strin
 }
 
 fn schema_registry_version(describe: &ServerDescribeDocument) -> Option<String> {
-    describe
-        .extra_str(&["schema_registry_version"])
-        .or_else(|| {
-            (!describe.supported_schema_profiles.is_empty())
-                .then(|| join_or_dash(&describe.supported_schema_profiles))
-        })
+    describe.extra_str(&["schema_registry_version"])
 }
 
 fn event_kind_registry_version(describe: &ServerDescribeDocument) -> Option<String> {

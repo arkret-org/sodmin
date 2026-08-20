@@ -120,7 +120,6 @@ name = "arkret-models-crypto"
 version = "0.3.0"
 dependencies = [
  "arkret-canonical",
- "arkret-models-identity",
  "arkret-wire",
  "chrono",
  "hex",
@@ -155,7 +154,6 @@ dependencies = [
  "serde",
  "serde_json",
  "sha2 0.11.0",
- "subtle",
  "url",
 ]
 
