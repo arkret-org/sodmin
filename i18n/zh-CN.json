@@ -685,7 +685,6 @@
   "realm_notary.description": "配置此 Realm 的 notary cell（single_did / threshold / open_set / mixed）。",
   "realm_notary.paused": "已暂停",
   "realm_notary.title": "Notary · {realm_id}",
-  "realm_notary.unknown_kind": "未知 notary 类型：{raw}",
   "realm_organization.col_control_stream": "控制流",
   "realm_organization.col_delegation": "委派引用",
   "realm_organization.col_delegation_status": "委派状态",

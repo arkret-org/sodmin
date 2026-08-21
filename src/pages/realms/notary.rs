@@ -1,5 +1,6 @@
 //! Read-only Notary cell inspection.
 
+use arkret_wire::{NotarySignerDescriptor, NotaryValue};
 use dioxus::prelude::*;
 
 use crate::api::seal;
@@ -9,7 +10,7 @@ use crate::components::ui::card::*;
 use crate::components::ui::error_banner::ErrorBanner;
 use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
-use crate::types::seal::{AdminNotaryValue, NotaryKind};
+use crate::types::seal::AdminNotaryValue;
 use crate::utils::i18n::t;
 
 #[component]
@@ -67,23 +68,17 @@ pub fn NotaryPage(realm_id: String) -> Element {
 }
 
 fn render_value_detail(v: &AdminNotaryValue) -> Element {
-    match v.kind() {
-        None => {
-            let raw = v.kind_raw.clone();
-            rsx! {
-                div { class: "font-mono text-xs text-muted-foreground",
-                    {t("realm_notary.unknown_kind").replace("{raw}", &raw)}
-                }
-            }
-        }
-        Some(NotaryKind::SingleDid) => {
-            let did = v.single_actor_id.clone().unwrap_or_else(|| "-".to_string());
+    match &v.notary {
+        NotaryValue::SingleSigner { signer, .. } => {
+            let did = signer.actor_id.to_string();
             rsx! { div { class: "font-mono text-xs", "did: {did}" } }
         }
-        Some(NotaryKind::Threshold) => {
-            let k = v.threshold_k.unwrap_or(0);
-            let n = v.threshold_n.unwrap_or(0);
-            let dids = v.threshold_actor_ids.clone();
+        NotaryValue::Threshold {
+            members, threshold, ..
+        } => {
+            let k = *threshold;
+            let n = members.len();
+            let dids = actor_ids(members);
             rsx! {
                 div { class: "font-mono text-xs", "k/n: {k}/{n}" }
                 ul { class: "list-disc list-inside text-xs font-mono",
@@ -91,20 +86,21 @@ fn render_value_detail(v: &AdminNotaryValue) -> Element {
                 }
             }
         }
-        Some(NotaryKind::OpenSet) => {
-            let members = v.open_set_members.clone();
+        NotaryValue::OpenSet { members } => {
+            let dids = actor_ids(members);
             rsx! {
                 ul { class: "list-disc list-inside text-xs font-mono",
-                    for member in members.iter() { li { "{member}" } }
+                    for did in dids.iter() { li { "{did}" } }
                 }
             }
         }
-        Some(NotaryKind::Mixed) => {
-            let primary = v
-                .mixed_primary_actor_id
-                .clone()
-                .unwrap_or_else(|| "-".to_string());
-            let recovery = v.mixed_recovery_actor_ids.clone();
+        NotaryValue::Mixed {
+            signer,
+            recovery_members,
+            ..
+        } => {
+            let primary = signer.actor_id.to_string();
+            let recovery = actor_ids(recovery_members);
             rsx! {
                 div { class: "font-mono text-xs", "primary: {primary}" }
                 div { class: "text-xs text-muted-foreground", "recovery:" }
@@ -114,4 +110,11 @@ fn render_value_detail(v: &AdminNotaryValue) -> Element {
             }
         }
     }
+}
+
+fn actor_ids(members: &[NotarySignerDescriptor]) -> Vec<String> {
+    members
+        .iter()
+        .map(|member| member.actor_id.to_string())
+        .collect()
 }

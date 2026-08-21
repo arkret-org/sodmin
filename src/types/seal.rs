@@ -4,29 +4,42 @@
 //! sodmin admin UI use the same type definitions.
 
 pub use soland_contracts::admin::seal::{
-    AdminNotaryValue, BottomCandidateHead, BottomEntry, BottomKind, BottomKindExt, NotaryKind,
-    SealDagSnapshot, bottom_kind_from_wire,
+    AdminNotaryValue, BottomCandidateHead, BottomEntry, BottomKind, BottomKindExt, SealDagSnapshot,
+    bottom_kind_from_wire,
 };
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
+    fn notary_signer(actor: &str) -> serde_json::Value {
+        serde_json::json!({
+            "actor_id": format!("ak:did_core:web:{actor}.example"),
+            "verification_method": format!("did:web:{actor}.example#notary-1"),
+            "key_kind": "ed25519_raw32",
+            "jose_algorithm": "Ed25519",
+            "frozen_public_key_b64u": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8",
+            "frozen_public_key_digest": "sha256:630dcd2966c4336691125448bbb25b4ff412a49c732db2c8abc1b8581bd710dd",
+        })
+    }
+
     #[test]
     fn notary_value_summary_threshold() {
-        let value = AdminNotaryValue {
-            kind_raw: "threshold".to_owned(),
-            threshold_k: Some(2),
-            threshold_n: Some(3),
-            threshold_actor_ids: vec![
-                "ak:did_core:web:a.example".to_owned(),
-                "ak:did_core:web:b.example".to_owned(),
-                "ak:did_core:web:c.example".to_owned(),
-            ],
-            ..Default::default()
-        };
+        let value: AdminNotaryValue = serde_json::from_value(serde_json::json!({
+            "notary": {
+                "kind": "threshold",
+                "members": [
+                    notary_signer("a"),
+                    notary_signer("b"),
+                    notary_signer("c"),
+                ],
+                "threshold": 2,
+                "forensic_attribution": "quorum_intersection"
+            }
+        }))
+        .expect("threshold notary should deserialize");
 
-        assert_eq!(value.kind(), Some(NotaryKind::Threshold));
+        assert_eq!(value.kind_label(), "threshold");
         assert_eq!(value.summary(), "threshold(2/3)");
     }
 

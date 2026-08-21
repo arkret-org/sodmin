@@ -3,7 +3,7 @@
 //!
 //! The row is the shared `soland_contracts::admin::AdminRealmItem`; sodmin
 //! keeps no wire mirror. The object carrying encryption / join-rule /
-//! history-visibility / realm-class boundary fields is a Realm. Space
+//! history-access / realm-class boundary fields is a Realm. Space
 //! containers are represented separately by [`crate::types::spaces::SpaceRow`].
 
 use serde::Serialize;
@@ -70,7 +70,7 @@ mod tests {
             "member_count": 2,
             "members": [],
             "created_by": null,
-            "history_visibility": "shared",
+            "history_access": "since_join",
             "is_encrypted": true,
             "is_blocked": false,
             "plaintext_visible_services": [],
@@ -107,7 +107,7 @@ mod tests {
             member_count: 0,
             members: Vec::new(),
             created_by: None,
-            history_visibility: None,
+            history_access: None,
             is_encrypted: false,
             is_blocked: false,
             plaintext_visible_services: Vec::new(),
