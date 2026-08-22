@@ -4,13 +4,13 @@
 //! The row is the shared `soland_contracts::admin::AdminRealmItem`; sodmin
 //! keeps no wire mirror. The object carrying encryption / join-rule /
 //! history-access / realm-class boundary fields is a Realm. Space
-//! containers are represented separately by [`crate::types::spaces::SpaceRow`].
+//! containers are represented separately by [`crate::types::spaces::AdminSpaceRow`].
 
 use serde::Serialize;
-pub use soland_contracts::admin::{AdminRealmItem as AdminRealm, RealmClass};
+pub use soland_contracts::admin::{AdminRealmItem, RealmClass};
 
-/// Display helpers for the shared [`AdminRealm`].
-pub trait AdminRealmExt {
+/// Display helpers for the shared [`AdminRealmItem`].
+pub trait AdminRealmItemExt {
     fn discoverability_label(&self) -> Option<String>;
     fn join_rule_label(&self) -> Option<String>;
     /// Wire class string, `-` when the server reported no recognised class.
@@ -19,7 +19,7 @@ pub trait AdminRealmExt {
     fn created_at_display(&self) -> Option<String>;
 }
 
-impl AdminRealmExt for AdminRealm {
+impl AdminRealmItemExt for AdminRealmItem {
     fn discoverability_label(&self) -> Option<String> {
         self.discoverability.as_ref().map(wire_label)
     }
@@ -53,7 +53,7 @@ mod tests {
 
     #[test]
     fn realm_class_and_discoverability_render_from_the_shared_row() {
-        let realm: AdminRealm = serde_json::from_value(serde_json::json!({
+        let realm: AdminRealmItem = serde_json::from_value(serde_json::json!({
             "kind": "realm",
             "id": "ak:realm:AUwZORI60DxE1STM676ap_m1sIzBcRRCjoewWDPyAjx-",
             "strand": {},
@@ -90,7 +90,7 @@ mod tests {
 
     #[test]
     fn unknown_class_renders_as_dash_rather_than_guessing() {
-        let realm = AdminRealm {
+        let realm = AdminRealmItem {
             kind: "realm".to_owned(),
             id: "ak:realm:AWASxhHncyxoEbHwACOwwtlRkQ3MT2gAAiT3ZBg5sMbb".to_owned(),
             strand: serde_json::json!({}),

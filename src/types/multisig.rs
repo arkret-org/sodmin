@@ -1,11 +1,9 @@
 //! DTO adapters for the multi-sig partial-signature admin surface.
 //!
-//! All DTOs come from `soland-contracts`; this module only keeps the UI-facing
-//! aliases for the pending-row names.
+//! All DTOs come from `soland-contracts`; this module only re-exports them
+//! under the sodmin `types` tree.
 
-pub use soland_contracts::admin::seal::{
-    MultisigPendingEntry as PendingMultisigSeal, MultisigPendingOutcome,
-};
+pub use soland_contracts::admin::seal::{MultisigPendingEntry, MultisigPendingOutcome};
 
 #[cfg(test)]
 mod tests {
@@ -13,7 +11,7 @@ mod tests {
 
     #[test]
     fn pending_row_helpers_come_from_shared_type() {
-        let row = PendingMultisigSeal {
+        let row = MultisigPendingEntry {
             seal_id:
                 "ak:seal:sha256:6c60708bf5af164178744ae2ddfb641cbf9db8034a20aa0890be611efceb38bc"
                     .to_owned(),

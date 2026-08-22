@@ -7,7 +7,7 @@ const SERVER_DESCRIBE_PATH: &str = "/_arkret/describe";
 const SERVER_STATUS_PATH: &str = "/_soland/admin/server/status";
 const SERVER_STATS_PATH: &str = "/_soland/admin/server/stats";
 
-pub async fn get_server_info() -> Result<ServerInfo, HttpError> {
+pub async fn get_server_info() -> Result<AdminServerInfo, HttpError> {
     api_client(SERVER_INFO_PATH, "GET", NO_BODY).await
 }
 
@@ -30,11 +30,11 @@ pub async fn get_coauth_server_describe() -> Result<ServerDescribeDocument, Http
     Ok(document)
 }
 
-pub async fn get_server_stats() -> Result<ServerStats, HttpError> {
+pub async fn get_server_stats() -> Result<AdminServerStats, HttpError> {
     api_client(SERVER_STATS_PATH, "GET", NO_BODY).await
 }
 
-pub async fn get_server_status() -> Result<ServerStatus, HttpError> {
+pub async fn get_server_status() -> Result<AdminServerStatus, HttpError> {
     api_client(SERVER_STATUS_PATH, "GET", NO_BODY).await
 }
 

@@ -7,10 +7,10 @@
 //! `admin_federation_items`
 //! (`soland/crates/http/src/routing/admin/collection.rs`).
 
-pub use soland_contracts::admin::AdminFederationOperation as FederationOperation;
+pub use soland_contracts::admin::AdminFederationOperation;
 
-/// Display helpers for the shared [`FederationOperation`].
-pub trait FederationOperationExt {
+/// Display helpers for the shared [`AdminFederationOperation`].
+pub trait AdminFederationOperationExt {
     /// Wire string for the operation kind (`create` / `update` / ...).
     fn operation_kind_label(&self) -> String;
     /// Canonical Event kind wire string.
@@ -18,7 +18,7 @@ pub trait FederationOperationExt {
     fn created_at_display(&self) -> String;
 }
 
-impl FederationOperationExt for FederationOperation {
+impl AdminFederationOperationExt for AdminFederationOperation {
     fn operation_kind_label(&self) -> String {
         serde_json::to_value(&self.operation_kind)
             .ok()

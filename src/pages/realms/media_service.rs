@@ -21,7 +21,7 @@ use crate::components::ui::error_banner::ErrorBanner;
 use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::{BreadcrumbItem, Breadcrumbs, PageHeader};
 use crate::router::Route;
-use crate::types::MediaServiceFocus;
+use crate::types::AdminMediaServiceFocus;
 use crate::utils::i18n::t;
 
 /// The focus backend kinds accepted by the arkret-spec media_service
@@ -124,7 +124,7 @@ pub fn MediaServicePage(realm_id: String) -> Element {
     }
 }
 
-fn render_focus_row(idx: usize, focus: &MediaServiceFocus) -> Element {
+fn render_focus_row(idx: usize, focus: &AdminMediaServiceFocus) -> Element {
     let focus_id = focus.focus_id.clone();
     let focus_kind = focus.focus_kind.clone();
     let region = focus.region.clone().unwrap_or_else(|| "-".to_string());

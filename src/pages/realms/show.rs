@@ -7,7 +7,7 @@ use crate::components::ui::error_banner::ErrorBanner;
 use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::{BreadcrumbItem, Breadcrumbs, PageHeader};
 use crate::router::Route;
-use crate::types::realms::AdminRealmExt;
+use crate::types::realms::AdminRealmItemExt;
 use crate::utils::i18n::t;
 
 #[component]

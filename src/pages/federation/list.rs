@@ -11,7 +11,7 @@ use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::pagination::CursorPagination;
 use crate::components::ui::table::*;
 use crate::router::Route;
-use crate::types::federation::FederationOperationExt;
+use crate::types::federation::AdminFederationOperationExt;
 use crate::utils::i18n::t;
 
 const PAGE_SIZE: u64 = 25;

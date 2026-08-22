@@ -12,7 +12,7 @@ use crate::components::ui::pagination::CursorPagination;
 use crate::components::ui::table::*;
 use crate::components::ui::toast::{ToastVariant, show_toast};
 use crate::router::Route;
-use crate::types::realms::AdminRealmExt;
+use crate::types::realms::AdminRealmItemExt;
 use crate::utils::fmt::csv::{build_csv, export_to_csv};
 use crate::utils::i18n::t;
 

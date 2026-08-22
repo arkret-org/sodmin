@@ -11,14 +11,14 @@ pub async fn list_federation_operations(
     cursor: Option<&str>,
     limit: u64,
     search: &str,
-) -> Result<ListResponse<FederationOperation>, HttpError> {
+) -> Result<ListResponse<AdminFederationOperation>, HttpError> {
     let limit_str = limit.max(1).to_string();
     let mut params: Vec<(&str, &str)> = vec![("limit", limit_str.as_str())];
     if let Some(c) = cursor.filter(|c| !c.is_empty()) {
         params.push(("cursor", c));
     }
     let url = build_url("/_soland/admin/federation", &params)?;
-    let mut resp: ListResponse<FederationOperation> = api_client(&url, "GET", NO_BODY).await?;
+    let mut resp: ListResponse<AdminFederationOperation> = api_client(&url, "GET", NO_BODY).await?;
     let needle = search.trim().to_ascii_lowercase();
     let data = resp
         .data
@@ -45,7 +45,7 @@ pub async fn list_federation_operations(
 /// it finds the match (bounded by `MAX_PAGES`).
 pub async fn get_federation_operation(
     operation_id: &str,
-) -> Result<FederationOperation, HttpError> {
+) -> Result<AdminFederationOperation, HttpError> {
     const PAGE_SIZE: u64 = 100;
     const MAX_PAGES: usize = 50;
 

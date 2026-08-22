@@ -7,7 +7,7 @@ pub async fn list_realms(
     cursor: Option<&str>,
     limit: u64,
     search: &str,
-) -> Result<ListResponse<AdminRealm>, HttpError> {
+) -> Result<ListResponse<AdminRealmItem>, HttpError> {
     let limit_str = limit.max(1).to_string();
     let mut params: Vec<(&str, &str)> = vec![("limit", limit_str.as_str())];
     if let Some(c) = cursor.filter(|c| !c.is_empty()) {
@@ -20,7 +20,7 @@ pub async fn list_realms(
     api_client(&url, "GET", NO_BODY).await
 }
 
-pub async fn get_realm(id: &str) -> Result<AdminRealm, HttpError> {
+pub async fn get_realm(id: &str) -> Result<AdminRealmItem, HttpError> {
     let url = format!("/_soland/admin/realms/{}", urlencoding::encode(id));
     api_client(&url, "GET", NO_BODY).await
 }

@@ -1,6 +1,5 @@
 //! Soland handle-management admin contracts.
 
 pub use soland_contracts::admin::handles::{
-    AdminHandleAuditEvent as HandleAuditEvent, AdminHandleReassignBody as HandleReassignRequest,
-    AdminHandleRecord as HandleRecord,
+    AdminHandleAuditEvent, AdminHandleReassignBody, AdminHandleRecord,
 };

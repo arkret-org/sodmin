@@ -54,11 +54,11 @@ pub struct CoauthManagedDidBinding {
     #[serde(default)]
     pub did: String,
     #[serde(default)]
-    pub kind: CoauthDidBindingKind,
+    pub kind: DidBindingKind,
     #[serde(default)]
-    pub state: CoauthDidBindingState,
+    pub state: DidBindingState,
     #[serde(default)]
-    pub verification_status: CoauthDidBindingVerificationStatus,
+    pub verification_status: DidBindingVerificationStatus,
     #[serde(default)]
     pub primary: bool,
     #[serde(default)]
@@ -90,10 +90,8 @@ pub struct CoauthRiskActionHook {
 }
 
 pub use coauth_admin_types::{
-    AdminBridgeDescribe as CoauthAdminBridgeDescribe, DidBindingKind as CoauthDidBindingKind,
-    DidBindingState as CoauthDidBindingState,
-    DidBindingVerificationStatus as CoauthDidBindingVerificationStatus,
-    IntegrationManifest as CoauthIntegrationManifest,
+    AdminBridgeDescribe, DidBindingKind, DidBindingState, DidBindingVerificationStatus,
+    IntegrationManifest,
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -106,26 +104,22 @@ pub struct CoauthAccountDetail {
     #[serde(default)]
     pub claims: Vec<CoauthAccountClaim>,
     #[serde(default)]
-    pub risk_action_current: CoauthAccountRiskActionCurrentState,
+    pub risk_action_current: AccountRiskActionCurrentOutcome,
     #[serde(default)]
-    pub risk_action_history: Vec<CoauthAccountRiskActionHistoryEntry>,
+    pub risk_action_history: Vec<AccountRiskActionTransitionRecord>,
     #[serde(default)]
     pub risk_action_hook: CoauthRiskActionHook,
     #[serde(default)]
-    pub admin_bridge: CoauthAdminBridgeDescribe,
+    pub admin_bridge: AdminBridgeDescribe,
     #[serde(default)]
-    pub integration_manifest: CoauthIntegrationManifest,
+    pub integration_manifest: IntegrationManifest,
 }
 
 pub use coauth_admin_types::{
-    AccountRiskActionApprovalOutcome as CoauthAccountRiskActionApproval,
-    AccountRiskActionApprovalRequestBody as CoauthAccountRiskActionApprovalDraft,
-    AccountRiskActionCurrentOutcome as CoauthAccountRiskActionCurrentState,
-    AccountRiskActionExecuteRequestBody as CoauthAccountRiskActionExecuteDraft,
-    AccountRiskActionHistoryOutcome as CoauthAccountRiskActionHistoryEnvelopeShared,
-    AccountRiskActionProposalOutcome as CoauthAccountRiskActionProposal,
-    AccountRiskActionProposalRequestBody as CoauthAccountRiskActionDraft,
-    AccountRiskActionTransitionRecord as CoauthAccountRiskActionHistoryEntry,
+    AccountRiskActionApprovalOutcome, AccountRiskActionApprovalRequestBody,
+    AccountRiskActionCurrentOutcome, AccountRiskActionExecuteRequestBody,
+    AccountRiskActionHistoryOutcome, AccountRiskActionProposalOutcome,
+    AccountRiskActionProposalRequestBody, AccountRiskActionTransitionRecord,
 };
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -188,7 +182,7 @@ type CoauthAdminDidBindingRecord = coauth_admin_types::AdminAccountDidBinding;
 #[derive(Debug, Clone, Serialize)]
 struct AddAccountDidBindingRequestBody {
     did: String,
-    kind: CoauthDidBindingKind,
+    kind: DidBindingKind,
     control_proof: ControlProofPayload,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     make_primary: Option<bool>,
@@ -268,10 +262,10 @@ pub async fn get_account_detail(id: &str) -> Result<CoauthAccountDetail, HttpErr
         CoauthAdminSingleEnvelope<CoauthAdminAccountRecord>,
         CoauthAdminDidBindingsEnvelope,
         CoauthAccountClaimsEnvelope,
-        CoauthAdminBridgeDescribe,
-        CoauthIntegrationManifest,
-        CoauthAdminSingleEnvelope<CoauthAccountRiskActionCurrentState>,
-        CoauthAccountRiskActionHistoryEnvelopeShared,
+        AdminBridgeDescribe,
+        IntegrationManifest,
+        CoauthAdminSingleEnvelope<AccountRiskActionCurrentOutcome>,
+        AccountRiskActionHistoryOutcome,
     ) = futures_util::try_join!(
         api_client(&summary_url, "GET", NO_BODY),
         api_client(&dids_url, "GET", NO_BODY),
@@ -305,7 +299,7 @@ pub async fn get_account_detail(id: &str) -> Result<CoauthAccountDetail, HttpErr
 pub async fn add_account_did_binding(
     account_id: &str,
     did: &str,
-    kind: CoauthDidBindingKind,
+    kind: DidBindingKind,
     proof_jws: &str,
     proof_nonce: &str,
 ) -> Result<(), HttpError> {
@@ -320,7 +314,7 @@ pub async fn add_account_did_binding(
             jws: proof_jws.to_owned(),
             nonce: proof_nonce.to_owned(),
         },
-        make_primary: Some(kind == CoauthDidBindingKind::Primary),
+        make_primary: Some(kind == DidBindingKind::Primary),
     };
     let _: NoBody = api_client(&url, "POST", Some(&body)).await?;
     Ok(())
@@ -350,45 +344,40 @@ pub async fn revoke_account_claim(claim_id: &str) -> Result<(), HttpError> {
 
 pub async fn submit_account_risk_action(
     id: &str,
-    draft: &CoauthAccountRiskActionDraft,
-) -> Result<CoauthAccountRiskActionProposal, HttpError> {
+    draft: &AccountRiskActionProposalRequestBody,
+) -> Result<AccountRiskActionProposalOutcome, HttpError> {
     let url = format!(
         "/_coauth/admin/accounts/{}/risk-action",
         urlencoding::encode(id)
     );
-    // `CoauthAccountRiskActionDraft` is a re-export of
-    // `coauth_admin_types::AccountRiskActionProposalRequestBody`, so the
-    // draft is already the exact request-body shape coauth deserializes.
+    // The draft is `coauth_admin_types`' own request-body type, so it is
+    // already the exact shape coauth deserializes.
     api_client(&url, "POST", Some(draft)).await
 }
 
 pub async fn approve_account_risk_action(
     id: &str,
     proposal_id: &str,
-    draft: &CoauthAccountRiskActionApprovalDraft,
-) -> Result<CoauthAccountRiskActionApproval, HttpError> {
+    draft: &AccountRiskActionApprovalRequestBody,
+) -> Result<AccountRiskActionApprovalOutcome, HttpError> {
     let url = format!(
         "/_coauth/admin/accounts/{}/risk-action/{}/approve",
         urlencoding::encode(id),
         urlencoding::encode(proposal_id)
     );
-    // `CoauthAccountRiskActionApprovalDraft` is a re-export of
-    // `coauth_admin_types::AccountRiskActionApprovalRequestBody`.
     api_client(&url, "POST", Some(draft)).await
 }
 
 pub async fn execute_account_risk_action(
     id: &str,
     proposal_id: &str,
-    draft: &CoauthAccountRiskActionExecuteDraft,
+    draft: &AccountRiskActionExecuteRequestBody,
 ) -> Result<CoauthAccountRiskActionExecute, HttpError> {
     let url = format!(
         "/_coauth/admin/accounts/{}/risk-action/{}/execute",
         urlencoding::encode(id),
         urlencoding::encode(proposal_id)
     );
-    // `CoauthAccountRiskActionExecuteDraft` is a re-export of
-    // `coauth_admin_types::AccountRiskActionExecuteRequestBody`.
     api_client(&url, "POST", Some(draft)).await
 }
 

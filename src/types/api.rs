@@ -1,7 +1,6 @@
 pub use arkret_models_discovery::ops::HardeningStatus;
 pub use arkret_models_discovery::{
-    DirectoryListHandlesForSubjectRequestBody as ListHandlesForSubjectRequest,
-    DirectorySubjectHandleList,
+    DirectoryListHandlesForSubjectRequestBody, DirectorySubjectHandleList,
 };
 pub use arkret_models_identity::{HandleBindingState, HandleClaim};
 use serde::{Deserialize, Serialize};

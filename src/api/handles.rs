@@ -18,7 +18,7 @@ pub async fn list_handles(
     page: u64,
     per_page: u64,
     search: &str,
-) -> Result<ListResponse<HandleRecord>, HttpError> {
+) -> Result<ListResponse<AdminHandleRecord>, HttpError> {
     let url = build_url(
         "/_soland/admin/handles",
         &[
@@ -30,12 +30,12 @@ pub async fn list_handles(
     api_client(&url, "GET", NO_BODY).await
 }
 
-pub async fn get_handle(id: &str) -> Result<HandleRecord, HttpError> {
+pub async fn get_handle(id: &str) -> Result<AdminHandleRecord, HttpError> {
     let url = format!("/_soland/admin/handles/{}", urlencoding::encode(id));
     api_client(&url, "GET", NO_BODY).await
 }
 
-pub async fn get_handle_audit(id: &str) -> Result<ListResponse<HandleAuditEvent>, HttpError> {
+pub async fn get_handle_audit(id: &str) -> Result<ListResponse<AdminHandleAuditEvent>, HttpError> {
     let url = format!("/_soland/admin/handles/{}/audit", urlencoding::encode(id));
     api_client(&url, "GET", NO_BODY).await
 }
@@ -47,8 +47,8 @@ pub async fn revoke_handle(id: &str) -> Result<(), HttpError> {
 
 pub async fn reassign_handle(
     id: &str,
-    req: &HandleReassignRequest,
-) -> Result<HandleRecord, HttpError> {
+    req: &AdminHandleReassignBody,
+) -> Result<AdminHandleRecord, HttpError> {
     if let Some(error_key) = destructive_reason_error(&req.reason, true) {
         return Err(HttpError::message(error_key));
     }

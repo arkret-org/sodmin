@@ -7,7 +7,7 @@ use crate::components::ui::info_row::InfoRow;
 use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::{BreadcrumbItem, Breadcrumbs, PageHeader};
 use crate::router::Route;
-use crate::types::federation::FederationOperationExt;
+use crate::types::federation::AdminFederationOperationExt;
 use crate::utils::i18n::t;
 
 #[component]

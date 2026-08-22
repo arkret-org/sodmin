@@ -7,7 +7,7 @@
 //! Realm-intent filtering. The admin "Subject → Handles" operator view
 //! calls this to triage which handles a subject is currently bound to.
 use crate::api::client::api_client;
-use crate::types::{DirectorySubjectHandleList, ListHandlesForSubjectRequest};
+use crate::types::{DirectoryListHandlesForSubjectRequestBody, DirectorySubjectHandleList};
 use crate::utils::net::error::HttpError;
 
 /// `POST /_arkret/find/directory/list-handles-for-subject`.
@@ -18,7 +18,7 @@ pub const LIST_HANDLES_FOR_SUBJECT: &str = "/_arkret/find/directory/list-handles
 /// must still run [`DirectorySubjectHandleList::validate`] before rendering so
 /// a response with mismatching `claims[].subject` fails closed.
 pub async fn list_handles_for_subject(
-    req: &ListHandlesForSubjectRequest,
+    req: &DirectoryListHandlesForSubjectRequestBody,
 ) -> Result<DirectorySubjectHandleList, HttpError> {
     api_client(LIST_HANDLES_FOR_SUBJECT, "POST", Some(req)).await
 }

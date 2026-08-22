@@ -170,7 +170,7 @@ fn metric_tile(label: &str, value: String) -> Element {
     }
 }
 
-fn actor_media_section(resp: &crate::types::ActorMediaStatisticsList) -> Element {
+fn actor_media_section(resp: &crate::types::AdminMediaByActorList) -> Element {
     rsx! {
         div { class: "rounded-md border",
             Table {

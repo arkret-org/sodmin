@@ -13,10 +13,10 @@ use crate::utils::i18n::t;
 /// proposal/approve/execute workflow state.
 pub fn risk_action_panel<F>(
     account_id: &str,
-    current: &coauth::CoauthAccountRiskActionCurrentState,
-    history: &[coauth::CoauthAccountRiskActionHistoryEntry],
+    current: &coauth::AccountRiskActionCurrentOutcome,
+    history: &[coauth::AccountRiskActionTransitionRecord],
     hook: &coauth::CoauthRiskActionHook,
-    bridge: &coauth::CoauthAdminBridgeDescribe,
+    bridge: &coauth::AdminBridgeDescribe,
     on_mutated: F,
 ) -> Element
 where
@@ -25,8 +25,8 @@ where
     let account_id = account_id.to_string();
 
     let mut action_status = use_signal(String::new);
-    let mut last_proposal = use_signal(|| Option::<coauth::CoauthAccountRiskActionProposal>::None);
-    let mut last_approval = use_signal(|| Option::<coauth::CoauthAccountRiskActionApproval>::None);
+    let mut last_proposal = use_signal(|| Option::<coauth::AccountRiskActionProposalOutcome>::None);
+    let mut last_approval = use_signal(|| Option::<coauth::AccountRiskActionApprovalOutcome>::None);
     let mut proposal_reason = use_signal(String::new);
     let mut proposal_ticket = use_signal(String::new);
     let mut pending_proposal_action = use_signal::<Option<String>>(|| None);
@@ -309,7 +309,7 @@ where
     }
 }
 
-fn current_state_grid(current: &coauth::CoauthAccountRiskActionCurrentState) -> Element {
+fn current_state_grid(current: &coauth::AccountRiskActionCurrentOutcome) -> Element {
     let proposal_id = current
         .proposal_id
         .clone()
@@ -372,7 +372,7 @@ fn current_state_grid(current: &coauth::CoauthAccountRiskActionCurrentState) -> 
     }
 }
 
-fn history_entry_card(entry: &coauth::CoauthAccountRiskActionHistoryEntry) -> Element {
+fn history_entry_card(entry: &coauth::AccountRiskActionTransitionRecord) -> Element {
     let state_record_id = entry
         .state_record_id
         .clone()
@@ -430,8 +430,8 @@ fn build_risk_action_draft(
     action: &str,
     reason: String,
     ticket: String,
-) -> coauth::CoauthAccountRiskActionDraft {
-    coauth::CoauthAccountRiskActionDraft {
+) -> coauth::AccountRiskActionProposalRequestBody {
+    coauth::AccountRiskActionProposalRequestBody {
         action: action.to_string(),
         reason: Some(reason),
         ticket: Some(ticket),
@@ -440,9 +440,9 @@ fn build_risk_action_draft(
 }
 
 fn build_risk_action_approval_draft(
-    proposal: &coauth::CoauthAccountRiskActionProposal,
-) -> coauth::CoauthAccountRiskActionApprovalDraft {
-    coauth::CoauthAccountRiskActionApprovalDraft {
+    proposal: &coauth::AccountRiskActionProposalOutcome,
+) -> coauth::AccountRiskActionApprovalRequestBody {
+    coauth::AccountRiskActionApprovalRequestBody {
         action: proposal.action.clone(),
         ticket: proposal.ticket.clone(),
         approved_by: None,
@@ -463,9 +463,9 @@ fn risk_action_approval_signing_available() -> bool {
 }
 
 fn build_risk_action_execute_draft(
-    approval: &coauth::CoauthAccountRiskActionApproval,
-) -> coauth::CoauthAccountRiskActionExecuteDraft {
-    coauth::CoauthAccountRiskActionExecuteDraft {
+    approval: &coauth::AccountRiskActionApprovalOutcome,
+) -> coauth::AccountRiskActionExecuteRequestBody {
+    coauth::AccountRiskActionExecuteRequestBody {
         action: approval.action.clone(),
         ticket: approval.ticket.clone(),
         execution_note: Some(format!(
@@ -475,7 +475,7 @@ fn build_risk_action_execute_draft(
     }
 }
 
-fn format_risk_action_status(proposal: &coauth::CoauthAccountRiskActionProposal) -> String {
+fn format_risk_action_status(proposal: &coauth::AccountRiskActionProposalOutcome) -> String {
     format!(
         "{}\nstate_record_id={}\nproposal_id={}\naction={}\nproposal_state={}\nstate_revision={}\ntransition_kind={}\napproval_mode={}\nrequested_at={}\nrequested_by={}\nrequested_by_handle={}\nticket={}\napproved_by={}",
         t("risk_action_panel.status_queued"),
@@ -503,7 +503,7 @@ fn risk_action_phrase(action: &str) -> String {
 }
 
 fn format_risk_action_approval_status(
-    approval: &coauth::CoauthAccountRiskActionApproval,
+    approval: &coauth::AccountRiskActionApprovalOutcome,
 ) -> String {
     format!(
         "{}\nstate_record_id={}\nproposal_id={}\naction={}\napproval_state={}\nstate_revision={}\ntransition_kind={}\napproved_at={}\napproved_by={}\napproved_by_handle={}\napproval_note={}",

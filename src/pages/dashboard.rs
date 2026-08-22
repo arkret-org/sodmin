@@ -6,7 +6,7 @@ use crate::components::ui::card::*;
 use crate::components::ui::error_banner::ErrorBanner;
 use crate::components::ui::icons::Icon;
 use crate::components::ui::loading::StatsSkeleton;
-use crate::types::{ServerDescribeDocument, ServerStatus};
+use crate::types::{AdminServerStatus, ServerDescribeDocument};
 use crate::utils::cache::cached_result;
 use crate::utils::i18n::t;
 use crate::utils::net::error::HttpError;
@@ -391,7 +391,7 @@ fn conformance_level(describe: &ServerDescribeDocument) -> Option<String> {
 /// `GET /_soland/admin/server/status` is a reachability probe: it answers
 /// `ok` or it fails the request. It runs no component health checks, so the
 /// dashboard reports reachability and never invents a component roll-up.
-fn health_summary(status: Option<&ServerStatus>) -> String {
+fn health_summary(status: Option<&AdminServerStatus>) -> String {
     match status {
         Some(status) if status.is_ok() => t("dashboard.health_healthy"),
         Some(_) => t("dashboard.health_issues_detected"),

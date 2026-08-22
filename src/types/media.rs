@@ -3,7 +3,4 @@
 //! Rows and aggregates are the shared `soland_contracts::admin` media
 //! contracts; sodmin keeps no wire mirror.
 
-pub use soland_contracts::admin::{
-    AdminMediaByActorList as ActorMediaStatisticsList, AdminMediaRow as MediaRow,
-    AdminMediaStatistics as MediaStatistics,
-};
+pub use soland_contracts::admin::{AdminMediaByActorList, AdminMediaRow, AdminMediaStatistics};

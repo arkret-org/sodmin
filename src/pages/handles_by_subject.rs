@@ -34,7 +34,7 @@ use crate::components::ui::input::{Input, Label};
 use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::table::*;
-use crate::types::{HandleBindingState, HandleClaim, ListHandlesForSubjectRequest};
+use crate::types::{DirectoryListHandlesForSubjectRequestBody, HandleBindingState, HandleClaim};
 use crate::utils::i18n::t;
 use crate::utils::security::handle::display_sigil;
 use crate::utils::security::primary_handle::{
@@ -60,7 +60,7 @@ pub fn HandlesBySubject(subject: Option<String>) -> Element {
                 Ok(value) => value,
                 Err(_) => return None,
             };
-            let req = ListHandlesForSubjectRequest {
+            let req = DirectoryListHandlesForSubjectRequestBody {
                 subject,
                 realm_id: None,
                 intent: Some("admin_directory".to_string()),

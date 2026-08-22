@@ -35,7 +35,7 @@ use crate::components::ui::pagination::Pagination;
 use crate::components::ui::table::*;
 use crate::components::ui::toast::{ToastVariant, show_toast};
 use crate::router::Route;
-use crate::types::HandleReassignRequest;
+use crate::types::AdminHandleReassignBody;
 use crate::utils::destructive_reason::destructive_reason_error;
 use crate::utils::i18n::t;
 use crate::utils::security::handle::display_sigil;
@@ -247,7 +247,7 @@ pub fn HandleList() -> Element {
                     }
                     reassign_loading.set(true);
                     spawn(async move {
-                        let req = HandleReassignRequest {
+                        let req = AdminHandleReassignBody {
                             new_subject_id: subject,
                             reason,
                         };
@@ -474,7 +474,7 @@ pub fn HandleShow(handle_id: String) -> Element {
                 let id = id_reassign.clone();
                 reassign_loading.set(true);
                 spawn(async move {
-                    let req = HandleReassignRequest {
+                    let req = AdminHandleReassignBody {
                         new_subject_id: subject,
                         reason,
                     };

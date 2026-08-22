@@ -15,10 +15,7 @@
 // fields and need no local re-export.)
 pub use arkret_models_discovery::ServiceDescribe;
 use serde::{Deserialize, Serialize};
-pub use soland_contracts::admin::{
-    AdminServerInfo as ServerInfo, AdminServerStats as ServerStats,
-    AdminServerStatus as ServerStatus,
-};
+pub use soland_contracts::admin::{AdminServerInfo, AdminServerStats, AdminServerStatus};
 
 /// `/_arkret/describe` response envelope.
 ///
@@ -99,7 +96,7 @@ mod tests {
     use arkret_wire::{ProfileId, ServiceOperationId};
     use serde_json::json;
 
-    use super::{ServerDescribeDocument, ServerStatus};
+    use super::{AdminServerStatus, ServerDescribeDocument};
 
     /// Minimal payload satisfying every required `ServiceDescribe` field.
     fn base_describe() -> serde_json::Value {
@@ -213,7 +210,7 @@ mod tests {
 
     #[test]
     fn server_status_parses_the_producer_shape() {
-        let status: ServerStatus = serde_json::from_value(json!({
+        let status: AdminServerStatus = serde_json::from_value(json!({
             "status": "ok",
             "service_id": "ak:did_core:web:soland.local",
             "storage": "postgres",

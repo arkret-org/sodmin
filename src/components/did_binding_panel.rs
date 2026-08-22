@@ -11,7 +11,7 @@
 
 use dioxus::prelude::*;
 
-use crate::api::coauth::{self, CoauthDidBindingKind, CoauthManagedDidBinding};
+use crate::api::coauth::{self, CoauthManagedDidBinding, DidBindingKind};
 use crate::components::dangerous_action_dialog::{DangerousActionDialog, confirmation_suffix};
 use crate::components::ui::button::{Button, ButtonVariant};
 use crate::components::ui::input::Label;
@@ -271,10 +271,10 @@ fn format_err(e: &HttpError) -> String {
     }
 }
 
-fn did_binding_kind_from_form(value: &str) -> CoauthDidBindingKind {
+fn did_binding_kind_from_form(value: &str) -> DidBindingKind {
     match value {
-        "recovery" => CoauthDidBindingKind::Recovery,
-        "pairwise" => CoauthDidBindingKind::Pairwise,
-        _ => CoauthDidBindingKind::Primary,
+        "recovery" => DidBindingKind::Recovery,
+        "pairwise" => DidBindingKind::Pairwise,
+        _ => DidBindingKind::Primary,
     }
 }

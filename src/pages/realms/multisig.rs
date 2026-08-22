@@ -17,7 +17,7 @@ use crate::components::ui::error_banner::ErrorBanner;
 use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::table::*;
-use crate::types::multisig::PendingMultisigSeal;
+use crate::types::multisig::MultisigPendingEntry;
 use crate::utils::i18n::t;
 
 #[component]
@@ -129,7 +129,7 @@ pub fn MultiSigPage(realm_id: String) -> Element {
 /// Pick a badge variant for the "collected partials" cell. When the
 /// threshold is already met (assembly pending) we show success-green;
 /// otherwise the secondary tone signals "still collecting".
-pub(crate) fn collected_badge_variant(entry: &PendingMultisigSeal) -> BadgeVariant {
+pub(crate) fn collected_badge_variant(entry: &MultisigPendingEntry) -> BadgeVariant {
     if entry.is_threshold_met() {
         BadgeVariant::Success
     } else {
@@ -141,8 +141,8 @@ pub(crate) fn collected_badge_variant(entry: &PendingMultisigSeal) -> BadgeVaria
 mod tests {
     use super::*;
 
-    fn pending_with(collected: u32, k: u32) -> PendingMultisigSeal {
-        PendingMultisigSeal {
+    fn pending_with(collected: u32, k: u32) -> MultisigPendingEntry {
+        MultisigPendingEntry {
             threshold_k: k,
             threshold_n: k + 1,
             collected_partials: collected,

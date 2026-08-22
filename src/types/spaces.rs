@@ -7,7 +7,7 @@
 //! no hierarchy endpoint, so [`SpaceHierarchy`] never appears on the wire.
 
 use serde::{Deserialize, Serialize};
-pub use soland_contracts::admin::{AdminSpaceRow as SpaceRow, SpaceHealth};
+pub use soland_contracts::admin::{AdminSpaceRow, SpaceHealth};
 
 /// Display helpers for the shared [`SpaceHealth`].
 pub trait SpaceHealthExt {
@@ -30,7 +30,7 @@ impl SpaceHealthExt for SpaceHealth {
 /// `parent` is at most one step up; `children` is the full set of
 /// immediate children found in the loaded snapshot.
 ///
-/// SPA-local aggregate: it is assembled from [`SpaceRow`]s and never
+/// SPA-local aggregate: it is assembled from [`AdminSpaceRow`]s and never
 /// crosses the wire.
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct SpaceHierarchy {
@@ -88,7 +88,7 @@ mod tests {
             "created_at": "2026-08-14T00:00:00.000Z",
             "parent_space_id": null,
         });
-        let row: SpaceRow = serde_json::from_value(base.clone()).expect("row parses");
+        let row: AdminSpaceRow = serde_json::from_value(base.clone()).expect("row parses");
         assert_eq!(row.health, SpaceHealth::Archived);
         assert_eq!(
             row.realm_id,
@@ -100,6 +100,6 @@ mod tests {
             .as_object_mut()
             .expect("fixture is an object")
             .remove("realm_id");
-        assert!(serde_json::from_value::<SpaceRow>(missing).is_err());
+        assert!(serde_json::from_value::<AdminSpaceRow>(missing).is_err());
     }
 }

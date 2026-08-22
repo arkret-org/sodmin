@@ -13,7 +13,7 @@ use crate::api::client::{NO_BODY, api_client};
 use crate::types::*;
 use crate::utils::net::error::HttpError;
 
-pub async fn get_realm_media_service(realm_id: &str) -> Result<RealmMediaService, HttpError> {
+pub async fn get_realm_media_service(realm_id: &str) -> Result<AdminRealmMediaService, HttpError> {
     let url = format!(
         "/_soland/admin/realms/{}/media-service",
         urlencoding::encode(realm_id)
