@@ -5,7 +5,7 @@ use crate::components::dangerous_action_dialog::{DangerousActionDialog, confirma
 use crate::components::ui::badge::{Badge, BadgeVariant};
 use crate::components::ui::button::{Button, ButtonVariant};
 use crate::components::ui::error_banner::ErrorBanner;
-use crate::components::ui::input::{Input, Label};
+use crate::components::ui::input::{Input, LabelFor};
 use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::modal::{DialogActions, Modal};
 use crate::components::ui::page_header::PageHeader;
@@ -247,7 +247,7 @@ pub fn PolicyList() -> Element {
                     }
                 }
                 div { class: "space-y-1",
-                    Label { r#for: "pol-name".to_string(), {t("policy.name")} }
+                    LabelFor { r#for: "pol-name".to_string(), {t("policy.name")} }
                     Input {
                         value: name.read().clone(),
                         disabled: *dialog_read_only.read(),
@@ -255,7 +255,7 @@ pub fn PolicyList() -> Element {
                     }
                 }
                 div { class: "space-y-1",
-                    Label { r#for: "pol-type".to_string(), {t("policy.policy_kind")} }
+                    LabelFor { r#for: "pol-type".to_string(), {t("policy.policy_kind")} }
                     Input {
                         value: policy_kind.read().clone(),
                         disabled: *dialog_read_only.read(),
@@ -263,7 +263,7 @@ pub fn PolicyList() -> Element {
                     }
                 }
                 div { class: "space-y-1",
-                    Label { r#for: "pol-scope".to_string(), {t("policy.scope")} }
+                    LabelFor { r#for: "pol-scope".to_string(), {t("policy.scope")} }
                     Input {
                         value: scope.read().clone(),
                         disabled: *dialog_read_only.read(),
@@ -271,7 +271,7 @@ pub fn PolicyList() -> Element {
                     }
                 }
                 div { class: "space-y-1",
-                    Label { r#for: "pol-subject".to_string(), "Subject" }
+                    LabelFor { r#for: "pol-subject".to_string(), "Subject" }
                     Input {
                         value: subject_ref.read().clone(),
                         disabled: *dialog_read_only.read(),
@@ -279,7 +279,7 @@ pub fn PolicyList() -> Element {
                     }
                 }
                 div { class: "space-y-1",
-                    Label { r#for: "pol-priority".to_string(), {t("policy.priority")} }
+                    LabelFor { r#for: "pol-priority".to_string(), {t("policy.priority")} }
                     Input {
                         r#type: "number".to_string(),
                         value: priority.read().to_string(),
@@ -298,7 +298,7 @@ pub fn PolicyList() -> Element {
                         disabled: *dialog_read_only.read(),
                         onchange: move |evt: Event<FormData>| is_enabled.set(evt.checked()),
                     }
-                    Label { {t("policy.enabled")} }
+                    LabelFor { {t("policy.enabled")} }
                 }
                 if let Some(message) = dialog_error.read().clone() {
                     ErrorBanner { message }

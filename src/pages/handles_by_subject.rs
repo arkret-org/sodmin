@@ -30,7 +30,7 @@ use crate::components::ui::badge::{Badge, BadgeVariant};
 use crate::components::ui::button::Button;
 use crate::components::ui::card::*;
 use crate::components::ui::error_banner::ErrorBanner;
-use crate::components::ui::input::{Input, Label};
+use crate::components::ui::input::{Input, LabelFor};
 use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::table::*;
@@ -102,7 +102,7 @@ pub fn HandlesBySubject(subject: Option<String>) -> Element {
                             }
                         },
                         div { class: "flex-1 space-y-1",
-                            Label { r#for: "subject-did".to_string(), {t("handles_by_subject.subject_id")} }
+                            LabelFor { r#for: "subject-did".to_string(), {t("handles_by_subject.subject_id")} }
                             Input {
                                 id: "subject-did".to_string(),
                                 r#type: "text".to_string(),

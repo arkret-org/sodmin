@@ -3,7 +3,7 @@ use dioxus::prelude::*;
 use crate::api::coauth;
 use crate::components::dangerous_action_dialog::DangerousActionDialog;
 use crate::components::ui::button::{Button, ButtonVariant};
-use crate::components::ui::input::{Input, Label};
+use crate::components::ui::input::{Input, LabelFor};
 use crate::utils::i18n::t;
 
 /// Render the risk-action state-machine panel.
@@ -153,7 +153,7 @@ where
 
             div { class: "grid gap-3 rounded-md border p-3 md:grid-cols-2",
                 div { class: "space-y-1",
-                    Label { r#for: "risk-action-reason".to_string(), {t("risk_action_panel.reason_label")} }
+                    LabelFor { r#for: "risk-action-reason".to_string(), {t("risk_action_panel.reason_label")} }
                     Input {
                         id: "risk-action-reason".to_string(),
                         placeholder: t("risk_action_panel.reason_placeholder"),
@@ -163,7 +163,7 @@ where
                     }
                 }
                 div { class: "space-y-1",
-                    Label { r#for: "risk-action-ticket".to_string(), {t("risk_action_panel.ticket_label")} }
+                    LabelFor { r#for: "risk-action-ticket".to_string(), {t("risk_action_panel.ticket_label")} }
                     Input {
                         id: "risk-action-ticket".to_string(),
                         placeholder: t("risk_action_panel.ticket_placeholder"),

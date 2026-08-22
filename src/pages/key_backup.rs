@@ -13,7 +13,7 @@ use crate::api::key_backup;
 use crate::components::ui::badge::{Badge, BadgeVariant};
 use crate::components::ui::button::{Button, ButtonSize};
 use crate::components::ui::error_banner::ErrorBanner;
-use crate::components::ui::input::{Input, Label};
+use crate::components::ui::input::{Input, LabelFor};
 use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::table::*;
@@ -83,7 +83,7 @@ pub fn KeyBackupList() -> Element {
             div { class: "rounded-md border bg-card p-4",
                 div { class: "grid gap-3 md:grid-cols-2",
                     div { class: "space-y-1",
-                        Label { class: "text-xs text-muted-foreground".to_string(), "series_id" }
+                        LabelFor { class: "text-xs text-muted-foreground".to_string(), "series_id" }
                         Input {
                             placeholder: "ak:backup_series:…".to_string(),
                             value: series_filter.read().clone(),
@@ -91,7 +91,7 @@ pub fn KeyBackupList() -> Element {
                         }
                     }
                     div { class: "space-y-1",
-                        Label { class: "text-xs text-muted-foreground".to_string(), "backup_kind" }
+                        LabelFor { class: "text-xs text-muted-foreground".to_string(), "backup_kind" }
                         Input {
                             placeholder: "e.g. secret_storage".to_string(),
                             value: backup_class_filter.read().clone(),
@@ -110,7 +110,7 @@ pub fn KeyBackupList() -> Element {
 
             div { class: "rounded-md border bg-card p-4",
                 div { class: "space-y-1",
-                    Label { class: "text-xs text-muted-foreground".to_string(), "principal_id" }
+                    LabelFor { class: "text-xs text-muted-foreground".to_string(), "principal_id" }
                     Input {
                         placeholder: t("key_backup.current_principal_when_empty"),
                         value: principal_filter.read().clone(),

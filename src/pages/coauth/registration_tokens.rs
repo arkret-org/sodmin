@@ -5,7 +5,7 @@ use crate::components::dangerous_action_dialog::{DangerousActionDialog, confirma
 use crate::components::ui::badge::{Badge, BadgeVariant};
 use crate::components::ui::button::{Button, ButtonSize, ButtonVariant};
 use crate::components::ui::error_banner::ErrorBanner;
-use crate::components::ui::input::{Input, Label};
+use crate::components::ui::input::{Input, LabelFor};
 use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::modal::{DialogActions, Modal};
 use crate::components::ui::page_header::PageHeader;
@@ -139,7 +139,7 @@ pub fn RegistrationTokensPage() -> Element {
             title: t("coauth.registration_tokens.create"),
             on_close: move |_| show_create.set(false),
             div { class: "space-y-1",
-                Label { r#for: "rt-uses".to_string(), {t("coauth.registration_tokens.uses_allowed")} }
+                LabelFor { r#for: "rt-uses".to_string(), {t("coauth.registration_tokens.uses_allowed")} }
                 Input {
                     r#type: "number".to_string(),
                     value: uses_allowed.read().clone(),

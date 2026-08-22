@@ -4,7 +4,7 @@ use crate::api::coauth;
 use crate::components::dangerous_action_dialog::{DangerousActionDialog, confirmation_suffix};
 use crate::components::ui::button::{Button, ButtonVariant};
 use crate::components::ui::error_banner::ErrorBanner;
-use crate::components::ui::input::{Input, Label};
+use crate::components::ui::input::{Input, LabelFor};
 use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::modal::{DialogActions, Modal};
 use crate::components::ui::page_header::PageHeader;
@@ -138,7 +138,7 @@ pub fn PersonalSessionsPage() -> Element {
             title: t("coauth.personal_sessions.create"),
             on_close: move |_| show_create.set(false),
             div { class: "space-y-1",
-                Label { r#for: "ps-name".to_string(), {t("coauth.personal_sessions.name")} }
+                LabelFor { r#for: "ps-name".to_string(), {t("coauth.personal_sessions.name")} }
                 Input {
                     value: new_name.read().clone(),
                     oninput: move |evt: FormEvent| new_name.set(evt.value()),

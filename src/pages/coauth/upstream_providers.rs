@@ -6,7 +6,7 @@ use crate::components::ui::badge::{Badge, BadgeVariant};
 use crate::components::ui::button::{Button, ButtonSize, ButtonVariant};
 use crate::components::ui::dialog::ConfirmDialog;
 use crate::components::ui::error_banner::ErrorBanner;
-use crate::components::ui::input::{Input, Label};
+use crate::components::ui::input::{Input, LabelFor};
 use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::modal::{DialogActions, Modal};
 use crate::components::ui::page_header::PageHeader;
@@ -154,14 +154,14 @@ pub fn UpstreamProvidersPage() -> Element {
             on_close: move |_| show_create.set(false),
             div { class: "space-y-3",
                 div { class: "space-y-1",
-                    Label { r#for: "up-issuer".to_string(), {t("coauth.upstream_providers.issuer")} }
+                    LabelFor { r#for: "up-issuer".to_string(), {t("coauth.upstream_providers.issuer")} }
                     Input {
                         value: issuer.read().clone(),
                         oninput: move |evt: FormEvent| issuer.set(evt.value()),
                     }
                 }
                 div { class: "space-y-1",
-                    Label { r#for: "up-client".to_string(), {t("coauth.upstream_providers.client_id")} }
+                    LabelFor { r#for: "up-client".to_string(), {t("coauth.upstream_providers.client_id")} }
                     Input {
                         value: client_id.read().clone(),
                         oninput: move |evt: FormEvent| client_id.set(evt.value()),

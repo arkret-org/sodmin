@@ -1,11 +1,10 @@
 use dioxus::prelude::*;
-// `Label` / `SearchInput` have been migrated to yoface.
-//   * `Label` → `yoface::ui::label::LabelFor` (`r#for` + `class` + children, matching the
-//     local adapter's signature, so call sites need zero changes).
-//   * `SearchInput` → `yoface::ui::input::SearchInput` (the local `label` prop is renamed to
-//     `aria_label`; none of sodmin's existing call sites pass that prop, so zero changes).
+// The label and search-input components live in yoface; sodmin keeps no
+// local adapter for either.
+//   * `yoface::ui::label::LabelFor` takes `r#for` + `class` + children.
+//   * `yoface::ui::input::SearchInput` names its label prop `aria_label`.
 pub use yoface::ui::input::SearchInput;
-pub use yoface::ui::label::LabelFor as Label;
+pub use yoface::ui::label::LabelFor;
 
 /// `Input` — migrated to yoface (`yoface::ui::input::Input`, rendered with
 /// css_module).

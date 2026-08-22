@@ -3,7 +3,7 @@ use dioxus::prelude::*;
 use crate::api::coauth;
 use crate::components::ui::button::{Button, ButtonVariant};
 use crate::components::ui::error_banner::ErrorBanner;
-use crate::components::ui::input::{Input, Label};
+use crate::components::ui::input::{Input, LabelFor};
 use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::pagination::Pagination;
@@ -76,7 +76,7 @@ pub fn AuditLogPage() -> Element {
             div { class: "rounded-md border bg-card p-4",
                 div { class: "grid gap-3 md:grid-cols-3",
                     div { class: "space-y-1",
-                        Label { class: "text-xs text-muted-foreground".to_string(), {t("coauth.audit_log.filter_operation")} }
+                        LabelFor { class: "text-xs text-muted-foreground".to_string(), {t("coauth.audit_log.filter_operation")} }
                         Input {
                             placeholder: t("coauth.audit_log.filter_operation_placeholder"),
                             value: draft.read().operation.clone(),
@@ -86,7 +86,7 @@ pub fn AuditLogPage() -> Element {
                         }
                     }
                     div { class: "space-y-1",
-                        Label { class: "text-xs text-muted-foreground".to_string(), {t("coauth.audit_log.filter_actor")} }
+                        LabelFor { class: "text-xs text-muted-foreground".to_string(), {t("coauth.audit_log.filter_actor")} }
                         Input {
                             placeholder: t("coauth.audit_log.filter_actor_placeholder"),
                             value: draft.read().actor_user_id.clone(),
@@ -96,7 +96,7 @@ pub fn AuditLogPage() -> Element {
                         }
                     }
                     div { class: "space-y-1",
-                        Label { class: "text-xs text-muted-foreground".to_string(), {t("coauth.audit_log.filter_target_type")} }
+                        LabelFor { class: "text-xs text-muted-foreground".to_string(), {t("coauth.audit_log.filter_target_type")} }
                         Input {
                             placeholder: t("coauth.audit_log.filter_target_type_placeholder"),
                             value: draft.read().target_type.clone(),
@@ -106,7 +106,7 @@ pub fn AuditLogPage() -> Element {
                         }
                     }
                     div { class: "space-y-1",
-                        Label { class: "text-xs text-muted-foreground".to_string(), {t("coauth.audit_log.filter_target_id")} }
+                        LabelFor { class: "text-xs text-muted-foreground".to_string(), {t("coauth.audit_log.filter_target_id")} }
                         Input {
                             placeholder: t("coauth.audit_log.filter_target_id_placeholder"),
                             value: draft.read().target_id.clone(),
@@ -116,7 +116,7 @@ pub fn AuditLogPage() -> Element {
                         }
                     }
                     div { class: "space-y-1",
-                        Label { class: "text-xs text-muted-foreground".to_string(), {t("coauth.audit_log.filter_since")} }
+                        LabelFor { class: "text-xs text-muted-foreground".to_string(), {t("coauth.audit_log.filter_since")} }
                         Input {
                             r#type: "datetime-local".to_string(),
                             value: draft.read().since.clone(),
@@ -126,7 +126,7 @@ pub fn AuditLogPage() -> Element {
                         }
                     }
                     div { class: "space-y-1",
-                        Label { class: "text-xs text-muted-foreground".to_string(), {t("coauth.audit_log.filter_until")} }
+                        LabelFor { class: "text-xs text-muted-foreground".to_string(), {t("coauth.audit_log.filter_until")} }
                         Input {
                             r#type: "datetime-local".to_string(),
                             value: draft.read().until.clone(),

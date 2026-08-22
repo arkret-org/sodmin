@@ -4,7 +4,7 @@ use dioxus::prelude::*;
 use crate::api::audit;
 use crate::components::ui::button::{Button, ButtonVariant};
 use crate::components::ui::error_banner::ErrorBanner;
-use crate::components::ui::input::{Input, Label};
+use crate::components::ui::input::{Input, LabelFor};
 use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::pagination::CursorPagination;
@@ -82,7 +82,7 @@ pub fn AuditLog() -> Element {
             div { class: "rounded-md border bg-card p-4",
                 div { class: "grid gap-3 md:grid-cols-3",
                     div { class: "space-y-1",
-                        Label { class: "text-xs text-muted-foreground".to_string(), {t("audit.filter_action")} }
+                        LabelFor { class: "text-xs text-muted-foreground".to_string(), {t("audit.filter_action")} }
                         Input {
                             placeholder: t("audit.filter_action_placeholder"),
                             value: draft.read().action.clone(),
@@ -92,7 +92,7 @@ pub fn AuditLog() -> Element {
                         }
                     }
                     div { class: "space-y-1",
-                        Label { class: "text-xs text-muted-foreground".to_string(), {t("audit.filter_actor")} }
+                        LabelFor { class: "text-xs text-muted-foreground".to_string(), {t("audit.filter_actor")} }
                         Input {
                             placeholder: t("audit.filter_actor_placeholder"),
                             value: draft.read().actor_id.clone(),
@@ -102,7 +102,7 @@ pub fn AuditLog() -> Element {
                         }
                     }
                     div { class: "space-y-1",
-                        Label { class: "text-xs text-muted-foreground".to_string(), {t("audit.filter_realm")} }
+                        LabelFor { class: "text-xs text-muted-foreground".to_string(), {t("audit.filter_realm")} }
                         Input {
                             placeholder: t("audit.filter_realm_placeholder"),
                             value: draft.read().realm_id.clone(),
@@ -112,7 +112,7 @@ pub fn AuditLog() -> Element {
                         }
                     }
                     div { class: "space-y-1",
-                        Label { class: "text-xs text-muted-foreground".to_string(), {t("audit.filter_since")} }
+                        LabelFor { class: "text-xs text-muted-foreground".to_string(), {t("audit.filter_since")} }
                         Input {
                             r#type: "datetime-local".to_string(),
                             value: draft.read().since.clone(),
@@ -122,7 +122,7 @@ pub fn AuditLog() -> Element {
                         }
                     }
                     div { class: "space-y-1",
-                        Label { class: "text-xs text-muted-foreground".to_string(), {t("audit.filter_until")} }
+                        LabelFor { class: "text-xs text-muted-foreground".to_string(), {t("audit.filter_until")} }
                         Input {
                             r#type: "datetime-local".to_string(),
                             value: draft.read().until.clone(),
@@ -135,7 +135,7 @@ pub fn AuditLog() -> Element {
                     // come straight from the SDK's generated event-kind
                     // registry, so a registry rename breaks this build.
                     div { class: "space-y-1",
-                        Label { class: "text-xs text-muted-foreground".to_string(), {t("audit.filter_event_kind")} }
+                        LabelFor { class: "text-xs text-muted-foreground".to_string(), {t("audit.filter_event_kind")} }
                         select {
                             class: "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm",
                             value: draft.read().kind.clone(),

@@ -28,7 +28,7 @@ use crate::components::ui::badge::{Badge, BadgeVariant};
 use crate::components::ui::button::{Button, ButtonSize, ButtonVariant};
 use crate::components::ui::card::*;
 use crate::components::ui::error_banner::ErrorBanner;
-use crate::components::ui::input::{Label, SearchInput};
+use crate::components::ui::input::{LabelFor, SearchInput};
 use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::pagination::Pagination;
@@ -264,7 +264,7 @@ pub fn HandleList() -> Element {
                 }
             },
             div { class: "space-y-1",
-                Label { r#for: "handle-new-subject".to_string(), {t("handles.new_subject_id")} }
+                LabelFor { r#for: "handle-new-subject".to_string(), {t("handles.new_subject_id")} }
                 DidInput {
                     value: new_subject_id.read().clone(),
                     oninput: move |evt: FormEvent| new_subject_id.set(evt.value()),
@@ -491,7 +491,7 @@ pub fn HandleShow(handle_id: String) -> Element {
                 });
             },
             div { class: "space-y-1",
-                Label { r#for: "handle-detail-new-subject".to_string(), {t("handles.new_subject_id")} }
+                LabelFor { r#for: "handle-detail-new-subject".to_string(), {t("handles.new_subject_id")} }
                 DidInput {
                     value: new_subject_id.read().clone(),
                     oninput: move |evt: FormEvent| new_subject_id.set(evt.value()),

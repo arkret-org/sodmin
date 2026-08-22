@@ -14,7 +14,7 @@ use dioxus::prelude::*;
 use crate::api::coauth::{self, CoauthManagedDidBinding, DidBindingKind};
 use crate::components::dangerous_action_dialog::{DangerousActionDialog, confirmation_suffix};
 use crate::components::ui::button::{Button, ButtonVariant};
-use crate::components::ui::input::Label;
+use crate::components::ui::input::LabelFor;
 use crate::components::validated_input::{ValidatedInput, ValidationKind};
 use crate::utils::i18n::t;
 use crate::utils::net::error::HttpError;
@@ -109,7 +109,7 @@ pub fn DidBindingPanel(
                     {t("did_binding_panel.add_hint")}
                 }
                 div { class: "space-y-2",
-                    Label { r#for: "new-did".to_string(), {t("did_binding_panel.field_did")} }
+                    LabelFor { r#for: "new-did".to_string(), {t("did_binding_panel.field_did")} }
                     // ValidatedInput enforces the DID grammar with
                     // validation identical to `arkret_identifiers::is_did`.
                     ValidatedInput {
@@ -120,7 +120,7 @@ pub fn DidBindingPanel(
                     }
                 }
                 div { class: "space-y-2",
-                    Label { r#for: "new-kind".to_string(), {t("did_binding_panel.field_kind")} }
+                    LabelFor { r#for: "new-kind".to_string(), {t("did_binding_panel.field_kind")} }
                     select {
                         class: "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm",
                         value: new_kind.read().clone(),
@@ -131,7 +131,7 @@ pub fn DidBindingPanel(
                     }
                 }
                 div { class: "space-y-2",
-                    Label { r#for: "new-control-proof-jws".to_string(), {t("did_binding_panel.field_control_proof_jws")} }
+                    LabelFor { r#for: "new-control-proof-jws".to_string(), {t("did_binding_panel.field_control_proof_jws")} }
                     ValidatedInput {
                         kind: ValidationKind::Required,
                         placeholder: t("did_binding_panel.jws_placeholder"),
@@ -140,7 +140,7 @@ pub fn DidBindingPanel(
                     }
                 }
                 div { class: "space-y-2",
-                    Label { r#for: "new-control-proof-nonce".to_string(), {t("did_binding_panel.field_control_proof_nonce")} }
+                    LabelFor { r#for: "new-control-proof-nonce".to_string(), {t("did_binding_panel.field_control_proof_nonce")} }
                     ValidatedInput {
                         kind: ValidationKind::Required,
                         placeholder: t("did_binding_panel.nonce_placeholder"),
