@@ -682,7 +682,7 @@
   "realm_multisig.refresh": "Refresh",
   "realm_multisig.title": "Multi-sig pending · {realm_id}",
   "realm_notary.current_value_title": "Current notary value",
-  "realm_notary.description": "Configure the notary cell for this Realm (single_did / threshold / open_set / mixed).",
+  "realm_notary.description": "Configure the notary cell for this Realm (single_signer / threshold / open_set / mixed).",
   "realm_notary.paused": "paused",
   "realm_notary.title": "Notary · {realm_id}",
   "realm_organization.col_control_stream": "Control stream",
