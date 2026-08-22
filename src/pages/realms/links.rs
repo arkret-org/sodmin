@@ -7,7 +7,7 @@
 //! target Realm identifier.
 use dioxus::prelude::*;
 
-use crate::api::realm_links::{self, LinkDirection};
+use crate::api::realm_links;
 use crate::components::selection_required::{is_placeholder_resource_id, selection_required_state};
 use crate::components::ui::badge::{Badge, BadgeVariant};
 use crate::components::ui::button::{Button, ButtonVariant};
@@ -15,7 +15,7 @@ use crate::components::ui::card::*;
 use crate::components::ui::error_banner::ErrorBanner;
 use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
-use crate::types::{RealmLinkEntry, RealmLinkKind, RealmLinkList};
+use crate::types::{RealmLinkDirection, RealmLinkEntry, RealmLinkKind, RealmLinkList};
 use crate::utils::fmt::date::format_iso_datetime;
 use crate::utils::i18n::t;
 
@@ -56,11 +56,11 @@ pub fn LinksPage(realm_id: String) -> Element {
 
     let mut outbound = use_resource(move || {
         let id = id_outbound.clone();
-        async move { realm_links::list_realm_links(&id, LinkDirection::Outbound).await }
+        async move { realm_links::list_realm_links(&id, RealmLinkDirection::Outbound).await }
     });
     let mut inbound = use_resource(move || {
         let id = id_inbound.clone();
-        async move { realm_links::list_realm_links(&id, LinkDirection::Inbound).await }
+        async move { realm_links::list_realm_links(&id, RealmLinkDirection::Inbound).await }
     });
 
     rsx! {

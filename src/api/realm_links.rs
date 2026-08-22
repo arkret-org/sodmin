@@ -15,9 +15,7 @@ use crate::api::client::{NO_BODY, api_client};
 use crate::types::{RealmLinkDirection, RealmLinkList};
 use crate::utils::net::error::HttpError;
 
-pub type LinkDirection = RealmLinkDirection;
-
-fn direction_query(direction: LinkDirection) -> String {
+fn direction_query(direction: RealmLinkDirection) -> String {
     serde_json::to_value(direction)
         .ok()
         .and_then(|value| value.as_str().map(ToOwned::to_owned))
@@ -26,7 +24,7 @@ fn direction_query(direction: LinkDirection) -> String {
 
 pub async fn list_realm_links(
     realm_id: &str,
-    direction: LinkDirection,
+    direction: RealmLinkDirection,
 ) -> Result<RealmLinkList, HttpError> {
     let url = format!(
         "/_soland/admin/realms/{}/links?direction={}",

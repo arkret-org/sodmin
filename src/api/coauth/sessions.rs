@@ -44,8 +44,6 @@ pub struct CoauthPersonalSessionRow {
     pub last_active_at: Option<String>,
 }
 
-pub type CoauthPersonalSession = CoauthPersonalSessionRow;
-
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 #[non_exhaustive]
 pub struct CoauthPersonalSessionOneShot {
@@ -73,7 +71,7 @@ pub async fn finish_oauth2_session(id: &str) -> Result<(), HttpError> {
 pub async fn list_personal_sessions(
     _page: u64,
     per_page: u64,
-) -> Result<PaginatedResponse<CoauthPersonalSession>, HttpError> {
+) -> Result<PaginatedResponse<CoauthPersonalSessionRow>, HttpError> {
     get_jsonapi_first_page(PERSONAL_SESSIONS_PATH, per_page, map_personal_session).await
 }
 
@@ -123,7 +121,7 @@ fn map_oauth2_session(
 
 fn map_personal_session(
     resource: coauth_admin_types::SingleResource<coauth_admin_types::PersonalSession>,
-) -> CoauthPersonalSession {
+) -> CoauthPersonalSessionRow {
     let attrs = resource.attributes;
     CoauthPersonalSessionRow {
         id: resource.id,
