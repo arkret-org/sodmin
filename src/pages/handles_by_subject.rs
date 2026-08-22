@@ -146,7 +146,7 @@ pub fn HandlesBySubject(subject: Option<String>) -> Element {
                                 subject_id: &subject_id,
                                 context: None,
                                 claim_set_snapshot: &visible,
-                                accepted_issuers: &[],
+                                handle_issuer_policy: &[],
                                 holder_primary_handle_at_as_of: None,
                                 resolution_as_of: Utc::now(),
                             };
