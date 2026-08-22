@@ -1,6 +1,10 @@
 //! coauth admin accounts: summary/detail, managed DID bindings, claims,
 //! session grants and the risk-action lifecycle.
 
+use coauth_admin_types::{
+    AdminAccountAttributes, AdminAccountClaimsOutcome, AdminAccountDidBinding,
+    AdminAccountDidBindingsOutcome, SingleOutcome, SingleResource,
+};
 use serde::{Deserialize, Serialize};
 
 use crate::api::client::{NO_BODY, NoBody, api_client, build_url};
@@ -154,30 +158,21 @@ pub struct CoauthAccountRiskActionExecute {
     pub allowed_next_transitions: Vec<String>,
 }
 
-type CoauthAccountClaimsEnvelope = coauth_admin_types::AdminAccountClaimsOutcome;
-
 #[derive(Debug, Clone, Deserialize, Default)]
 struct CoauthAdminPaginatedEnvelope<T> {
     #[serde(default)]
-    data: Option<Vec<CoauthAdminResource<T>>>,
+    data: Option<Vec<SingleResource<T>>>,
     #[serde(default)]
     meta: CoauthAdminPaginationMeta,
     #[serde(default)]
     links: coauth_admin_types::PaginationLinks,
 }
 
-type CoauthAdminSingleEnvelope<T> = coauth_admin_types::SingleOutcome<T>;
-type CoauthAdminResource<T> = coauth_admin_types::SingleResource<T>;
-
 #[derive(Debug, Clone, Deserialize, Default)]
 struct CoauthAdminPaginationMeta {
     #[serde(default)]
     count: Option<u64>,
 }
-
-type CoauthAdminAccountRecord = coauth_admin_types::AdminAccountAttributes;
-type CoauthAdminDidBindingsEnvelope = coauth_admin_types::AdminAccountDidBindingsOutcome;
-type CoauthAdminDidBindingRecord = coauth_admin_types::AdminAccountDidBinding;
 
 #[derive(Debug, Clone, Serialize)]
 struct AddAccountDidBindingRequestBody {
@@ -228,7 +223,7 @@ pub async fn list_accounts_cursor(
         params.push(("cursor", cursor));
     }
     let url = build_url(ACCOUNTS_PATH, &params)?;
-    let resp: CoauthAdminPaginatedEnvelope<CoauthAdminAccountRecord> =
+    let resp: CoauthAdminPaginatedEnvelope<AdminAccountAttributes> =
         api_client(&url, "GET", NO_BODY).await?;
     let summaries: Vec<CoauthAccountSummary> = resp
         .data
@@ -259,12 +254,12 @@ pub async fn get_account_detail(id: &str) -> Result<CoauthAccountDetail, HttpErr
         urlencoding::encode(id)
     );
     let (summary, dids, claims, bridge, integration_manifest, current, history): (
-        CoauthAdminSingleEnvelope<CoauthAdminAccountRecord>,
-        CoauthAdminDidBindingsEnvelope,
-        CoauthAccountClaimsEnvelope,
+        SingleOutcome<AdminAccountAttributes>,
+        AdminAccountDidBindingsOutcome,
+        AdminAccountClaimsOutcome,
         AdminBridgeDescribe,
         IntegrationManifest,
-        CoauthAdminSingleEnvelope<AccountRiskActionCurrentOutcome>,
+        SingleOutcome<AccountRiskActionCurrentOutcome>,
         AccountRiskActionHistoryOutcome,
     ) = futures_util::try_join!(
         api_client(&summary_url, "GET", NO_BODY),
@@ -382,7 +377,7 @@ pub async fn execute_account_risk_action(
 }
 
 fn map_admin_account_summary_resource(
-    resource: CoauthAdminResource<CoauthAdminAccountRecord>,
+    resource: SingleResource<AdminAccountAttributes>,
 ) -> CoauthAccountSummary {
     let attributes = resource.attributes;
     let is_locked = attributes.status.is_locked();
@@ -407,7 +402,7 @@ fn map_admin_account_summary_resource(
     }
 }
 
-fn map_admin_did_binding(binding: CoauthAdminDidBindingRecord) -> CoauthManagedDidBinding {
+fn map_admin_did_binding(binding: AdminAccountDidBinding) -> CoauthManagedDidBinding {
     CoauthManagedDidBinding {
         did: binding.did,
         kind: binding.kind,
