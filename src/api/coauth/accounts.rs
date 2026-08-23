@@ -174,21 +174,6 @@ struct CoauthAdminPaginationMeta {
     count: Option<u64>,
 }
 
-#[derive(Debug, Clone, Serialize)]
-struct AddAccountDidBindingRequestBody {
-    did: String,
-    kind: DidBindingKind,
-    control_proof: ControlProofPayload,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    make_primary: Option<bool>,
-}
-
-#[derive(Debug, Clone, Serialize)]
-struct ControlProofPayload {
-    jws: String,
-    nonce: String,
-}
-
 /// Filter inputs accepted by `list_accounts_cursor`. Empty strings are
 /// dropped before encoding so the wire form only carries what the
 /// operator actually filtered on.
@@ -288,31 +273,6 @@ pub async fn get_account_detail(id: &str) -> Result<CoauthAccountDetail, HttpErr
         admin_bridge: bridge,
         integration_manifest,
     })
-}
-
-/// Add a managed DID binding to an account.
-pub async fn add_account_did_binding(
-    account_id: &str,
-    did: &str,
-    kind: DidBindingKind,
-    proof_jws: &str,
-    proof_nonce: &str,
-) -> Result<(), HttpError> {
-    let url = format!(
-        "/_coauth/admin/accounts/{}/dids",
-        urlencoding::encode(account_id)
-    );
-    let body = AddAccountDidBindingRequestBody {
-        did: did.to_owned(),
-        kind,
-        control_proof: ControlProofPayload {
-            jws: proof_jws.to_owned(),
-            nonce: proof_nonce.to_owned(),
-        },
-        make_primary: Some(kind == DidBindingKind::Primary),
-    };
-    let _: NoBody = api_client(&url, "POST", Some(&body)).await?;
-    Ok(())
 }
 
 /// Remove a managed DID binding from an account. The DID is part of the

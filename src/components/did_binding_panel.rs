@@ -1,21 +1,16 @@
 //! DID-binding admin surface used on the coauth account detail page.
 //!
-//! Renders the current set of `managed_dids`, plus an inline `Add binding`
-//! form (did + control_proof) and a `Remove binding` confirmation modal.
-//! Submission strands through the dedicated API helpers in
-//! `api::coauth::add_account_did_binding` /
-//! `api::coauth::remove_account_did_binding`.
+//! Renders the current set of `managed_dids` and a `Remove binding`
+//! confirmation modal.
 //!
 //! `on_mutated` is invoked on success so the parent can `data.restart()`
 //! its snapshot resource and pull the fresh list back from the server.
 
 use dioxus::prelude::*;
 
-use crate::api::coauth::{self, CoauthManagedDidBinding, DidBindingKind};
+use crate::api::coauth::{self, CoauthManagedDidBinding};
 use crate::components::dangerous_action_dialog::{DangerousActionDialog, confirmation_suffix};
 use crate::components::ui::button::{Button, ButtonVariant};
-use crate::components::ui::input::LabelFor;
-use crate::components::validated_input::{ValidatedInput, ValidationKind};
 use crate::utils::i18n::t;
 use crate::utils::net::error::HttpError;
 
@@ -25,13 +20,6 @@ pub fn DidBindingPanel(
     bindings: Vec<CoauthManagedDidBinding>,
     on_mutated: EventHandler<()>,
 ) -> Element {
-    let mut new_did = use_signal(String::new);
-    let mut new_kind = use_signal(|| "primary".to_string());
-    let mut new_control_proof_jws = use_signal(String::new);
-    let mut new_control_proof_nonce = use_signal(String::new);
-    let mut submit_in_flight = use_signal(|| false);
-    let mut submit_error = use_signal(|| None::<String>);
-
     // `Some(did)` when the user has clicked "Remove" on a row but not yet
     // confirmed the modal.
     let mut pending_remove = use_signal(|| None::<String>);
@@ -103,108 +91,6 @@ pub fn DidBindingPanel(
                 }
             }
 
-            div { class: "rounded-md border p-3 space-y-3",
-                h3 { class: "text-sm font-semibold", {t("did_binding_panel.add_title")} }
-                p { class: "text-xs text-muted-foreground",
-                    {t("did_binding_panel.add_hint")}
-                }
-                div { class: "space-y-2",
-                    LabelFor { r#for: "new-did".to_string(), {t("did_binding_panel.field_did")} }
-                    // ValidatedInput enforces the DID grammar with
-                    // validation identical to `arkret_identifiers::is_did`.
-                    ValidatedInput {
-                        kind: ValidationKind::Did,
-                        placeholder: "did:webvh:example.org:account:alice".to_string(),
-                        value: new_did.read().clone(),
-                        oninput: move |evt: FormEvent| new_did.set(evt.value()),
-                    }
-                }
-                div { class: "space-y-2",
-                    LabelFor { r#for: "new-kind".to_string(), {t("did_binding_panel.field_kind")} }
-                    select {
-                        class: "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm",
-                        value: new_kind.read().clone(),
-                        onchange: move |evt: Event<FormData>| new_kind.set(evt.value()),
-                        option { value: "primary", {t("did_binding_panel.kind_primary")} }
-                        option { value: "recovery", {t("did_binding_panel.kind_recovery")} }
-                        option { value: "pairwise", {t("did_binding_panel.kind_pairwise")} }
-                    }
-                }
-                div { class: "space-y-2",
-                    LabelFor { r#for: "new-control-proof-jws".to_string(), {t("did_binding_panel.field_control_proof_jws")} }
-                    ValidatedInput {
-                        kind: ValidationKind::Required,
-                        placeholder: t("did_binding_panel.jws_placeholder"),
-                        value: new_control_proof_jws.read().clone(),
-                        oninput: move |evt: FormEvent| new_control_proof_jws.set(evt.value()),
-                    }
-                }
-                div { class: "space-y-2",
-                    LabelFor { r#for: "new-control-proof-nonce".to_string(), {t("did_binding_panel.field_control_proof_nonce")} }
-                    ValidatedInput {
-                        kind: ValidationKind::Required,
-                        placeholder: t("did_binding_panel.nonce_placeholder"),
-                        value: new_control_proof_nonce.read().clone(),
-                        oninput: move |evt: FormEvent| new_control_proof_nonce.set(evt.value()),
-                    }
-                }
-
-                if let Some(err) = submit_error.read().clone() {
-                    div { class: "rounded-md bg-destructive/10 p-2 text-sm text-destructive",
-                        "{err}"
-                    }
-                }
-
-                Button {
-                    variant: ButtonVariant::Default,
-                    disabled: *submit_in_flight.read()
-                        || new_did.read().trim().is_empty()
-                        || new_control_proof_jws.read().trim().is_empty()
-                        || new_control_proof_nonce.read().trim().is_empty(),
-                    onclick: {
-                        let account_id = account_id.clone();
-                        move |_| {
-                            let account_id = account_id.clone();
-                            let did = new_did.read().trim().to_string();
-                            let kind = did_binding_kind_from_form(&new_kind.read());
-                            let proof_jws = new_control_proof_jws.read().trim().to_string();
-                            let proof_nonce = new_control_proof_nonce.read().trim().to_string();
-                            spawn(async move {
-                                submit_in_flight.set(true);
-                                submit_error.set(None);
-                                match coauth::add_account_did_binding(
-                                    &account_id,
-                                    &did,
-                                    kind,
-                                    &proof_jws,
-                                    &proof_nonce,
-                                )
-                                .await
-                                {
-                                    Ok(()) => {
-                                        new_did.set(String::new());
-                                        new_kind.set("primary".to_string());
-                                        new_control_proof_jws.set(String::new());
-                                        new_control_proof_nonce.set(String::new());
-                                        submit_in_flight.set(false);
-                                        on_mutated.call(());
-                                    }
-                                    Err(e) => {
-                                        submit_in_flight.set(false);
-                                        submit_error.set(Some(format_err(&e)));
-                                    }
-                                }
-                            });
-                        }
-                    },
-                    if *submit_in_flight.read() {
-                        {t("did_binding_panel.submitting")}
-                    } else {
-                        {t("did_binding_panel.add_binding")}
-                    }
-                }
-            }
-
             if let Some(err) = remove_error.read().clone() {
                 div { class: "rounded-md bg-destructive/10 p-2 text-sm text-destructive",
                     "{err}"
@@ -268,13 +154,5 @@ fn format_err(e: &HttpError) -> String {
         s => t("did_binding_panel.error_http")
             .replace("{status}", &s.to_string())
             .replace("{message}", &e.message),
-    }
-}
-
-fn did_binding_kind_from_form(value: &str) -> DidBindingKind {
-    match value {
-        "recovery" => DidBindingKind::Recovery,
-        "pairwise" => DidBindingKind::Pairwise,
-        _ => DidBindingKind::Primary,
     }
 }

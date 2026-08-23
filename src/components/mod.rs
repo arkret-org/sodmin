@@ -23,6 +23,5 @@ pub mod selection_required;
 pub mod sidebar;
 pub mod theme;
 pub mod ui;
-/// Generic client-side validating input. Current validation kinds are DID
-/// and Required, used by the DID-binding panel `Add binding` form.
+/// Generic client-side validating input for identifiers.
 pub mod validated_input;

@@ -1,8 +1,7 @@
 //! Generic client-side validating input component.
 //!
 //! Wraps the standard [`Input`] component with a configurable validator that
-//! runs on every keystroke. Empty values are treated as untouched except for
-//! [`ValidationKind::Required`], which reports immediately.
+//! runs on every keystroke. Empty values are treated as untouched.
 
 use arkret_identifiers::is_did;
 use dioxus::prelude::*;
@@ -15,8 +14,6 @@ use crate::utils::i18n::t;
 pub enum ValidationKind {
     /// Tight DID grammar: `^did:[a-z0-9]+:[^\s]+$`.
     Did,
-    /// Trimmed value must be non-empty.
-    Required,
 }
 
 impl ValidationKind {
@@ -27,13 +24,6 @@ impl ValidationKind {
                     Ok(())
                 } else {
                     Err("did_input.invalid")
-                }
-            }
-            ValidationKind::Required => {
-                if value.is_empty() {
-                    Err("validated_input.required")
-                } else {
-                    Ok(())
                 }
             }
         }
@@ -52,7 +42,7 @@ pub fn ValidatedInput(
 ) -> Element {
     let trimmed = value.trim();
     let validation = kind.validate(trimmed);
-    let show_error = !trimmed.is_empty() || matches!(kind, ValidationKind::Required);
+    let show_error = !trimmed.is_empty();
     let error_msg = validation.err();
 
     rsx! {
@@ -80,12 +70,6 @@ mod tests {
     #[test]
     fn did_kind_accepts_valid_did() {
         assert!(ValidationKind::Did.validate("did:web:alice").is_ok());
-    }
-
-    #[test]
-    fn required_kind_rejects_empty() {
-        assert!(ValidationKind::Required.validate("").is_err());
-        assert!(ValidationKind::Required.validate("anything").is_ok());
     }
 
     #[test]
