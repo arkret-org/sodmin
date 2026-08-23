@@ -8,15 +8,9 @@
 //!   `/_soland/admin/handles/{id}/audit` (T3.2's audit table) and exposes the revoke +
 //!   force-reassign actions.
 //!
-//! The canonical wire form is `<localpart>:<domain>`; the retired
-//! `arkret://` URI form is gone. Both columns here render
-//! the soland-supplied `canonical_uri` verbatim (which is already
-//! in canonical form); the operator-facing display
-//! sigil `@<localpart>:<domain>` is rendered alongside via
-//! [`utils::security::handle::display_sigil`] for readability. Inputs that
-//! arrive as sigil / acct: / retired URI shapes are normalised back
-//! to canonical via [`utils::security::handle::normalize_to_canonical`] before
-//! they hit soland.
+//! Both columns render Soland's canonical `<localpart>:<domain>` value
+//! verbatim. The operator-facing `@<localpart>:<domain>` sigil is derived only
+//! for display via [`utils::security::handle::display_sigil`].
 
 use arkret_identifiers::is_did;
 use dioxus::prelude::*;

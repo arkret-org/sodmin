@@ -6,9 +6,8 @@
 //! admin handler graduates to a typed response, lift the struct into
 //! `coauth-admin-types` and turn the local copy into a re-export.
 //!
-//! This module is split by domain into submodules; everything is
-//! re-exported here so the historical flat `crate::api::coauth::X` paths
-//! keep compiling unchanged.
+//! This module is the public facade; domain submodules remain private and
+//! their public items are re-exported here as `crate::api::coauth::X`.
 
 mod accounts;
 mod audit_feed;
