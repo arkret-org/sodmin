@@ -6,4 +6,4 @@
 //! read-only in sodmin: media_service writes strand through events /
 //! inkson, not the operations console.
 
-pub use soland_contracts::admin::{AdminMediaServiceFocus, AdminRealmMediaService};
+pub use soland_contracts::admin::AdminRealmMediaService;

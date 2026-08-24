@@ -10,6 +10,7 @@
 //! the operations console. The page therefore only pulls the effective
 //! cell via `GET /_soland/admin/realms/{id}/media-service` and renders it.
 
+use arkret_models_collaboration::events_payloads::MediaServiceFocus;
 use dioxus::prelude::*;
 
 use crate::api::media_service;
@@ -21,19 +22,7 @@ use crate::components::ui::error_banner::ErrorBanner;
 use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::{BreadcrumbItem, Breadcrumbs, PageHeader};
 use crate::router::Route;
-use crate::types::AdminMediaServiceFocus;
 use crate::utils::i18n::t;
-
-/// The focus backend kinds accepted by the arkret-spec media_service
-/// binding profile (`ak.profile.media_service_binding.v1`). Used only to
-/// flag an unrecognized `focus_kind` in the read-only view.
-pub const FOCUS_KINDS: &[&str] = &[
-    "livekit",
-    "mediasoup",
-    "janus",
-    "arkret_native",
-    "moq_relay",
-];
 
 #[component]
 pub fn MediaServicePage(realm_id: String) -> Element {
@@ -124,10 +113,22 @@ pub fn MediaServicePage(realm_id: String) -> Element {
     }
 }
 
-fn render_focus_row(idx: usize, focus: &AdminMediaServiceFocus) -> Element {
+fn render_focus_row(idx: usize, focus: &MediaServiceFocus) -> Element {
     let focus_id = focus.focus_id.clone();
-    let focus_kind = focus.focus_kind.clone();
-    let region = focus.region.clone().unwrap_or_else(|| "-".to_string());
+    let focus_kind = match focus.focus_kind {
+        arkret_models_collaboration::objects::media::MediaBackendKind::Livekit => "livekit",
+        arkret_models_collaboration::objects::media::MediaBackendKind::Mediasoup => "mediasoup",
+        arkret_models_collaboration::objects::media::MediaBackendKind::Janus => "janus",
+        arkret_models_collaboration::objects::media::MediaBackendKind::ArkretNative => {
+            "arkret_native"
+        }
+        arkret_models_collaboration::objects::media::MediaBackendKind::MoqRelay => "moq_relay",
+    };
+    let region = focus
+        .region
+        .as_ref()
+        .map(|value| value.as_str().to_owned())
+        .unwrap_or_else(|| "-".to_owned());
     // Both are normative required fields (`media-service-binding.md` §2), so a
     // focus that reaches this page always carries them: a descriptor missing
     // either one fails the shared contract's decode before it gets here.
@@ -139,19 +140,16 @@ fn render_focus_row(idx: usize, focus: &AdminMediaServiceFocus) -> Element {
         .unwrap_or_else(|| "-".to_string());
     let cascade_group = focus
         .cascade_group
-        .clone()
-        .unwrap_or_else(|| "-".to_string());
+        .as_ref()
+        .map(|value| value.as_str().to_owned())
+        .unwrap_or_else(|| "-".to_owned());
     let capabilities = focus.capabilities.clone();
-    let known_kind = FOCUS_KINDS.contains(&focus.focus_kind.as_str());
 
     rsx! {
         div {
             class: "rounded-md border p-3 space-y-2",
             div { class: "flex items-center justify-between",
                 p { class: "text-xs text-muted-foreground", {t("media_service.focus_index").replace("{n}", &(idx + 1).to_string())} }
-                if !known_kind {
-                    Badge { variant: BadgeVariant::Destructive, {t("media_service.unknown_backend")} }
-                }
             }
             div { class: "grid gap-2 md:grid-cols-2",
                 div { class: "space-y-1",
