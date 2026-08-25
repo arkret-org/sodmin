@@ -17,7 +17,7 @@ use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::table::*;
 use crate::components::ui::toast::{ToastVariant, show_toast};
 use crate::types::coauth_devices::{
-    CoauthDeviceMfaState, CoauthDeviceRiskLevel, render_optional_timestamp,
+    CoauthDeviceLabel, CoauthDeviceMfaState, CoauthDeviceRiskLevel, render_optional_timestamp,
 };
 use crate::utils::destructive_reason::destructive_reason_error;
 use crate::utils::i18n::t;
@@ -85,8 +85,8 @@ pub fn AccountDevicesPage(account_id: String) -> Element {
                                                 let risk_variant = device_risk_variant(&row.risk_level);
                                                 let mfa_label = row.mfa_state.label().to_string();
                                                 let mfa_variant = device_mfa_variant(&row.mfa_state);
-                                                let registered_at = render_optional_timestamp(row.registered_at.as_deref());
-                                                let revoked_at = render_optional_timestamp(row.revoked_at.as_deref());
+                                                let registered_at = render_optional_timestamp(row.registered_at.as_ref());
+                                                let revoked_at = render_optional_timestamp(row.revoked_at.as_ref());
                                                 let revocable = row.is_revocable();
                                                 let row_in_flight = in_flight
                                                     .read()
@@ -252,6 +252,7 @@ mod tests {
     fn revoke_button_visible_only_when_row_revocable() {
         let r = CoauthDeviceRow {
             id: "d1".into(),
+            account_id: Some("01JZ9PK6HKFY0MM7C0TMZ1X8N7".into()),
             display_name: None,
             risk_level: CoauthDeviceRiskLevel::Unknown,
             mfa_state: CoauthDeviceMfaState::Unknown,
@@ -260,7 +261,7 @@ mod tests {
         };
         assert!(r.is_revocable());
         let r = CoauthDeviceRow {
-            revoked_at: Some("2026-05-09T12:00:00Z".into()),
+            revoked_at: Some("2026-05-09T12:00:00Z".parse().unwrap()),
             ..r
         };
         assert!(!r.is_revocable());
