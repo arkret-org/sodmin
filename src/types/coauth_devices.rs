@@ -4,7 +4,6 @@
 //! existing sodmin names and presentation helpers.
 
 use chrono::{DateTime, Utc};
-
 pub use coauth_admin_types::{
     DeviceMfaState as CoauthDeviceMfaState, DeviceRecord as CoauthDeviceRow,
     DeviceRiskLevel as CoauthDeviceRiskLevel,

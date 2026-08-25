@@ -1,5 +1,6 @@
 use std::collections::BTreeSet;
 
+use arkret_wire::event_kind_str;
 use serde_json::{Value, json};
 use soland_contracts::admin::policy::{
     AdminPolicyDocument, AdminPolicyDocumentPage, AdminPolicyPayload, PolicyEffect,
@@ -217,8 +218,7 @@ fn policy_document_targets_pin(doc: &AdminPolicyDocument) -> bool {
 fn text_targets_pin_policy(value: &str) -> bool {
     let value = value.trim().to_ascii_lowercase();
     value == "ak.pin"
-        || value == "ak.pin.*"
-        || value.starts_with("ak.pin.")
+        || is_pin_action_or_namespace_pattern(&value)
         || value.contains(arkret_wire::ProfileId::PINNED_ITEMS_V1)
         || value.contains("pinned_items")
         || value.contains("pin_policy")
@@ -227,6 +227,21 @@ fn text_targets_pin_policy(value: &str) -> bool {
         || value.contains("pin-quota")
         || value.contains("pin_quota")
         || value.contains("pin policy")
+}
+
+fn pin_action_prefix() -> &'static str {
+    event_kind_str::PIN_ADD
+        .strip_suffix("add")
+        .expect("generated pin-add kind ends in add")
+}
+
+fn is_pin_action_or_namespace_pattern(value: &str) -> bool {
+    matches!(
+        value,
+        event_kind_str::PIN_ADD | event_kind_str::PIN_REMOVE | event_kind_str::PIN_REORDER
+    ) || value
+        .strip_prefix(pin_action_prefix())
+        .is_some_and(|suffix| suffix == "*" || !suffix.is_empty())
 }
 
 fn value_targets_pin_policy(value: &Value) -> bool {
@@ -286,7 +301,7 @@ fn structural_pin_key(key: &str) -> bool {
 
 fn pin_summary_from_payload(policy_kind: &str, payload: &Value) -> PinPolicySummary {
     let mut actions = BTreeSet::new();
-    if text_targets_pin_policy(policy_kind) && policy_kind.starts_with("ak.pin.") {
+    if text_targets_pin_policy(policy_kind) && policy_kind.starts_with(pin_action_prefix()) {
         actions.insert(policy_kind.to_owned());
     }
     collect_pin_actions(payload, &mut actions);
@@ -309,7 +324,7 @@ fn pin_summary_from_payload(policy_kind: &str, payload: &Value) -> PinPolicySumm
 fn collect_pin_actions(value: &Value, actions: &mut BTreeSet<String>) {
     match value {
         Value::String(s) => {
-            if s == "ak.pin.*" || s.starts_with("ak.pin.") {
+            if is_pin_action_or_namespace_pattern(s) {
                 actions.insert(s.to_owned());
             }
         }
@@ -763,7 +778,10 @@ mod tests {
             policy_kind: "ak.profile.pinned_items.v1".to_owned(),
             payload: AdminPolicyPayload {
                 effect: PolicyEffect::Allow,
-                actions: vec!["ak.pin.add".to_owned(), "ak.pin.reorder".to_owned()],
+                actions: vec![
+                    event_kind_str::PIN_ADD.to_owned(),
+                    event_kind_str::PIN_REORDER.to_owned(),
+                ],
                 resource: json!({
                     "name": "Realm pins",
                     "pin_scope": {"kind": "realm", "id": "ak:realm:AcjPhXNC5Rr73hdU3Lep53Z0K69AczAn915GJwCtexkF"},
@@ -791,7 +809,7 @@ mod tests {
 
         let summary = policy.safety.pin_summary.as_ref().unwrap();
         assert!(!summary.standard_surface_available);
-        assert!(summary.actions.iter().any(|v| v == "ak.pin.add"));
+        assert!(summary.actions.iter().any(|v| v == event_kind_str::PIN_ADD));
         assert!(
             summary
                 .quota_limits
@@ -810,13 +828,13 @@ mod tests {
     #[test]
     fn pin_policy_mutation_requests_fail_closed_before_network() {
         let pin_by_type = CreatePolicyRequest {
-            policy_kind: Some("ak.pin.add".to_owned()),
+            policy_kind: Some(event_kind_str::PIN_ADD.to_owned()),
             ..Default::default()
         };
         assert!(request_targets_pin_policy(&pin_by_type));
 
         let pin_by_rules = CreatePolicyRequest {
-            rules: Some(json!({"actions": ["ak.pin.reorder"]}).into()),
+            rules: Some(json!({"actions": [event_kind_str::PIN_REORDER]}).into()),
             ..Default::default()
         };
         assert!(request_targets_pin_policy(&pin_by_rules));
