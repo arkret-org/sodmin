@@ -12,6 +12,7 @@ use crate::utils::security::crypto::random_token;
 
 pub const HEADER_REQUEST_ID: &str = "X-Arkret-Request-Id";
 pub const HEADER_IDEMPOTENCY_KEY: &str = "Idempotency-Key";
+pub const HEADER_ARKRET_OPERATION: &str = "Arkret-Operation";
 const REQUEST_TIMEOUT_MS: u32 = 30_000;
 
 /// Deserialization target for mutation endpoints whose response body is
@@ -126,6 +127,10 @@ where
     .credentials(RequestCredentials::Include)
     .abort_signal(Some(&abort_signal));
 
+    if let Some(operation) = canonical_operation_for_request(url, &normalized_method) {
+        builder = builder.header(HEADER_ARKRET_OPERATION, operation.as_str());
+    }
+
     if is_mutation_method(&normalized_method) {
         let generated_key;
         let key = match idempotency_key {
@@ -225,6 +230,19 @@ where
         request_id: response_rid,
         retry_after_ms,
     })
+}
+
+fn canonical_operation_for_request(
+    url: &str,
+    method: &str,
+) -> Option<arkret_wire::ServiceOperationId> {
+    let relative_path = url.split(['?', '#']).next().unwrap_or(url);
+    let path = if relative_path.starts_with('/') {
+        relative_path.to_owned()
+    } else {
+        web_sys::Url::new(url).ok()?.pathname()
+    };
+    arkret_wire::ServiceOperationId::from_http_request(method, &path)
 }
 
 pub fn format_admin_error(
@@ -415,7 +433,20 @@ fn is_sensitive_query_key(key: &str) -> bool {
 
 #[cfg(test)]
 mod tests {
-    use super::{build_url, format_admin_error, is_mutation_method};
+    use super::{
+        build_url, canonical_operation_for_request, format_admin_error, is_mutation_method,
+    };
+
+    #[test]
+    fn canonical_arkret_request_selects_exact_operation() {
+        let operation = canonical_operation_for_request(
+            "/_arkret/describe?service_kind=principal_server",
+            "GET",
+        )
+        .expect("registered describe operation");
+        assert_eq!(operation.as_str(), "ak.server.read.describe.v1");
+        assert!(canonical_operation_for_request("/_soland/admin/server/info", "GET").is_none());
+    }
 
     #[test]
     fn build_url_rejects_query_credentials() {

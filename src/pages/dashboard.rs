@@ -160,10 +160,6 @@ pub fn Dashboard() -> Element {
                 .collect::<Vec<_>>()
         })
         .unwrap_or_default();
-    let experimental_features = describe_data
-        .as_ref()
-        .map(|d| d.experimental_features.clone())
-        .unwrap_or_default();
 
     rsx! {
         div { class: "space-y-6",
@@ -272,11 +268,10 @@ pub fn Dashboard() -> Element {
                         {metadata_cell(t("dashboard.overall_conformance"), conformance)}
                         {metadata_cell(t("dashboard.health"), health_state)}
                     }
-                    div { class: "grid gap-3 md:grid-cols-2 xl:grid-cols-4",
+                    div { class: "grid gap-3 md:grid-cols-3",
                         {metadata_cell(t("dashboard.verified_profiles"), join_or_dash(&verified_profiles))}
                         {metadata_cell(t("dashboard.claimed_profiles"), join_or_dash(&claimed_profiles))}
                         {metadata_cell(t("dashboard.interop_surfaces"), join_or_dash(&interop_surfaces))}
-                        {metadata_cell(t("dashboard.experimental_features"), join_or_dash(&experimental_features))}
                     }
                 }
             }

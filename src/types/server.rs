@@ -93,7 +93,6 @@ impl ServerDescribeDocument {
 
 #[cfg(test)]
 mod tests {
-    use arkret_wire::{ProfileId, ServiceOperationId};
     use serde_json::json;
 
     use super::{AdminServerStatus, ServerDescribeDocument};
@@ -110,10 +109,14 @@ mod tests {
             "trust_domain": "ak:trust_domain:soland.local",
             "service_kind": "principal_server",
             "protocol_version": "1.0",
-            "supported_profiles": [ProfileId::PRINCIPAL_SERVER_V1],
-            "supported_operations": [ServiceOperationId::SELF_EVENTS_COMMAND_SUBMIT],
-            "supported_bindings": [],
-            "supported_features": ["events.describe", "events.submit"],
+            "supported_profiles": [],
+            "supported_operation_bundles": ["ak.operation_bundle.principal_server.describe.v1"],
+            "transport_bindings": [{
+                "kind": "http_json",
+                "base_url": "https://soland.local/",
+                "extension_profile_required": null
+            }],
+            "supported_features": [],
             "auth_metadata": { "mode": "production" },
             "limits": {
                 "profile_status": {
@@ -123,13 +126,8 @@ mod tests {
             },
             "rate_limit_policy": { "policy_version": "1", "entries": [] },
             "plaintext_visibility": { "max_visibility": "private_plaintext", "data_classes": ["message_content"] },
-            "implemented_features": ["events.describe"],
-            "claimed_profiles": [{
-                "profile_id": ProfileId::PRINCIPAL_SERVER_V1,
-                "claim_kind": "self_claimed"
-            }],
+            "claimed_profiles": [],
             "verified_profiles": [],
-            "experimental_features": [],
             "interop_surfaces": [{
                 "name": "federation.bridge",
                 "kind": "external_interop"
@@ -156,10 +154,6 @@ mod tests {
             arkret_wire::ServiceKind::PrincipalServer
         );
         assert!(!describe.development_mode);
-        assert_eq!(
-            describe.claimed_profiles[0].profile_id,
-            ProfileId::PRINCIPAL_SERVER_V1
-        );
         assert_eq!(describe.interop_surfaces[0].name, "federation.bridge");
         assert_eq!(
             describe.limits.extensions["profile_status"]["conformance"],

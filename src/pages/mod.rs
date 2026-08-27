@@ -7,7 +7,7 @@ pub mod devices;
 pub mod federation;
 pub mod handles;
 /// Subject → Handles directory page
-/// (`ak.find.directory.read.list_handles_for_subject`).
+/// (`ak.find.directory.read.list_handles_for_subject.v1`).
 pub mod handles_by_subject;
 pub mod hardening;
 pub mod invite_tokens;

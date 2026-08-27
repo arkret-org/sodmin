@@ -602,7 +602,7 @@ fn classify_principal_logout(response: Result<TextResponse, HttpError>) -> Logou
             "Principal Server logout returned an invalid response".to_owned(),
         );
     };
-    if outcome.ok && outcome.revoked {
+    if outcome.revoked {
         LogoutStepStatus::Confirmed
     } else {
         LogoutStepStatus::Failed(

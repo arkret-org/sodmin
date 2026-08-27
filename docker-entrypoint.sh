@@ -198,7 +198,7 @@ if can_resolve_url_host "$SOLAND_URL"; then
     # attack-surface classifier, NOT a single backing service). coauth owns most
     # of it (session-grants issue/refresh/logout/introspect, password-recovery,
     # email-auth, passkey/oidc, register) via the `/_arkret/gate/` rule above,
-    # but `ak.gate.account.command.logout` is a Principal-Server op (revoke
+    # but `ak.gate.account.command.logout.v1` is a Principal-Server op (revoke
     # bearer + device session record + to-device) that coauth does not serve.
     # Route that one longer prefix to soland; nginx longest-prefix match makes
     # it win over `/_arkret/gate/` regardless of declaration order.

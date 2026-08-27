@@ -68,6 +68,7 @@ web-sys = {workspace = true,features = [
     "Crypto",
     "StorageEvent",
     "SubtleCrypto",
+    "Url",
 ]}
 
 [build-dependencies]

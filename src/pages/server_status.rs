@@ -243,12 +243,11 @@ fn describe_body(describe: &ServerDescribeDocument) -> Element {
 
     let profiles = describe.supported_profiles.clone();
     let features = describe.supported_features.clone();
-    let implemented = describe.implemented_features.clone();
-    let operations = describe.supported_operations.clone();
-    // ServiceDescribe carries strong-typed `supported_bindings`; render each
+    let operation_bundles = describe.supported_operation_bundles.clone();
+    // ServiceDescribe carries strong-typed `transport_bindings`; render each
     // as JSON so the free-form chip section keeps reading `kind` / `base_url`.
     let bindings: Vec<serde_json::Value> = describe
-        .supported_bindings
+        .transport_bindings
         .iter()
         .map(|binding| serde_json::to_value(binding).unwrap_or(serde_json::Value::Null))
         .collect();
@@ -344,18 +343,14 @@ fn describe_body(describe: &ServerDescribeDocument) -> Element {
                 {info_cell(t("server_status.admin_auth_mode"), admin_auth_mode)}
             }
 
-            // Chip lists for the four list-shaped ServerDescribe
-            // fields: supported_profiles / supported_features /
-            // implemented_features / supported_operations. Each renders
-            // as a flat strip of mono chips; conformance buckets render
-            // separately below.
+            // Registered ServerDescribe declarations render as flat strips
+            // of mono chips; conformance buckets render separately below.
             {chip_section(t("server_status.profiles_label"), &profiles)}
             {profile_declaration_section(&profiles)}
             {chip_section(t("server_status.features_label"), &features)}
-            {chip_section(t("server_status.implemented_features"), &implemented)}
-            {chip_section(t("server_status.supported_operations"), &operations)}
+            {chip_section(t("server_status.supported_operation_bundles"), &operation_bundles)}
 
-            {binding_chip_section(t("server_status.supported_bindings"), &bindings)}
+            {binding_chip_section(t("server_status.transport_bindings"), &bindings)}
 
             // Limits + rate_limit as raw JSON. Free-form per
             // SDK; UI cannot assume a fixed key set.
@@ -557,10 +552,8 @@ fn format_number(value: f64) -> String {
     }
 }
 
-/// Uniform helper for the chip-list ServerDescribe fields
-/// (supported_profiles / supported_features / implemented_features /
-/// supported_operations). Returns an empty fragment when the slice is
-/// empty so we don't clutter the card with `-` rows.
+/// Uniform helper for list-shaped ServerDescribe fields. Returns an empty
+/// fragment when the slice is empty so the card does not gain empty rows.
 fn chip_section(label: String, items: &[String]) -> Element {
     if items.is_empty() {
         return rsx! {
@@ -601,14 +594,13 @@ fn conformance_section(describe: &ServerDescribeDocument, dev_mode_active: bool)
         .iter()
         .map(|profile| profile.profile_id.clone())
         .collect::<Vec<_>>();
-    let experimental = describe.experimental_features.clone();
     let interop = describe
         .interop_surfaces
         .iter()
         .map(|surface| surface.name.clone())
         .collect::<Vec<_>>();
 
-    if verified.is_empty() && claimed.is_empty() && experimental.is_empty() && interop.is_empty() {
+    if verified.is_empty() && claimed.is_empty() && interop.is_empty() {
         return rsx! {};
     }
 
@@ -631,13 +623,6 @@ fn conformance_section(describe: &ServerDescribeDocument, dev_mode_active: bool)
                     ConformanceTone::Claimed,
                 )}
             }
-            if !experimental.is_empty() {
-                {conformance_bucket(
-                    t("server_status.experimental_features"),
-                    &experimental,
-                    ConformanceTone::Experimental,
-                )}
-            }
             if !interop.is_empty() {
                 {conformance_bucket(
                     t("server_status.interop_surfaces"),
@@ -654,7 +639,6 @@ enum ConformanceTone {
     Verified,
     VerifiedBlockedByDev,
     Claimed,
-    Experimental,
     Interop,
 }
 
@@ -674,11 +658,6 @@ fn conformance_bucket(label: String, items: &[String], tone: ConformanceTone) ->
             "bg-yellow-600/10 text-yellow-700 dark:text-yellow-300 border border-yellow-600/30",
             "\u{1F7E1}",
             None,
-        ),
-        ConformanceTone::Experimental => (
-            "bg-blue-600/10 text-blue-700 dark:text-blue-300 border border-blue-600/30",
-            "\u{1F9EA}",
-            Some(t("server_status.experimental_warning")),
         ),
         ConformanceTone::Interop => (
             "bg-gray-500/10 text-gray-700 dark:text-gray-300 border border-gray-500/30",
