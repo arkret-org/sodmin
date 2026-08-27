@@ -1,7 +1,5 @@
 # sodmin
 
-> **Spec target**: [arkret-spec @ 409ebafb](../arkret-spec) (SessionGrant issuer-ledger and device-bootstrap decision-fence sync, 2026-08-08)
-
 Arkret administrator web UI for Principal Server and coauth deployments. The app is built with Dioxus and compiled to WebAssembly.
 
 ## Pre-commit hook setup
