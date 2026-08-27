@@ -554,7 +554,6 @@
   "media_service.service_id": "service_id",
   "media_service.subtitle": "Foci list — each focus binds one media service backend (livekit, mediasoup, janus, arkret_native, moq_relay).",
   "media_service.title": "Realm media service",
-  "media_service.unknown_backend": "unknown backend",
   "nav.actors": "Actors",
   "nav.audit": "Audit",
   "nav.audit_log": "Audit Log",

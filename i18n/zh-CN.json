@@ -554,7 +554,6 @@
   "media_service.service_id": "service_id",
   "media_service.subtitle": "Foci 列表 —— 每个 focus 绑定一个媒体服务后端（livekit、mediasoup、janus、arkret_native、moq_relay）。",
   "media_service.title": "Realm 媒体服务",
-  "media_service.unknown_backend": "未知后端",
   "nav.actors": "Actor",
   "nav.audit": "审计",
   "nav.audit_log": "审计日志",
