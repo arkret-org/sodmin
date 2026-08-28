@@ -42,7 +42,7 @@ impl std::ops::Deref for ServerDescribeDocument {
 }
 
 impl ServerDescribeDocument {
-    /// Enforce the SDK's semantic checks, including full-id-to-core-id
+    /// Enforce the SDK's semantic checks, including DID-to-core-id
     /// consistency for the published service resolution commitment.
     pub fn validate(&self) -> arkret_wire::Result<()> {
         self.description.validate()
@@ -102,7 +102,7 @@ mod tests {
         json!({
             "service_id": "ak:did_core:web:soland.local",
             "service_resolution": {
-                "full_id": "did:web:soland.local",
+                "did": "did:web:soland.local",
                 "method_history_head": "fixture-head",
                 "version_id": "fixture-v1"
             },

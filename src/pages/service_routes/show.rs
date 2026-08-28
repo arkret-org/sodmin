@@ -76,7 +76,7 @@ pub fn ServiceRouteShow(service_id: String, service_kind: String) -> Element {
                                         InfoRow { label: t("service_routes.authority"), value: detail.authority.clone() }
                                         InfoRow { label: t("service_routes.observed_at"), value: observed_at }
                                         if let Some(current) = detail.current_record.as_ref() {
-                                            InfoRow { label: t("service_routes.full_id"), value: current.full_id.clone() }
+                                            InfoRow { label: t("service_routes.did"), value: current.did.clone() }
                                             InfoRow { label: t("service_routes.history_head"), value: current.method_history_head.clone() }
                                             InfoRow { label: t("service_routes.version"), value: current.version_id.clone() }
                                             InfoRow { label: t("service_routes.base_url"), value: current.base_url.clone() }

@@ -95,7 +95,7 @@ pub fn Dashboard() -> Element {
 
     let service_id = describe_data
         .as_ref()
-        .map(|d| d.service_resolution.full_id.to_string())
+        .map(|d| d.service_resolution.did.to_string())
         .unwrap_or_else(|| "-".to_string());
     let coauth_issuer_did = coauth_describe_data
         .as_ref()
@@ -354,7 +354,7 @@ fn coauth_issuer_did(describe: &ServerDescribeDocument) -> Option<String> {
     // serialize to JSON before walking for the `issuer_did` key.
     let auth_metadata = serde_json::to_value(&describe.auth_metadata).unwrap_or_default();
     json_string(&auth_metadata, &["issuer_did"])
-        .or_else(|| non_empty(describe.service_resolution.full_id.to_string()))
+        .or_else(|| non_empty(describe.service_resolution.did.to_string()))
 }
 
 fn identity_registry_endpoint(describe: &ServerDescribeDocument) -> Option<String> {
