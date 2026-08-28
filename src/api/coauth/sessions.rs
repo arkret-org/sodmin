@@ -2,9 +2,9 @@
 
 use serde::{Deserialize, Serialize};
 
-use super::pagination::{get_jsonapi_first_page, map_single_resource};
+use super::pagination::{get_jsonapi_cursor_page, map_single_resource};
 use crate::api::client::{NO_BODY, api_client};
-use crate::types::PaginatedResponse;
+use crate::types::CursorPage;
 use crate::utils::net::error::HttpError;
 
 const OAUTH2_SESSIONS_PATH: &str = "/_coauth/admin/oauth-sessions";
@@ -54,10 +54,10 @@ pub struct CoauthPersonalSessionOneShot {
 }
 
 pub async fn list_oauth2_sessions(
-    _page: u64,
+    after: Option<&str>,
     per_page: u64,
-) -> Result<PaginatedResponse<CoauthOAuth2Session>, HttpError> {
-    get_jsonapi_first_page(OAUTH2_SESSIONS_PATH, per_page, map_oauth2_session).await
+) -> Result<CursorPage<CoauthOAuth2Session>, HttpError> {
+    get_jsonapi_cursor_page(OAUTH2_SESSIONS_PATH, after, per_page, map_oauth2_session).await
 }
 
 pub async fn finish_oauth2_session(id: &str) -> Result<(), HttpError> {
@@ -69,10 +69,16 @@ pub async fn finish_oauth2_session(id: &str) -> Result<(), HttpError> {
 }
 
 pub async fn list_personal_sessions(
-    _page: u64,
+    after: Option<&str>,
     per_page: u64,
-) -> Result<PaginatedResponse<CoauthPersonalSessionRow>, HttpError> {
-    get_jsonapi_first_page(PERSONAL_SESSIONS_PATH, per_page, map_personal_session).await
+) -> Result<CursorPage<CoauthPersonalSessionRow>, HttpError> {
+    get_jsonapi_cursor_page(
+        PERSONAL_SESSIONS_PATH,
+        after,
+        per_page,
+        map_personal_session,
+    )
+    .await
 }
 
 pub async fn create_personal_session(

@@ -2,7 +2,7 @@ pub mod api;
 pub use api::*;
 
 pub mod pagination;
-pub use pagination::{CursorPage, PaginatedResponse};
+pub use pagination::CursorPage;
 
 pub mod actors;
 pub use actors::*;

@@ -6,7 +6,7 @@ use crate::components::ui::button::{Button, ButtonSize, ButtonVariant};
 use crate::components::ui::error_banner::ErrorBanner;
 use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
-use crate::components::ui::pagination::Pagination;
+use crate::components::ui::pagination::CursorPagination;
 use crate::components::ui::table::*;
 use crate::components::ui::toast::{ToastVariant, show_toast};
 use crate::utils::i18n::t;
@@ -15,14 +15,14 @@ const PAGE_SIZE: u64 = 25;
 
 #[component]
 pub fn UpstreamLinksPage() -> Element {
-    let mut page = use_signal(|| 1u64);
+    let mut cursor_stack = use_signal(|| vec![None::<String>]);
     let mut show_delete = use_signal(|| None::<String>);
 
-    let mut data = use_resource(move || async move {
-        let page_val = *page.read();
-        coauth::list_upstream_links(page_val, PAGE_SIZE).await
+    let cursor_snapshot = cursor_stack.read().last().cloned().unwrap_or(None);
+    let mut data = use_resource(move || {
+        let cursor = cursor_snapshot.clone();
+        async move { coauth::list_upstream_links(cursor.as_deref(), PAGE_SIZE).await }
     });
-    let page_val = *page.read();
 
     rsx! {
         div { class: "space-y-6",
@@ -32,7 +32,10 @@ pub fn UpstreamLinksPage() -> Element {
             }
 
             match &*data.read() {
-                Some(Ok(resp)) => rsx! {
+                Some(Ok(resp)) => {
+                    let next_cursor = resp.next_cursor.clone();
+                    let stack_depth = cursor_stack.read().len();
+                    rsx! {
                     div { class: "rounded-md border",
                         Table {
                             TableHeader {
@@ -91,11 +94,24 @@ pub fn UpstreamLinksPage() -> Element {
                         }
                     }
 
-                    Pagination {
-                        page: page_val,
-                        total: resp.total,
-                        per_page: PAGE_SIZE,
-                        on_page_change: move |p| page.set(p),
+                    CursorPagination {
+                        depth: stack_depth,
+                        has_next: next_cursor.is_some(),
+                        on_prev: move |_| {
+                            let mut new_stack = cursor_stack.read().clone();
+                            if new_stack.len() > 1 {
+                                new_stack.pop();
+                                cursor_stack.set(new_stack);
+                            }
+                        },
+                        on_next: move |_| {
+                            if let Some(cursor) = next_cursor.clone() {
+                                let mut new_stack = cursor_stack.read().clone();
+                                new_stack.push(Some(cursor));
+                                cursor_stack.set(new_stack);
+                            }
+                        },
+                    }
                     }
                 },
                 Some(Err(e)) => rsx! {

@@ -2,9 +2,9 @@
 
 use serde::{Deserialize, Serialize};
 
-use super::pagination::{get_jsonapi_first_page, map_single_resource};
+use super::pagination::{get_jsonapi_cursor_page, map_single_resource};
 use crate::api::client::{NoBody, api_client};
-use crate::types::PaginatedResponse;
+use crate::types::CursorPage;
 use crate::utils::net::error::HttpError;
 
 const USER_REGISTRATION_TOKENS_PATH: &str = "/_coauth/admin/user-registration-tokens";
@@ -37,11 +37,12 @@ struct CreateRegistrationTokenBody {
 }
 
 pub async fn list_registration_tokens(
-    _page: u64,
+    after: Option<&str>,
     per_page: u64,
-) -> Result<PaginatedResponse<CoauthRegistrationToken>, HttpError> {
-    get_jsonapi_first_page(
+) -> Result<CursorPage<CoauthRegistrationToken>, HttpError> {
+    get_jsonapi_cursor_page(
         USER_REGISTRATION_TOKENS_PATH,
+        after,
         per_page,
         map_registration_token,
     )

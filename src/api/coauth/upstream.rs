@@ -2,9 +2,9 @@
 
 use serde::{Deserialize, Serialize};
 
-use super::pagination::{get_jsonapi_first_page, map_single_resource};
+use super::pagination::{get_jsonapi_cursor_page, map_single_resource};
 use crate::api::client::{NO_BODY, NoBody, api_client};
-use crate::types::PaginatedResponse;
+use crate::types::CursorPage;
 use crate::utils::net::error::HttpError;
 
 const UPSTREAM_OAUTH_PROVIDERS_PATH: &str = "/_coauth/admin/upstream-oauth-providers";
@@ -72,11 +72,12 @@ pub struct CoauthUpstreamLink {
 }
 
 pub async fn list_upstream_providers(
-    _page: u64,
+    after: Option<&str>,
     per_page: u64,
-) -> Result<PaginatedResponse<CoauthUpstreamProvider>, HttpError> {
-    get_jsonapi_first_page(
+) -> Result<CursorPage<CoauthUpstreamProvider>, HttpError> {
+    get_jsonapi_cursor_page(
         UPSTREAM_OAUTH_PROVIDERS_PATH,
+        after,
         per_page,
         map_upstream_provider,
     )
@@ -129,10 +130,16 @@ pub async fn toggle_upstream_provider(id: &str, enable: bool) -> Result<(), Http
 }
 
 pub async fn list_upstream_links(
-    _page: u64,
+    after: Option<&str>,
     per_page: u64,
-) -> Result<PaginatedResponse<CoauthUpstreamLink>, HttpError> {
-    get_jsonapi_first_page(UPSTREAM_OAUTH_LINKS_PATH, per_page, map_upstream_link).await
+) -> Result<CursorPage<CoauthUpstreamLink>, HttpError> {
+    get_jsonapi_cursor_page(
+        UPSTREAM_OAUTH_LINKS_PATH,
+        after,
+        per_page,
+        map_upstream_link,
+    )
+    .await
 }
 
 pub async fn delete_upstream_link(id: &str) -> Result<(), HttpError> {
