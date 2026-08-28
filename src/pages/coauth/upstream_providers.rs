@@ -74,7 +74,10 @@ pub fn UpstreamProvidersPage() -> Element {
                                     for provider in resp.data.iter() {
                                         {
                                             let id = provider.id.clone();
-                                            let p_issuer = provider.issuer.clone().unwrap_or_else(|| "-".to_string());
+                                            let p_issuer = provider
+                                                .oidc_issuer_uri
+                                                .clone()
+                                                .unwrap_or_else(|| "-".to_string());
                                             let p_client_id = provider.client_id.clone().unwrap_or_else(|| "-".to_string());
                                             let is_enabled = provider.is_enabled;
                                             let created = provider.created_at.clone().unwrap_or_else(|| "-".to_string());
@@ -192,7 +195,7 @@ pub fn UpstreamProvidersPage() -> Element {
                 on_confirm: move |_| {
                     create_loading.set(true);
                     let body = coauth::CreateUpstreamProviderRequest {
-                        issuer: issuer.read().clone(),
+                        oidc_issuer_uri: issuer.read().clone(),
                         client_id: client_id.read().clone(),
                     };
                     spawn(async move {

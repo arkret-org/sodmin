@@ -194,14 +194,14 @@ pub(crate) fn format_head_option(idx: usize, head: &BottomCandidateHead) -> Stri
 }
 
 /// Render the inline metadata block for a selected candidate head — the
-/// issuer DID, HLC timestamp and human summary fields soland may
+/// issuer ID, HLC timestamp and human summary fields soland may
 /// populate. Returns `None` when none of the optional fields are
 /// populated, so the caller can skip rendering an empty block. Pure
 /// helper so the formatting logic is unit-testable.
 pub(crate) fn format_head_metadata(head: &BottomCandidateHead) -> Option<String> {
     let mut parts: Vec<String> = Vec::with_capacity(3);
-    if let Some(issuer) = head.issuer.as_deref().filter(|s| !s.is_empty()) {
-        parts.push(format!("issuer={issuer}"));
+    if let Some(issuer_id) = head.issuer_id.as_ref() {
+        parts.push(format!("issuer_id={issuer_id}"));
     }
     if let Some(hlc) = head.hlc.as_deref().filter(|s| !s.is_empty()) {
         parts.push(format!("hlc={hlc}"));
@@ -314,29 +314,29 @@ mod tests {
 
     #[test]
     fn head_metadata_concatenates_populated_optional_fields() {
-        // All three populated: ordering is issuer · hlc · summary so the
+        // All three populated: ordering is issuer_id · hlc · summary so the
         // operator gets a stable, predictable line.
         let head = BottomCandidateHead {
             event_id: "ak:event:Aan7Ux1oCI9l8IvWpnGPzeHRG0hhQwfugg_05hRHt5MP".into(),
-            issuer: Some("did:web:alice.example".into()),
+            issuer_id: Some(arkret_wire::DidCoreId::new("ak:did_core:web:alice.example").unwrap()),
             hlc: Some("01J9-0001-abcd".into()),
             summary: Some("set value=42".into()),
         };
         let meta = format_head_metadata(&head).expect("metadata present");
-        assert!(meta.starts_with("issuer=did:web:alice.example"));
+        assert!(meta.starts_with("issuer_id=ak:did_core:web:alice.example"));
         assert!(meta.contains("hlc=01J9-0001-abcd"));
         assert!(meta.ends_with("summary=set value=42"));
         // Empty-string optional fields are treated as absent — soland
         // sometimes serializes "" instead of `null` and we must not show
-        // a bare "issuer=" key.
+        // a bare issuer key.
         let head = BottomCandidateHead {
             event_id: "ak:event:Aan7Ux1oCI9l8IvWpnGPzeHRG0hhQwfugg_05hRHt5MP".into(),
-            issuer: Some(String::new()),
+            issuer_id: None,
             hlc: None,
             summary: Some("only this".into()),
         };
         let meta = format_head_metadata(&head).expect("metadata present");
-        assert!(!meta.contains("issuer="));
+        assert!(!meta.contains("issuer_id="));
         assert!(meta.contains("summary=only this"));
     }
 }

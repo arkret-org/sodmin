@@ -12,9 +12,7 @@ use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::pagination::CursorPagination;
 use crate::components::ui::table::*;
 use crate::components::ui::toast::{ToastVariant, show_toast};
-use crate::types::policy::{
-    AdminPolicy, CreatePolicyRequest, PolicyAuditEntry, PolicyEvidenceItem,
-};
+use crate::types::policy::{AdminPolicy, CreatePolicyRequest};
 use crate::utils::i18n::t;
 use crate::utils::net::error::{HttpError, should_reset_cursor_pagination};
 
@@ -408,35 +406,16 @@ pub fn PolicyList() -> Element {
 
 #[component]
 fn PolicyGuardrailBadges(policy: AdminPolicy) -> Element {
-    let evidence_count = policy.guardrails.approval_evidence.len();
-    let audit_count = policy.guardrails.audit_trail.len();
     let obligation_count = policy.guardrails.obligations.len();
-    let has_required_scope = policy.guardrails.required_scope.is_some();
     let is_pin_policy = policy.safety.pin_summary.is_some();
     let is_read_only = policy.safety.read_only;
-    let has_any = evidence_count > 0
-        || audit_count > 0
-        || obligation_count > 0
-        || has_required_scope
-        || is_pin_policy
-        || is_read_only;
-    let approval_label = t("policy.approval_evidence");
-    let audit_label = t("policy.audit_events");
+    let has_any = obligation_count > 0 || is_pin_policy || is_read_only;
     let obligation_label = t("policy.obligations");
 
     rsx! {
         div { class: "flex flex-wrap items-center gap-1",
-            if evidence_count > 0 {
-                Badge { variant: BadgeVariant::Secondary, "{evidence_count} {approval_label}" }
-            }
-            if audit_count > 0 {
-                Badge { variant: BadgeVariant::Outline, "{audit_count} {audit_label}" }
-            }
             if obligation_count > 0 {
                 Badge { variant: BadgeVariant::Default, "{obligation_count} {obligation_label}" }
-            }
-            if has_required_scope {
-                Badge { variant: BadgeVariant::Destructive, {t("policy.permission_required")} }
             }
             if is_pin_policy {
                 Badge { variant: BadgeVariant::Secondary, {t("policy.pin_policy")} }
@@ -534,9 +513,6 @@ fn PinSummaryList(label: String, values: Vec<String>) -> Element {
 
 #[component]
 fn PolicyGuardrailPanel(policy: AdminPolicy) -> Element {
-    let required_scope = policy.guardrails.required_scope.clone();
-    let evidence = policy.guardrails.approval_evidence.clone();
-    let audit = policy.guardrails.audit_trail.clone();
     let obligations = policy.guardrails.obligations.len();
     let obligations_present = t("policy.obligations_present");
 
@@ -548,90 +524,13 @@ fn PolicyGuardrailPanel(policy: AdminPolicy) -> Element {
                 h3 { class: "text-sm font-semibold", {t("policy.guardrails")} }
                 PolicyGuardrailBadges { policy: policy.clone() }
             }
-            if let Some(scope) = required_scope {
-                div { class: "rounded-md border border-destructive/30 bg-destructive/5 p-2 text-sm",
-                    div { class: "font-medium text-destructive", {t("policy.permission_required")} }
-                    div { class: "mt-1 font-mono text-xs break-all", "{scope}" }
-                }
-            }
-            div { class: "grid gap-3 md:grid-cols-2",
-                div { class: "space-y-2",
-                    div { class: "text-xs font-semibold uppercase text-muted-foreground", {t("policy.approval_evidence")} }
-                    if evidence.is_empty() {
-                        div { class: "text-sm text-muted-foreground", {t("policy.approval_evidence_empty")} }
-                    } else {
-                        for item in evidence {
-                            PolicyEvidenceRow { item }
-                        }
-                    }
-                }
-                div { class: "space-y-2",
-                    div { class: "text-xs font-semibold uppercase text-muted-foreground", {t("policy.audit_trail")} }
-                    if audit.is_empty() {
-                        div { class: "text-sm text-muted-foreground", {t("policy.audit_trail_empty")} }
-                    } else {
-                        for entry in audit {
-                            PolicyAuditRow { entry }
-                        }
-                    }
-                }
+            div { class: "rounded-md border border-border bg-background p-2 text-sm text-muted-foreground",
+                {t("policy.typed_evidence_unavailable")}
             }
             if obligations > 0 {
                 div { class: "text-xs text-muted-foreground",
                     "{obligations} {obligations_present}"
                 }
-            }
-        }
-    }
-}
-
-#[component]
-fn PolicyEvidenceRow(item: PolicyEvidenceItem) -> Element {
-    let actor = item.actor.clone().unwrap_or_else(|| t("common.unknown"));
-    let decision = item.decision.clone().unwrap_or_else(|| t("common.unknown"));
-    let issued_at = item.issued_at.clone().unwrap_or_else(|| "-".to_owned());
-    let approved_by_label = t("policy.approved_by");
-    let decision_label = t("policy.decision");
-    let issued_at_label = t("policy.issued_at");
-
-    rsx! {
-        div { class: "rounded-md border bg-background p-2 text-sm", "data-testid": "policy-approval-evidence",
-            div { class: "flex flex-wrap items-center gap-2",
-                Badge { variant: BadgeVariant::Secondary, "{item.kind}" }
-                span { class: "font-mono text-xs break-all", "{item.reference}" }
-            }
-            div { class: "mt-1 grid gap-1 text-xs text-muted-foreground",
-                span { "{approved_by_label}: {actor}" }
-                span { "{decision_label}: {decision}" }
-                span { "{issued_at_label}: {issued_at}" }
-                if let Some(digest) = item.digest {
-                    span { class: "font-mono break-all", "{digest}" }
-                }
-            }
-        }
-    }
-}
-
-#[component]
-fn PolicyAuditRow(entry: PolicyAuditEntry) -> Element {
-    let actor = entry.actor.clone().unwrap_or_else(|| t("common.unknown"));
-    let outcome = entry.outcome.clone().unwrap_or_else(|| t("common.unknown"));
-    let timestamp = entry.timestamp.clone().unwrap_or_else(|| "-".to_owned());
-    let request_id = entry.request_id.clone().unwrap_or_else(|| "-".to_owned());
-    let actor_label = t("policy.actor");
-    let outcome_label = t("policy.outcome");
-    let request_id_label = t("policy.request_id");
-
-    rsx! {
-        div { class: "rounded-md border bg-background p-2 text-sm", "data-testid": "policy-audit-entry",
-            div { class: "flex flex-wrap items-center gap-2",
-                Badge { variant: BadgeVariant::Outline, "{entry.action}" }
-                span { class: "text-xs text-muted-foreground", "{timestamp}" }
-            }
-            div { class: "mt-1 grid gap-1 text-xs text-muted-foreground",
-                span { "{actor_label}: {actor}" }
-                span { "{outcome_label}: {outcome}" }
-                span { class: "font-mono break-all", "{request_id_label}: {request_id}" }
             }
         }
     }

@@ -14,7 +14,7 @@ pub struct RealmOrganizationAdminView {
     pub controls: Vec<OrganizationControlView>,
     /// Organizations that are valid relationship/hint rows but are not
     /// governed by this deployment's Account Authority.
-    pub unavailable_control_dids: Vec<String>,
+    pub unavailable_control_ids: Vec<String>,
 }
 
 pub async fn get_realm_organization_admin_view(
@@ -32,28 +32,28 @@ pub async fn get_realm_organization_admin_view(
         ));
     }
 
-    let organization_dids: BTreeSet<String> = relationships
-        .relationships
+    let organization_ids: BTreeSet<String> = relationships
+        .realm_organization_relationship_rows
         .iter()
         .map(|row| row.organization_id.to_string())
         .chain(
             relationships
-                .declared_organization_hints
+                .declared_organization_hint_ids
                 .iter()
                 .map(ToString::to_string),
         )
         .collect();
 
     let mut controls = Vec::new();
-    let mut unavailable_control_dids = Vec::new();
-    for organization_did in organization_dids {
+    let mut unavailable_control_ids = Vec::new();
+    for organization_id in organization_ids {
         let path = format!(
             "/_coauth/admin/organizations/{}",
-            urlencoding::encode(&organization_did)
+            urlencoding::encode(&organization_id)
         );
         match api_client::<OrganizationControlView, _>(&path, "GET", NO_BODY).await {
             Ok(view) => controls.push(view),
-            Err(error) if error.status == 404 => unavailable_control_dids.push(organization_did),
+            Err(error) if error.status == 404 => unavailable_control_ids.push(organization_id),
             Err(error) => return Err(error),
         }
     }
@@ -61,6 +61,6 @@ pub async fn get_realm_organization_admin_view(
     Ok(RealmOrganizationAdminView {
         relationships,
         controls,
-        unavailable_control_dids,
+        unavailable_control_ids,
     })
 }

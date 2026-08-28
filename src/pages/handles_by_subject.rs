@@ -1,8 +1,8 @@
 //! "Subject → Handles" directory admin page.
 //!
-//! Route: `/handles/by-subject?subject=did:...`
+//! Route: `/handles/by-subject?subject=ak:did_core:...`
 //!
-//! Given a known holder/principal DID the operator can look up the
+//! Given a known stable holder/principal ID the operator can look up the
 //! currently visible signed `ak.schema.handle_claim.v1` evidence via
 //! `ak.find.directory.read.list_handles_for_subject.v1` (the inverse of
 //! `resolve_handle`). The directory applies disclosure policy / issuer
@@ -10,7 +10,7 @@
 //! renders the visible claims plus the §3.2.1 primary handle.
 //!
 //! Each claim row carries a "Why am I seeing this?" tooltip exposing the
-//! issuer DID + binding_state + created_at so the operator understands
+//! issuer ID + binding_state + created_at so the operator understands
 //! the disclosure provenance.
 //!
 //! `MemberIdentity` no longer carries handle fields (arkret-spec @
@@ -64,7 +64,7 @@ pub fn HandlesBySubject(subject: Option<String>) -> Element {
                 subject_id: subject,
                 realm_id: None,
                 intent: Some("admin_directory".to_string()),
-                requester: None,
+                requester_id: None,
                 proof_challenge: None,
                 proofs: Vec::new(),
                 as_of: None,
@@ -106,7 +106,7 @@ pub fn HandlesBySubject(subject: Option<String>) -> Element {
                             Input {
                                 id: "subject-did".to_string(),
                                 r#type: "text".to_string(),
-                                placeholder: "did:webvh:alice.example".to_string(),
+                                placeholder: "ak:did_core:web:alice.example".to_string(),
                                 value: input.read().clone(),
                                 oninput: move |evt: FormEvent| input.set(evt.value()),
                             }
@@ -146,7 +146,7 @@ pub fn HandlesBySubject(subject: Option<String>) -> Element {
                                 subject_id: &subject_id,
                                 context: None,
                                 claim_set_snapshot: &visible,
-                                handle_issuer_policy: &[],
+                                handle_issuer_policies: &[],
                                 holder_primary_handle_at_as_of: None,
                                 resolution_as_of: Utc::now(),
                             };
@@ -257,7 +257,7 @@ fn claim_row(claim: &HandleClaim, primary: Option<&str>) -> Element {
         (claim.handle.as_ref().map(|h| h.canonical()), primary),
         (Some(h), Some(p)) if h == p
     );
-    // "Why am I seeing this?" provenance: issuer DID + binding_state +
+    // "Why am I seeing this?" provenance: issuer ID + binding_state +
     // created_at. Spec §17 derived-projection disclosure rationale.
     let why = format!(
         "{}: {} \u{00b7} {}: {} \u{00b7} {}: {}",

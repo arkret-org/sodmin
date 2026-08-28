@@ -212,7 +212,7 @@ mod tests {
             "service_id": "ak:did_core:web:soland.local",
             "storage": "postgres",
             "development_mode": true,
-            "checked_by": "did:web:alice.example",
+            "checked_by": "ak:did_core:web:alice.example",
             "generated_at": "2026-08-14T00:00:00.000Z",
             "counts": { "accounts": 4, "devices": null, "realms": 2 },
         }))

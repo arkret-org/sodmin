@@ -46,7 +46,7 @@ pub fn RealmShow(realm_id: String) -> Element {
                                     {field_row(t("realms.id"), realm.id.clone())}
                                     {field_row(t("realms.type"), realm.type_label().to_owned())}
                                     {field_row(t("realms.discoverability"), realm.discoverability_label().unwrap_or_else(|| "-".to_string()))}
-                                    {field_row(t("realms.creator"), realm.created_by.as_deref().unwrap_or("-").to_string())}
+                                    {field_row(t("realms.creator"), realm.created_by.as_ref().map(ToString::to_string).unwrap_or_else(|| "-".to_owned()))}
                                     {field_row(t("realms.members"), realm.member_count.to_string())}
                                     {field_row(t("realms.encrypted"), if realm.is_encrypted { t("common.yes") } else { t("common.no") })}
                                     {field_row(t("realms.join_rule"), realm.join_rule_label().unwrap_or_else(|| "-".to_string()))}

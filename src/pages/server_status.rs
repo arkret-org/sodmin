@@ -119,9 +119,9 @@ pub fn ServerStatus() -> Element {
                             span { class: "text-xs text-muted-foreground", {t("server_status.probe_hint")} }
                         }
                         div { class: "grid gap-4 md:grid-cols-2 lg:grid-cols-3",
-                            {info_cell(t("server_status.probe_service_id"), status.service_id.clone())}
+                            {info_cell(t("server_status.probe_service_id"), status.service_id.to_string())}
                             {info_cell(t("server_status.probe_storage"), status.storage.clone())}
-                            {info_cell(t("server_status.probe_checked_by"), status.checked_by.clone())}
+                            {info_cell(t("server_status.probe_checked_by"), status.checked_by.to_string())}
                             {info_cell(t("server_status.probe_generated_at"), status.generated_at.clone())}
                             {info_cell(t("server_status.probe_realms"), status.counts.realms.to_string())}
                             {info_cell(

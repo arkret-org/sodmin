@@ -98,7 +98,7 @@ fn render_row(row: &DeliveryBindingHandoverRow) -> Element {
         .clone()
         .unwrap_or_else(|| "-".to_string());
     let prev_recipient = row
-        .previous_recipient_service_id
+        .previous_recipient_id
         .clone()
         .unwrap_or_else(|| "-".to_string());
     let observed_at = row.observed_at.clone().unwrap_or_else(|| "-".to_string());
@@ -122,7 +122,7 @@ fn render_row(row: &DeliveryBindingHandoverRow) -> Element {
             div { class: "grid gap-2 sm:grid-cols-2",
                 div {
                     p { class: "text-[10px] uppercase tracking-wider text-muted-foreground",
-                        "previous_recipient_service_id"
+                        "previous_recipient_id"
                     }
                     p { class: "font-mono break-all", "{prev_recipient}" }
                 }

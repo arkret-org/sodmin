@@ -2,6 +2,7 @@
 //! deployment-local admin alias: `GET /_soland/admin/key-backups?series_id=...`
 //! plus the soland identity recovery extension endpoints.
 
+use arkret_identifiers::DidCoreId;
 use arkret_models_crypto::{KeysBackupsList, RecoveryPolicySummary};
 
 use crate::api::client::{NO_BODY, api_client, build_url};
@@ -44,11 +45,11 @@ pub async fn list_backups(
 
 /// `GET /_soland/root/identity/recovery-policies` — current recovery policies.
 pub async fn list_recovery_policies(
-    principal_id: Option<&str>,
+    principal_id: Option<&DidCoreId>,
 ) -> Result<ListResponse<RecoveryPolicySummary>, HttpError> {
     let mut params: Vec<(&str, &str)> = Vec::with_capacity(1);
-    if let Some(principal_id) = principal_id.filter(|s| !s.is_empty()) {
-        params.push(("principal_id", principal_id));
+    if let Some(principal_id) = principal_id {
+        params.push(("principal_id", principal_id.as_str()));
     }
     let url = build_url(RECOVERY_POLICIES_PATH, &params)?;
     let resp: RecoveryPoliciesEnvelope = api_client(&url, "GET", NO_BODY).await?;

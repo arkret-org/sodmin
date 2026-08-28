@@ -1,24 +1,22 @@
-//! DID-shaped input field with inline regex validation.
+//! Stable Arkret identity input with inline validation.
 //!
 //! Wraps the standard [`Input`] component and surfaces a local
-//! validation error when the current value does not match the
-//! DID grammar (`^did:[a-z0-9]+:[^\s]+$`). Empty values are
+//! validation error when the current value is not an
+//! [`arkret_identifiers::DidCoreId`]. Empty values are
 //! allowed (so the field can render before the operator types
 //! anything); validation only fires on non-empty input.
 //!
-//! Use this in any admin form that needs a DID — handle reassignment,
-//! capability grants, DID-binding edits, etc. The parent is responsible
-//! for blocking submit when [`arkret_identifiers::is_did`] returns
-//! `false` for the trimmed value.
+//! The parent remains responsible for parsing the trimmed value into a
+//! [`arkret_identifiers::DidCoreId`] before submitting it.
 
 use dioxus::prelude::*;
 
 use crate::components::validated_input::{ValidatedInput, ValidationKind};
 
 #[component]
-pub fn DidInput(
+pub fn DidCoreIdInput(
     #[props(default)] class: String,
-    #[props(default = "did:webvh:example".to_string())] placeholder: String,
+    #[props(default = "ak:did_core:web:example".to_string())] placeholder: String,
     #[props(default)] disabled: bool,
     value: String,
     oninput: EventHandler<FormEvent>,
@@ -28,7 +26,7 @@ pub fn DidInput(
             class,
             placeholder,
             disabled,
-            kind: ValidationKind::Did,
+            kind: ValidationKind::DidCoreId,
             value,
             oninput,
         }

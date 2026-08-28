@@ -70,37 +70,37 @@ pub fn NotaryPage(realm_id: String) -> Element {
 fn render_value_detail(v: &AdminNotaryValue) -> Element {
     match &v.notary {
         NotaryValue::SingleSigner { signer, .. } => {
-            let did = signer.actor_id.to_string();
-            rsx! { div { class: "font-mono text-xs", "did: {did}" } }
+            let actor_id = signer.actor_id.to_string();
+            rsx! { div { class: "font-mono text-xs", "actor_id: {actor_id}" } }
         }
         NotaryValue::Threshold {
-            members, threshold, ..
+            signers, threshold, ..
         } => {
             let k = *threshold;
-            let n = members.len();
-            let dids = actor_ids(members);
+            let n = signers.len();
+            let actor_ids = actor_ids(signers);
             rsx! {
                 div { class: "font-mono text-xs", "k/n: {k}/{n}" }
                 ul { class: "list-disc list-inside text-xs font-mono",
-                    for did in dids.iter() { li { "{did}" } }
+                    for actor_id in actor_ids.iter() { li { "{actor_id}" } }
                 }
             }
         }
-        NotaryValue::OpenSet { members } => {
-            let dids = actor_ids(members);
+        NotaryValue::OpenSet { signers } => {
+            let actor_ids = actor_ids(signers);
             rsx! {
                 ul { class: "list-disc list-inside text-xs font-mono",
-                    for did in dids.iter() { li { "{did}" } }
+                    for actor_id in actor_ids.iter() { li { "{actor_id}" } }
                 }
             }
         }
         NotaryValue::Mixed {
             signer,
-            recovery_members,
+            recovery_signers,
             ..
         } => {
             let primary = signer.actor_id.to_string();
-            let recovery = actor_ids(recovery_members);
+            let recovery = actor_ids(recovery_signers);
             rsx! {
                 div { class: "font-mono text-xs", "primary: {primary}" }
                 div { class: "text-xs text-muted-foreground", "recovery:" }

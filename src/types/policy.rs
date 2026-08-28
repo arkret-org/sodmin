@@ -72,48 +72,12 @@ pub struct AdminPolicy {
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq)]
 pub struct PolicyGuardrailSummary {
-    /// Operator-authored capability scope label read out of the open
-    /// `AdminPolicyPayload.resource` blob of the soland-private admin
-    /// policy contract. It is a free-form operator string, never an
-    /// `ak:<kind>` protocol object id, and no spec schema defines it.
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub required_scope: Option<String>,
-    #[serde(default)]
-    pub approval_evidence: Vec<PolicyEvidenceItem>,
-    #[serde(default)]
-    pub audit_trail: Vec<PolicyAuditEntry>,
+    /// Typed top-level obligations owned by `AdminPolicyPayload`.
+    ///
+    /// The payload's `resource` member is deliberately open operator JSON;
+    /// no approval-evidence or audit-trail shape is inferred from it.
     #[serde(default)]
     pub obligations: Vec<PolicyObligation>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq)]
-pub struct PolicyEvidenceItem {
-    #[serde(default)]
-    pub kind: String,
-    #[serde(default)]
-    pub reference: String,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub actor: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub decision: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub digest: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub issued_at: Option<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq)]
-pub struct PolicyAuditEntry {
-    #[serde(default)]
-    pub action: String,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub actor: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub outcome: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub request_id: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub timestamp: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq)]

@@ -3,7 +3,7 @@
 //! Wraps the standard [`Input`] component with a configurable validator that
 //! runs on every keystroke. Empty values are treated as untouched.
 
-use arkret_identifiers::is_did;
+use arkret_identifiers::DidCoreId;
 use dioxus::prelude::*;
 
 use crate::components::ui::input::Input;
@@ -12,18 +12,18 @@ use crate::utils::i18n::t;
 /// Validation rule enforced by [`ValidatedInput`].
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ValidationKind {
-    /// Tight DID grammar: `^did:[a-z0-9]+:[^\s]+$`.
-    Did,
+    /// Stable Arkret identity grammar: `ak:did_core:<method>:<method-specific-id>`.
+    DidCoreId,
 }
 
 impl ValidationKind {
     pub fn validate(&self, value: &str) -> Result<(), &'static str> {
         match self {
-            ValidationKind::Did => {
-                if value.is_empty() || is_did(value) {
+            ValidationKind::DidCoreId => {
+                if value.is_empty() || DidCoreId::new(value.to_owned()).is_ok() {
                     Ok(())
                 } else {
-                    Err("did_input.invalid")
+                    Err("did_core_id_input.invalid")
                 }
             }
         }
@@ -68,12 +68,21 @@ mod tests {
     use super::*;
 
     #[test]
-    fn did_kind_accepts_valid_did() {
-        assert!(ValidationKind::Did.validate("did:web:alice").is_ok());
+    fn empty_passes_non_required_rules() {
+        assert!(ValidationKind::DidCoreId.validate("").is_ok());
     }
 
     #[test]
-    fn empty_passes_non_required_rules() {
-        assert!(ValidationKind::Did.validate("").is_ok());
+    fn did_core_id_kind_accepts_only_stable_core_ids() {
+        assert!(
+            ValidationKind::DidCoreId
+                .validate("ak:did_core:web:alice.example")
+                .is_ok()
+        );
+        assert!(
+            ValidationKind::DidCoreId
+                .validate("did:web:alice.example")
+                .is_err()
+        );
     }
 }

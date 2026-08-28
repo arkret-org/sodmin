@@ -82,7 +82,7 @@ wire-breaking list.
   paints red.
 - **Delivery-binding handover panel** — shows the new error codes
   `delivery_binding_stale` / `delivery_binding_handed_over` /
-  `historical_only`, with `new_recipient_service_id` and
+  `historical_only`, with `new_recipient_id` and
   `handover_frontier` surfaced on stale rows.
 - **3PID invite 5-state UI** — `claimed` / `send_failed` /
   `revoked_by_capability_loss` / `revoked_by_inviter_left` /

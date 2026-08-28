@@ -175,7 +175,7 @@ pub fn ServiceRouteShow(service_id: String, service_kind: String) -> Element {
                                                     TableRow { key: "{ack.request_id}",
                                                         TableCell { class: "font-mono text-xs".to_string(), "{ack.request_id}" }
                                                         TableCell { class: "font-mono text-xs".to_string(), "{ack.realm_id}" }
-                                                        TableCell { class: "font-mono text-xs".to_string(), "{ack.receiver_service_id}" }
+                                                        TableCell { class: "font-mono text-xs".to_string(), "{ack.receiver_id}" }
                                                         TableCell { class: "font-mono text-xs".to_string(), {timestamp(ack.accepted_at)} }
                                                     }
                                                 }

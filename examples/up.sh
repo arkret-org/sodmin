@@ -101,7 +101,7 @@ src = re.sub(
 )
 
 src = re.sub(
-    r"^(\s*public_base:).*$",
+    r"^(\s*public_base_url:).*$",
     r"\1 http://coauth:7080/",
     src,
     count=1,

@@ -70,7 +70,7 @@ pub fn OrganizationPage(realm_id: String) -> Element {
             match &*data.read() {
                 Some(Ok(view)) => rsx! {
                     {verified_relationship_card(&view.relationships)}
-                    {principal_control_card(&view.controls, &view.unavailable_control_dids)}
+                    {principal_control_card(&view.controls, &view.unavailable_control_ids)}
                 },
                 Some(Err(error)) => rsx! {
                     ErrorBanner { message: error.message.clone(), on_retry: move |_| data.restart() }
@@ -92,13 +92,13 @@ fn verified_relationship_card(panel: &RealmOrganizationRelationshipList) -> Elem
             }
             CardContent {
                 div { class: "space-y-4",
-                    if !panel.declared_organization_hints.is_empty() {
+                    if !panel.declared_organization_hint_ids.is_empty() {
                         div {
                             class: "rounded-md border border-amber-600/60 bg-amber-600/5 px-3 py-2 text-sm",
                             p { class: "font-semibold mb-1", {t("realm_organization.declared_only_title")} }
                             ul { class: "list-disc pl-5 space-y-0.5",
-                                for did in panel.declared_organization_hints.iter() {
-                                    li { key: "{did}", class: "font-mono text-xs", "{did}" }
+                                for organization_id in panel.declared_organization_hint_ids.iter() {
+                                    li { key: "{organization_id}", class: "font-mono text-xs", "{organization_id}" }
                                 }
                             }
                         }
@@ -117,7 +117,7 @@ fn verified_relationship_card(panel: &RealmOrganizationRelationshipList) -> Elem
                             }
                         }
                         TableBody {
-                            if panel.relationships.is_empty() {
+                            if panel.realm_organization_relationship_rows.is_empty() {
                                 TableRow {
                                     TableCell {
                                         class: "text-center text-muted-foreground py-6".to_string(),
@@ -126,7 +126,7 @@ fn verified_relationship_card(panel: &RealmOrganizationRelationshipList) -> Elem
                                     }
                                 }
                             } else {
-                                for row in panel.relationships.iter() {
+                                for row in panel.realm_organization_relationship_rows.iter() {
                                     {relationship_row(row)}
                                 }
                             }
@@ -187,7 +187,7 @@ fn relationship_lifecycle_badge(lifecycle: RealmOrganizationLifecyclePhase) -> E
 
 fn principal_control_card(
     controls: &[OrganizationControlView],
-    unavailable_control_dids: &[String],
+    unavailable_control_ids: &[String],
 ) -> Element {
     rsx! {
         Card {
@@ -197,13 +197,13 @@ fn principal_control_card(
             }
             CardContent {
                 div { class: "space-y-4",
-                    if !unavailable_control_dids.is_empty() {
+                    if !unavailable_control_ids.is_empty() {
                         div {
                             class: "rounded-md border border-muted-foreground/40 bg-muted/30 px-3 py-2 text-sm",
                             p { class: "font-semibold mb-1", {t("realm_organization.control_unavailable_title")} }
                             ul { class: "list-disc pl-5 space-y-0.5",
-                                for did in unavailable_control_dids.iter() {
-                                    li { key: "{did}", class: "font-mono text-xs", "{did}" }
+                                for organization_id in unavailable_control_ids.iter() {
+                                    li { key: "{organization_id}", class: "font-mono text-xs", "{organization_id}" }
                                 }
                             }
                         }
@@ -276,8 +276,8 @@ fn principal_control_row(
         })
         .unwrap_or_default();
     let executed_by = delegation
-        .map(|row| row.created_by.clone())
-        .or_else(|| control.executed_by.clone())
+        .map(|row| row.created_by.to_string())
+        .or_else(|| control.executed_by.as_ref().map(ToString::to_string))
         .unwrap_or_else(|| dash.clone());
     let expires_at = delegation
         .and_then(|row| row.valid_until)

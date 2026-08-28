@@ -12,12 +12,12 @@
 //! verbatim. The operator-facing `@<localpart>:<domain>` sigil is derived only
 //! for display via [`utils::security::handle::display_sigil`].
 
-use arkret_identifiers::is_did;
+use arkret_identifiers::DidCoreId;
 use dioxus::prelude::*;
 
 use crate::api::handles;
 use crate::components::dangerous_action_dialog::{DangerousActionDialog, confirmation_suffix};
-use crate::components::did_input::DidInput;
+use crate::components::did_input::DidCoreIdInput;
 use crate::components::ui::badge::{Badge, BadgeVariant};
 use crate::components::ui::button::{Button, ButtonSize, ButtonVariant};
 use crate::components::ui::card::*;
@@ -104,7 +104,7 @@ pub fn HandleList() -> Element {
                                             // soland-verifiable form.
                                             let sigil = display_sigil(&canonical);
                                             let aliases = handle.aliases.join(", ");
-                                            let issuer = handle.issuer_did.clone().unwrap_or_else(|| "-".to_string());
+                                            let issuer_id = handle.issuer_id.to_string();
                                             let expires = handle.expires_at.clone().unwrap_or_else(|| "-".to_string());
                                             let last_reassign = handle.last_reassignment_at.clone().unwrap_or_else(|| "-".to_string());
                                             let status = handle.status.clone().unwrap_or_else(|| "active".to_string());
@@ -128,7 +128,7 @@ pub fn HandleList() -> Element {
                                                         }
                                                     }
                                                     TableCell { class: "max-w-[200px] truncate text-xs".to_string(), "{aliases}" }
-                                                    TableCell { class: "font-mono text-xs max-w-[180px] truncate".to_string(), "{issuer}" }
+                                                    TableCell { class: "font-mono text-xs max-w-[180px] truncate".to_string(), "{issuer_id}" }
                                                     TableCell { class: "text-xs text-muted-foreground".to_string(), "{expires}" }
                                                     TableCell { class: "text-xs text-muted-foreground".to_string(), "{last_reassign}" }
                                                     TableCell {
@@ -227,22 +227,21 @@ pub fn HandleList() -> Element {
             reason: Some(reassign_reason.read().clone()),
             reason_required: true,
             busy: *reassign_loading.read()
-                || !is_did(new_subject_id.read().trim()),
+                || DidCoreId::new(new_subject_id.read().trim().to_owned()).is_err(),
             on_reason_change: move |reason| reassign_reason.set(reason),
             on_cancel: move |_| show_reassign.set(None),
             on_confirm: move |_| {
                 if let Some(id) = show_reassign.read().clone() {
-                    let subject = new_subject_id.read().trim().to_string();
+                    let subject_id = DidCoreId::new(new_subject_id.read().trim().to_owned());
                     let reason = reassign_reason.read().trim().to_string();
-                    if !is_did(&subject)
-                        || destructive_reason_error(&reason, true).is_some()
-                    {
+                    let Ok(subject_id) = subject_id else { return; };
+                    if destructive_reason_error(&reason, true).is_some() {
                         return;
                     }
                     reassign_loading.set(true);
                     spawn(async move {
                         let req = AdminHandleReassignBody {
-                            new_subject_id: subject,
+                            new_subject_id: subject_id,
                             reason,
                         };
                         match handles::reassign_handle(&id, &req).await {
@@ -259,7 +258,7 @@ pub fn HandleList() -> Element {
             },
             div { class: "space-y-1",
                 LabelFor { r#for: "handle-new-subject".to_string(), {t("handles.new_subject_id")} }
-                DidInput {
+                DidCoreIdInput {
                     value: new_subject_id.read().clone(),
                     oninput: move |evt: FormEvent| new_subject_id.set(evt.value()),
                 }
@@ -309,8 +308,8 @@ pub fn HandleShow(handle_id: String) -> Element {
                 Some(Ok(handle)) => {
                     let canonical = handle.canonical_uri.clone();
                     let aliases = if handle.aliases.is_empty() { "-".to_string() } else { handle.aliases.join(", ") };
-                    let issuer = handle.issuer_did.clone().unwrap_or_else(|| "-".to_string());
-                    let subject = handle.subject_id.clone().unwrap_or_else(|| "-".to_string());
+                    let issuer_id = handle.issuer_id.to_string();
+                    let subject_id = handle.subject_id.to_string();
                     let assigned = handle.assigned_at.clone().unwrap_or_else(|| "-".to_string());
                     let expires = handle.expires_at.clone().unwrap_or_else(|| "-".to_string());
                     let last_re = handle.last_reassignment_at.clone().unwrap_or_else(|| "-".to_string());
@@ -333,8 +332,8 @@ pub fn HandleShow(handle_id: String) -> Element {
                             }
                             CardContent {
                                 div { class: "grid gap-3 sm:grid-cols-2",
-                                    {kv_cell(t("handles.issuer"), issuer)}
-                                    {kv_cell(t("handles.subject"), subject)}
+                                    {kv_cell(t("handles.issuer"), issuer_id)}
+                                    {kv_cell(t("handles.subject"), subject_id)}
                                     {kv_cell(t("handles.assigned_at"), assigned)}
                                     {kv_cell(t("handles.expires_at"), expires)}
                                     {kv_cell(t("handles.last_reassignment"), last_re)}
@@ -454,22 +453,21 @@ pub fn HandleShow(handle_id: String) -> Element {
             reason: Some(reassign_reason.read().clone()),
             reason_required: true,
             busy: *reassign_loading.read()
-                || !is_did(new_subject_id.read().trim()),
+                || DidCoreId::new(new_subject_id.read().trim().to_owned()).is_err(),
             on_reason_change: move |reason| reassign_reason.set(reason),
             on_cancel: move |_| show_reassign.set(false),
             on_confirm: move |_| {
-                let subject = new_subject_id.read().trim().to_string();
+                let subject_id = DidCoreId::new(new_subject_id.read().trim().to_owned());
                 let reason = reassign_reason.read().trim().to_string();
-                if !is_did(&subject)
-                    || destructive_reason_error(&reason, true).is_some()
-                {
+                let Ok(subject_id) = subject_id else { return; };
+                if destructive_reason_error(&reason, true).is_some() {
                     return;
                 }
                 let id = id_reassign.clone();
                 reassign_loading.set(true);
                 spawn(async move {
                     let req = AdminHandleReassignBody {
-                        new_subject_id: subject,
+                        new_subject_id: subject_id,
                         reason,
                     };
                     match handles::reassign_handle(&id, &req).await {
@@ -486,7 +484,7 @@ pub fn HandleShow(handle_id: String) -> Element {
             },
             div { class: "space-y-1",
                 LabelFor { r#for: "handle-detail-new-subject".to_string(), {t("handles.new_subject_id")} }
-                DidInput {
+                DidCoreIdInput {
                     value: new_subject_id.read().clone(),
                     oninput: move |evt: FormEvent| new_subject_id.set(evt.value()),
                 }

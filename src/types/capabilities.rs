@@ -39,7 +39,7 @@ mod tests {
             "grant_id": "ak:grant:AbhvODyrIRCskAIoS9IXLjMfD-Zsr8lwDpiCU_zLR4it",
             "realm_id": "ak:realm:Adzr6hWdpvvoBoHZ2PftHKATea_QnznMIDwV5k6POjOi",
             "issuer_id": "ak:did_core:web:issuer.example",
-            "subject": "did:web:subject.example",
+            "subject_id": "ak:did_core:web:subject.example",
             "resource": "realm",
             "actions": [CapabilityActionId::MESSAGE_CREATE],
             "revoked": false,
@@ -47,7 +47,7 @@ mod tests {
         }))
         .expect("production-shaped grant summary should deserialize");
 
-        assert_eq!(summary.issuer_id, "ak:did_core:web:issuer.example");
+        assert_eq!(summary.issuer_id.as_str(), "ak:did_core:web:issuer.example");
         assert_eq!(
             summary.actions_display(),
             CapabilityActionId::MESSAGE_CREATE

@@ -60,7 +60,7 @@ pub fn CapabilityList() -> Element {
                                             {
                                                 let id = cap.grant_id.clone();
                                                 let issuer = cap.issuer_id.clone();
-                                                let subject = cap.subject.clone();
+                                                let subject_id = cap.subject_id.clone();
                                                 let actions = cap.actions_display();
                                                 let resource = cap.resource_display();
                                                 let issued_at = cap.created_at.map(|at| at.to_rfc3339()).unwrap_or_else(|| "-".to_string());
@@ -71,7 +71,7 @@ pub fn CapabilityList() -> Element {
                                                         key: "{id}",
                                                         TableCell { class: "font-medium".to_string(), "{id}" }
                                                         TableCell { class: "max-w-[180px] truncate".to_string(), "{issuer}" }
-                                                        TableCell { class: "max-w-[180px] truncate".to_string(), "{subject}" }
+                                                        TableCell { class: "max-w-[180px] truncate".to_string(), "{subject_id}" }
                                                         TableCell { "{actions}" }
                                                         TableCell { class: "max-w-[260px] truncate".to_string(), "{resource}" }
                                                         TableCell { class: "text-muted-foreground".to_string(), "{issued_at}" }

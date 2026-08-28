@@ -28,7 +28,7 @@ mod tests {
         let value: AdminNotaryValue = serde_json::from_value(serde_json::json!({
             "notary": {
                 "kind": "threshold",
-                "members": [
+                "signers": [
                     notary_signer("a"),
                     notary_signer("b"),
                     notary_signer("c"),

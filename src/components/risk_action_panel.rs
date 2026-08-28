@@ -347,7 +347,8 @@ fn current_state_grid(current: &coauth::AccountRiskActionCurrentOutcome) -> Elem
         .unwrap_or_else(|| "-".to_string());
     let recorded_by = current
         .recorded_by
-        .clone()
+        .as_ref()
+        .map(ToString::to_string)
         .unwrap_or_else(|| "-".to_string());
     let recorded_by_handle = current
         .recorded_by_handle
@@ -397,6 +398,11 @@ fn history_entry_card(entry: &coauth::AccountRiskActionTransitionRecord) -> Elem
         .recorded_at
         .map(|dt| dt.to_rfc3339())
         .unwrap_or_else(|| "missing".to_string());
+    let recorded_by = entry
+        .recorded_by
+        .as_ref()
+        .map(ToString::to_string)
+        .unwrap_or_else(|| "missing".to_owned());
 
     rsx! {
         div { class: "rounded-md border p-3 space-y-1 text-sm text-muted-foreground",
@@ -409,7 +415,7 @@ fn history_entry_card(entry: &coauth::AccountRiskActionTransitionRecord) -> Elem
             div { {t("risk_action_panel.label_state_revision")} span { class: "font-mono", "{state_revision}" } }
             div { {t("risk_action_panel.label_ticket")} span { class: "font-mono", "{entry.ticket.as_deref().unwrap_or(\"missing\")}" } }
             div { {t("risk_action_panel.label_recorded_at")} span { class: "font-mono", "{recorded_at}" } }
-            div { {t("risk_action_panel.label_recorded_by")} span { class: "font-mono", "{entry.recorded_by.as_deref().unwrap_or(\"missing\")}" } }
+            div { {t("risk_action_panel.label_recorded_by")} span { class: "font-mono", "{recorded_by}" } }
             div { {t("risk_action_panel.label_recorded_by_handle")} span { class: "font-mono", "{entry.recorded_by_handle.as_deref().unwrap_or(\"missing\")}" } }
             div { {t("risk_action_panel.label_approval_note")} span { class: "font-mono", "{entry.approval_note.as_deref().unwrap_or(\"missing\")}" } }
             div { {t("risk_action_panel.label_execution_note")} span { class: "font-mono", "{entry.execution_note.as_deref().unwrap_or(\"missing\")}" } }
@@ -491,10 +497,18 @@ fn format_risk_action_status(proposal: &coauth::AccountRiskActionProposalOutcome
             .map(|dt| dt.to_rfc3339())
             .as_deref()
             .unwrap_or("missing"),
-        proposal.requested_by.as_deref().unwrap_or("missing"),
+        proposal
+            .requested_by
+            .as_ref()
+            .map(|value| value.as_str())
+            .unwrap_or("missing"),
         proposal.requested_by_handle.as_deref().unwrap_or("missing"),
         proposal.ticket.as_deref().unwrap_or("missing"),
-        proposal.approved_by.as_deref().unwrap_or("pending"),
+        proposal
+            .approved_by
+            .as_ref()
+            .map(arkret_identifiers::DidCoreId::as_str)
+            .unwrap_or("pending"),
     )
 }
 
@@ -519,7 +533,11 @@ fn format_risk_action_approval_status(
             .map(|dt| dt.to_rfc3339())
             .as_deref()
             .unwrap_or("missing"),
-        approval.approved_by.as_deref().unwrap_or("missing"),
+        approval
+            .approved_by
+            .as_ref()
+            .map(arkret_identifiers::DidCoreId::as_str)
+            .unwrap_or("missing"),
         approval.approved_by_handle.as_deref().unwrap_or("missing"),
         approval.approval_note.as_deref().unwrap_or("missing"),
     )

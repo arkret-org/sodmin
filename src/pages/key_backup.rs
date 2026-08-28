@@ -63,12 +63,18 @@ pub fn KeyBackupList() -> Element {
     let mut policies_data = use_resource(move || {
         let principal_q = principal_q.clone();
         async move {
-            let principal_id = if principal_q.is_empty() {
+            let principal_id = if principal_q.trim().is_empty() {
                 None
             } else {
-                Some(principal_q.as_str())
+                Some(
+                    arkret_identifiers::DidCoreId::new(principal_q.trim()).map_err(|error| {
+                        crate::utils::net::error::HttpError::message(format!(
+                            "principal_id is invalid: {error}"
+                        ))
+                    })?,
+                )
             };
-            key_backup::list_recovery_policies(principal_id).await
+            key_backup::list_recovery_policies(principal_id.as_ref()).await
         }
     });
 

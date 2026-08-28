@@ -16,7 +16,7 @@ pub struct CoauthUpstreamProvider {
     #[serde(default)]
     pub id: String,
     #[serde(default)]
-    pub issuer: Option<String>,
+    pub oidc_issuer_uri: Option<String>,
     #[serde(default)]
     pub client_id: Option<String>,
     #[serde(default)]
@@ -27,14 +27,14 @@ pub struct CoauthUpstreamProvider {
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct CreateUpstreamProviderRequest {
-    pub issuer: String,
+    pub oidc_issuer_uri: String,
     pub client_id: String,
 }
 
 #[derive(Debug, Clone, Serialize)]
 struct UpstreamProviderRequestBody {
     #[serde(skip_serializing_if = "Option::is_none")]
-    issuer: Option<String>,
+    oidc_issuer_uri: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     human_name: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -88,7 +88,8 @@ pub async fn create_upstream_provider(
     provider: &CreateUpstreamProviderRequest,
 ) -> Result<CoauthUpstreamProvider, HttpError> {
     let body = UpstreamProviderRequestBody {
-        issuer: Some(provider.issuer.clone()).filter(|value| !value.trim().is_empty()),
+        oidc_issuer_uri: Some(provider.oidc_issuer_uri.clone())
+            .filter(|value| !value.trim().is_empty()),
         human_name: None,
         brand_name: None,
         scope: "openid".to_owned(),
@@ -157,7 +158,7 @@ fn map_upstream_provider(
     let attrs = resource.attributes;
     CoauthUpstreamProvider {
         id: resource.id,
-        issuer: attrs.issuer,
+        oidc_issuer_uri: attrs.oidc_issuer_uri,
         client_id: None,
         is_enabled: attrs.disabled_at.is_none(),
         created_at: Some(attrs.created_at.to_rfc3339()),

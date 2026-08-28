@@ -9,9 +9,8 @@ use soland_contracts::admin::policy::{
 
 use crate::api::client::{NO_BODY, NoBody, api_client, build_url};
 use crate::types::policy::{
-    AdminPolicy, AdminPolicyListOutcome, CreatePolicyRequest, PinPolicySummary, PolicyAuditEntry,
-    PolicyEvidenceItem, PolicyGuardrailSummary, PolicyObligation, PolicyRuleSet,
-    PolicySafetySummary,
+    AdminPolicy, AdminPolicyListOutcome, CreatePolicyRequest, PinPolicySummary,
+    PolicyGuardrailSummary, PolicyObligation, PolicyRuleSet, PolicySafetySummary,
 };
 use crate::utils::net::error::HttpError;
 
@@ -130,10 +129,10 @@ fn payload_parts(
 }
 
 fn policy_from_document(doc: AdminPolicyDocument) -> AdminPolicy {
-    // The guardrail and pin heuristics scan operator-authored JSON, so they
-    // stay on `Value`; everything the contract types stays typed.
+    let guardrails = policy_guardrails_from_payload(&doc.payload);
+    // Pin safety scans deployment-private operator JSON while redacting its
+    // contents. It does not infer an approval-evidence or audit wire shape.
     let payload = payload_value(&doc.payload);
-    let guardrails = policy_guardrails_from_payload(&payload);
     let safety = policy_safety_from_document(&doc);
     let rules = if safety.pin_summary.is_some() {
         Some(PolicyRuleSet::from(pin_policy_public_rules(&safety)))
@@ -532,113 +531,15 @@ fn pin_policy_public_rules(safety: &PolicySafetySummary) -> Value {
     })
 }
 
-fn policy_guardrails_from_payload(payload: &Value) -> PolicyGuardrailSummary {
-    let mut guardrails = PolicyGuardrailSummary {
-        required_scope: string_field(payload, &["required_scope"])
-            .or_else(|| nested_string_field(payload, "authorization", &["required_scope"]))
-            .or_else(|| nested_string_field(payload, "resource", &["required_scope"])),
-        approval_evidence: Vec::new(),
-        audit_trail: Vec::new(),
+fn policy_guardrails_from_payload(payload: &AdminPolicyPayload) -> PolicyGuardrailSummary {
+    PolicyGuardrailSummary {
         obligations: payload
-            .get("obligations")
-            .and_then(Value::as_array)
-            .map(|items| {
-                items
-                    .iter()
-                    .cloned()
-                    .map(PolicyObligation::from)
-                    .collect::<Vec<_>>()
-            })
-            .unwrap_or_default(),
-    };
-
-    guardrails
-        .approval_evidence
-        .extend(evidence_items(payload, "approval_evidence"));
-    if let Some(resource) = payload.get("resource") {
-        guardrails
-            .approval_evidence
-            .extend(evidence_items(resource, "approval_evidence"));
+            .obligations
+            .iter()
+            .cloned()
+            .map(PolicyObligation::from)
+            .collect(),
     }
-
-    guardrails
-        .audit_trail
-        .extend(audit_entries(payload, "audit_trail"));
-    if let Some(resource) = payload.get("resource") {
-        guardrails
-            .audit_trail
-            .extend(audit_entries(resource, "audit_trail"));
-    }
-
-    guardrails
-}
-
-fn evidence_items(value: &Value, key: &str) -> Vec<PolicyEvidenceItem> {
-    value
-        .get(key)
-        .and_then(Value::as_array)
-        .into_iter()
-        .flatten()
-        .filter_map(evidence_item)
-        .collect()
-}
-
-fn evidence_item(value: &Value) -> Option<PolicyEvidenceItem> {
-    let obj = value.as_object()?;
-    let field = |keys: &[&str]| {
-        keys.iter()
-            .find_map(|key| obj.get(*key).and_then(Value::as_str))
-            .map(str::to_owned)
-            .filter(|value| !value.trim().is_empty())
-    };
-    Some(PolicyEvidenceItem {
-        kind: field(&["kind", "type", "proof_kind"])?,
-        reference: field(&["evidence_ref", "id", "approval_id", "request_id", "digest"])?,
-        actor: field(&["approved_by", "issuer", "actor_id", "subject_id"]),
-        decision: field(&["decision", "outcome", "state"]),
-        digest: field(&["digest", "proof_digest", "request_canonical_digest"]),
-        issued_at: field(&["approved_at", "issued_at", "timestamp"]),
-    })
-}
-
-fn audit_entries(value: &Value, key: &str) -> Vec<PolicyAuditEntry> {
-    value
-        .get(key)
-        .and_then(Value::as_array)
-        .into_iter()
-        .flatten()
-        .filter_map(audit_entry)
-        .collect()
-}
-
-fn audit_entry(value: &Value) -> Option<PolicyAuditEntry> {
-    let obj = value.as_object()?;
-    let field = |keys: &[&str]| {
-        keys.iter()
-            .find_map(|key| obj.get(*key).and_then(Value::as_str))
-            .map(str::to_owned)
-            .filter(|value| !value.trim().is_empty())
-    };
-    Some(PolicyAuditEntry {
-        action: field(&["action", "operation", "kind"])?,
-        actor: field(&["actor", "actor_id", "admin", "principal_id"]),
-        outcome: field(&["outcome", "decision", "state"]),
-        request_id: field(&["request_id", "trace_id"]),
-        timestamp: field(&["timestamp", "created_at", "at"]),
-    })
-}
-
-fn string_field(value: &Value, keys: &[&str]) -> Option<String> {
-    keys.iter()
-        .find_map(|key| value.get(*key).and_then(Value::as_str))
-        .map(str::to_owned)
-        .filter(|value| !value.trim().is_empty())
-}
-
-fn nested_string_field(value: &Value, parent: &str, keys: &[&str]) -> Option<String> {
-    value
-        .get(parent)
-        .and_then(|child| string_field(child, keys))
 }
 
 #[cfg(test)]
@@ -655,44 +556,15 @@ mod tests {
     }
 
     #[test]
-    fn policy_guardrails_extract_approval_evidence_and_audit_trail() {
-        let payload = json!({
-            "effect": "require_review",
-            "actions": ["ak.realm.policy.update"],
-            "resource": {
-                "required_scope": "realm.admin.write",
-                "approval_evidence": [{
-                    "kind": "human_approval",
-                    "evidence_ref": "ak:event:Aa-XDJ66vTapNhYhwHWSDwNsiA2MQQQ7lLx-iCzgfgaH",
-                    "approved_by": "did:web:admin.example",
-                    "decision": "approved",
-                    "request_canonical_digest": "sha256:abc",
-                    "approved_at": "2026-06-19T00:00:00Z"
-                }],
-                "audit_trail": [{
-                    "action": "policy.update",
-                    "actor_id": "ak:did_core:web:admin.example",
-                    "outcome": "accepted",
-                    "request_id": "req_1",
-                    "timestamp": "2026-06-19T00:00:01Z"
-                }]
-            },
-            "obligations": [{"kind": "approval_required"}]
-        });
+    fn policy_guardrails_only_use_typed_top_level_obligations() {
+        let payload = AdminPolicyPayload {
+            effect: PolicyEffect::RequireReview,
+            actions: vec!["ak.realm.policy.update".to_owned()],
+            resource: json!({"opaque_operator_data": {"label": "not a typed guardrail"}}),
+            obligations: vec![json!({"kind": "approval_required"})],
+        };
 
         let guardrails = policy_guardrails_from_payload(&payload);
-        assert_eq!(
-            guardrails.required_scope.as_deref(),
-            Some("realm.admin.write")
-        );
-        assert_eq!(guardrails.approval_evidence.len(), 1);
-        assert_eq!(guardrails.approval_evidence[0].kind, "human_approval");
-        assert_eq!(
-            guardrails.approval_evidence[0].actor.as_deref(),
-            Some("did:web:admin.example")
-        );
-        assert_eq!(guardrails.audit_trail.len(), 1);
-        assert_eq!(guardrails.audit_trail[0].action, "policy.update");
         assert_eq!(guardrails.obligations.len(), 1);
     }
 
@@ -709,8 +581,7 @@ mod tests {
                 actions: Vec::new(),
                 resource: json!({
                     "name": "Realm policy",
-                    "priority": 3,
-                    "audit_trail": [{"action": "policy.create"}]
+                    "priority": 3
                 }),
                 obligations: Vec::new(),
             },
@@ -722,7 +593,7 @@ mod tests {
         assert_eq!(policy.name, "Realm policy");
         assert_eq!(policy.priority, 3);
         assert_eq!(policy.subject_ref.as_deref(), Some("did:web:admin.example"));
-        assert_eq!(policy.guardrails.audit_trail.len(), 1);
+        assert!(policy.guardrails.obligations.is_empty());
     }
 
     #[test]

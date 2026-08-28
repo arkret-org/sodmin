@@ -123,7 +123,7 @@ where
 {
     match data {
         Some(Ok(resp)) => {
-            if resp.links.is_empty() {
+            if resp.realm_link_entries.is_empty() {
                 let empty_key = if outbound {
                     "realm_links.outbound_empty"
                 } else {
@@ -137,7 +137,7 @@ where
             } else {
                 rsx! {
                     div { class: "space-y-2",
-                        for row in resp.links.iter() {
+                        for row in resp.realm_link_entries.iter() {
                             {render_link_row(row, outbound)}
                         }
                     }
@@ -188,11 +188,11 @@ fn render_link_graph(
     inbound: &Option<Result<RealmLinkList, crate::utils::net::error::HttpError>>,
 ) -> Element {
     let outbound_rows = match outbound {
-        Some(Ok(resp)) => resp.links.clone(),
+        Some(Ok(resp)) => resp.realm_link_entries.clone(),
         _ => Vec::new(),
     };
     let inbound_rows = match inbound {
-        Some(Ok(resp)) => resp.links.clone(),
+        Some(Ok(resp)) => resp.realm_link_entries.clone(),
         _ => Vec::new(),
     };
 
