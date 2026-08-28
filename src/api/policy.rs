@@ -1,5 +1,3 @@
-use std::collections::BTreeSet;
-
 use arkret_wire::event_kind_str;
 use serde_json::{Value, json};
 use soland_contracts::admin::policy::{
@@ -130,41 +128,26 @@ fn payload_parts(
 
 fn policy_from_document(doc: AdminPolicyDocument) -> AdminPolicy {
     let guardrails = policy_guardrails_from_payload(&doc.payload);
-    // Pin safety scans deployment-private operator JSON while redacting its
-    // contents. It does not infer an approval-evidence or audit wire shape.
-    let payload = payload_value(&doc.payload);
     let safety = policy_safety_from_document(&doc);
-    let rules = if safety.pin_summary.is_some() {
-        Some(PolicyRuleSet::from(pin_policy_public_rules(&safety)))
-    } else {
-        Some(PolicyRuleSet::from(payload))
-    };
-    let resource = doc.payload.resource.clone();
-    let name = resource
-        .get("name")
-        .and_then(Value::as_str)
-        .filter(|s| !s.is_empty())
-        .unwrap_or(&doc.policy_id)
-        .to_string();
-    let description = resource
-        .get("description")
-        .and_then(Value::as_str)
-        .map(ToString::to_string);
-    let priority = resource
-        .get("priority")
-        .and_then(Value::as_i64)
-        .unwrap_or_default() as i32;
+    // `resource` is permanently opaque operator data.  The console projects
+    // only the typed payload members and never displays or interprets resource
+    // keys (including keys which resemble evidence or audit records).
+    let rules = Some(PolicyRuleSet::from(json!({
+        "effect": doc.payload.effect,
+        "actions": doc.payload.actions,
+        "obligations": doc.payload.obligations,
+    })));
     AdminPolicy {
+        name: doc.policy_id.clone(),
         id: doc.policy_id,
-        name,
         policy_kind: Some(doc.policy_kind).filter(|s| !s.is_empty()),
-        description,
+        description: None,
         scope: Some(doc.scope).filter(|s| !s.is_empty()),
         subject_ref: Some(doc.subject_ref).filter(|s| !s.is_empty()),
         rules,
         guardrails,
         is_enabled: doc.active,
-        priority,
+        priority: 0,
         created_at: None,
         updated_at: Some(arkret_canonical::format_timestamp_canonical(doc.updated_at)),
         safety,
@@ -178,7 +161,14 @@ pub fn request_targets_pin_policy(req: &CreatePolicyRequest) -> bool {
         || req
             .rules
             .as_ref()
-            .is_some_and(|rules| value_targets_pin_policy(rules.as_value()))
+            .and_then(|rules| rules.as_value().get("actions"))
+            .and_then(Value::as_array)
+            .is_some_and(|actions| {
+                actions
+                    .iter()
+                    .filter_map(Value::as_str)
+                    .any(text_targets_pin_policy)
+            })
 }
 
 fn pin_policy_unavailable_error() -> HttpError {
@@ -187,31 +177,39 @@ fn pin_policy_unavailable_error() -> HttpError {
     )
 }
 
-fn payload_value(payload: &AdminPolicyPayload) -> Value {
-    serde_json::to_value(payload).unwrap_or(Value::Null)
-}
-
 fn policy_safety_from_document(doc: &AdminPolicyDocument) -> PolicySafetySummary {
     if !policy_document_targets_pin(doc) {
         return PolicySafetySummary::default();
     }
-    let payload = payload_value(&doc.payload);
-
     PolicySafetySummary {
         read_only: true,
         read_only_reason: Some(
-            "pin policy summary standard surface unavailable; raw private fields are redacted"
+            "pin policy summary standard surface unavailable; opaque resource is not inspected"
                 .to_owned(),
         ),
-        pin_summary: Some(pin_summary_from_payload(&doc.policy_kind, &payload)),
-        redacted_private_categories: private_pin_categories(&payload),
+        pin_summary: Some(PinPolicySummary {
+            standard_surface_available: false,
+            actions: doc
+                .payload
+                .actions
+                .iter()
+                .filter(|action| text_targets_pin_policy(action))
+                .cloned()
+                .collect(),
+            ..Default::default()
+        }),
+        redacted_private_categories: Vec::new(),
     }
 }
 
 fn policy_document_targets_pin(doc: &AdminPolicyDocument) -> bool {
     text_targets_pin_policy(&doc.policy_kind)
         || text_targets_pin_policy(&doc.policy_id)
-        || value_targets_pin_policy(&payload_value(&doc.payload))
+        || doc
+            .payload
+            .actions
+            .iter()
+            .any(|action| text_targets_pin_policy(action))
 }
 
 fn text_targets_pin_policy(value: &str) -> bool {
@@ -241,294 +239,6 @@ fn is_pin_action_or_namespace_pattern(value: &str) -> bool {
     ) || value
         .strip_prefix(pin_action_prefix())
         .is_some_and(|suffix| suffix == "*" || !suffix.is_empty())
-}
-
-fn value_targets_pin_policy(value: &Value) -> bool {
-    value_targets_pin_policy_in(value, None)
-}
-
-fn value_targets_pin_policy_in(value: &Value, context_key: Option<&str>) -> bool {
-    match value {
-        Value::String(s) => context_key.is_some_and(pin_text_context) && text_targets_pin_policy(s),
-        Value::Array(items) => items
-            .iter()
-            .any(|item| value_targets_pin_policy_in(item, context_key)),
-        Value::Object(map) => map.iter().any(|(key, value)| {
-            let key_lc = key.to_ascii_lowercase();
-            structural_pin_key(&key_lc) || value_targets_pin_policy_in(value, Some(&key_lc))
-        }),
-        _ => false,
-    }
-}
-
-fn pin_text_context(key: &str) -> bool {
-    matches!(
-        key,
-        "policy_kind"
-            | "type"
-            | "kind"
-            | "action"
-            | "actions"
-            | "operation"
-            | "operations"
-            | "capability"
-            | "capabilities"
-            | "profile_key"
-            | "component"
-    )
-}
-
-fn structural_pin_key(key: &str) -> bool {
-    matches!(
-        key,
-        "pin_policy"
-            | "pin.policy"
-            | "pin_scope"
-            | "pinned_items"
-            | "pin_quota"
-            | "pin_limit"
-            | "max_pins"
-            | "max_pin_count"
-            | "max_pinned_items"
-            | "max_pins_per_scope"
-            | "max_pins_per_realm"
-            | "max_pins_per_space"
-            | "max_pins_per_circle"
-            | "max_pins_per_strand"
-    )
-}
-
-fn pin_summary_from_payload(policy_kind: &str, payload: &Value) -> PinPolicySummary {
-    let mut actions = BTreeSet::new();
-    if text_targets_pin_policy(policy_kind) && policy_kind.starts_with(pin_action_prefix()) {
-        actions.insert(policy_kind.to_owned());
-    }
-    collect_pin_actions(payload, &mut actions);
-
-    let mut pin_scopes = BTreeSet::new();
-    collect_pin_scopes(payload, &mut pin_scopes);
-
-    let mut quota_limits = BTreeSet::new();
-    collect_quota_limits(payload, false, &mut quota_limits);
-
-    PinPolicySummary {
-        standard_surface_available: false,
-        actions: actions.into_iter().take(12).collect(),
-        pin_scopes: pin_scopes.into_iter().take(12).collect(),
-        quota_limits: quota_limits.into_iter().take(12).collect(),
-        note_plaintext_policy: find_note_plaintext_policy(payload),
-    }
-}
-
-fn collect_pin_actions(value: &Value, actions: &mut BTreeSet<String>) {
-    match value {
-        Value::String(s) => {
-            if is_pin_action_or_namespace_pattern(s) {
-                actions.insert(s.to_owned());
-            }
-        }
-        Value::Array(items) => {
-            for item in items {
-                collect_pin_actions(item, actions);
-            }
-        }
-        Value::Object(map) => {
-            for value in map.values() {
-                collect_pin_actions(value, actions);
-            }
-        }
-        _ => {}
-    }
-}
-
-fn collect_pin_scopes(value: &Value, pin_scopes: &mut BTreeSet<String>) {
-    match value {
-        Value::Array(items) => {
-            for item in items {
-                collect_pin_scopes(item, pin_scopes);
-            }
-        }
-        Value::Object(map) => {
-            if let Some(scope) = map.get("pin_scope").and_then(Value::as_object) {
-                let kind = scope
-                    .get("kind")
-                    .and_then(Value::as_str)
-                    .unwrap_or("unknown");
-                let id = scope.get("id").and_then(Value::as_str).unwrap_or("unknown");
-                pin_scopes.insert(format!("{}:{}", safe_label(kind), safe_label(id)));
-            }
-            for value in map.values() {
-                collect_pin_scopes(value, pin_scopes);
-            }
-        }
-        _ => {}
-    }
-}
-
-fn collect_quota_limits(value: &Value, quota_context: bool, limits: &mut BTreeSet<String>) {
-    match value {
-        Value::Array(items) => {
-            for item in items {
-                collect_quota_limits(item, quota_context, limits);
-            }
-        }
-        Value::Object(map) => {
-            for (key, value) in map {
-                let key_lc = key.to_ascii_lowercase();
-                let next_quota_context = quota_context || key_lc.contains("quota");
-                if is_public_quota_key(&key_lc) {
-                    if let Some(label) = public_scalar_label(value) {
-                        limits.insert(format!("{key}={label}"));
-                    }
-                } else if next_quota_context
-                    && is_public_quota_leaf(&key_lc)
-                    && let Some(label) = public_scalar_label(value)
-                {
-                    limits.insert(format!("{key}={label}"));
-                }
-                collect_quota_limits(value, next_quota_context, limits);
-            }
-        }
-        _ => {}
-    }
-}
-
-fn is_public_quota_key(key: &str) -> bool {
-    matches!(
-        key,
-        "max_pins"
-            | "max_pin_count"
-            | "max_pinned_items"
-            | "max_pins_per_scope"
-            | "max_pins_per_realm"
-            | "max_pins_per_space"
-            | "max_pins_per_circle"
-            | "max_pins_per_strand"
-            | "pin_limit"
-            | "pin_quota"
-    )
-}
-
-fn is_public_quota_leaf(key: &str) -> bool {
-    matches!(
-        key,
-        "max" | "limit" | "max_operations" | "max_items" | "period" | "window" | "enabled"
-    )
-}
-
-fn public_scalar_label(value: &Value) -> Option<String> {
-    match value {
-        Value::Number(n) => Some(n.to_string()),
-        Value::Bool(v) => Some(v.to_string()),
-        Value::String(s) if is_safe_scalar_string(s) => Some(s.to_owned()),
-        _ => None,
-    }
-}
-
-fn is_safe_scalar_string(value: &str) -> bool {
-    !value.is_empty()
-        && value.len() <= 64
-        && value
-            .chars()
-            .all(|c| c.is_ascii_alphanumeric() || matches!(c, '.' | '_' | '-' | ':' | '/' | ' '))
-}
-
-fn find_note_plaintext_policy(value: &Value) -> Option<String> {
-    match value {
-        Value::Array(items) => items.iter().find_map(find_note_plaintext_policy),
-        Value::Object(map) => {
-            for (key, value) in map {
-                let key_lc = key.to_ascii_lowercase();
-                if matches!(
-                    key_lc.as_str(),
-                    "note_plaintext_policy"
-                        | "pin_note_plaintext"
-                        | "plaintext_notes"
-                        | "note_visibility"
-                ) && let Some(label) = public_scalar_label(value)
-                {
-                    return Some(label);
-                }
-                if let Some(found) = find_note_plaintext_policy(value) {
-                    return Some(found);
-                }
-            }
-            None
-        }
-        _ => None,
-    }
-}
-
-fn private_pin_categories(value: &Value) -> Vec<String> {
-    let mut categories = BTreeSet::new();
-    collect_private_pin_categories(value, &mut categories);
-    categories.into_iter().collect()
-}
-
-fn collect_private_pin_categories(value: &Value, categories: &mut BTreeSet<String>) {
-    match value {
-        Value::String(s) => add_private_category_for_text(s, categories),
-        Value::Array(items) => {
-            for item in items {
-                collect_private_pin_categories(item, categories);
-            }
-        }
-        Value::Object(map) => {
-            for (key, value) in map {
-                add_private_category_for_text(key, categories);
-                collect_private_pin_categories(value, categories);
-            }
-        }
-        _ => {}
-    }
-}
-
-fn add_private_category_for_text(value: &str, categories: &mut BTreeSet<String>) {
-    let normalized = value.to_ascii_lowercase().replace('-', "_");
-    if normalized.contains("account_data")
-        || normalized.contains("accountdata")
-        || normalized.contains(arkret_wire::AccountDataKey::SEARCH_INDEX_MANIFEST_V1)
-        || normalized.contains(arkret_wire::AccountDataKey::SAVED_V1)
-        || normalized.contains(arkret_wire::AccountDataKey::REMINDERS_V1)
-    {
-        categories.insert("private account-data".to_owned());
-    }
-    if normalized.contains("search_index")
-        || normalized.contains("index_manifest")
-        || normalized.contains("search.index")
-    {
-        categories.insert("search index".to_owned());
-    }
-    if normalized.contains("blind_token")
-        || normalized.contains("search_token")
-        || normalized.contains("shard_key")
-        || normalized.contains("shard_token")
-    {
-        categories.insert("search token/shard".to_owned());
-    }
-}
-
-fn safe_label(value: &str) -> String {
-    if value.len() <= 128 {
-        return value.to_owned();
-    }
-    let truncated: String = value.chars().take(128).collect();
-    format!("{truncated}...")
-}
-
-fn pin_policy_public_rules(safety: &PolicySafetySummary) -> Value {
-    let Some(summary) = safety.pin_summary.as_ref() else {
-        return json!({});
-    };
-    json!({
-        "kind": "pin_policy_admin_summary",
-        "standard_surface_available": summary.standard_surface_available,
-        "actions": &summary.actions,
-        "pin_scopes": &summary.pin_scopes,
-        "quota_limits": &summary.quota_limits,
-        "note_plaintext_policy": &summary.note_plaintext_policy,
-        "redacted_private_categories": &safety.redacted_private_categories,
-    })
 }
 
 fn policy_guardrails_from_payload(payload: &AdminPolicyPayload) -> PolicyGuardrailSummary {
@@ -569,7 +279,7 @@ mod tests {
     }
 
     #[test]
-    fn policy_from_document_carries_guardrail_summary() {
+    fn policy_from_document_never_interprets_or_displays_opaque_resource() {
         let doc = AdminPolicyDocument {
             policy_id: "ak:policy:9f18274d-cb85-75eb-9891-eff82acff4c0".to_owned(),
             owner: "did:web:admin.example".to_owned(),
@@ -581,7 +291,9 @@ mod tests {
                 actions: Vec::new(),
                 resource: json!({
                     "name": "Realm policy",
-                    "priority": 3
+                    "priority": 3,
+                    "approval_evidence": {"secret": "must-not-surface"},
+                    "audit_trail": [{"actor": "must-not-surface"}]
                 }),
                 obligations: Vec::new(),
             },
@@ -590,10 +302,19 @@ mod tests {
         };
 
         let policy = policy_from_document(doc);
-        assert_eq!(policy.name, "Realm policy");
-        assert_eq!(policy.priority, 3);
+        assert_eq!(
+            policy.name,
+            "ak:policy:9f18274d-cb85-75eb-9891-eff82acff4c0"
+        );
+        assert_eq!(policy.priority, 0);
+        assert_eq!(policy.description, None);
         assert_eq!(policy.subject_ref.as_deref(), Some("did:web:admin.example"));
         assert!(policy.guardrails.obligations.is_empty());
+        let displayed = serde_json::to_string(&policy.rules).unwrap();
+        assert!(!displayed.contains("Realm policy"));
+        assert!(!displayed.contains("approval_evidence"));
+        assert!(!displayed.contains("audit_trail"));
+        assert!(!displayed.contains("must-not-surface"));
     }
 
     #[test]
@@ -640,7 +361,7 @@ mod tests {
     }
 
     #[test]
-    fn pin_policy_document_is_read_only_and_redacts_private_material() {
+    fn pin_policy_document_is_read_only_without_inspecting_resource() {
         let doc = AdminPolicyDocument {
             policy_id: "ak:policy:577e618f-3aed-75d9-9cb2-8fc1199b163a".to_owned(),
             owner: "did:web:admin.example".to_owned(),
@@ -669,31 +390,20 @@ mod tests {
 
         let policy = policy_from_document(doc);
         assert!(policy.safety.read_only);
-        assert_eq!(
-            policy.safety.redacted_private_categories,
-            vec![
-                "private account-data".to_owned(),
-                "search index".to_owned(),
-                "search token/shard".to_owned()
-            ]
-        );
+        assert!(policy.safety.redacted_private_categories.is_empty());
 
         let summary = policy.safety.pin_summary.as_ref().unwrap();
         assert!(!summary.standard_surface_available);
         assert!(summary.actions.iter().any(|v| v == event_kind_str::PIN_ADD));
-        assert!(
-            summary
-                .quota_limits
-                .iter()
-                .any(|v| v == "max_pins_per_scope=5")
-        );
-        assert_eq!(summary.note_plaintext_policy.as_deref(), Some("encrypted"));
+        assert!(summary.pin_scopes.is_empty());
+        assert!(summary.quota_limits.is_empty());
+        assert_eq!(summary.note_plaintext_policy, None);
 
         let public_rules = serde_json::to_string(&policy.rules.unwrap()).unwrap();
         assert!(!public_rules.contains("secret-realm-key"));
         assert!(!public_rules.contains("super-secret-token"));
-        assert!(public_rules.contains("private account-data"));
-        assert!(public_rules.contains("search index"));
+        assert!(!public_rules.contains("max_pins_per_scope"));
+        assert!(!public_rules.contains("note_visibility"));
     }
 
     #[test]
@@ -704,11 +414,11 @@ mod tests {
         };
         assert!(request_targets_pin_policy(&pin_by_type));
 
-        let pin_by_rules = CreatePolicyRequest {
+        let pin_by_typed_actions = CreatePolicyRequest {
             rules: Some(json!({"actions": [event_kind_str::PIN_REORDER]}).into()),
             ..Default::default()
         };
-        assert!(request_targets_pin_policy(&pin_by_rules));
+        assert!(request_targets_pin_policy(&pin_by_typed_actions));
 
         let ordinary = CreatePolicyRequest {
             policy_kind: Some("ak.message.create".to_owned()),
@@ -725,5 +435,12 @@ mod tests {
             ..Default::default()
         };
         assert!(!request_targets_pin_policy(&ordinary_with_free_text));
+
+        let resource_lookalike = CreatePolicyRequest {
+            policy_kind: Some("ak.message.create".to_owned()),
+            rules: Some(json!({"resource": {"pin_policy": {"max_pins": 1}}}).into()),
+            ..Default::default()
+        };
+        assert!(!request_targets_pin_policy(&resource_lookalike));
     }
 }
