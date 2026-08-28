@@ -5,8 +5,8 @@
 //! `historical_only`) as discrete rows so the operator can:
 //!
 //! - See exactly which envelope the recipient service rejected, and
-//! - Read the `new_recipient_id` + `handover_frontier` the recipient advertises in the 409
-//!   body (`stale` / `handed_over`).
+//! - Read the `new_recipient_id` + `handover_frontier` the recipient advertises in the 409 body
+//!   (`stale` / `handed_over`).
 //! - Distinguish a fresh failure from a `historical_only` cached replay — the latter is diagnostic
 //!   only and MUST NOT be presented as a "fresh action" indicator.
 
