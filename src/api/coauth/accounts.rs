@@ -1,6 +1,7 @@
 //! coauth admin accounts: summary/detail, managed DID bindings, claims,
 //! session grants and the risk-action lifecycle.
 
+use arkret_identifiers::DidCoreId;
 use coauth_admin_types::{
     AdminAccountAttributes, AdminAccountClaimsOutcome, AdminAccountDidBinding,
     AdminAccountDidBindingsOutcome, SingleOutcome, SingleResource,
@@ -27,7 +28,7 @@ pub struct CoauthAccountSummary {
     #[serde(default)]
     pub avatar_url: Option<String>,
     #[serde(default)]
-    pub primary_did: Option<String>,
+    pub primary_principal_id: Option<DidCoreId>,
     #[serde(default)]
     pub is_locked: bool,
     #[serde(default)]
@@ -342,7 +343,7 @@ fn map_admin_account_summary_resource(
     let attributes = resource.attributes;
     let is_locked = attributes.status.is_locked();
     let is_deactivated = attributes.status.is_deactivated();
-    let primary_did = attributes.effective_primary_did().map(str::to_owned);
+    let primary_principal_id = attributes.effective_primary_id().cloned();
     let bridge_status = if attributes.admin {
         "coauth_admin_accounts_v1+admin".to_string()
     } else {
@@ -353,7 +354,7 @@ fn map_admin_account_summary_resource(
         username: Some(attributes.handle),
         display_name: attributes.display_name,
         avatar_url: attributes.avatar_url,
-        primary_did,
+        primary_principal_id,
         is_locked,
         is_deactivated,
         created_at: attributes.created_at.map(|t| t.to_rfc3339()),

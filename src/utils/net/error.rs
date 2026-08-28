@@ -5,9 +5,8 @@ use std::sync::OnceLock;
 use regex_lite::Regex;
 use serde::{Deserialize, Serialize};
 
-/// Admin-side projection of the spec/SDK canonical error envelope
-/// (`{ok, error:{code, message, retry_after_ms?, details?}, request_id}`,
-/// see `arkret_wire::ErrorEnvelope`). We keep a flattened local
+/// Admin-side projection of the spec/SDK canonical RFC 9457 Problem Details
+/// object (see `arkret_wire::ErrorEnvelope`). We keep a flattened local
 /// shape — the wire envelope is parsed in [`from_wire`] — so the existing
 /// call sites (`body.errcode`) keep working while the
 /// parse path reads the authoritative `error.code`.
@@ -26,8 +25,7 @@ pub struct AdminErrorEnvelope {
 }
 
 impl AdminErrorEnvelope {
-    /// Parse the canonical spec/SDK error envelope shape
-    /// `{ok, error:{code, message, retry_after_ms?, details?}, request_id}`
+    /// Parse the canonical spec/SDK RFC 9457 Problem Details shape
     /// from an upstream (soland/coauth) error body. Returns `None` when the
     /// body is not a canonical envelope (e.g. an opaque HTML 502 from the
     /// proxy), so callers fall back to a status-only message.
@@ -302,9 +300,7 @@ mod tests {
     #[test]
     fn from_wire_reads_canonical_envelope_code_and_message() {
         use super::AdminErrorEnvelope;
-        // Canonical spec/SDK envelope: bare registry code under
-        // `error.code`, human message under `error.message`.
-        let raw = r#"{"ok":false,"error":{"code":"capability_denied","message":"denied"},"request_id":"req_1"}"#;
+        let raw = r#"{"type":"https://arkret.org/problems/capability_denied","title":"Capability denied","status":403,"detail":"denied","instance":"req_1"}"#;
         let env = AdminErrorEnvelope::from_wire(raw).expect("parse");
         assert_eq!(env.errcode, "capability_denied");
         assert_eq!(env.error.as_deref(), Some("denied"));
@@ -313,7 +309,7 @@ mod tests {
     #[test]
     fn from_wire_reads_retry_after() {
         use super::AdminErrorEnvelope;
-        let raw = r#"{"ok":false,"error":{"code":"rate_limited","message":"slow down","retry_after_ms":2000},"request_id":"req_2"}"#;
+        let raw = r#"{"type":"https://arkret.org/problems/rate_limited","title":"Rate limited","status":429,"detail":"slow down","instance":"req_2","retry_after_ms":2000}"#;
         let env = AdminErrorEnvelope::from_wire(raw).expect("parse");
         assert_eq!(env.errcode, "rate_limited");
         assert_eq!(env.retry_after_ms, Some(2000));

@@ -671,7 +671,7 @@ mod tests {
                 }],
                 "audit_trail": [{
                     "action": "policy.update",
-                    "actor_id": "did:web:admin.example",
+                    "actor_id": "ak:did_core:web:admin.example",
                     "outcome": "accepted",
                     "request_id": "req_1",
                     "timestamp": "2026-06-19T00:00:01Z"

@@ -67,7 +67,6 @@ pub fn ActorShow(actor_id: String) -> Element {
                                 CardContent {
                                     div { class: "space-y-3",
                                     {field_row(t("actors.id"), actor.id.clone())}
-                                    {field_row(t("actors.did"), actor.did.to_string())}
                                     {field_row(t("actors.handle"), actor.handle.as_deref().unwrap_or("-").to_string())}
                                     {field_row(t("actors.display_name"), actor.display_name.as_deref().unwrap_or("-").to_string())}
                                     {field_row(t("actors.status"), actor.status_display().to_string())}

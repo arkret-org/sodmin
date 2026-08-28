@@ -473,11 +473,11 @@ mod tests {
 
     #[test]
     fn admin_error_preserves_retry_after() {
-        // Canonical envelope; retry_after falls back to the Retry-After
+        // Canonical Problem Details body; retry_after falls back to the Retry-After
         // header when absent in the body.
         let (_, body) = format_admin_error(
             429,
-            r#"{"ok":false,"error":{"code":"rate_limited","message":"slow down"},"request_id":"r"}"#,
+            r#"{"type":"https://arkret.org/problems/rate_limited","title":"Rate limited","status":429,"detail":"slow down","instance":"r"}"#,
             Some(2000),
         );
 
@@ -488,7 +488,7 @@ mod tests {
     fn admin_error_reads_canonical_code() {
         let (_, body) = format_admin_error(
             403,
-            r#"{"ok":false,"error":{"code":"capability_denied","message":"no"},"request_id":"r"}"#,
+            r#"{"type":"https://arkret.org/problems/capability_denied","title":"Capability denied","status":403,"detail":"no","instance":"r"}"#,
             None,
         );
         assert_eq!(body.unwrap().errcode, "capability_denied");

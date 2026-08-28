@@ -172,7 +172,7 @@ mod tests {
         let object = payload.as_object_mut().unwrap();
         // coauth-proprietary top-level extension fields.
         object.insert(
-            "identity_registry_resolver".to_owned(),
+            "x_coauth_identity_registry_resolver".to_owned(),
             json!({
                 "mode": "delegated_resolver",
                 "endpoint": "https://auth.example.com/api/v1/identity/resolve",
@@ -182,21 +182,24 @@ mod tests {
                 }
             }),
         );
-        object.insert("admin_audience".to_owned(), json!("urn:coauth:admin"));
+        object.insert(
+            "x_coauth_admin_audience".to_owned(),
+            json!("urn:coauth:admin"),
+        );
 
         let describe: ServerDescribeDocument =
             serde_json::from_value(payload).expect("extended describe should deserialize");
 
         assert_eq!(
             describe.extra_str(&[
-                "identity_registry_resolver",
+                "x_coauth_identity_registry_resolver",
                 "delegated_resolver",
                 "resolver"
             ]),
             Some("https://resolver.example.com/".to_string())
         );
         assert_eq!(
-            describe.extra_str(&["admin_audience"]),
+            describe.extra_str(&["x_coauth_admin_audience"]),
             Some("urn:coauth:admin".to_string())
         );
         assert!(!describe.description.extensions.contains_key("service_id"));

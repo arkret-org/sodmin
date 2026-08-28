@@ -158,7 +158,7 @@ mod tests {
     fn row(reason_code: &str) -> DeliveryBindingHandoverRow {
         DeliveryBindingHandoverRow {
             realm_id: "ak:realm:AWTBjgRH5aE_aJLYZzA-BJ4C0RJCw16DIs9TIhgRAhCz".into(),
-            actor_id: "did:web:actor.example".into(),
+            actor_id: "ak:did_core:web:actor.example".into(),
             previous_recipient_service_id: None,
             new_recipient_service_id: None,
             handover_frontier: Vec::new(),

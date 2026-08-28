@@ -43,7 +43,10 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                     let handle = summary.username.clone().unwrap_or_else(|| "-".to_string());
                     let created_at = summary.created_at.clone().unwrap_or_else(|| "-".to_string());
                     let updated_at = summary.updated_at.clone().unwrap_or_else(|| "-".to_string());
-                    let primary_did = summary.primary_did.clone().unwrap_or_else(|| "-".to_string());
+                    let primary_principal_id = summary
+                        .primary_principal_id
+                        .as_ref()
+                        .map_or("-", arkret_identifiers::DidCoreId::as_str);
                     let lifecycle = summary.lifecycle_label();
                     let integration_dependencies = if detail.integration_manifest.dependencies.is_empty() {
                         t("coauth_account_detail.none")
@@ -92,7 +95,10 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                                 rsx! {
                                     {detail_row(t("coauth_account_detail.account_id"), &summary.id)}
                                     {detail_row(t("coauth_account_detail.handle"), &handle)}
-                                    {detail_row(t("coauth_account_detail.primary_did"), &primary_did)}
+                                    {detail_row(
+                                        t("coauth_account_detail.primary_principal_id"),
+                                        primary_principal_id,
+                                    )}
                                 },
                             )}
                             {section_block(

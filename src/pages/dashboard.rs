@@ -361,7 +361,7 @@ fn identity_registry_endpoint(describe: &ServerDescribeDocument) -> Option<Strin
     // coauth-proprietary top-level extension block (not part of the spec
     // ServiceDescribe shape) — read via the extension envelope.
     describe.extra_str(&[
-        "identity_registry_resolver",
+        "x_coauth_identity_registry_resolver",
         "delegated_resolver",
         "resolver",
     ])

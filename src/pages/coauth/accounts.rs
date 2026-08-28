@@ -117,7 +117,7 @@ pub fn AccountsPage() -> Element {
                                         TableHead { {t("coauth_account_detail.handle")} }
                                         TableHead { {t("coauth_accounts.display_name")} }
                                         TableHead { {t("common.status")} }
-                                        TableHead { {t("coauth_account_detail.primary_did")} }
+                                        TableHead { {t("coauth_account_detail.primary_principal_id")} }
                                         TableHead { {t("coauth_accounts.bridge")} }
                                         TableHead { class: "text-right".to_string(), {t("common.actions")} }
                                     }
@@ -135,7 +135,10 @@ pub fn AccountsPage() -> Element {
                                                 let account_id = account.id.clone();
                                                 let handle = account.username.clone().unwrap_or_else(|| "-".to_string());
                                                 let display_name = account.display_name.clone().unwrap_or_else(|| "-".to_string());
-                                                let primary_did = account.primary_did.clone().unwrap_or_else(|| "-".to_string());
+                                                let primary_principal_id = account
+                                                    .primary_principal_id
+                                                    .as_ref()
+                                                    .map_or("-", arkret_identifiers::DidCoreId::as_str);
                                                 let bridge_status = account.bridge_status.clone();
                                                 let status = account.lifecycle_label();
 
@@ -145,7 +148,7 @@ pub fn AccountsPage() -> Element {
                                                         TableCell { "{handle}" }
                                                         TableCell { "{display_name}" }
                                                         TableCell { "{status}" }
-                                                        TableCell { "{primary_did}" }
+                                                        TableCell { "{primary_principal_id}" }
                                                         TableCell { class: "font-mono text-xs".to_string(), "{bridge_status}" }
                                                         TableCell { class: "text-right".to_string(),
                                                             Link {
