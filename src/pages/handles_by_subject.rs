@@ -61,7 +61,7 @@ pub fn HandlesBySubject(subject: Option<String>) -> Element {
                 Err(_) => return None,
             };
             let req = DirectoryListHandlesForSubjectRequestBody {
-                subject,
+                subject_id: subject,
                 realm_id: None,
                 intent: Some("admin_directory".to_string()),
                 requester: None,
@@ -137,7 +137,7 @@ pub fn HandlesBySubject(subject: Option<String>) -> Element {
                             ErrorBanner { message: msg }
                         }
                     } else {
-                        let subject_id = resp.subject.to_string();
+                        let subject_id = resp.subject_id.to_string();
                         let visible: Vec<HandleClaim> = resp.claims.clone();
                         // Re-derive the §3.2.1 primary handle locally; fall
                         // back to the server-reported value.
@@ -242,7 +242,7 @@ fn claim_row(claim: &HandleClaim, primary: Option<&str>) -> Element {
         .map(display_sigil)
         .unwrap_or_default();
     let issuer = claim
-        .issuer
+        .issuer_id
         .as_ref()
         .map(ToString::to_string)
         .unwrap_or_else(|| "-".to_string());

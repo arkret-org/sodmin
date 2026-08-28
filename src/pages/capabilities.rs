@@ -59,7 +59,7 @@ pub fn CapabilityList() -> Element {
                                         for cap in resp.capabilities.iter() {
                                             {
                                                 let id = cap.grant_id.clone();
-                                                let issuer = cap.issuer.clone();
+                                                let issuer = cap.issuer_id.clone();
                                                 let subject = cap.subject.clone();
                                                 let actions = cap.actions_display();
                                                 let resource = cap.resource_display();

@@ -38,7 +38,7 @@ mod tests {
         let summary: CapabilitySummary = serde_json::from_value(serde_json::json!({
             "grant_id": "ak:grant:AbhvODyrIRCskAIoS9IXLjMfD-Zsr8lwDpiCU_zLR4it",
             "realm_id": "ak:realm:Adzr6hWdpvvoBoHZ2PftHKATea_QnznMIDwV5k6POjOi",
-            "issuer": "did:web:issuer.example",
+            "issuer_id": "ak:did_core:web:issuer.example",
             "subject": "did:web:subject.example",
             "resource": "realm",
             "actions": [CapabilityActionId::MESSAGE_CREATE],
@@ -47,7 +47,7 @@ mod tests {
         }))
         .expect("production-shaped grant summary should deserialize");
 
-        assert_eq!(summary.issuer, "did:web:issuer.example");
+        assert_eq!(summary.issuer_id, "ak:did_core:web:issuer.example");
         assert_eq!(
             summary.actions_display(),
             CapabilityActionId::MESSAGE_CREATE

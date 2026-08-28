@@ -5,7 +5,7 @@
 //! `historical_only`) as discrete rows so the operator can:
 //!
 //! - See exactly which envelope the recipient service rejected, and
-//! - Read the `new_recipient_service_id` + `handover_frontier` the recipient advertises in the 409
+//! - Read the `new_recipient_id` + `handover_frontier` the recipient advertises in the 409
 //!   body (`stale` / `handed_over`).
 //! - Distinguish a fresh failure from a `historical_only` cached replay — the latter is diagnostic
 //!   only and MUST NOT be presented as a "fresh action" indicator.
@@ -94,7 +94,7 @@ fn render_row(row: &DeliveryBindingHandoverRow) -> Element {
         row.actor_id.clone()
     };
     let new_recipient = row
-        .new_recipient_service_id
+        .new_recipient_id
         .clone()
         .unwrap_or_else(|| "-".to_string());
     let prev_recipient = row
@@ -159,8 +159,8 @@ mod tests {
         DeliveryBindingHandoverRow {
             realm_id: "ak:realm:AWTBjgRH5aE_aJLYZzA-BJ4C0RJCw16DIs9TIhgRAhCz".into(),
             actor_id: "ak:did_core:web:actor.example".into(),
-            previous_recipient_service_id: None,
-            new_recipient_service_id: None,
+            previous_recipient_id: None,
+            new_recipient_id: None,
             handover_frontier: Vec::new(),
             reason_code: Some(reason_code.into()),
             observed_at: None,
