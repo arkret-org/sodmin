@@ -117,7 +117,7 @@ fn verified_relationship_card(panel: &RealmOrganizationRelationshipList) -> Elem
                             }
                         }
                         TableBody {
-                            if panel.realm_organization_relationship_rows.is_empty() {
+                            if panel.relationships.is_empty() {
                                 TableRow {
                                     TableCell {
                                         class: "text-center text-muted-foreground py-6".to_string(),
@@ -126,7 +126,7 @@ fn verified_relationship_card(panel: &RealmOrganizationRelationshipList) -> Elem
                                     }
                                 }
                             } else {
-                                for row in panel.realm_organization_relationship_rows.iter() {
+                                for row in panel.relationships.iter() {
                                     {relationship_row(row)}
                                 }
                             }
@@ -258,7 +258,7 @@ fn principal_control_row(
     let control = &view.control;
     let row_key = delegation
         .map(|row| row.delegation_ref.clone())
-        .unwrap_or_else(|| format!("{}:control", control.organization_did));
+        .unwrap_or_else(|| format!("{}:control", control.organization_id));
     let control_stream = control.control_stream_ref.clone();
     let issuer_role = delegation
         .map(|row| issuer_role_label(row.issuer_role))
@@ -288,7 +288,7 @@ fn principal_control_row(
     rsx! {
         TableRow {
             key: "{row_key}",
-            TableCell { class: "font-mono text-xs".to_string(), "{control.organization_did}" }
+            TableCell { class: "font-mono text-xs".to_string(), "{control.organization_id}" }
             TableCell { class: "font-mono text-xs".to_string(), "{control_stream}" }
             TableCell { class: "font-mono text-xs".to_string(), "{control.principal_control_realm_id}" }
             TableCell { class: "text-xs".to_string(), "{issuer_role}" }

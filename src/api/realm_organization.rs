@@ -33,7 +33,7 @@ pub async fn get_realm_organization_admin_view(
     }
 
     let organization_ids: BTreeSet<String> = relationships
-        .realm_organization_relationship_rows
+        .relationships
         .iter()
         .map(|row| row.organization_id.to_string())
         .chain(
