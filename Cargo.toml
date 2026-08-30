@@ -6,41 +6,92 @@ license = "AGPL-3.0-or-later"
 edition = "2024"
 rust-version = "1.98"
 
-[lints]
-workspace = true
+[workspace]
+resolver = "3"
+
+[workspace.lints.rust]
+unsafe_code = "deny"
+
+[workspace.lints.clippy]
+dbg_macro = "deny"
+mem_forget = "deny"
+todo = "deny"
+unimplemented = "deny"
+
+[workspace.dependencies]
+arkret-canonical = { path = "../arkret-rust-sdk/crates/canonical", default-features = false }
+arkret-identifiers = { path = "../arkret-rust-sdk/crates/identifiers", default-features = false }
+arkret-models-collaboration = { path = "../arkret-rust-sdk/crates/models-collaboration", default-features = false }
+arkret-models-crypto = { path = "../arkret-rust-sdk/crates/models-crypto", default-features = false }
+arkret-models-discovery = { path = "../arkret-rust-sdk/crates/models-discovery", default-features = false }
+arkret-models-identity = { path = "../arkret-rust-sdk/crates/models-identity", default-features = false }
+arkret-wire = { path = "../arkret-rust-sdk/crates/wire", default-features = false }
+chrono = "0.4.45"
+coauth-account-types = { path = "../coauth/crates/account-types" }
+coauth-admin-types = { path = "../coauth/crates/admin-types" }
+dioxus = { version = "0.7.9", default-features = false }
+dioxus-logger = "0.7.9"
+futures-util = { version = "0.3.32", default-features = false }
+gloo-net = "0.7"
+gloo-storage = "0.4.0"
+gloo-timers = "0.4"
+js-sys = "0.3.100"
+log = "0.4.32"
+regex-lite = "0.1.9"
+reqwest = { version = "0.13", default-features = false }
+serde = "1.0.228"
+serde_json = "1.0.150"
+soland-contracts = { path = "../soland/crates/contracts" }
+urlencoding = "2.1.3"
+wasm-bindgen = "0.2.123"
+wasm-bindgen-futures = "0.4.73"
+web-sys = "0.3.100"
+yoface = { git = "https://github.com/arkret-org/yoface", branch = "main" }
+
+[[bin]]
+name = "sodmin"
+path = "src/main.rs"
+
+[[bin]]
+name = "sodmin-smoke"
+path = "src/bin/sodmin_smoke.rs"
+required-features = ["smoke"]
+
+[features]
+default = []
+smoke = ["dep:reqwest"]
 
 [dependencies]
+arkret-canonical = { workspace = true, default-features = false }
+arkret-identifiers = { workspace = true, default-features = false }
+arkret-models-collaboration = { workspace = true, default-features = false }
+arkret-models-crypto = { workspace = true, default-features = false }
+arkret-models-discovery = { workspace = true, default-features = false }
+arkret-models-identity = { workspace = true, default-features = false }
+arkret-wire = { workspace = true, default-features = false }
 # Global report #10 — sodmin previously hand-copied every protocol type.
 # Depend on the precise protocol owner crates (default features off so the
 # wasm bundle stays lean — the `client` / `keystore-*` / `salvo` / `mls`
 # features pull native-only deps and are deliberately NOT enabled here).
-chrono = {workspace = true,features = ["serde", "wasmbind"]}
-coauth-account-types = {workspace = true}
-coauth-admin-types = {workspace = true}
-arkret-canonical = {workspace = true,default-features = false}
-arkret-identifiers = {workspace = true,default-features = false}
-arkret-models-collaboration = {workspace = true,default-features = false}
-arkret-models-crypto = {workspace = true,default-features = false}
-arkret-models-discovery = {workspace = true,default-features = false}
-arkret-models-identity = {workspace = true,default-features = false}
-arkret-wire = {workspace = true,default-features = false}
-dioxus = {workspace = true,features = ["minimal", "web", "router"]}
-dioxus-logger = {workspace = true}
-futures-util = {workspace = true,default-features = false,features = ["alloc"]}
-gloo-net = {workspace = true,features = ["http", "json"]}
-gloo-storage = {workspace = true}
-gloo-timers = {workspace = true,features = ["futures"]}
-js-sys = {workspace = true}
-log = {workspace = true}
-regex-lite = {workspace = true}
-serde = {workspace = true,features = ["derive"]}
-serde_json = {workspace = true}
-soland-contracts = {workspace = true}
-urlencoding = {workspace = true}
-yoface = {workspace = true}
-wasm-bindgen = {workspace = true}
-wasm-bindgen-futures = {workspace = true}
-web-sys = {workspace = true,features = [
+chrono = { workspace = true, features = ["serde", "wasmbind"] }
+coauth-account-types = { workspace = true }
+coauth-admin-types = { workspace = true }
+dioxus = { workspace = true, features = ["minimal", "web", "router"] }
+dioxus-logger = { workspace = true }
+futures-util = { workspace = true, default-features = false, features = ["alloc"] }
+gloo-net = { workspace = true, features = ["http", "json"] }
+gloo-storage = { workspace = true }
+gloo-timers = { workspace = true, features = ["futures"] }
+js-sys = { workspace = true }
+log = { workspace = true }
+regex-lite = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+soland-contracts = { workspace = true }
+urlencoding = { workspace = true }
+wasm-bindgen = { workspace = true }
+wasm-bindgen-futures = { workspace = true }
+web-sys = { workspace = true, features = [
     "Window",
     "Document",
     "HtmlDocument",
@@ -70,32 +121,23 @@ web-sys = {workspace = true,features = [
     "StorageEvent",
     "SubtleCrypto",
     "Url",
-]}
+] }
+yoface = { workspace = true }
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+reqwest = { workspace = true, default-features = false, features = ["blocking", "json", "rustls"], optional = true }
 
 [build-dependencies]
 
 # Native-only deps used by the `sodmin-smoke` post-deploy smoke test
 # binary (src/bin/sodmin_smoke.rs). Gated on cfg(not(target_arch="wasm32"))
 # so they don't bloat the wasm bundle.
-serde_json = {workspace = true}
-[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-reqwest = {workspace = true,default-features = false,features = ["blocking", "json", "rustls"],optional = true}
-
-[features]
-default = []
-smoke = ["dep:reqwest"]
+serde_json = { workspace = true }
 
 [dev-dependencies]
 wasm-bindgen-test = "0.3"
 
-[[bin]]
-name = "sodmin"
-path = "src/main.rs"
-
-[[bin]]
-name = "sodmin-smoke"
-path = "src/bin/sodmin_smoke.rs"
-required-features = ["smoke"]
+[lints]
+workspace = true
 
 # arkret fork of DioxusLabs/dioxus, branched off the v0.7.9 tag (same patch
 # set as inkson; build.rs checks the patch block so it cannot drift). The only delta is
@@ -127,45 +169,3 @@ dioxus-core-types = { git = "https://github.com/arkret-org/dioxus", rev = "e59f9
 generational-box  = { git = "https://github.com/arkret-org/dioxus", rev = "e59f9f24a5c27c9303cd61edd0452b44161374ab" }
 subsecond         = { git = "https://github.com/arkret-org/dioxus", rev = "e59f9f24a5c27c9303cd61edd0452b44161374ab" }
 subsecond-types   = { git = "https://github.com/arkret-org/dioxus", rev = "e59f9f24a5c27c9303cd61edd0452b44161374ab" }
-
-[workspace]
-resolver = "3"
-
-[workspace.lints.rust]
-unsafe_code = "deny"
-
-[workspace.lints.clippy]
-dbg_macro = "deny"
-mem_forget = "deny"
-todo = "deny"
-unimplemented = "deny"
-
-[workspace.dependencies]
-chrono = "0.4.45"
-coauth-account-types = {path = "../coauth/crates/account-types"}
-coauth-admin-types = {path = "../coauth/crates/admin-types"}
-arkret-canonical = {path = "../arkret-rust-sdk/crates/canonical",default-features = false}
-arkret-identifiers = {path = "../arkret-rust-sdk/crates/identifiers",default-features = false}
-arkret-models-collaboration = {path = "../arkret-rust-sdk/crates/models-collaboration",default-features = false}
-arkret-models-crypto = {path = "../arkret-rust-sdk/crates/models-crypto",default-features = false}
-arkret-models-discovery = {path = "../arkret-rust-sdk/crates/models-discovery",default-features = false}
-arkret-models-identity = {path = "../arkret-rust-sdk/crates/models-identity",default-features = false}
-arkret-wire = {path = "../arkret-rust-sdk/crates/wire",default-features = false}
-dioxus = {version = "0.7.9",default-features = false}
-dioxus-logger = "0.7.9"
-futures-util = {version = "0.3.32",default-features = false}
-gloo-net = "0.7"
-gloo-storage = "0.4.0"
-gloo-timers = "0.4"
-js-sys = "0.3.100"
-log = "0.4.32"
-regex-lite = "0.1.9"
-reqwest = {version = "0.13",default-features = false}
-serde = "1.0.228"
-serde_json = "1.0.150"
-soland-contracts = {path = "../soland/crates/contracts"}
-urlencoding = "2.1.3"
-wasm-bindgen = "0.2.123"
-wasm-bindgen-futures = "0.4.73"
-web-sys = "0.3.100"
-yoface = {git = "https://github.com/arkret-org/yoface",branch = "main"}

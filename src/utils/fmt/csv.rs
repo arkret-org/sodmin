@@ -96,8 +96,8 @@ pub fn export_to_csv(filename: &str, csv: &str) {
 
     let array = js_sys::Array::new();
     array.push(&JsValue::from_str(csv));
-    let mut bag = BlobPropertyBag::new();
-    bag.type_("text/csv;charset=utf-8");
+    let bag = BlobPropertyBag::new();
+    bag.set_type("text/csv;charset=utf-8");
     let blob = match Blob::new_with_str_sequence_and_options(&array, &bag) {
         Ok(b) => b,
         Err(_) => {

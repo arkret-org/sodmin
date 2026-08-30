@@ -442,7 +442,6 @@ fn scope_label(value: RealmOrganizationControlScope) -> String {
         RealmOrganizationControlScope::OfficialBadge => "official_badge",
         RealmOrganizationControlScope::RealmAdmin => "realm_admin",
         RealmOrganizationControlScope::NotaryControl => "notary_control",
-        RealmOrganizationControlScope::PolicyServer => "policy_server",
         RealmOrganizationControlScope::DeliveryBindingPolicy => "delivery_binding_policy",
         RealmOrganizationControlScope::DurabilityPolicy => "durability_policy",
         RealmOrganizationControlScope::ModerationPolicy => "moderation_policy",
