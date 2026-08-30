@@ -107,10 +107,10 @@ mod tests {
                 "version_id": "fixture-v1"
             },
             "trust_domain": "ak:trust_domain:soland.local",
-            "service_kind": "principal_server",
+            "service_kind": "station",
             "protocol_version": "1.0",
             "supported_profiles": [],
-            "supported_operation_bundles": ["ak.operation_bundle.principal_server.describe.v1"],
+            "supported_operation_bundles": ["ak.operation_bundle.station.describe.v1"],
             "transport_bindings": [{
                 "kind": "http_json",
                 "base_url": "https://soland.local/",
@@ -121,7 +121,7 @@ mod tests {
             "limits": {
                 "profile_status": {
                     "conformance": "limited_reference",
-                    "implemented_surfaces": ["principal_server", "events_api_minimal"]
+                    "implemented_surfaces": ["station", "events_api_minimal"]
                 }
             },
             "rate_limit_policy": { "policy_version": "1", "entries": [] },
@@ -149,10 +149,7 @@ mod tests {
             describe.trust_domain.as_str(),
             "ak:trust_domain:soland.local"
         );
-        assert_eq!(
-            describe.service_kind,
-            arkret_wire::ServiceKind::PrincipalServer
-        );
+        assert_eq!(describe.service_kind, arkret_wire::ServiceKind::Station);
         assert!(!describe.development_mode);
         assert_eq!(describe.interop_surfaces[0].name, "federation.bridge");
         assert_eq!(

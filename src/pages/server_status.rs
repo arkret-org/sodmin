@@ -17,22 +17,12 @@ pub fn ServerStatus() -> Element {
     let mut info_data = use_resource(|| async { server::get_server_info().await });
     let mut status_data = use_resource(|| async { server::get_server_status().await });
     let mut admin_describe = use_resource(|| async { server::get_server_describe().await });
-    let mut coauth_describe = use_resource(|| async {
-        if !crate::utils::net::session::has_coauth() {
-            return None;
-        }
-        Some(server::get_coauth_server_describe().await)
-    });
-
     let info_result = info_data.read().clone();
     let status_result = status_data.read().clone();
     let admin_describe_result = admin_describe.read().clone();
-    let coauth_describe_result = coauth_describe.read().clone().flatten();
 
     let info = result_data(&info_result).cloned();
     let admin_d = result_data(&admin_describe_result).cloned();
-    let coauth_d = result_data(&coauth_describe_result).cloned();
-    let coauth_configured = crate::utils::net::session::has_coauth();
 
     rsx! {
         div { class: "space-y-6",
@@ -45,7 +35,6 @@ pub fn ServerStatus() -> Element {
                         info_data.restart();
                         status_data.restart();
                         admin_describe.restart();
-                        coauth_describe.restart();
                     },
                     {t("common.refresh")}
                 }
@@ -53,7 +42,6 @@ pub fn ServerStatus() -> Element {
 
             {resource_error(&info_result)}
             {resource_error(&admin_describe_result)}
-            {resource_error(&coauth_describe_result)}
 
             if let Some(info) = info.as_ref() {
                 {
@@ -77,25 +65,16 @@ pub fn ServerStatus() -> Element {
                 }
             }
 
-            // Multi-service describe board (G1).
+            // Public protocol-role description. Authentication providers remain
+            // private Station implementation details and have no describe card.
             div { class: "space-y-4",
                 h2 { class: "text-xl font-semibold tracking-tight", {t("server_status.services_title")} }
-                div { class: "grid gap-4 lg:grid-cols-2",
+                div { class: "grid gap-4",
                     {service_describe_card(
                         t("server_status.service_admin"),
                         t("server_status.service_admin_hint"),
                         admin_d.as_ref(),
                         None,
-                    )}
-                    {service_describe_card(
-                        t("server_status.service_coauth"),
-                        t("server_status.service_coauth_hint"),
-                        coauth_d.as_ref(),
-                        if coauth_configured {
-                            None
-                        } else {
-                            Some(t("server_status.service_coauth_not_configured"))
-                        },
                     )}
                 }
             }

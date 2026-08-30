@@ -11,7 +11,7 @@ the SDK pins down its 1.0 contract.
   Account Authority issuer-ledger operations. SessionGrant lifecycle is no
   longer described as a service-attested Arkret Event.
 - Clarified that device revoke atomically terminalizes linked grants in
-  coauth; Principal Servers observe that terminal state through fresh
+  coauth; Stations observe that terminal state through fresh
   introspection rather than maintaining a second grant lifecycle truth.
 - Preserved the admin key boundary: sodmin neither drafts grant Events nor
   obtains principal, device, recovery, or notary signing keys.

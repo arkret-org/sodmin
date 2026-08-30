@@ -20,9 +20,9 @@
 //! - **Refresh** — when the cookie has expired the server returns 401, the client invokes
 //!   `handle_unauthorized` which calls `/oauth/token` (grant_type=refresh_token) (also with
 //!   `credentials: "include"`) and the server sets a new cookie. No JS-visible refresh_token.
-//! - **Logout** — `logout` records the Principal Server hard-logout, OAuth revoke, and coauth
-//!   browser-cookie logout outcomes separately. JS-visible session state is cleared only after the
-//!   cookie-owning coauth endpoint explicitly confirms browser-session termination.
+//! - **Logout** — `logout` records the Station hard-logout, OAuth revoke, and coauth browser-cookie
+//!   logout outcomes separately. JS-visible session state is cleared only after the cookie-owning
+//!   coauth endpoint explicitly confirms browser-session termination.
 
 use std::cell::Cell;
 
@@ -592,22 +592,18 @@ fn classify_oauth_revoke(response: Result<TextResponse, HttpError>) -> LogoutSte
 fn classify_principal_logout(response: Result<TextResponse, HttpError>) -> LogoutStepStatus {
     let response = match response {
         Ok(response) if (200..300).contains(&response.status) => response,
-        Ok(response) => return rejected_response("Principal Server logout", response.status),
-        Err(error) => return failed_request("Principal Server logout", error),
+        Ok(response) => return rejected_response("Station logout", response.status),
+        Err(error) => return failed_request("Station logout", error),
     };
     let Ok(outcome) =
         serde_json::from_str::<arkret_models_identity::AccountLogoutOutcome>(&response.text)
     else {
-        return LogoutStepStatus::Failed(
-            "Principal Server logout returned an invalid response".to_owned(),
-        );
+        return LogoutStepStatus::Failed("Station logout returned an invalid response".to_owned());
     };
     if outcome.revoked {
         LogoutStepStatus::Confirmed
     } else {
-        LogoutStepStatus::Failed(
-            "Principal Server logout did not confirm session revocation".to_owned(),
-        )
+        LogoutStepStatus::Failed("Station logout did not confirm session revocation".to_owned())
     }
 }
 
@@ -799,7 +795,7 @@ mod tests {
     fn confirmed_cookie_allows_local_logout_but_preserves_upstream_warning() {
         let report = LogoutReport {
             principal_logout: LogoutStepStatus::Failed(
-                "Principal Server logout returned HTTP 503".to_owned(),
+                "Station logout returned HTTP 503".to_owned(),
             ),
             oauth_revoke: LogoutStepStatus::Failed("OAuth revoke returned HTTP 503".to_owned()),
             cookie_logout: LogoutStepStatus::Confirmed,

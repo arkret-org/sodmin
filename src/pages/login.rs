@@ -107,7 +107,7 @@ fn logout_warning_message(code: &str) -> Option<String> {
     let mut stages = Vec::new();
     for item in code.split(',') {
         match item {
-            "principal_logout" => stages.push("Principal Server session cleanup"),
+            "principal_logout" => stages.push("Station session cleanup"),
             "oauth_revoke" => stages.push("OAuth token revocation"),
             _ => {}
         }
@@ -170,7 +170,7 @@ mod tests {
     #[test]
     fn logout_warning_codes_are_fixed_and_non_sensitive() {
         let message = logout_warning_message("principal_logout,oauth_revoke").unwrap();
-        assert!(message.contains("Principal Server session cleanup"));
+        assert!(message.contains("Station session cleanup"));
         assert!(message.contains("OAuth token revocation"));
         assert!(logout_warning_message("server body here").is_none());
     }

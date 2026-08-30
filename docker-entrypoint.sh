@@ -194,11 +194,11 @@ if can_resolve_url_host "$SOLAND_URL"; then
     write_proxy_location "/_arkret/self/sync/" "$SOLAND_URL"
     write_proxy_location "/_arkret/find/directory/" "$SOLAND_URL"
     # `gate/account/*` is a shared auth/admission surface (service-http-binding
-    # §2.1: served by clients AND the Principal Server — the path segment is an
+    # §2.1: served by clients AND the Station — the path segment is an
     # attack-surface classifier, NOT a single backing service). coauth owns most
     # of it (session-grants issue/refresh/logout/introspect, password-recovery,
     # email-auth, passkey/oidc, register) via the `/_arkret/gate/` rule above,
-    # but `ak.gate.account.command.logout.v1` is a Principal-Server op (revoke
+    # but `ak.gate.account.command.logout.v1` is a Station op (revoke
     # bearer + device session record + to-device) that coauth does not serve.
     # Route that one longer prefix to soland; nginx longest-prefix match makes
     # it win over `/_arkret/gate/` regardless of declaration order.
@@ -226,7 +226,7 @@ EOF
     write_dynamic_proxy_location "/_arkret/self/events/" "soland_backend"
     write_dynamic_proxy_location "/_arkret/self/sync/" "soland_backend"
     write_dynamic_proxy_location "/_arkret/find/directory/" "soland_backend"
-    # Principal-Server device logout (see the resolvable branch above): a
+    # Station device logout (see the resolvable branch above): a
     # longer prefix than `/_arkret/gate/` so it wins to soland.
     write_dynamic_proxy_location "/_arkret/gate/account/logout" "soland_backend"
     # All other `/_arkret/*` trust-circle traffic terminates on soland

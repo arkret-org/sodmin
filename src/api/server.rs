@@ -19,17 +19,6 @@ pub async fn get_server_describe() -> Result<ServerDescribeDocument, HttpError> 
     Ok(document)
 }
 
-pub async fn get_coauth_server_describe() -> Result<ServerDescribeDocument, HttpError> {
-    let url = crate::utils::net::session::coauth_public_url()
-        .map(|base| format!("{}/_arkret/describe", base.trim_end_matches('/')))
-        .unwrap_or_else(|| "/_arkret/describe".to_string());
-    let document: ServerDescribeDocument = api_client(&url, "GET", NO_BODY).await?;
-    document
-        .validate()
-        .map_err(|error| HttpError::message(format!("invalid ServiceDescribe: {error}")))?;
-    Ok(document)
-}
-
 pub async fn get_server_stats() -> Result<AdminServerStats, HttpError> {
     api_client(SERVER_STATS_PATH, "GET", NO_BODY).await
 }
@@ -46,7 +35,7 @@ pub struct HealthEnvelope {
     pub hardening: Option<HardeningStatus>,
 }
 
-/// T8.3 — fetch principal-server (soland) `/health` for the hardening
+/// T8.3 — fetch station (soland) `/health` for the hardening
 /// dashboard. Returns the parsed envelope including the `hardening`
 /// block; older soland builds without the field still parse cleanly
 /// (Option::None).

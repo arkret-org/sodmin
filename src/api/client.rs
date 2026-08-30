@@ -439,11 +439,9 @@ mod tests {
 
     #[test]
     fn canonical_arkret_request_selects_exact_operation() {
-        let operation = canonical_operation_for_request(
-            "/_arkret/describe?service_kind=principal_server",
-            "GET",
-        )
-        .expect("registered describe operation");
+        let operation =
+            canonical_operation_for_request("/_arkret/describe?service_kind=station", "GET")
+                .expect("registered describe operation");
         assert_eq!(operation.as_str(), "ak.server.read.describe.v1");
         assert!(canonical_operation_for_request("/_soland/admin/server/info", "GET").is_none());
     }

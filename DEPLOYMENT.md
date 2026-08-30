@@ -11,7 +11,7 @@ the Gitea workflow.
 
 | Variable | Required | Purpose |
 | --- | --- | --- |
-| `SOLAND_URL` | yes | Internal URL for the soland Principal Server upstream. Requests to `/_arkret/` and the `/_soland/admin/` operator surface proxy here. |
+| `SOLAND_URL` | yes | Internal URL for the soland Station upstream. Requests to `/_arkret/` and the `/_soland/admin/` operator surface proxy here. |
 | `COAUTH_URL` | recommended | Internal URL for coauth admin/auth endpoints. Enables `/auth/`, `/_arkret/gate/`, the coauth `/_coauth/admin/*` resource roots, `/authorize`, `/oauth/`, and `/.well-known/` proxy locations. |
 | `COAUTH_PUBLIC_URL` | recommended | Browser-facing coauth origin written to `/config.json` for OAuth2 PKCE redirects. |
 | `SODMIN_PORT` | no | nginx listen port. Defaults to `80`. |

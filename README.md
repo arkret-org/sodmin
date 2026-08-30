@@ -1,6 +1,6 @@
 # sodmin
 
-Arkret administrator web UI for Principal Server and coauth deployments. The app is built with Dioxus and compiled to WebAssembly.
+Arkret administrator web UI for Station and coauth deployments. The app is built with Dioxus and compiled to WebAssembly.
 
 ## Pre-commit hook setup
 
@@ -52,7 +52,7 @@ in a key-holding client or notary workflow.
 flowchart LR
   Browser["Admin browser"] --> Sodmin["sodmin Dioxus/WASM"]
   Sodmin --> Nginx["nginx static host + proxy"]
-  Nginx --> Soland["soland Principal Server admin API"]
+  Nginx --> Soland["soland Station admin API"]
   Nginx --> Coauth["coauth auth/account admin API"]
   Coauth --> OAuth["OAuth2 / PKCE session"]
   Soland --> Reducers["Arkret reducers + admin projections"]
@@ -146,7 +146,7 @@ Required and optional environment variables:
 
 | Variable | Required | Purpose |
 | --- | --- | --- |
-| `SOLAND_URL` | yes | Internal URL of the soland Principal Server reached by the proxy. |
+| `SOLAND_URL` | yes | Internal URL of the soland Station reached by the proxy. |
 | `COAUTH_URL` | recommended | Internal URL of the coauth admin service. Enables the `/auth/`, `/_arkret/gate/`, `/_coauth/*`, `/authorize`, `/oauth/`, and `/.well-known/` proxy locations. |
 | `COAUTH_PUBLIC_URL` | recommended | Browser-facing coauth origin. Written to `/config.json` for the OAuth2 PKCE redirect. |
 | `SODMIN_PORT` | no | nginx listen port (default `80`). |

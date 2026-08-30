@@ -37,18 +37,6 @@ pub fn Dashboard() -> Element {
         .await
     });
 
-    let coauth_describe = use_resource(|| async {
-        if !crate::utils::net::session::has_coauth() {
-            return None;
-        }
-        Some(
-            cached_result("dashboard_coauth_describe", CACHE_TTL_MS, || async {
-                server::get_coauth_server_describe().await
-            })
-            .await,
-        )
-    });
-
     let server_status = use_resource(|| async {
         cached_result("dashboard_server_status", CACHE_TTL_MS, || async {
             server::get_server_status().await
@@ -73,13 +61,11 @@ pub fn Dashboard() -> Element {
     let stats_result = stats.read().clone();
     let info_result = server_info.read().clone();
     let describe_result = server_describe.read().clone();
-    let coauth_describe_result = coauth_describe.read().clone().flatten();
     let status_result = server_status.read().clone();
 
     let stats_data = result_data(&stats_result).cloned();
     let info_data = result_data(&info_result).cloned();
     let describe_data = result_data(&describe_result).cloned();
-    let coauth_describe_data = result_data(&coauth_describe_result).cloned();
     let status_data = result_data(&status_result).cloned();
 
     let version_str = info_data
@@ -97,11 +83,11 @@ pub fn Dashboard() -> Element {
         .as_ref()
         .map(|d| d.service_resolution.did.to_string())
         .unwrap_or_else(|| "-".to_string());
-    let coauth_issuer_did = coauth_describe_data
+    let coauth_issuer_did = describe_data
         .as_ref()
         .and_then(coauth_issuer_did)
         .unwrap_or_else(|| "-".to_string());
-    let delegated_resolver_endpoint = coauth_describe_data
+    let delegated_resolver_endpoint = describe_data
         .as_ref()
         .and_then(identity_registry_endpoint)
         .unwrap_or_else(|| "-".to_string());
@@ -176,7 +162,6 @@ pub fn Dashboard() -> Element {
             {resource_error(&stats_result)}
             {resource_error(&info_result)}
             {resource_error(&describe_result)}
-            {resource_error(&coauth_describe_result)}
             {resource_error(&status_result)}
 
             {
@@ -241,7 +226,7 @@ pub fn Dashboard() -> Element {
                 }
                 CardContent {
                     div { class: "grid gap-4 md:grid-cols-2 xl:grid-cols-4",
-                        {metadata_cell(t("dashboard.principal_server_did"), service_id)}
+                        {metadata_cell(t("dashboard.station_did"), service_id)}
                         {metadata_cell(t("dashboard.coauth_issuer_did"), coauth_issuer_did)}
                         {metadata_cell(t("dashboard.delegated_resolver"), delegated_resolver_endpoint)}
                         {metadata_cell(t("dashboard.supported_profiles"), supported_profiles)}
