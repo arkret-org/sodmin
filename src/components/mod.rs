@@ -3,9 +3,6 @@ pub mod claims_panel;
 /// parameterised typed-phrase gate, used by the destructive mutations
 /// on the devices, handles, policy, actors, and coauth admin pages.
 pub mod dangerous_action_dialog;
-/// Delivery-binding handover panel (`delivery_binding_stale`
-/// / `delivery_binding_handed_over` / `historical_only`).
-pub mod delivery_binding_handover_panel;
 pub mod dev_mode_banner;
 pub mod did_binding_panel;
 /// DID-shaped input field with inline regex validation

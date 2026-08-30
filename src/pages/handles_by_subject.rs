@@ -21,7 +21,7 @@
 //! re-derives the primary handle locally via the SDK-mirror
 //! [`crate::utils::security::primary_handle::select_primary_handle`].
 
-use arkret_identifiers::DidCoreId;
+use arkret_wire::AccountId;
 use chrono::Utc;
 use dioxus::prelude::*;
 
@@ -56,12 +56,12 @@ pub fn HandlesBySubject(subject: Option<String>) -> Element {
             if subject.trim().is_empty() {
                 return None;
             }
-            let subject = match DidCoreId::new(subject.trim().to_string()) {
+            let account_id = match serde_json::from_str::<AccountId>(subject.trim()) {
                 Ok(value) => value,
                 Err(_) => return None,
             };
             let req = DirectoryListHandlesForSubjectRequestBody {
-                subject_id: subject,
+                account_id,
                 realm_id: None,
                 intent: Some("admin_directory".to_string()),
                 requester_id: None,
@@ -77,7 +77,7 @@ pub fn HandlesBySubject(subject: Option<String>) -> Element {
 
     let input_val = input.read().clone();
     let trimmed = input_val.trim().to_string();
-    let can_submit = DidCoreId::new(trimmed.clone()).is_ok();
+    let can_submit = serde_json::from_str::<AccountId>(&trimmed).is_ok();
 
     rsx! {
         div { class: "space-y-6",
@@ -97,7 +97,7 @@ pub fn HandlesBySubject(subject: Option<String>) -> Element {
                         onsubmit: move |evt| {
                             evt.prevent_default();
                             let v = input.read().trim().to_string();
-                            if DidCoreId::new(v.clone()).is_ok() {
+                            if serde_json::from_str::<AccountId>(&v).is_ok() {
                                 query.set(v);
                             }
                         },
@@ -106,7 +106,7 @@ pub fn HandlesBySubject(subject: Option<String>) -> Element {
                             Input {
                                 id: "subject-did".to_string(),
                                 r#type: "text".to_string(),
-                                placeholder: "ak:did_core:web:alice.example".to_string(),
+                                placeholder: r#"{"principal_id":"ak:did_core:web:alice.example","station_id":"ak:did_core:web:station.example"}"#.to_string(),
                                 value: input.read().clone(),
                                 oninput: move |evt: FormEvent| input.set(evt.value()),
                             }
@@ -137,13 +137,14 @@ pub fn HandlesBySubject(subject: Option<String>) -> Element {
                             ErrorBanner { message: msg }
                         }
                     } else {
-                        let subject_id = resp.subject_id.to_string();
+                        let account_id = resp.account_id.clone();
+                        let subject_id = account_id.to_string();
                         let visible: Vec<HandleClaim> = resp.claims.clone();
                         // Re-derive the §3.2.1 primary handle locally; fall
                         // back to the server-reported value.
                         let derived_primary = {
                             let sel = PrimaryHandleSelectInput {
-                                subject_id: &subject_id,
+                                account_id: &account_id,
                                 context: None,
                                 claim_set_snapshot: &visible,
                                 handle_issuer_policies: &[],
@@ -230,22 +231,9 @@ fn results_card(
 }
 
 fn claim_row(claim: &HandleClaim, primary: Option<&str>) -> Element {
-    let handle = claim
-        .handle
-        .as_ref()
-        .map(|h| h.canonical().to_owned())
-        .unwrap_or_else(|| "-".to_string());
-    let sigil = claim
-        .handle
-        .as_ref()
-        .map(|h| h.canonical())
-        .map(display_sigil)
-        .unwrap_or_default();
-    let issuer = claim
-        .issuer_id
-        .as_ref()
-        .map(ToString::to_string)
-        .unwrap_or_else(|| "-".to_string());
+    let handle = claim.handle.canonical().to_owned();
+    let sigil = display_sigil(claim.handle.canonical());
+    let issuer = claim.issuer_id.to_string();
     let expires = claim
         .expires_at
         .as_ref()
@@ -253,10 +241,7 @@ fn claim_row(claim: &HandleClaim, primary: Option<&str>) -> Element {
         .unwrap_or_else(|| "-".to_string());
     let created = claim.created_at.to_rfc3339();
     let (binding_label, binding_variant) = binding_badge(claim.binding_state);
-    let is_primary = matches!(
-        (claim.handle.as_ref().map(|h| h.canonical()), primary),
-        (Some(h), Some(p)) if h == p
-    );
+    let is_primary = primary.is_some_and(|value| value == claim.handle.canonical());
     // "Why am I seeing this?" provenance: issuer ID + binding_state +
     // created_at. Spec §17 derived-projection disclosure rationale.
     let why = format!(
@@ -303,24 +288,23 @@ fn claim_row(claim: &HandleClaim, primary: Option<&str>) -> Element {
     }
 }
 
-fn binding_badge(state: Option<HandleBindingState>) -> (String, BadgeVariant) {
+fn binding_badge(state: HandleBindingState) -> (String, BadgeVariant) {
     match state {
-        Some(HandleBindingState::Verified) => (
+        HandleBindingState::Verified => (
             t("handles_by_subject.binding_verified"),
             BadgeVariant::Success,
         ),
-        Some(HandleBindingState::Pending) => (
+        HandleBindingState::Pending => (
             t("handles_by_subject.binding_pending"),
             BadgeVariant::Outline,
         ),
-        Some(HandleBindingState::Revoked) => (
+        HandleBindingState::Revoked => (
             t("handles_by_subject.binding_revoked"),
             BadgeVariant::Destructive,
         ),
-        Some(HandleBindingState::Expired) => (
+        HandleBindingState::Expired => (
             t("handles_by_subject.binding_expired"),
             BadgeVariant::Secondary,
         ),
-        None => ("-".to_string(), BadgeVariant::Outline),
     }
 }

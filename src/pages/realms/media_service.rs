@@ -41,7 +41,7 @@ pub fn MediaServicePage(realm_id: String) -> Element {
         div { class: "space-y-6",
             Breadcrumbs {
                 items: vec![
-                    BreadcrumbItem { label: t("delivery_binding.realm"), route: Some(Route::RealmDeliveryBinding { realm_id: realm_id.clone() }) },
+                    BreadcrumbItem { label: t("delivery_binding.realm"), route: Some(Route::RealmShow { realm_id: realm_id.clone() }) },
                     BreadcrumbItem { label: t("media_service.title"), route: None },
                 ],
             }

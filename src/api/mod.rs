@@ -5,7 +5,6 @@ pub mod capabilities;
 pub mod client;
 pub mod coauth;
 pub mod coauth_devices;
-pub mod delivery_binding;
 pub mod devices;
 /// Directory service client
 /// (`ak.find.directory.read.list_handles_for_subject.v1`).

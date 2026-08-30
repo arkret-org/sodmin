@@ -17,9 +17,6 @@ pub use capabilities::*;
 
 pub mod coauth_devices;
 
-pub mod delivery_binding;
-pub use delivery_binding::*;
-
 pub mod devices;
 pub use devices::*;
 

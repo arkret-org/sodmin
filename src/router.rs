@@ -65,9 +65,6 @@ pub enum Route {
         #[route("/handles/:handle_id")]
         HandleShow { handle_id: String },
 
-        #[route("/realms/:realm_id/delivery-binding")]
-        RealmDeliveryBinding { realm_id: String },
-
         #[route("/realms/:realm_id/links")]
         RealmLinks { realm_id: String },
 
@@ -349,10 +346,6 @@ fn HandleShow(handle_id: String) -> Element {
 }
 
 #[component]
-fn RealmDeliveryBinding(realm_id: String) -> Element {
-    rsx! { pages::realms::delivery_binding::DeliveryBindingPage { realm_id } }
-}
-
 #[component]
 fn RealmLinks(realm_id: String) -> Element {
     rsx! { pages::realms::links::LinksPage { realm_id } }

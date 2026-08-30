@@ -96,14 +96,6 @@ fn build_nav_sections() -> Vec<NavSection> {
             NavItem::new(t("nav.media"), Route::MediaList {}, "image"),
             // Key-backup recovery admin (backup blobs + recovery policy).
             NavItem::new("Key backup".to_string(), Route::KeyBackupList {}, "key"),
-            NavItem::new(
-                t("nav.delivery_binding"),
-                // Realm-rework: link to the Realm-scoped editor.
-                Route::RealmDeliveryBinding {
-                    realm_id: "_".to_string(),
-                },
-                "shield",
-            ),
             // Realm link-graph (outbound / inbound
             // `ak.realm.link` rows). Sits next to delivery binding
             // so the operator can pivot from a single Realm's
