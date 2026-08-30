@@ -4,7 +4,7 @@
 //!
 //! Per AKP-0007 the classification is set at create time and is
 //! immutable afterwards. Most Realm surfaces in sodmin (member panels,
-//! delivery-binding editor, audit drilldown) should render this badge
+//! Realm links, audit drilldown) should render this badge
 //! so operators can tell at a glance whether an action will touch
 //! identity-bearing infrastructure or just collaboration scope.
 

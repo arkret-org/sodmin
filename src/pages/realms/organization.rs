@@ -372,7 +372,7 @@ fn SecurityOperationsCard() -> Element {
                             li { {t("realm_organization.impact_official_badge")} }
                             li { {t("realm_organization.impact_governance_policy")} }
                             li { {t("realm_organization.impact_directory_listing")} }
-                            li { {t("realm_organization.impact_binding_policy")} }
+                            li { {t("realm_organization.impact_durability_policy")} }
                         }
                     }
                     div { class: "flex flex-wrap gap-2",

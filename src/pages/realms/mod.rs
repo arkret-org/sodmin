@@ -1,6 +1,6 @@
 //! Admin pages for Realm security boundaries.
 
-/// Realm delivery-binding-policy read-only operations view.
+/// Realm link-graph read-only operations view.
 pub mod links;
 pub mod list;
 /// Realm `media_service.foci[]` read-only view.

@@ -41,14 +41,14 @@ pub fn MediaServicePage(realm_id: String) -> Element {
         div { class: "space-y-6",
             Breadcrumbs {
                 items: vec![
-                    BreadcrumbItem { label: t("delivery_binding.realm"), route: Some(Route::RealmShow { realm_id: realm_id.clone() }) },
+                    BreadcrumbItem { label: t("nav.realms"), route: Some(Route::RealmShow { realm_id: realm_id.clone() }) },
                     BreadcrumbItem { label: t("media_service.title"), route: None },
                 ],
             }
 
             PageHeader {
                 title: t("media_service.title"),
-                description: format!("{}: {}", t("delivery_binding.realm"), realm_id_label),
+                description: format!("{}: {}", t("nav.realms"), realm_id_label),
                 Button {
                     variant: ButtonVariant::Outline,
                     onclick: move |_| media_data.restart(),

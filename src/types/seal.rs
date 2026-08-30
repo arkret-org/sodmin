@@ -14,7 +14,10 @@ mod tests {
 
     fn notary_signer(actor: &str) -> serde_json::Value {
         serde_json::json!({
-            "actor_id": format!("ak:did_core:web:{actor}.example"),
+            "actor_id": {
+                "kind": "service",
+                "service_id": format!("ak:did_core:web:{actor}.example"),
+            },
             "verification_method": format!("did:web:{actor}.example#notary-1"),
             "key_kind": "ed25519_raw32",
             "jose_algorithm": "Ed25519",
