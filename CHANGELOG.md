@@ -103,10 +103,6 @@ See [`../_sodmin_soland_todos.md`](../_sodmin_soland_todos.md) for the workstrea
 - **Added** `ServiceDescribe` v2 admin view — all 17 required fields
   rendered; `development_mode=true` paired with non-empty
   `verified_profiles` raises a red warning row.
-- **Added** delivery-binding handover panel rendering the new error codes
-  `delivery_binding_stale` / `delivery_binding_handed_over` /
-  `historical_only`. Stale entries surface `new_recipient_id` and
-  `handover_frontier`.
 - **Added** 3PID invite admin: the 5-terminal-state machine
   (`claimed` / `send_failed` / `revoked_by_capability_loss` /
   `revoked_by_inviter_left` / `invalidated_by_rate_limit`) is fully visible

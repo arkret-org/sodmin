@@ -80,10 +80,6 @@ wire-breaking list.
 - **`ServiceDescribe` detail** — all 17 required fields rendered; the
   combination `development_mode=true` + non-empty `verified_profiles`
   paints red.
-- **Delivery-binding handover panel** — shows the new error codes
-  `delivery_binding_stale` / `delivery_binding_handed_over` /
-  `historical_only`, with `new_recipient_id` and
-  `handover_frontier` surfaced on stale rows.
 - **3PID invite 5-state UI** — `claimed` / `send_failed` /
   `revoked_by_capability_loss` / `revoked_by_inviter_left` /
   `invalidated_by_rate_limit` are all displayed honestly; `send_failed`
