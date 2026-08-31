@@ -241,7 +241,12 @@ pub fn PolicyList() -> Element {
                     div {
                         class: "rounded-md border bg-muted/40 px-3 py-2 text-sm text-muted-foreground",
                         role: "note",
-                        {t("policy.pin_standard_unavailable_detail")}
+                        "data-testid": "policy-read-only-reason",
+                        {selected_policy
+                            .read()
+                            .as_ref()
+                            .and_then(|policy| policy.safety.read_only_reason.clone())
+                            .unwrap_or_else(|| t("policy.read_only"))}
                     }
                 }
                 div { class: "space-y-1",
@@ -303,11 +308,6 @@ pub fn PolicyList() -> Element {
                 }
                 if let Some(policy) = selected_policy.read().clone() {
                     PolicyGuardrailPanel { policy }
-                }
-                if let Some(policy) = selected_policy.read().clone() {
-                    if policy.safety.pin_summary.is_some() {
-                        PolicyPinSafetyPanel { policy }
-                    }
                 }
             }
             if *dialog_read_only.read() {
@@ -407,9 +407,8 @@ pub fn PolicyList() -> Element {
 #[component]
 fn PolicyGuardrailBadges(policy: AdminPolicy) -> Element {
     let obligation_count = policy.guardrails.obligations.len();
-    let is_pin_policy = policy.safety.pin_summary.is_some();
     let is_read_only = policy.safety.read_only;
-    let has_any = obligation_count > 0 || is_pin_policy || is_read_only;
+    let has_any = obligation_count > 0 || is_read_only;
     let obligation_label = t("policy.obligations");
 
     rsx! {
@@ -417,95 +416,11 @@ fn PolicyGuardrailBadges(policy: AdminPolicy) -> Element {
             if obligation_count > 0 {
                 Badge { variant: BadgeVariant::Default, "{obligation_count} {obligation_label}" }
             }
-            if is_pin_policy {
-                Badge { variant: BadgeVariant::Secondary, {t("policy.pin_policy")} }
-            }
             if is_read_only {
                 Badge { variant: BadgeVariant::Outline, {t("policy.read_only")} }
             }
             if !has_any {
                 span { class: "text-xs text-muted-foreground", {t("policy.guardrails_none")} }
-            }
-        }
-    }
-}
-
-#[component]
-fn PolicyPinSafetyPanel(policy: AdminPolicy) -> Element {
-    let safety = policy.safety.clone();
-    let Some(summary) = safety.pin_summary else {
-        return rsx! {};
-    };
-    let actions = summary.actions;
-    let pin_scopes = summary.pin_scopes;
-    let quota_limits = summary.quota_limits;
-    let note_policy = summary
-        .note_plaintext_policy
-        .unwrap_or_else(|| t("policy.pin_no_public_summary"));
-    let redacted = safety.redacted_private_categories;
-
-    rsx! {
-        div {
-            class: "space-y-3 rounded-md border border-border bg-muted/30 p-3",
-            "data-testid": "pin-policy-safety-panel",
-            div { class: "flex flex-wrap items-center justify-between gap-2",
-                h3 { class: "text-sm font-semibold", {t("policy.pin_safety_title")} }
-                Badge { variant: BadgeVariant::Outline, {t("policy.pin_standard_unavailable")} }
-            }
-            p { class: "text-sm text-muted-foreground",
-                {t("policy.pin_standard_unavailable_detail")}
-            }
-            if !redacted.is_empty() {
-                div { class: "rounded-md border border-destructive/30 bg-destructive/5 p-2 text-sm",
-                    div { class: "font-medium text-destructive", {t("policy.pin_redacted_private")} }
-                    div { class: "mt-2 flex flex-wrap gap-1",
-                        for category in redacted {
-                            Badge { variant: BadgeVariant::Destructive, "{category}" }
-                        }
-                    }
-                }
-            }
-            div { class: "grid gap-3 md:grid-cols-2",
-                PinSummaryList {
-                    label: t("policy.pin_actions"),
-                    values: actions,
-                }
-                PinSummaryList {
-                    label: t("policy.pin_scopes"),
-                    values: pin_scopes,
-                }
-                PinSummaryList {
-                    label: t("policy.pin_quota"),
-                    values: quota_limits,
-                }
-                div { class: "space-y-1",
-                    div { class: "text-xs font-semibold uppercase text-muted-foreground",
-                        {t("policy.pin_note_policy")}
-                    }
-                    div { class: "text-sm font-mono break-all", "{note_policy}" }
-                }
-            }
-        }
-    }
-}
-
-#[component]
-fn PinSummaryList(label: String, values: Vec<String>) -> Element {
-    rsx! {
-        div { class: "space-y-1",
-            div { class: "text-xs font-semibold uppercase text-muted-foreground", "{label}" }
-            if values.is_empty() {
-                div { class: "text-sm text-muted-foreground", {t("policy.pin_no_public_summary")} }
-            } else {
-                div { class: "flex flex-wrap gap-1",
-                    for value in values {
-                        Badge {
-                            variant: BadgeVariant::Secondary,
-                            class: "font-mono text-xs".to_string(),
-                            "{value}"
-                        }
-                    }
-                }
             }
         }
     }

@@ -7,8 +7,8 @@ use soland_contracts::admin::policy::{
 
 use crate::api::client::{NO_BODY, NoBody, api_client, build_url};
 use crate::types::policy::{
-    AdminPolicy, AdminPolicyListOutcome, CreatePolicyRequest, PinPolicySummary,
-    PolicyGuardrailSummary, PolicyObligation, PolicyRuleSet, PolicySafetySummary,
+    AdminPolicy, AdminPolicyListOutcome, CreatePolicyRequest, PolicyGuardrailSummary,
+    PolicyObligation, PolicyRuleSet, PolicySafetySummary,
 };
 use crate::utils::net::error::HttpError;
 
@@ -187,18 +187,6 @@ fn policy_safety_from_document(doc: &AdminPolicyDocument) -> PolicySafetySummary
             "pin policy summary standard surface unavailable; opaque resource is not inspected"
                 .to_owned(),
         ),
-        pin_summary: Some(PinPolicySummary {
-            standard_surface_available: false,
-            actions: doc
-                .payload
-                .actions
-                .iter()
-                .filter(|action| text_targets_pin_policy(action))
-                .cloned()
-                .collect(),
-            ..Default::default()
-        }),
-        redacted_private_categories: Vec::new(),
     }
 }
 
@@ -390,14 +378,12 @@ mod tests {
 
         let policy = policy_from_document(doc);
         assert!(policy.safety.read_only);
-        assert!(policy.safety.redacted_private_categories.is_empty());
-
-        let summary = policy.safety.pin_summary.as_ref().unwrap();
-        assert!(!summary.standard_surface_available);
-        assert!(summary.actions.iter().any(|v| v == event_kind_str::PIN_ADD));
-        assert!(summary.pin_scopes.is_empty());
-        assert!(summary.quota_limits.is_empty());
-        assert_eq!(summary.note_plaintext_policy, None);
+        assert_eq!(
+            policy.safety.read_only_reason.as_deref(),
+            Some(
+                "pin policy summary standard surface unavailable; opaque resource is not inspected"
+            )
+        );
 
         let public_rules = serde_json::to_string(&policy.rules.unwrap()).unwrap();
         assert!(!public_rules.contains("secret-realm-key"));

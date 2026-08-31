@@ -32,15 +32,14 @@ test.describe("pin policy guardrails", () => {
 
     const row = page.locator("tr").filter({ hasText: PIN_POLICY_ID }).first();
     await expect(row).toBeVisible({ timeout: 15_000 });
-    await expect(row).toContainText(/pin policy|pin 策略/i);
     await expect(row).toContainText(/read-only|只读/i);
 
     await expect(row.getByRole("button", { name: /delete|删除/i })).toBeDisabled();
     await row.getByRole("button", { name: /view|查看/i }).click();
 
-    const panel = page.getByTestId("pin-policy-safety-panel");
-    await expect(panel).toBeVisible();
-    await expect(panel).toContainText(/standard api unavailable|标准 api 不可用/i);
+    const reason = page.getByTestId("policy-read-only-reason");
+    await expect(reason).toBeVisible();
+    await expect(reason).toContainText(/standard surface unavailable/i);
     await expect(page.getByRole("button", { name: /save|保存/i })).toHaveCount(0);
 
     if (PRIVATE_SENTINEL) {

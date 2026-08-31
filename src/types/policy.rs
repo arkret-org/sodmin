@@ -86,24 +86,6 @@ pub struct PolicySafetySummary {
     pub read_only: bool,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub read_only_reason: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub pin_summary: Option<PinPolicySummary>,
-    #[serde(default)]
-    pub redacted_private_categories: Vec<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq)]
-pub struct PinPolicySummary {
-    #[serde(default)]
-    pub standard_surface_available: bool,
-    #[serde(default)]
-    pub actions: Vec<String>,
-    #[serde(default)]
-    pub pin_scopes: Vec<String>,
-    #[serde(default)]
-    pub quota_limits: Vec<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub note_plaintext_policy: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
