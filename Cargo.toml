@@ -29,23 +29,23 @@ arkret-wire = { path = "../arkret-rust-sdk/crates/wire", default-features = fals
 chrono = "0.4.45"
 coauth-account-types = { path = "../coauth/crates/account-types" }
 coauth-admin-types = { path = "../coauth/crates/admin-types" }
-dioxus = { version = "0.7.9", default-features = false }
-dioxus-logger = "0.7.9"
-futures-util = { version = "0.3.32", default-features = false }
+dioxus = { version = "=0.7.9", default-features = false }
+dioxus-logger = "=0.7.9"
+futures-util = { version = "0.3.34", default-features = false }
 gloo-net = "0.7"
 gloo-storage = "0.4.0"
 gloo-timers = "0.4"
-js-sys = "0.3.100"
-log = "0.4.32"
+js-sys = "0.3.104"
+log = "0.4.34"
 regex-lite = "0.1.9"
 reqwest = { version = "0.13", default-features = false }
-serde = "1.0.228"
-serde_json = "1.0.150"
+serde = "1.0.229"
+serde_json = "1.0.151"
 soland-contracts = { path = "../soland/crates/contracts" }
 urlencoding = "2.1.3"
-wasm-bindgen = "0.2.123"
-wasm-bindgen-futures = "0.4.73"
-web-sys = "0.3.100"
+wasm-bindgen = "0.2.127"
+wasm-bindgen-futures = "0.4.77"
+web-sys = "0.3.104"
 yoface = { git = "https://github.com/arkret-org/yoface", branch = "main" }
 
 [[bin]]
