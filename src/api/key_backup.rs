@@ -6,7 +6,6 @@ use arkret_identifiers::DidCoreId;
 use arkret_models_crypto::{KeysBackupsList, RecoveryPolicySummary};
 
 use crate::api::client::{NO_BODY, api_client, build_url};
-use crate::types::ListResponse;
 use crate::utils::net::error::HttpError;
 
 // Recovery policy browse is a soland identity extension on the
@@ -15,14 +14,10 @@ use crate::utils::net::error::HttpError;
 // document/log/receipts/submit-did-operation/recovery-sessions).
 const RECOVERY_POLICIES_PATH: &str = "/_soland/root/identity/recovery-policies";
 
-#[derive(Debug, Clone, serde::Deserialize, Default)]
+#[derive(Debug, Clone, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
 struct RecoveryPoliciesEnvelope {
-    #[serde(default)]
     policies: Vec<RecoveryPolicySummary>,
-    #[serde(default)]
-    next_cursor: Option<String>,
-    #[serde(default)]
-    total: Option<u64>,
 }
 
 /// `GET /_soland/admin/key-backups?series_id=&backup_kind=` — list backup
@@ -46,18 +41,14 @@ pub async fn list_backups(
 /// `GET /_soland/root/identity/recovery-policies` — current recovery policies.
 pub async fn list_recovery_policies(
     principal_id: Option<&DidCoreId>,
-) -> Result<ListResponse<RecoveryPolicySummary>, HttpError> {
+) -> Result<Vec<RecoveryPolicySummary>, HttpError> {
     let mut params: Vec<(&str, &str)> = Vec::with_capacity(1);
     if let Some(principal_id) = principal_id {
         params.push(("principal_id", principal_id.as_str()));
     }
     let url = build_url(RECOVERY_POLICIES_PATH, &params)?;
     let resp: RecoveryPoliciesEnvelope = api_client(&url, "GET", NO_BODY).await?;
-    Ok(ListResponse {
-        data: resp.policies,
-        total: resp.total,
-        next_cursor: resp.next_cursor,
-    })
+    Ok(resp.policies)
 }
 
 // NOTE: `POST /_soland/root/identity/recovery-policy` requires the full

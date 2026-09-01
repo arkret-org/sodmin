@@ -31,31 +31,17 @@ pub fn KeyBackupList() -> Element {
         let series_q = series_q.clone();
         let class_q = class_q.clone();
         async move {
-            let s = if series_q.is_empty() {
+            let series_id = if series_q.is_empty() {
                 None
             } else {
                 Some(series_q.as_str())
             };
-            let c = if class_q.is_empty() {
+            let backup_kind = if class_q.is_empty() {
                 None
             } else {
                 Some(class_q.as_str())
             };
-            // Re-bind to satisfy borrow checker — we own the strings.
-            let _ = (s, c);
-            let series_owned = series_q.clone();
-            let class_owned = class_q.clone();
-            let s2 = if series_owned.is_empty() {
-                None
-            } else {
-                Some(series_owned.as_str())
-            };
-            let c2 = if class_owned.is_empty() {
-                None
-            } else {
-                Some(class_owned.as_str())
-            };
-            key_backup::list_backups(s2, c2).await
+            key_backup::list_backups(series_id, backup_kind).await
         }
     });
 
@@ -195,7 +181,7 @@ pub fn KeyBackupList() -> Element {
                                 }
                             }
                             TableBody {
-                                if resp.data.is_empty() {
+                                if resp.is_empty() {
                                     TableRow {
                                         TableCell { colspan: 99,
                                             class: "text-center text-muted-foreground py-6".to_string(),
@@ -203,7 +189,7 @@ pub fn KeyBackupList() -> Element {
                                         }
                                     }
                                 } else {
-                                    for p in resp.data.iter() {
+                                    for p in resp.iter() {
                                         {render_policy_row(p)}
                                     }
                                 }

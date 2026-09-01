@@ -31,7 +31,6 @@ pub async fn get_server_status() -> Result<AdminServerStatus, HttpError> {
 /// Each service exposes a `hardening` block (see `HardeningStatus`).
 #[derive(Debug, Clone, serde::Deserialize, Default)]
 pub struct HealthEnvelope {
-    #[serde(default)]
     pub hardening: Option<HardeningStatus>,
 }
 

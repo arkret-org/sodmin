@@ -396,9 +396,7 @@ pub async fn handle_oauth_callback(code: &str, state: Option<&str>) -> Result<()
 
 #[derive(Deserialize)]
 struct TokenResponse {
-    #[serde(default)]
     expires_in: Option<u64>,
-    #[serde(default)]
     id_token: Option<String>,
 }
 

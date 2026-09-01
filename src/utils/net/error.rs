@@ -16,9 +16,8 @@ pub struct AdminErrorEnvelope {
     /// Field name is kept as `errcode` for the local consumers; it is
     /// NOT a wire field name.
     pub errcode: String,
-    #[serde(default)]
     pub error: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub retry_after_ms: Option<u64>,
     #[serde(flatten)]
     pub extra: BTreeMap<String, serde_json::Value>,
