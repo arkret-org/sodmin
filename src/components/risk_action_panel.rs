@@ -553,7 +553,7 @@ fn format_risk_action_execute_status(execution: &coauth::CoauthAccountRiskAction
         execution.execution_state,
         execution.state_revision,
         execution.transition_kind,
-        execution.executed_at.as_deref().unwrap_or("missing"),
+        execution.executed_at,
         execution.execution_note.as_deref().unwrap_or("missing"),
     )
 }

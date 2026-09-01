@@ -1,6 +1,6 @@
 //! coauth admin user-registration tokens.
 
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 
 use super::pagination::{get_jsonapi_cursor_page, map_single_resource};
 use crate::api::client::{NoBody, api_client};
@@ -9,24 +9,16 @@ use crate::utils::net::error::HttpError;
 
 const USER_REGISTRATION_TOKENS_PATH: &str = "/_coauth/admin/user-registration-tokens";
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Serialize)]
 #[non_exhaustive]
 pub struct CoauthRegistrationToken {
-    #[serde(default)]
     pub id: String,
-    #[serde(default)]
     pub token: Option<String>,
-    #[serde(default)]
     pub uses_allowed: Option<u64>,
-    #[serde(default)]
     pub uses_completed: u64,
-    #[serde(default)]
     pub uses_pending: u64,
-    #[serde(default)]
     pub expires_at: Option<String>,
-    #[serde(default)]
     pub created_at: Option<String>,
-    #[serde(default)]
     pub is_revoked: bool,
 }
 

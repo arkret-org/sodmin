@@ -17,26 +17,17 @@ const ACCOUNTS_PATH: &str = "/_coauth/admin/accounts";
 const BRIDGE_DESCRIBE_PATH: &str = "/_coauth/admin/bridge/describe";
 const COAUTH_INTEGRATION_DESCRIBE_PATH: &str = "/_coauth/account/integration/describe";
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Serialize)]
 #[non_exhaustive]
 pub struct CoauthAccountSummary {
-    #[serde(default)]
     pub id: String,
-    #[serde(default)]
     pub username: Option<String>,
-    #[serde(default)]
     pub display_name: Option<String>,
-    #[serde(default)]
     pub avatar_url: Option<String>,
-    #[serde(default)]
     pub primary_principal_id: Option<DidCoreId>,
-    #[serde(default)]
     pub is_locked: bool,
-    #[serde(default)]
     pub is_deactivated: bool,
-    #[serde(default)]
     pub created_at: Option<String>,
-    #[serde(default)]
     pub updated_at: Option<String>,
 }
 
@@ -52,44 +43,31 @@ impl CoauthAccountSummary {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 #[non_exhaustive]
 pub struct CoauthManagedDidBinding {
-    #[serde(default)]
     pub did: String,
-    #[serde(default)]
     pub kind: DidBindingKind,
-    #[serde(default)]
     pub state: DidBindingState,
-    #[serde(default)]
     pub verification_status: DidBindingVerificationStatus,
-    #[serde(default)]
     pub primary: bool,
-    #[serde(default)]
     pub last_verified_at: Option<String>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 #[non_exhaustive]
 pub struct CoauthAccountClaim {
-    #[serde(default)]
     pub id: String,
-    #[serde(default)]
     pub claim_kind: String,
-    #[serde(default)]
     pub value: Option<String>,
-    #[serde(default)]
     pub state: Option<String>,
-    #[serde(default)]
     pub source: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Serialize)]
 #[non_exhaustive]
 pub struct CoauthRiskActionHook {
-    #[serde(default)]
     pub endpoint: String,
-    #[serde(default)]
     pub approval_mode: String,
 }
 
@@ -98,24 +76,16 @@ pub use coauth_admin_types::{
     IntegrationManifest,
 };
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Serialize)]
 #[non_exhaustive]
 pub struct CoauthAccountDetail {
-    #[serde(default)]
     pub account: CoauthAccountSummary,
-    #[serde(default)]
     pub managed_dids: Vec<CoauthManagedDidBinding>,
-    #[serde(default)]
     pub claims: Vec<CoauthAccountClaim>,
-    #[serde(default)]
     pub risk_action_current: AccountRiskActionCurrentOutcome,
-    #[serde(default)]
     pub risk_action_history: Vec<AccountRiskActionTransitionRecord>,
-    #[serde(default)]
     pub risk_action_hook: CoauthRiskActionHook,
-    #[serde(default)]
     pub admin_bridge: AdminBridgeDescribe,
-    #[serde(default)]
     pub integration_manifest: IntegrationManifest,
 }
 
@@ -126,35 +96,22 @@ pub use coauth_admin_types::{
     AccountRiskActionProposalRequestBody, AccountRiskActionTransitionRecord,
 };
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[non_exhaustive]
 pub struct CoauthAccountRiskActionExecute {
-    #[serde(default)]
     pub state_record_id: String,
-    #[serde(default)]
     pub proposal_id: String,
-    #[serde(default)]
     pub account_id: String,
-    #[serde(default)]
     pub action: String,
-    #[serde(default)]
     pub ticket: Option<String>,
-    #[serde(default)]
     pub previous_state: String,
-    #[serde(default)]
     pub execution_state: String,
-    #[serde(default)]
+    pub mutation_kind: String,
     pub state_revision: u64,
-    #[serde(default)]
     pub transition_kind: String,
-    #[serde(default)]
-    pub executed_at: Option<String>,
-    #[serde(default)]
+    pub executed_at: String,
     pub execution_note: Option<String>,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub account:
-        Option<coauth_admin_types::SingleOutcome<coauth_admin_types::AdminAccountAttributes>>,
-    #[serde(default)]
+    pub account: coauth_admin_types::SingleOutcome<coauth_admin_types::AdminAccountAttributes>,
     pub allowed_next_transitions: Vec<String>,
 }
 

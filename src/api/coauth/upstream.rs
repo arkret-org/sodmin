@@ -1,6 +1,6 @@
 //! coauth admin upstream OAuth providers and account links.
 
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 
 use super::pagination::{get_jsonapi_cursor_page, map_single_resource};
 use crate::api::client::{NO_BODY, NoBody, api_client};
@@ -10,20 +10,16 @@ use crate::utils::net::error::HttpError;
 const UPSTREAM_OAUTH_PROVIDERS_PATH: &str = "/_coauth/admin/upstream-oauth-providers";
 const UPSTREAM_OAUTH_LINKS_PATH: &str = "/_coauth/admin/upstream-oauth-links";
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Serialize)]
 #[non_exhaustive]
 pub struct CoauthUpstreamProvider {
-    #[serde(default)]
     pub id: String,
-    #[serde(default)]
     pub oidc_issuer_uri: Option<String>,
-    #[serde(default)]
     pub is_enabled: bool,
-    #[serde(default)]
     pub created_at: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Serialize)]
 pub struct CreateUpstreamProviderRequest {
     pub oidc_issuer_uri: String,
     pub client_id: String,
@@ -54,18 +50,13 @@ struct UpstreamProviderRequestBody {
     on_backchannel_logout: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Serialize)]
 #[non_exhaustive]
 pub struct CoauthUpstreamLink {
-    #[serde(default)]
     pub id: String,
-    #[serde(default)]
     pub user_id: Option<String>,
-    #[serde(default)]
     pub provider_id: Option<String>,
-    #[serde(default)]
     pub subject: Option<String>,
-    #[serde(default)]
     pub created_at: Option<String>,
 }
 

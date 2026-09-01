@@ -117,7 +117,7 @@ mod tests {
                 "extension_profile_required": null
             }],
             "supported_features": [],
-            "auth_metadata": { "mode": "production" },
+            "auth_metadata": {},
             "limits": {
                 "profile_status": {
                     "conformance": "limited_reference",

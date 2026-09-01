@@ -1,10 +1,10 @@
 //! DTO shapes for the policy admin surface.
 
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 
 // ── Policy types ──
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, PartialEq)]
 #[serde(transparent)]
 pub struct PolicyRuleSet(serde_json::Value);
 
@@ -30,7 +30,7 @@ impl From<serde_json::Value> for PolicyRuleSet {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Clone, Serialize, PartialEq)]
 #[serde(transparent)]
 pub struct PolicyObligation(serde_json::Value);
 
@@ -40,55 +40,40 @@ impl From<serde_json::Value> for PolicyObligation {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq)]
+#[derive(Debug, Clone, Serialize, PartialEq)]
 pub struct AdminPolicy {
-    #[serde(default)]
     pub id: String,
-    #[serde(default)]
     pub name: String,
-    #[serde(default)]
     pub policy_kind: Option<String>,
-    #[serde(default)]
     pub description: Option<String>,
-    #[serde(default)]
     pub scope: Option<String>,
-    #[serde(default)]
     pub subject_ref: Option<String>,
-    #[serde(default)]
     pub rules: Option<PolicyRuleSet>,
-    #[serde(default)]
     pub is_enabled: bool,
-    #[serde(default)]
     pub priority: i32,
-    #[serde(default)]
     pub created_at: Option<String>,
-    #[serde(default)]
     pub updated_at: Option<String>,
-    #[serde(default)]
     pub guardrails: PolicyGuardrailSummary,
-    #[serde(default)]
     pub safety: PolicySafetySummary,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq)]
+#[derive(Debug, Clone, Serialize, PartialEq)]
 pub struct PolicyGuardrailSummary {
     /// Typed top-level obligations owned by `AdminPolicyPayload`.
     ///
     /// The payload's `resource` member is deliberately open operator JSON;
     /// no approval-evidence or audit-trail shape is inferred from it.
-    #[serde(default)]
     pub obligations: Vec<PolicyObligation>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq)]
+#[derive(Debug, Clone, Serialize, Default, PartialEq)]
 pub struct PolicySafetySummary {
-    #[serde(default)]
     pub read_only: bool,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub read_only_reason: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Serialize, Default)]
 pub struct CreatePolicyRequest {
     pub name: String,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -101,9 +86,7 @@ pub struct CreatePolicyRequest {
     pub subject_ref: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub rules: Option<PolicyRuleSet>,
-    #[serde(default)]
     pub is_enabled: bool,
-    #[serde(default)]
     pub priority: i32,
 }
 

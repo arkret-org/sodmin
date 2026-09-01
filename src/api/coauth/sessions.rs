@@ -1,6 +1,6 @@
 //! coauth admin OAuth2 sessions and personal sessions.
 
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 
 use super::pagination::{get_jsonapi_cursor_page, map_single_resource};
 use crate::api::client::{NO_BODY, api_client};
@@ -10,46 +10,33 @@ use crate::utils::net::error::HttpError;
 const OAUTH2_SESSIONS_PATH: &str = "/_coauth/admin/oauth-sessions";
 const PERSONAL_SESSIONS_PATH: &str = "/_coauth/admin/personal-sessions";
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Serialize)]
 #[non_exhaustive]
 pub struct CoauthOAuth2Session {
-    #[serde(default)]
     pub id: String,
-    #[serde(default)]
     pub user_id: Option<String>,
-    #[serde(default)]
     pub client_id: Option<String>,
-    #[serde(default)]
     pub scope: Option<String>,
-    #[serde(default)]
     pub human_name: Option<String>,
-    #[serde(default)]
     pub created_at: Option<String>,
-    #[serde(default)]
     pub finished_at: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Serialize)]
 #[non_exhaustive]
 pub struct CoauthPersonalSessionRow {
-    #[serde(default)]
     pub id: String,
-    #[serde(default)]
     pub user_id: Option<String>,
-    #[serde(default)]
     pub name: Option<String>,
-    #[serde(default)]
     pub created_at: Option<String>,
-    #[serde(default)]
     pub last_active_at: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Serialize)]
 #[non_exhaustive]
 pub struct CoauthPersonalSessionOneShot {
     #[serde(flatten)]
     pub session: CoauthPersonalSessionRow,
-    #[serde(default)]
     pub access_token: Option<String>,
 }
 
@@ -159,15 +146,13 @@ mod tests {
 
     #[test]
     fn personal_session_row_drops_token_fields() {
-        let row: CoauthPersonalSessionRow = serde_json::from_value(serde_json::json!({
-            "id": "session-1",
-            "user_id": "user-1",
-            "name": "ops key",
-            "created_at": "2026-06-07T00:00:00.000Z",
-            "token": "secret-token",
-            "access_token": "secret-access-token"
-        }))
-        .expect("row should deserialize while ignoring one-shot secrets");
+        let row = CoauthPersonalSessionRow {
+            id: "session-1".to_owned(),
+            user_id: Some("user-1".to_owned()),
+            name: Some("ops key".to_owned()),
+            created_at: Some("2026-06-07T00:00:00.000Z".to_owned()),
+            last_active_at: None,
+        };
 
         assert_eq!(row.id, "session-1");
         assert_eq!(row.user_id.as_deref(), Some("user-1"));
@@ -180,12 +165,16 @@ mod tests {
 
     #[test]
     fn personal_session_one_shot_uses_current_access_token_field() {
-        let response: CoauthPersonalSessionOneShot = serde_json::from_value(serde_json::json!({
-            "id": "session-1",
-            "name": "ops key",
-            "access_token": "secret-access-token"
-        }))
-        .expect("one-shot response should deserialize");
+        let response = CoauthPersonalSessionOneShot {
+            session: CoauthPersonalSessionRow {
+                id: "session-1".to_owned(),
+                user_id: None,
+                name: Some("ops key".to_owned()),
+                created_at: None,
+                last_active_at: None,
+            },
+            access_token: Some("secret-access-token".to_owned()),
+        };
 
         assert_eq!(response.session.name.as_deref(), Some("ops key"));
         assert_eq!(
