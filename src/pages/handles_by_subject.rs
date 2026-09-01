@@ -10,7 +10,7 @@
 //! renders the visible claims plus the §3.2.1 primary handle.
 //!
 //! Each claim row carries a "Why am I seeing this?" tooltip exposing the
-//! issuer ID + binding_state + created_at so the operator understands
+//! issuer ID + status-view state + issued_at so the operator understands
 //! the disclosure provenance.
 //!
 //! `MemberIdentity` no longer carries handle fields (arkret-spec @
@@ -34,7 +34,7 @@ use crate::components::ui::input::{Input, LabelFor};
 use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::table::*;
-use crate::types::{DirectoryListHandlesForSubjectRequestBody, HandleBindingState, HandleClaim};
+use crate::types::{DirectoryListHandlesForSubjectRequestBody, HandleClaim, HandleClaimStatus};
 use crate::utils::i18n::t;
 use crate::utils::security::handle::display_sigil;
 use crate::utils::security::primary_handle::{
@@ -199,7 +199,7 @@ fn results_card(
                         TableRow {
                             TableHead { {t("handles_by_subject.col_handle")} }
                             TableHead { {t("handles_by_subject.col_issuer")} }
-                            TableHead { {t("handles_by_subject.col_binding")} }
+                            TableHead { {t("handles_by_subject.col_status")} }
                             TableHead { {t("handles_by_subject.col_expires")} }
                             TableHead { {t("handles_by_subject.col_why")} }
                         }
@@ -231,27 +231,28 @@ fn results_card(
 }
 
 fn claim_row(claim: &HandleClaim, primary: Option<&str>) -> Element {
-    let handle = claim.handle.canonical().to_owned();
-    let sigil = display_sigil(claim.handle.canonical());
-    let issuer = claim.issuer_id.to_string();
+    let handle = claim.claim.handle.canonical().to_owned();
+    let sigil = display_sigil(claim.claim.handle.canonical());
+    let issuer = claim.claim.issuer_id.to_string();
     let expires = claim
+        .claim
         .expires_at
         .as_ref()
         .map(|dt| dt.to_rfc3339())
         .unwrap_or_else(|| "-".to_string());
-    let created = claim.created_at.to_rfc3339();
-    let (binding_label, binding_variant) = binding_badge(claim.binding_state);
-    let is_primary = primary.is_some_and(|value| value == claim.handle.canonical());
-    // "Why am I seeing this?" provenance: issuer ID + binding_state +
-    // created_at. Spec §17 derived-projection disclosure rationale.
+    let issued = claim.claim.issued_at.to_rfc3339();
+    let (status_label, status_variant) = status_badge(claim.status);
+    let is_primary = primary.is_some_and(|value| value == claim.claim.handle.canonical());
+    // "Why am I seeing this?" provenance: core issuer ID + verified status-view
+    // state + core issued_at. Spec §17 derived-projection disclosure rationale.
     let why = format!(
         "{}: {} \u{00b7} {}: {} \u{00b7} {}: {}",
         t("handles_by_subject.why_issuer"),
         issuer,
-        t("handles_by_subject.why_binding"),
-        binding_label,
-        t("handles_by_subject.why_created"),
-        created,
+        t("handles_by_subject.why_status"),
+        status_label,
+        t("handles_by_subject.why_issued"),
+        issued,
     );
 
     rsx! {
@@ -274,7 +275,7 @@ fn claim_row(claim: &HandleClaim, primary: Option<&str>) -> Element {
             }
             TableCell { class: "font-mono text-xs break-all".to_string(), "{issuer}" }
             TableCell {
-                Badge { variant: binding_variant, "{binding_label}" }
+                Badge { variant: status_variant, "{status_label}" }
             }
             TableCell { class: "font-mono text-xs".to_string(), "{expires}" }
             TableCell {
@@ -288,23 +289,19 @@ fn claim_row(claim: &HandleClaim, primary: Option<&str>) -> Element {
     }
 }
 
-fn binding_badge(state: HandleBindingState) -> (String, BadgeVariant) {
-    match state {
-        HandleBindingState::Verified => (
-            t("handles_by_subject.binding_verified"),
+fn status_badge(status: HandleClaimStatus) -> (String, BadgeVariant) {
+    match status {
+        HandleClaimStatus::Verified => (
+            t("handles_by_subject.status_verified"),
             BadgeVariant::Success,
         ),
-        HandleBindingState::Pending => (
-            t("handles_by_subject.binding_pending"),
+        HandleClaimStatus::Pending => (
+            t("handles_by_subject.status_pending"),
             BadgeVariant::Outline,
         ),
-        HandleBindingState::Revoked => (
-            t("handles_by_subject.binding_revoked"),
+        HandleClaimStatus::Revoked => (
+            t("handles_by_subject.status_revoked"),
             BadgeVariant::Destructive,
-        ),
-        HandleBindingState::Expired => (
-            t("handles_by_subject.binding_expired"),
-            BadgeVariant::Secondary,
         ),
     }
 }

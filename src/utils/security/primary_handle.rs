@@ -10,7 +10,7 @@
 //! This module no longer carries its own copy of the algorithm: the
 //! authoritative, wasm-safe implementation lives in `arkret-models-identity`
 //! (`arkret_models_identity::primary_handle`, SPEC-CR-019),
-//! and `arkret_models_identity::{HandleClaim, HandleBindingState, Handle}`
+//! and `arkret_models_identity::{HandleClaim, HandleClaimStatus, Handle}`
 //! are the exact types the admin DTOs already re-export. We simply
 //! re-export the owner helpers so inkson / soland / cotest / sodmin all
 //! agree on which claim wins from a single source of truth.
@@ -19,13 +19,13 @@
 //! `(subject_id, context, claim_set_snapshot, accepted_issuers,
 //! holder_primary_handle_at_as_of, resolution_as_of)`.
 //!
-//! Step 0 — candidate pre-filter: `binding_state == Verified`,
-//! `created_at <= resolution_as_of`, `expires_at > resolution_as_of`,
+//! Step 0 — candidate pre-filter: `status == Verified`,
+//! `issued_at <= resolution_as_of`, `expires_at > resolution_as_of`,
 //! issuer ∈ `accepted_issuers`, audience scope match.
 //! Step 1 — priority layers: audience-matched > holder-flagged >
 //! most-recent.
 //! Step 2 — deterministic tie-breaker: `accepted_issuers` position
-//! (earlier wins) → `created_at` (later wins) → canonical handle
+//! (earlier wins) → `issued_at` (later wins) → canonical handle
 //! string (lexicographically smaller wins).
 
 pub use arkret_models_identity::primary_handle::{

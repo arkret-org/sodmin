@@ -2,7 +2,7 @@ pub use arkret_models_discovery::ops::HardeningStatus;
 pub use arkret_models_discovery::{
     DirectoryListHandlesForSubjectRequestBody, DirectorySubjectHandleList,
 };
-pub use arkret_models_identity::{HandleBindingState, HandleClaim};
+pub use arkret_models_identity::{HandleClaim, HandleClaimStatus};
 use serde::{Deserialize, Serialize};
 
 // ── Pagination ──
