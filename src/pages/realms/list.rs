@@ -5,7 +5,6 @@ use crate::components::ui::auto_refresh::{self, AutoRefreshPicker, RefreshInterv
 use crate::components::ui::button::{Button, ButtonSize, ButtonVariant};
 use crate::components::ui::error_banner::ErrorBanner;
 use crate::components::ui::icons::Icon;
-use crate::components::ui::input::SearchInput;
 use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::pagination::CursorPagination;
@@ -22,16 +21,13 @@ const AUTOREFRESH_STORAGE_KEY: &str = "sodmin.realms.autorefresh";
 #[component]
 pub fn RealmList() -> Element {
     let mut cursor_stack = use_signal(|| vec![None::<String>]);
-    let mut search = use_signal(String::new);
     let mut autorefresh = use_signal(|| auto_refresh::load(AUTOREFRESH_STORAGE_KEY));
 
     let cursor_snapshot = cursor_stack.read().last().cloned().unwrap_or(None);
-    let search_val = search.read().clone();
 
     let mut data = use_resource(move || {
         let cursor = cursor_snapshot.clone();
-        let s = search_val.clone();
-        async move { realms::list_realms(cursor.as_deref(), PAGE_SIZE, &s).await }
+        async move { realms::list_realms(cursor.as_deref(), PAGE_SIZE).await }
     });
 
     let mut interval_handle = use_signal::<Option<gloo_timers::callback::Interval>>(|| None);
@@ -78,17 +74,7 @@ pub fn RealmList() -> Element {
                 }
             }
 
-            div { class: "flex items-center gap-4 flex-wrap",
-                div { class: "flex-1 min-w-[240px]",
-                    SearchInput {
-                        value: search(),
-                        placeholder: t("realms.search_placeholder"),
-                        oninput: move |evt: FormEvent| {
-                            search.set(evt.value());
-                            cursor_stack.set(vec![None::<String>]);
-                        },
-                    }
-                }
+            div { class: "flex items-center gap-4 flex-wrap justify-end",
                 AutoRefreshPicker {
                     storage_key: AUTOREFRESH_STORAGE_KEY.to_string(),
                     value: *autorefresh.read(),

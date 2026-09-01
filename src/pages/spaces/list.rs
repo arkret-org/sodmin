@@ -61,6 +61,7 @@ pub fn SpaceList() -> Element {
                         search.set(evt.value());
                     },
                 }
+                p { class: "mt-1 text-xs text-muted-foreground", {t("spaces.search_current_page_hint")} }
             }
 
             match &*data.read() {

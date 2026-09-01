@@ -9,18 +9,17 @@ use crate::components::ui::input::{Input, LabelFor};
 use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::modal::{DialogActions, Modal};
 use crate::components::ui::page_header::PageHeader;
-use crate::components::ui::pagination::CursorPagination;
 use crate::components::ui::table::*;
 use crate::components::ui::toast::{ToastVariant, show_toast};
 use crate::types::policy::{AdminPolicy, CreatePolicyRequest};
 use crate::utils::i18n::t;
-use crate::utils::net::error::{HttpError, should_reset_cursor_pagination};
-
-const PAGE_SIZE: u64 = 25;
+use crate::utils::net::error::HttpError;
 
 #[component]
 pub fn PolicyList() -> Element {
-    let mut cursor_stack = use_signal(|| vec![None::<String>]);
+    let mut filter_scope = use_signal(String::new);
+    let mut filter_subject_ref = use_signal(String::new);
+    let mut include_inactive = use_signal(|| false);
     let mut show_dialog = use_signal(|| false);
     let mut show_delete_dialog = use_signal(|| None::<String>);
     let mut editing_id = use_signal(|| None::<String>);
@@ -36,12 +35,13 @@ pub fn PolicyList() -> Element {
     let mut dialog_read_only = use_signal(|| false);
     let mut page_error = use_signal(|| None::<String>);
 
-    let cursor_snapshot = cursor_stack.read().last().cloned().unwrap_or(None);
-    let cursor_for_fetch = cursor_snapshot.clone();
-
     let mut data = use_resource(move || {
-        let cursor = cursor_for_fetch.clone();
-        async move { policy::list_policies(cursor.as_deref(), PAGE_SIZE).await }
+        let filter = policy::PolicyListFilter {
+            scope: filter_scope.read().clone(),
+            subject_ref: filter_subject_ref.read().clone(),
+            include_inactive: *include_inactive.read(),
+        };
+        async move { policy::list_policies(filter).await }
     });
 
     rsx! {
@@ -72,10 +72,33 @@ pub fn PolicyList() -> Element {
                 ErrorBanner { message }
             }
 
+            div { class: "grid gap-3 rounded-md border p-4 md:grid-cols-3",
+                div { class: "space-y-1",
+                    LabelFor { {t("policy.filter_scope")} }
+                    Input {
+                        value: filter_scope.read().clone(),
+                        oninput: move |evt: FormEvent| filter_scope.set(evt.value()),
+                    }
+                }
+                div { class: "space-y-1",
+                    LabelFor { {t("policy.filter_subject")} }
+                    Input {
+                        value: filter_subject_ref.read().clone(),
+                        oninput: move |evt: FormEvent| filter_subject_ref.set(evt.value()),
+                    }
+                }
+                label { class: "flex items-center gap-2 self-end pb-2 text-sm",
+                    input {
+                        r#type: "checkbox",
+                        checked: *include_inactive.read(),
+                        onchange: move |evt: Event<FormData>| include_inactive.set(evt.checked()),
+                    }
+                    {t("policy.filter_include_inactive")}
+                }
+            }
+
             match &*data.read() {
                 Some(Ok(resp)) => {
-                    let next_cursor = resp.next_cursor.clone();
-                    let stack_depth = cursor_stack.read().len();
                     rsx! {
                         div { class: "rounded-md border",
                             Table {
@@ -188,39 +211,10 @@ pub fn PolicyList() -> Element {
                             }
                         }
                         }
-                        CursorPagination {
-                            depth: stack_depth,
-                            has_next: next_cursor.is_some(),
-                            on_prev: move |_| {
-                                let mut new_stack = cursor_stack.read().clone();
-                                if new_stack.len() > 1 {
-                                    new_stack.pop();
-                                    cursor_stack.set(new_stack);
-                                }
-                            },
-                            on_next: move |_| {
-                                if let Some(c) = next_cursor.clone() {
-                                    let mut new_stack = cursor_stack.read().clone();
-                                    new_stack.push(Some(c));
-                                    cursor_stack.set(new_stack);
-                                }
-                            },
-                        }
                     }
                 },
-                Some(Err(e)) => {
-                    let reset_cursor = should_reset_cursor_pagination(e, cursor_snapshot.as_deref());
-                    rsx! {
-                        ErrorBanner {
-                            message: e.message.clone(),
-                            on_retry: move |_| {
-                                if reset_cursor {
-                                    cursor_stack.set(vec![None::<String>]);
-                                }
-                                data.restart();
-                            },
-                        }
-                    }
+                Some(Err(e)) => rsx! {
+                    ErrorBanner { message: e.message.clone(), on_retry: move |_| data.restart() }
                 },
                 None => rsx! { PageSkeleton {} },
             }

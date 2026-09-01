@@ -19,7 +19,7 @@ impl AuditFeedFilter {
     fn into_query(self) -> Vec<(&'static str, String)> {
         [
             ("admin_user_id", self.actor_user_id),
-            ("resource_kind", self.target_type),
+            ("resource_type", self.target_type),
         ]
         .into_iter()
         .filter_map(|(k, v)| {
@@ -28,6 +28,22 @@ impl AuditFeedFilter {
                 .map(|s| (k, s))
         })
         .collect()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::AuditFeedFilter;
+
+    #[test]
+    fn target_type_uses_backend_query_contract_name() {
+        let query = AuditFeedFilter {
+            target_type: Some("account".to_owned()),
+            ..Default::default()
+        }
+        .into_query();
+
+        assert_eq!(query, vec![("resource_type", "account".to_owned())]);
     }
 }
 

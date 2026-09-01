@@ -1,6 +1,6 @@
 use dioxus::prelude::*;
 
-use crate::api::coauth::{self, AccountListFilter};
+use crate::api::coauth;
 use crate::components::ui::button::{Button, ButtonSize, ButtonVariant};
 use crate::components::ui::error_banner::ErrorBanner;
 use crate::components::ui::input::Input;
@@ -24,21 +24,11 @@ pub fn AccountsPage() -> Element {
     // stack; clicking "Previous" pops one off.
     let mut cursor_stack = use_signal(|| vec![None::<String>]);
     let mut search = use_signal(String::new);
-    let mut handle_filter = use_signal(String::new);
-    let mut display_name_filter = use_signal(String::new);
 
     let mut data = use_resource(move || {
         let cursor = cursor_stack.read().last().cloned().unwrap_or(None);
         let search = search.read().clone();
-        let handle = handle_filter.read().clone();
-        let display_name = display_name_filter.read().clone();
-        async move {
-            let filter = AccountListFilter {
-                handle,
-                display_name,
-            };
-            coauth::list_accounts_cursor(cursor.as_deref(), PAGE_SIZE, &search, &filter).await
-        }
+        async move { coauth::list_accounts_cursor(cursor.as_deref(), PAGE_SIZE, &search).await }
     });
 
     // Reset back to the first page when any filter input changes. The
@@ -64,29 +54,13 @@ pub fn AccountsPage() -> Element {
                 div { class: "text-sm text-muted-foreground",
                     {t("coauth_accounts.filters_hint")}
                 }
-                div { class: "grid gap-3 md:grid-cols-3",
+                div { class: "max-w-md",
                     Input {
                         value: search.read().clone(),
                         placeholder: t("coauth_accounts.search_placeholder"),
                         oninput: move |evt: FormEvent| {
                             reset_to_first_page();
                             search.set(evt.value());
-                        },
-                    }
-                    Input {
-                        value: handle_filter.read().clone(),
-                        placeholder: t("coauth_accounts.filter_handle_placeholder"),
-                        oninput: move |evt: FormEvent| {
-                            reset_to_first_page();
-                            handle_filter.set(evt.value());
-                        },
-                    }
-                    Input {
-                        value: display_name_filter.read().clone(),
-                        placeholder: t("coauth_accounts.filter_display_name_placeholder"),
-                        oninput: move |evt: FormEvent| {
-                            reset_to_first_page();
-                            display_name_filter.set(evt.value());
                         },
                     }
                 }
@@ -118,7 +92,6 @@ pub fn AccountsPage() -> Element {
                                         TableHead { {t("coauth_accounts.display_name")} }
                                         TableHead { {t("common.status")} }
                                         TableHead { {t("coauth_account_detail.primary_principal_id")} }
-                                        TableHead { {t("coauth_accounts.bridge")} }
                                         TableHead { class: "text-right".to_string(), {t("common.actions")} }
                                     }
                                 }
@@ -139,7 +112,6 @@ pub fn AccountsPage() -> Element {
                                                     .primary_principal_id
                                                     .as_ref()
                                                     .map_or("-", arkret_identifiers::DidCoreId::as_str);
-                                                let bridge_status = account.bridge_status.clone();
                                                 let status = account.lifecycle_label();
 
                                                 rsx! {
@@ -149,7 +121,6 @@ pub fn AccountsPage() -> Element {
                                                         TableCell { "{display_name}" }
                                                         TableCell { "{status}" }
                                                         TableCell { "{primary_principal_id}" }
-                                                        TableCell { class: "font-mono text-xs".to_string(), "{bridge_status}" }
                                                         TableCell { class: "text-right".to_string(),
                                                             Link {
                                                                 to: Route::CoauthAccountShow { account_id: account_id.clone() },

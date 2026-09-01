@@ -120,11 +120,15 @@ pub fn InviteTokenList() -> Element {
                         }
                     }
 
-                    Pagination {
-                        page: page_val,
-                        total: resp.total_or_page_floor(page_val, PAGE_SIZE),
-                        per_page: PAGE_SIZE,
-                        on_page_change: move |p| page.set(p),
+                    if let Some(total) = resp.total {
+                        Pagination {
+                            page: page_val,
+                            total,
+                            per_page: PAGE_SIZE,
+                            on_page_change: move |p| page.set(p),
+                        }
+                    } else {
+                        p { class: "text-sm text-muted-foreground", {t("pagination.total_unknown")} }
                     }
                 },
                 Some(Err(e)) => rsx! {

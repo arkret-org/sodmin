@@ -57,7 +57,6 @@ pub fn UpstreamProvidersPage() -> Element {
                                 TableRow {
                                     TableHead { {t("coauth.upstream_providers.id")} }
                                     TableHead { {t("coauth.upstream_providers.issuer")} }
-                                    TableHead { {t("coauth.upstream_providers.client_id")} }
                                     TableHead { {t("coauth.upstream_providers.enabled")} }
                                     TableHead { {t("coauth.upstream_providers.created_at")} }
                                     TableHead { class: "text-right".to_string(), {t("common.actions")} }
@@ -78,7 +77,6 @@ pub fn UpstreamProvidersPage() -> Element {
                                                 .oidc_issuer_uri
                                                 .clone()
                                                 .unwrap_or_else(|| "-".to_string());
-                                            let p_client_id = provider.client_id.clone().unwrap_or_else(|| "-".to_string());
                                             let is_enabled = provider.is_enabled;
                                             let created = provider.created_at.clone().unwrap_or_else(|| "-".to_string());
 
@@ -95,7 +93,6 @@ pub fn UpstreamProvidersPage() -> Element {
                                                     key: "{id}",
                                                     TableCell { class: "font-medium".to_string(), "{id}" }
                                                     TableCell { class: "max-w-[200px] truncate".to_string(), "{p_issuer}" }
-                                                    TableCell { class: "max-w-[150px] truncate".to_string(), "{p_client_id}" }
                                                     TableCell {
                                                         if is_enabled {
                                                             Badge { variant: BadgeVariant::Success, {t("common.enabled")} }

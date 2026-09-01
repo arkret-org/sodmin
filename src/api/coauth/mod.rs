@@ -20,7 +20,7 @@ mod upstream;
 mod viewer;
 
 pub use accounts::{
-    AccountListFilter, AccountRiskActionApprovalOutcome, AccountRiskActionApprovalRequestBody,
+    AccountRiskActionApprovalOutcome, AccountRiskActionApprovalRequestBody,
     AccountRiskActionCurrentOutcome, AccountRiskActionExecuteRequestBody,
     AccountRiskActionProposalOutcome, AccountRiskActionProposalRequestBody,
     AccountRiskActionTransitionRecord, AdminBridgeDescribe, CoauthAccountClaim,

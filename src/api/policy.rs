@@ -12,11 +12,36 @@ use crate::types::policy::{
 };
 use crate::utils::net::error::HttpError;
 
-pub async fn list_policies(
-    _cursor: Option<&str>,
-    _limit: u64,
-) -> Result<AdminPolicyListOutcome, HttpError> {
-    let url = build_url("/_soland/self/policies", &[])?;
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct PolicyListFilter {
+    pub scope: String,
+    pub subject_ref: String,
+    pub include_inactive: bool,
+}
+
+impl PolicyListFilter {
+    fn into_query(self) -> Vec<(&'static str, String)> {
+        let mut query = Vec::new();
+        if !self.scope.trim().is_empty() {
+            query.push(("scope", self.scope.trim().to_owned()));
+        }
+        if !self.subject_ref.trim().is_empty() {
+            query.push(("subject_ref", self.subject_ref.trim().to_owned()));
+        }
+        if self.include_inactive {
+            query.push(("include_inactive", "true".to_owned()));
+        }
+        query
+    }
+}
+
+pub async fn list_policies(filter: PolicyListFilter) -> Result<AdminPolicyListOutcome, HttpError> {
+    let owned_query = filter.into_query();
+    let query = owned_query
+        .iter()
+        .map(|(key, value)| (*key, value.as_str()))
+        .collect::<Vec<_>>();
+    let url = build_url("/_soland/self/policies", &query)?;
     let resp: AdminPolicyDocumentPage = api_client(&url, "GET", NO_BODY).await?;
     Ok(AdminPolicyListOutcome {
         data: resp
@@ -246,6 +271,25 @@ mod tests {
     use serde_json::json;
 
     use super::*;
+
+    #[test]
+    fn policy_list_filter_uses_supported_backend_parameters() {
+        let query = PolicyListFilter {
+            scope: " realm-a ".to_owned(),
+            subject_ref: "did:web:alice.example".to_owned(),
+            include_inactive: true,
+        }
+        .into_query();
+
+        assert_eq!(
+            query,
+            vec![
+                ("scope", "realm-a".to_owned()),
+                ("subject_ref", "did:web:alice.example".to_owned()),
+                ("include_inactive", "true".to_owned()),
+            ]
+        );
+    }
 
     fn fixture_timestamp() -> DateTime<Utc> {
         DateTime::parse_from_rfc3339("2026-08-14T00:00:00Z")

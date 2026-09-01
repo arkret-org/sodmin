@@ -182,65 +182,9 @@ pub fn redact_pii(message: &str) -> String {
     out
 }
 
-pub fn should_reset_cursor_pagination(error: &HttpError, cursor: Option<&str>) -> bool {
-    if cursor.filter(|c| !c.trim().is_empty()).is_none() {
-        return false;
-    }
-
-    let errcode = error.body.as_ref().map(|body| body.errcode.as_str());
-    // Registry codes are bare snake_case (no `ak.error.*` prefix exists in
-    // the error-code-registry).
-    matches!(
-        (error.status, errcode),
-        (410, Some(arkret_wire::ErrorCode::CURSOR_EXPIRED))
-            | (410, None)
-            | (
-                400,
-                Some(
-                    arkret_wire::ErrorCode::PARAM_INVALID | arkret_wire::ErrorCode::CURSOR_INVALID
-                )
-            )
-    )
-}
-
 #[cfg(test)]
 mod tests {
-    use super::{
-        AdminErrorEnvelope, HttpError, display_error, redact_pii, should_reset_cursor_pagination,
-    };
-
-    fn err_with_code(status: u16, errcode: &str) -> HttpError {
-        HttpError {
-            message: errcode.to_owned(),
-            status,
-            body: Some(AdminErrorEnvelope {
-                errcode: errcode.to_owned(),
-                ..Default::default()
-            }),
-            request_id: None,
-            retry_after_ms: None,
-        }
-    }
-
-    #[test]
-    fn cursor_reset_only_for_active_cursor_errors() {
-        assert!(should_reset_cursor_pagination(
-            &err_with_code(410, "cursor_expired"),
-            Some("ak:cursor:abc")
-        ));
-        assert!(should_reset_cursor_pagination(
-            &err_with_code(400, "param_invalid"),
-            Some("ak:cursor:abc")
-        ));
-        assert!(!should_reset_cursor_pagination(
-            &err_with_code(400, "param_invalid"),
-            None
-        ));
-        assert!(!should_reset_cursor_pagination(
-            &err_with_code(500, "cursor_expired"),
-            Some("ak:cursor:abc")
-        ));
-    }
+    use super::{display_error, redact_pii};
 
     #[test]
     fn redact_pii_strips_email_ip_token() {

@@ -26,19 +26,3 @@ pub struct ListResponse<T> {
     #[serde(default)]
     pub next_cursor: Option<String>,
 }
-
-impl<T> ListResponse<T> {
-    pub fn total_or_page_floor(&self, page: u64, per_page: u64) -> u64 {
-        self.total.unwrap_or_else(|| {
-            let loaded_until = page
-                .saturating_sub(1)
-                .saturating_mul(per_page)
-                .saturating_add(self.data.len() as u64);
-            if self.next_cursor.is_some() {
-                loaded_until.saturating_add(1)
-            } else {
-                loaded_until
-            }
-        })
-    }
-}

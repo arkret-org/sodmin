@@ -62,6 +62,7 @@ pub fn FederationList() -> Element {
                             op_cursors.set(vec![None::<String>]);
                         },
                     }
+                    p { class: "mt-1 text-xs text-muted-foreground", {t("federation.search_current_page_hint")} }
                 }
                 AutoRefreshPicker {
                     storage_key: AUTOREFRESH_STORAGE_KEY.to_string(),

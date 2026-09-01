@@ -25,10 +25,7 @@ pub async fn list_spaces(
     search: &str,
 ) -> Result<SpacePage, HttpError> {
     let limit_str = limit.max(1).to_string();
-    let mut params: Vec<(&str, &str)> = vec![
-        ("filter[search]", search.trim()),
-        ("limit", limit_str.as_str()),
-    ];
+    let mut params: Vec<(&str, &str)> = vec![("limit", limit_str.as_str())];
     if let Some(cursor) = cursor.filter(|c| !c.is_empty()) {
         params.push(("cursor", cursor));
     }

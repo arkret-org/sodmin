@@ -18,8 +18,6 @@ pub struct CoauthUpstreamProvider {
     #[serde(default)]
     pub oidc_issuer_uri: Option<String>,
     #[serde(default)]
-    pub client_id: Option<String>,
-    #[serde(default)]
     pub is_enabled: bool,
     #[serde(default)]
     pub created_at: Option<String>,
@@ -159,7 +157,6 @@ fn map_upstream_provider(
     CoauthUpstreamProvider {
         id: resource.id,
         oidc_issuer_uri: attrs.oidc_issuer_uri,
-        client_id: None,
         is_enabled: attrs.disabled_at.is_none(),
         created_at: Some(attrs.created_at.to_rfc3339()),
     }

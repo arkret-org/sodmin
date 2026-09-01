@@ -54,17 +54,6 @@ pub fn DeviceList() -> Element {
         }
     });
 
-    // Visible ids are computed once and shared by rendering and CSV export.
-    let visible_ids_memo = use_memo(move || match &*data.read() {
-        Some(Ok(resp)) => resp
-            .devices
-            .iter()
-            .map(|d| d.id.clone())
-            .collect::<Vec<String>>(),
-        _ => Vec::new(),
-    });
-    let visible_ids: Vec<String> = visible_ids_memo.read().clone();
-
     rsx! {
         div { class: "space-y-6",
             PageHeader {
@@ -73,12 +62,9 @@ pub fn DeviceList() -> Element {
                 Button {
                     variant: ButtonVariant::Outline,
                     size: ButtonSize::Sm,
-                    onclick: {
-                        let export_visible_ids = visible_ids.clone();
-                        move |_| {
+                    onclick: move |_| {
                             if let Some(Ok(resp)) = data.read().as_ref() {
                                 let rows: Vec<Vec<String>> = resp.devices.iter()
-                                    .filter(|d| export_visible_ids.contains(&d.id))
                                     .map(|d| vec![
                                 d.id.clone(),
                                 d.actor_id.clone().unwrap_or_default(),
@@ -95,7 +81,6 @@ pub fn DeviceList() -> Element {
                                 export_to_csv("devices.csv", &csv);
                                 show_toast(&t("devices.toast_csv_downloaded"), ToastVariant::Success);
                             }
-                        }
                     },
                     {t("common.export_csv")}
                 }
@@ -123,7 +108,6 @@ pub fn DeviceList() -> Element {
                 Some(Ok(resp)) => {
                     let next_cursor = resp.next_cursor.clone();
                     let stack_depth = cursor_stack.read().len();
-                    let visible_ids = visible_ids.clone();
                     rsx! {
                         div { class: "rounded-md border",
                             Table {
@@ -139,14 +123,14 @@ pub fn DeviceList() -> Element {
                                     }
                                 }
                                 TableBody {
-                                    if visible_ids.is_empty() {
+                                    if resp.devices.is_empty() {
                                         TableRow {
                                             TableCell { class: "text-center text-muted-foreground py-8".to_string(), colspan: 99,
                                                 {t("devices.no_devices")}
                                             }
                                         }
                                     } else {
-                                        for device in resp.devices.iter().filter(|d| visible_ids.contains(&d.id)) {
+                                        for device in resp.devices.iter() {
                                             {
                                                 let id = device.id.clone();
                                                 let actor_id = device.actor_id.clone().unwrap_or_else(|| "-".to_string());

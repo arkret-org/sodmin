@@ -82,6 +82,7 @@ pub fn MediaList() -> Element {
                     page.set(1);
                 },
             }
+            p { class: "-mt-5 text-xs text-muted-foreground", {t("media.search_all_pages_hint")} }
 
             match &*media_data.read() {
                 Some(Ok(data)) => {
@@ -138,11 +139,15 @@ pub fn MediaList() -> Element {
                             }
                         }
 
-                        Pagination {
-                            page: page_val,
-                            total: data.total_or_page_floor(page_val, PAGE_SIZE),
-                            per_page: PAGE_SIZE,
-                            on_page_change: move |p| page.set(p),
+                        if let Some(total) = data.total {
+                            Pagination {
+                                page: page_val,
+                                total,
+                                per_page: PAGE_SIZE,
+                                on_page_change: move |p| page.set(p),
+                            }
+                        } else {
+                            p { class: "text-sm text-muted-foreground", {t("pagination.total_unknown")} }
                         }
                     }
                 },

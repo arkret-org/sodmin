@@ -81,10 +81,6 @@ pub fn AccountDetailPage(account_id: String) -> Element {
                         div { class: "rounded-lg border p-4 space-y-2",
                             div { class: "text-lg font-semibold", "{display_name}" }
                             div { class: "text-sm text-muted-foreground",
-                                {t("coauth_account_detail.bridge_status")}
-                                span { class: "font-mono", "{summary.bridge_status}" }
-                            }
-                            div { class: "text-sm text-muted-foreground",
                                 {t("coauth_account_detail.bridge_description")}
                             }
                         }

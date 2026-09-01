@@ -8,7 +8,8 @@ use coauth_admin_types::{
 };
 use serde::{Deserialize, Serialize};
 
-use crate::api::client::{NO_BODY, NoBody, api_client, build_url};
+use super::pagination::get_jsonapi_cursor_page_with_query;
+use crate::api::client::{NO_BODY, NoBody, api_client};
 use crate::types::CursorPage;
 use crate::utils::net::error::HttpError;
 
@@ -37,8 +38,6 @@ pub struct CoauthAccountSummary {
     pub created_at: Option<String>,
     #[serde(default)]
     pub updated_at: Option<String>,
-    #[serde(default)]
-    pub bridge_status: String,
 }
 
 impl CoauthAccountSummary {
@@ -159,70 +158,26 @@ pub struct CoauthAccountRiskActionExecute {
     pub allowed_next_transitions: Vec<String>,
 }
 
-#[derive(Debug, Clone, Deserialize, Default)]
-struct CoauthAdminPaginatedEnvelope<T> {
-    #[serde(default)]
-    data: Option<Vec<SingleResource<T>>>,
-    #[serde(default)]
-    meta: CoauthAdminPaginationMeta,
-    #[serde(default)]
-    links: coauth_admin_types::PaginationLinks,
-}
-
-#[derive(Debug, Clone, Deserialize, Default)]
-struct CoauthAdminPaginationMeta {
-    #[serde(default)]
-    count: Option<u64>,
-}
-
-/// Filter inputs accepted by `list_accounts_cursor`. Empty strings are
-/// dropped before encoding so the wire form only carries what the
-/// operator actually filtered on.
-#[derive(Debug, Clone, Default)]
-pub struct AccountListFilter {
-    pub handle: String,
-    pub display_name: String,
-}
-
 /// Cursor-paginated account list. The caller passes back the opaque
-/// `cursor` it received from the prior page's `links.next`.
+/// `page[after]` value it received from the prior page's `links.next`.
 ///
-/// Wire shape: `?filter[search]=…&filter[handle]=…&filter[display_name]=…
-/// &cursor={base64url}&limit=N&count=true`. The base64url cursor is the
-/// raw value coauth published; decoding/encoding on the wire is the
-/// server's responsibility.
+/// `filter[search]` is the only free-text filter in coauth's account-list
+/// contract. Pagination always goes through the shared JSON:API helper.
 pub async fn list_accounts_cursor(
     cursor: Option<&str>,
     limit: u64,
     search: &str,
-    filter: &AccountListFilter,
 ) -> Result<CursorPage<CoauthAccountSummary>, HttpError> {
-    let limit_str = limit.max(1).to_string();
-    let mut params: Vec<(&str, &str)> = vec![
-        ("filter[search]", search),
-        ("filter[handle]", filter.handle.trim()),
-        ("filter[display_name]", filter.display_name.trim()),
-        ("limit", limit_str.as_str()),
-        ("count", "true"),
-    ];
-    if let Some(cursor) = cursor.filter(|c| !c.is_empty()) {
-        params.push(("cursor", cursor));
-    }
-    let url = build_url(ACCOUNTS_PATH, &params)?;
-    let resp: CoauthAdminPaginatedEnvelope<AdminAccountAttributes> =
-        api_client(&url, "GET", NO_BODY).await?;
-    let summaries: Vec<CoauthAccountSummary> = resp
-        .data
-        .unwrap_or_default()
-        .into_iter()
-        .map(map_admin_account_summary_resource)
-        .collect();
-    let next_cursor = resp.links.next.as_deref().and_then(extract_cursor_param);
-    Ok(CursorPage {
-        data: summaries,
-        next_cursor,
-        total: resp.meta.count,
-    })
+    let search = search.trim();
+    let query = [("filter[search]", search)];
+    get_jsonapi_cursor_page_with_query(
+        ACCOUNTS_PATH,
+        cursor,
+        limit,
+        &query,
+        map_admin_account_summary_resource,
+    )
+    .await
 }
 
 pub async fn get_account_detail(id: &str) -> Result<CoauthAccountDetail, HttpError> {
@@ -344,11 +299,6 @@ fn map_admin_account_summary_resource(
     let is_locked = attributes.status.is_locked();
     let is_deactivated = attributes.status.is_deactivated();
     let primary_principal_id = attributes.effective_primary_id().cloned();
-    let bridge_status = if attributes.admin {
-        "coauth_admin_accounts_v1+admin".to_string()
-    } else {
-        "coauth_admin_accounts_v1".to_string()
-    };
     CoauthAccountSummary {
         id: resource.id,
         username: Some(attributes.handle),
@@ -359,7 +309,6 @@ fn map_admin_account_summary_resource(
         is_deactivated,
         created_at: attributes.created_at.map(|t| t.to_rfc3339()),
         updated_at: attributes.updated_at.map(|t| t.to_rfc3339()),
-        bridge_status,
     }
 }
 
@@ -383,62 +332,5 @@ fn map_admin_account_claim(
         value: record.value,
         state: Some(record.state),
         source: Some(record.source),
-    }
-}
-
-/// Parse the `cursor=…` query parameter out of a JSON:API `links.next` /
-/// `links.prev` URL. Returns `None` when the link is absent or has no
-/// cursor.
-fn extract_cursor_param(link: &str) -> Option<String> {
-    if link.is_empty() {
-        return None;
-    }
-    let query = link.split_once('?').map(|(_, rest)| rest)?;
-    let bare = query.split('#').next().unwrap_or(query);
-    for pair in bare.split('&') {
-        if let Some((key, value)) = pair.split_once('=')
-            && (key == "cursor" || key == "page%5Bcursor%5D" || key == "page[cursor]")
-        {
-            let decoded = urlencoding::decode(value).ok()?.into_owned();
-            if !decoded.is_empty() {
-                return Some(decoded);
-            }
-        }
-    }
-    None
-}
-
-#[cfg(test)]
-mod cursor_tests {
-    use super::extract_cursor_param;
-
-    #[test]
-    fn extract_cursor_handles_plain_param() {
-        assert_eq!(
-            extract_cursor_param("/_coauth/admin/accounts?cursor=ABC123&limit=25"),
-            Some("ABC123".to_string()),
-        );
-    }
-
-    #[test]
-    fn extract_cursor_handles_jsonapi_bracketed_param() {
-        assert_eq!(
-            extract_cursor_param("/_coauth/admin/accounts?page%5Bcursor%5D=DEF456"),
-            Some("DEF456".to_string()),
-        );
-    }
-
-    #[test]
-    fn extract_cursor_returns_none_when_absent() {
-        assert!(extract_cursor_param("/_coauth/admin/accounts?limit=25").is_none());
-        assert!(extract_cursor_param("").is_none());
-    }
-
-    #[test]
-    fn extract_cursor_decodes_url_escaping() {
-        assert_eq!(
-            extract_cursor_param("/x?cursor=A%3DB&limit=25"),
-            Some("A=B".to_string()),
-        );
     }
 }

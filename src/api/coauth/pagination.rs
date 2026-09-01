@@ -14,14 +14,38 @@ where
     T: DeserializeOwned,
     F: Fn(coauth_admin_types::SingleResource<T>) -> U,
 {
+    get_jsonapi_cursor_page_with_query(path, after, per_page, &[], map).await
+}
+
+pub(crate) async fn get_jsonapi_cursor_page_with_query<T, U, F>(
+    path: &str,
+    after: Option<&str>,
+    per_page: u64,
+    query: &[(&str, &str)],
+    map: F,
+) -> Result<CursorPage<U>, HttpError>
+where
+    T: DeserializeOwned,
+    F: Fn(coauth_admin_types::SingleResource<T>) -> U,
+{
+    let url = build_jsonapi_cursor_url(path, after, per_page, query)?;
+    let resp: coauth_admin_types::PaginatedOutcome<T> = api_client(&url, "GET", NO_BODY).await?;
+    Ok(flatten_jsonapi_page(resp, map))
+}
+
+fn build_jsonapi_cursor_url(
+    path: &str,
+    after: Option<&str>,
+    per_page: u64,
+    query: &[(&str, &str)],
+) -> Result<String, HttpError> {
     let per_page = per_page.max(1).to_string();
     let mut params = vec![("page[first]", per_page.as_str()), ("count", "true")];
     if let Some(after) = after.filter(|value| !value.is_empty()) {
         params.push(("page[after]", after));
     }
-    let url = build_url(path, &params)?;
-    let resp: coauth_admin_types::PaginatedOutcome<T> = api_client(&url, "GET", NO_BODY).await?;
-    Ok(flatten_jsonapi_page(resp, map))
+    params.extend(query.iter().copied().filter(|(_, value)| !value.is_empty()));
+    build_url(path, &params)
 }
 
 pub(crate) fn flatten_jsonapi_page<T, U, F>(
@@ -70,7 +94,21 @@ where
 
 #[cfg(test)]
 mod tests {
-    use super::extract_after_cursor;
+    use super::{build_jsonapi_cursor_url, extract_after_cursor};
+
+    #[test]
+    fn builds_jsonapi_pagination_and_filter_query() {
+        assert_eq!(
+            build_jsonapi_cursor_url(
+                "/_coauth/admin/accounts",
+                Some("cursor/2"),
+                25,
+                &[("filter[search]", "alice")],
+            )
+            .expect("valid URL"),
+            "/_coauth/admin/accounts?page%5Bfirst%5D=25&count=true&page%5Bafter%5D=cursor%2F2&filter%5Bsearch%5D=alice"
+        );
+    }
 
     #[test]
     fn extracts_literal_jsonapi_after_cursor() {
