@@ -672,7 +672,7 @@
   "realm_organization.rel_sponsor": "Sponsor",
   "realm_organization.role_account_authority": "account_authority",
   "realm_organization.role_governance_service": "governance_service",
-  "realm_organization.role_organization_principal_id": "organization_principal_id",
+  "realm_organization.role_organization": "organization",
   "realm_organization.role_threshold_quorum": "threshold_quorum",
   "realm_organization.subtitle": "Verified Realm ↔ organization relationships and organization-principal control audit.",
   "realm_organization.title": "Organization control",
