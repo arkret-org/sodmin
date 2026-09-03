@@ -56,7 +56,7 @@ pub fn AuthzCapabilitiesPage() -> Element {
                                         for cap in resp.capabilities.iter() {
                                             {
                                                 let id = cap.grant_id.clone();
-                                                let holder_id = cap.subject_id.clone();
+                                                let subject_id = cap.subject_id.clone();
                                                 let scope = cap.resource_display();
                                                 let granted = cap.created_at.map(|at| at.to_rfc3339()).unwrap_or_else(|| "-".to_string());
                                                 let expires = cap.expires_at.map(|at| at.to_rfc3339()).unwrap_or_else(|| "-".to_string());
@@ -67,7 +67,7 @@ pub fn AuthzCapabilitiesPage() -> Element {
                                                     TableRow {
                                                         key: "{id}",
                                                         TableCell { class: "font-mono text-xs max-w-[220px] truncate".to_string(), "{id}" }
-                                                        TableCell { class: "font-mono text-xs max-w-[260px] truncate".to_string(), "{holder_id}" }
+                                                        TableCell { class: "font-mono text-xs max-w-[260px] truncate".to_string(), "{subject_id}" }
                                                         TableCell { class: "font-mono text-xs max-w-[260px] truncate".to_string(), "{scope}" }
                                                         TableCell { Badge { variant, "{status}" } }
                                                         TableCell { class: "text-muted-foreground".to_string(), "{granted}" }
