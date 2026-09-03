@@ -207,7 +207,7 @@ fn describe_body(describe: &ServerDescribeDocument) -> Element {
     // field in the SDK type, so it is always present here.
     let trust_domain = describe.trust_domain.to_string();
     let service_kind = describe.service_kind.as_str().to_owned();
-    let protocol = describe.protocol_version.clone();
+    let protocol = describe.protocol_version.to_string();
     // Service-proprietary top-level extensions (not part of the spec
     // ServiceDescribe shape) — read via the extension envelope.
     let openapi = describe

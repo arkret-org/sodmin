@@ -10,22 +10,14 @@ fn main() {
         "cargo:rerun-if-changed={}",
         manifest_dir.join("Cargo.toml").display()
     );
-    check_dioxus_patch_sources(&manifest_dir);
+    check_dioxus_sources(&manifest_dir);
 
     let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
     generate_i18n_tables(&manifest_dir, &out_dir);
 }
 
-fn check_dioxus_patch_sources(manifest_dir: &Path) {
-    const DIOXUS_REPO: &str = "https://github.com/arkret-org/dioxus";
-    const DIOXUS_REV: &str = "e59f9f24a5c27c9303cd61edd0452b44161374ab";
-    const DIOXUS_PATCH_CRATES: &[&str] = &[
-        "dioxus-core",
-        "dioxus-core-types",
-        "generational-box",
-        "subsecond",
-        "subsecond-types",
-    ];
+fn check_dioxus_sources(manifest_dir: &Path) {
+    const DIOXUS_VERSION: &str = "=0.7.10";
     const COMPONENTS_REPO: &str = "https://github.com/arkret-org/dioxus-components";
     const COMPONENTS_REV: &str = "3510aeee2d14f0ca2c11682c9b826650cb557d2f";
 
@@ -33,14 +25,14 @@ fn check_dioxus_patch_sources(manifest_dir: &Path) {
     let raw = fs::read_to_string(&cargo_toml_path)
         .unwrap_or_else(|err| panic!("read {}: {}", cargo_toml_path.display(), err));
 
-    for crate_name in DIOXUS_PATCH_CRATES {
+    for crate_name in ["dioxus", "dioxus-logger"] {
         let line = raw
             .lines()
-            .find(|line| line.trim_start().starts_with(crate_name) && line.contains(DIOXUS_REPO))
-            .unwrap_or_else(|| panic!("Cargo.toml Dioxus patch drift: missing {crate_name}"));
+            .find(|line| line.trim_start().starts_with(crate_name))
+            .unwrap_or_else(|| panic!("Cargo.toml Dioxus version drift: missing {crate_name}"));
         assert!(
-            line.contains(DIOXUS_REV),
-            "Cargo.toml Dioxus patch drift: {crate_name} must use rev {DIOXUS_REV}"
+            line.contains(DIOXUS_VERSION),
+            "Cargo.toml Dioxus version drift: {crate_name} must use {DIOXUS_VERSION}"
         );
     }
 

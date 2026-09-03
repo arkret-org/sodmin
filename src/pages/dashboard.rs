@@ -75,7 +75,7 @@ pub fn Dashboard() -> Element {
 
     let protocol_str = describe_data
         .as_ref()
-        .map(|i| i.protocol_version.clone())
+        .map(|i| i.protocol_version.to_string())
         .or_else(|| info_data.as_ref().and_then(|i| i.protocol_version.clone()))
         .unwrap_or_else(|| "1.0".to_string());
 

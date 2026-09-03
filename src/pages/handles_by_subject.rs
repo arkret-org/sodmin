@@ -63,7 +63,7 @@ pub fn HandlesBySubject(subject: Option<String>) -> Element {
             let req = DirectoryListHandlesForSubjectRequestBody {
                 account_id,
                 realm_id: None,
-                intent: Some("admin_directory".to_string()),
+                intent: Some(arkret_models_discovery::DirectoryIntent::Lookup),
                 requester_id: None,
                 proof_challenge: None,
                 proofs: Vec::new(),

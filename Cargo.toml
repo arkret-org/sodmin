@@ -29,8 +29,8 @@ arkret-wire = { path = "../arkret-rust-sdk/crates/wire", default-features = fals
 chrono = "0.4.45"
 coauth-account-types = { path = "../coauth/crates/account-types" }
 coauth-admin-types = { path = "../coauth/crates/admin-types" }
-dioxus = { version = "=0.7.9", default-features = false }
-dioxus-logger = "=0.7.9"
+dioxus = { version = "=0.7.10", default-features = false }
+dioxus-logger = "=0.7.10"
 futures-util = { version = "0.3.34", default-features = false }
 gloo-net = "0.7"
 gloo-storage = "0.4.0"
@@ -139,33 +139,9 @@ wasm-bindgen-test = "0.3"
 [lints]
 workspace = true
 
-# arkret fork of DioxusLabs/dioxus, branched off the v0.7.9 tag (same patch
-# set as inkson; build.rs checks the patch block so it cannot drift). The only delta is
-# `Callback::__point_to` in `packages/core/src/events.rs`: upstream 0.7.9
-# calls `.unwrap()` on `point_to`, which aborts the entire wasm instance
-# (white screen) when an `Option<EventHandler>` prop's owner scope is
-# reclaimed in the same frame the rsx diff tries to re-point its stable
-# handle — surfacing as `Result::unwrap() on Dropped(ValueDroppedError)`.
-# The fork degrades that unwrap to a trace-log no-op.
-#
-# The wasm-shared lifetime crates below MUST come from the same git source as
-# `dioxus-core`: a git `dioxus-core` pulls in git `generational-box` /
-# `subsecond` via workspace deps, and if the registry copies remained, the
-# same crate would exist under two sources and `GenerationalBox<T>` would
-# mismatch across the registry `dioxus-signals`/`dioxus-web` and the patched
-# core.
-# See https://github.com/arkret-org/dioxus/commit/e59f9f24a5c27c9303cd61edd0452b44161374ab.
-#
 # yoface depends on dioxus-primitives from the components fork. `[patch]`
 # entries are not inherited from dependencies, so sodmin, as the workspace
 # root, carries yoface README §2's components patch explicitly. build.rs
 # enforces the expected fork URL and rev.
 [patch."https://github.com/DioxusLabs/components"]
 dioxus-primitives = { git = "https://github.com/arkret-org/dioxus-components", rev = "3510aeee2d14f0ca2c11682c9b826650cb557d2f" }
-
-[patch.crates-io]
-dioxus-core       = { git = "https://github.com/arkret-org/dioxus", rev = "e59f9f24a5c27c9303cd61edd0452b44161374ab" }
-dioxus-core-types = { git = "https://github.com/arkret-org/dioxus", rev = "e59f9f24a5c27c9303cd61edd0452b44161374ab" }
-generational-box  = { git = "https://github.com/arkret-org/dioxus", rev = "e59f9f24a5c27c9303cd61edd0452b44161374ab" }
-subsecond         = { git = "https://github.com/arkret-org/dioxus", rev = "e59f9f24a5c27c9303cd61edd0452b44161374ab" }
-subsecond-types   = { git = "https://github.com/arkret-org/dioxus", rev = "e59f9f24a5c27c9303cd61edd0452b44161374ab" }

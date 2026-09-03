@@ -10,7 +10,7 @@ title = "Arkret Admin"
 [web.resource]
 style = []
 
-# dx 0.7.9 requires the dev subsection explicitly; without it
+# dx 0.7.10 requires the dev subsection explicitly; without it
 # `dx build --release` errors with "missing field `dev`".
 [web.resource.dev]
 style = []

@@ -76,7 +76,7 @@ cargo build --release --bin soland
 cargo build --release --bin floria
 
 # sodmin — Dioxus WASM SPA; uses dx, not cargo
-cargo install dioxus-cli@0.7.9 --locked
+cargo install dioxus-cli@0.7.10 --locked
 dx build --release   # output under target/dx/sodmin/release/web/public
 ```
 
