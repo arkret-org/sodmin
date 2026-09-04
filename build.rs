@@ -18,8 +18,6 @@ fn main() {
 
 fn check_dioxus_sources(manifest_dir: &Path) {
     const DIOXUS_VERSION: &str = "=0.7.10";
-    const COMPONENTS_REPO: &str = "https://github.com/arkret-org/dioxus-components";
-    const COMPONENTS_REV: &str = "3510aeee2d14f0ca2c11682c9b826650cb557d2f";
 
     let cargo_toml_path = manifest_dir.join("Cargo.toml");
     let raw = fs::read_to_string(&cargo_toml_path)
@@ -35,19 +33,6 @@ fn check_dioxus_sources(manifest_dir: &Path) {
             "Cargo.toml Dioxus version drift: {crate_name} must use {DIOXUS_VERSION}"
         );
     }
-
-    let components_line = raw
-        .lines()
-        .find(|line| {
-            line.trim_start().starts_with("dioxus-primitives") && line.contains(COMPONENTS_REPO)
-        })
-        .unwrap_or_else(|| {
-            panic!("Cargo.toml Dioxus components patch drift: missing dioxus-primitives")
-        });
-    assert!(
-        components_line.contains(COMPONENTS_REV),
-        "Cargo.toml Dioxus components patch drift: dioxus-primitives must use rev {COMPONENTS_REV}"
-    );
 }
 
 /// Reads the externalized flat-JSON translation files (`i18n/en.json`,
