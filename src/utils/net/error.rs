@@ -6,7 +6,7 @@ use regex_lite::Regex;
 use serde::{Deserialize, Serialize};
 
 /// Admin-side projection of the spec/SDK canonical RFC 9457 Problem Details
-/// object (see `arkret_wire::ErrorEnvelope`). We keep a flattened local
+/// object (see `arkret_wire::Problem`). We keep a flattened local
 /// shape — the wire envelope is parsed in [`from_wire`] — so the existing
 /// call sites (`body.errcode`) keep working while the
 /// parse path reads the authoritative `error.code`.
@@ -29,11 +29,13 @@ impl AdminErrorEnvelope {
     /// body is not a canonical envelope (e.g. an opaque HTML 502 from the
     /// proxy), so callers fall back to a status-only message.
     pub fn from_wire(text: &str) -> Option<Self> {
-        let env: arkret_wire::ErrorEnvelope = serde_json::from_str(text).ok()?;
+        let env: arkret_wire::Problem = serde_json::from_str(text).ok()?;
+        let errcode = env.code().to_owned();
+        let retry_after_ms = env.retry_after_ms();
         Some(AdminErrorEnvelope {
-            errcode: env.error.code,
-            error: Some(env.error.message).filter(|m| !m.is_empty()),
-            retry_after_ms: env.error.retry_after_ms,
+            errcode,
+            error: Some(env.detail).filter(|m| !m.is_empty()),
+            retry_after_ms,
             extra: BTreeMap::new(),
         })
     }

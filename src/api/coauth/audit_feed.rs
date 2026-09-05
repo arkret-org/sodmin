@@ -31,6 +31,21 @@ impl AuditFeedFilter {
     }
 }
 
+pub async fn list_audit_feed(
+    limit: u64,
+    filter: AuditFeedFilter,
+) -> Result<Vec<AuditEntry>, HttpError> {
+    let limit_str = limit.max(1).to_string();
+    let mut params: Vec<(&str, &str)> = vec![("limit", limit_str.as_str())];
+    let owned = filter.into_query();
+    for (k, v) in owned.iter() {
+        params.push((k, v.as_str()));
+    }
+    let url = build_url(AUDIT_FEED_PATH, &params)?;
+    let resp: AuditFeedOutcome = api_client(&url, "GET", NO_BODY).await?;
+    Ok(resp.data)
+}
+
 #[cfg(test)]
 mod tests {
     use super::AuditFeedFilter;
@@ -45,19 +60,4 @@ mod tests {
 
         assert_eq!(query, vec![("resource_type", "account".to_owned())]);
     }
-}
-
-pub async fn list_audit_feed(
-    limit: u64,
-    filter: AuditFeedFilter,
-) -> Result<Vec<AuditEntry>, HttpError> {
-    let limit_str = limit.max(1).to_string();
-    let mut params: Vec<(&str, &str)> = vec![("limit", limit_str.as_str())];
-    let owned = filter.into_query();
-    for (k, v) in owned.iter() {
-        params.push((k, v.as_str()));
-    }
-    let url = build_url(AUDIT_FEED_PATH, &params)?;
-    let resp: AuditFeedOutcome = api_client(&url, "GET", NO_BODY).await?;
-    Ok(resp.data)
 }
