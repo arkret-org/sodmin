@@ -3,7 +3,7 @@ use dioxus::prelude::*;
 use crate::api::server;
 use crate::components::dev_mode_banner::DevModeDashboardNotice;
 use crate::components::ui::card::*;
-use crate::components::ui::error_banner::ErrorBanner;
+use crate::components::ui::error_banner::resource_error;
 use crate::components::ui::icons::Icon;
 use crate::components::ui::loading::StatsSkeleton;
 use crate::types::{AdminServerStatus, ServerDescribeDocument};
@@ -266,20 +266,6 @@ pub fn Dashboard() -> Element {
 
 fn result_data<T>(result: &Option<Result<T, HttpError>>) -> Option<&T> {
     result.as_ref().and_then(|value| value.as_ref().ok())
-}
-
-fn resource_error<T>(result: &Option<Result<T, HttpError>>) -> Element {
-    match result.as_ref().and_then(|value| value.as_ref().err()) {
-        Some(error) => rsx! {
-            ErrorBanner {
-                message: error.message.clone(),
-                errcode: error.body.as_ref().map(|body| body.errcode.clone()),
-                request_id: error.request_id.clone(),
-                retry_after_ms: error.retry_after_ms,
-            }
-        },
-        None => rsx! {},
-    }
 }
 
 fn stat_cell(

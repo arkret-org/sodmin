@@ -1,7 +1,28 @@
 use dioxus::prelude::*;
 
 use crate::utils::i18n::t;
+use crate::utils::net::error::HttpError;
 use crate::utils::net::telemetry;
+
+/// Render an [`ErrorBanner`] for a cached resource that resolved to an error.
+///
+/// Pages hold their server reads as `Option<Result<T, HttpError>>`: `None`
+/// while the read is still in flight, `Some(Err(..))` once it failed. Both
+/// dashboard-style pages render exactly this banner for the failed case and
+/// nothing at all otherwise.
+pub fn resource_error<T>(result: &Option<Result<T, HttpError>>) -> Element {
+    match result.as_ref().and_then(|value| value.as_ref().err()) {
+        Some(error) => rsx! {
+            ErrorBanner {
+                message: error.message.clone(),
+                errcode: error.body.as_ref().map(|body| body.errcode.clone()),
+                request_id: error.request_id.clone(),
+                retry_after_ms: error.retry_after_ms,
+            }
+        },
+        None => rsx! {},
+    }
+}
 
 /// Shared inline error banner used on list/detail pages.
 ///

@@ -5,7 +5,7 @@ use crate::api::server;
 use crate::components::ui::badge::{Badge, BadgeVariant};
 use crate::components::ui::button::{Button, ButtonVariant};
 use crate::components::ui::card::*;
-use crate::components::ui::error_banner::ErrorBanner;
+use crate::components::ui::error_banner::{ErrorBanner, resource_error};
 use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
 use crate::types::ServerDescribeDocument;
@@ -131,20 +131,6 @@ pub fn ServerStatus() -> Element {
 
 fn result_data<T>(result: &Option<Result<T, HttpError>>) -> Option<&T> {
     result.as_ref().and_then(|value| value.as_ref().ok())
-}
-
-fn resource_error<T>(result: &Option<Result<T, HttpError>>) -> Element {
-    match result.as_ref().and_then(|value| value.as_ref().err()) {
-        Some(error) => rsx! {
-            ErrorBanner {
-                message: error.message.clone(),
-                errcode: error.body.as_ref().map(|body| body.errcode.clone()),
-                request_id: error.request_id.clone(),
-                retry_after_ms: error.retry_after_ms,
-            }
-        },
-        None => rsx! {},
-    }
 }
 
 fn info_cell(label: String, value: String) -> Element {
