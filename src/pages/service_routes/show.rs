@@ -10,7 +10,6 @@ use crate::components::ui::error_banner::ErrorBanner;
 use crate::components::ui::info_row::InfoRow;
 use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::{BreadcrumbItem, Breadcrumbs, PageHeader};
-use crate::components::ui::table::*;
 use crate::router::Route;
 use crate::utils::i18n::t;
 
@@ -75,13 +74,11 @@ pub fn ServiceRouteShow(service_id: String, service_kind: String) -> Element {
                                         InfoRow { label: t("service_routes.kind"), value: detail.service_kind.clone() }
                                         InfoRow { label: t("service_routes.authority"), value: detail.authority.clone() }
                                         InfoRow { label: t("service_routes.observed_at"), value: observed_at }
-                                        if let Some(current) = detail.current_record.as_ref() {
+                                        if let Some(current) = detail.current_route.as_ref() {
                                             InfoRow { label: t("service_routes.did"), value: current.did.clone() }
                                             InfoRow { label: t("service_routes.history_head"), value: current.method_history_head.clone() }
                                             InfoRow { label: t("service_routes.version"), value: current.version_id.clone() }
                                             InfoRow { label: t("service_routes.base_url"), value: current.base_url.clone() }
-                                            InfoRow { label: t("service_routes.refresh_after"), value: timestamp(current.refresh_after) }
-                                            InfoRow { label: t("service_routes.signed_expiry"), value: timestamp(current.signed_expires_at) }
                                         } else {
                                             InfoRow { label: t("service_routes.current_title"), value: t("service_routes.unknown") }
                                         }
@@ -91,13 +88,13 @@ pub fn ServiceRouteShow(service_id: String, service_kind: String) -> Element {
 
                             div { class: "grid gap-6 lg:grid-cols-2",
                                 Card {
-                                    CardHeader { CardTitle { {t("service_routes.floor_title")} } }
+                                    CardHeader { CardTitle { {t("service_routes.method_state_title")} } }
                                     CardContent {
-                                        if let Some(floor) = detail.floor.as_ref() {
+                                        if let Some(method_state) = detail.method_state.as_ref() {
                                             div { class: "space-y-4",
-                                                InfoRow { label: t("service_routes.sequence"), value: floor.record_sequence.to_string() }
-                                                InfoRow { label: t("service_routes.digest"), value: floor.record_digest.clone() }
-                                                InfoRow { label: t("service_routes.verified_at"), value: timestamp(floor.verified_at) }
+                                                InfoRow { label: t("service_routes.version"), value: method_state.version_id.clone() }
+                                                InfoRow { label: t("service_routes.history_head"), value: method_state.method_history_head.clone() }
+                                                InfoRow { label: t("service_routes.verified_at"), value: timestamp(method_state.verified_at) }
                                             }
                                         } else {
                                             p { class: "text-sm text-muted-foreground", {t("service_routes.unknown")} }
@@ -109,7 +106,7 @@ pub fn ServiceRouteShow(service_id: String, service_kind: String) -> Element {
                                     CardContent {
                                         if let Some(cache) = detail.cache.as_ref() {
                                             div { class: "space-y-4",
-                                                InfoRow { label: t("service_routes.cached_at"), value: timestamp(cache.cached_at) }
+                                                InfoRow { label: t("service_routes.verified_at"), value: timestamp(cache.verified_at) }
                                                 InfoRow { label: t("service_routes.cache_expiry"), value: timestamp(cache.cache_expires_at) }
                                                 InfoRow {
                                                     label: t("service_routes.routable"),
@@ -118,71 +115,6 @@ pub fn ServiceRouteShow(service_id: String, service_kind: String) -> Element {
                                             }
                                         } else {
                                             p { class: "text-sm text-muted-foreground", {t("service_routes.unknown")} }
-                                        }
-                                    }
-                                }
-                            }
-
-                            Card {
-                                CardHeader {
-                                    CardTitle { {t("service_routes.notices_title")} }
-                                    CardDescription { {t("service_routes.notices_subtitle")} }
-                                }
-                                CardContent {
-                                    if detail.notices.is_empty() {
-                                        p { class: "text-sm text-muted-foreground", {t("service_routes.none")} }
-                                    } else {
-                                        Table {
-                                            TableHeader { TableRow {
-                                                TableHead { {t("service_routes.handover_id")} }
-                                                TableHead { {t("service_routes.revision")} }
-                                                TableHead { {t("service_routes.status")} }
-                                                TableHead { {t("service_routes.expiry")} }
-                                            } }
-                                            TableBody {
-                                                for notice in detail.notices.iter() {
-                                                    TableRow { key: "{notice.handover_id}:{notice.notice_revision}",
-                                                        TableCell { class: "font-mono text-xs".to_string(), "{notice.handover_id}" }
-                                                        TableCell { "{notice.notice_revision}" }
-                                                        TableCell { Badge { variant: BadgeVariant::Secondary, "{notice.state}" } }
-                                                        TableCell { class: "font-mono text-xs".to_string(), {timestamp(notice.expires_at)} }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                        if detail.notices_truncated {
-                                            p { class: "mt-3 text-xs text-muted-foreground", {t("service_routes.truncated")} }
-                                        }
-                                    }
-                                }
-                            }
-
-                            Card {
-                                CardHeader { CardTitle { {t("service_routes.acks_title")} } }
-                                CardContent {
-                                    if detail.acks.is_empty() {
-                                        p { class: "text-sm text-muted-foreground", {t("service_routes.none")} }
-                                    } else {
-                                        Table {
-                                            TableHeader { TableRow {
-                                                TableHead { {t("service_routes.request_id")} }
-                                                TableHead { {t("service_routes.realm_id")} }
-                                                TableHead { {t("service_routes.receiver")} }
-                                                TableHead { {t("service_routes.accepted_at")} }
-                                            } }
-                                            TableBody {
-                                                for ack in detail.acks.iter() {
-                                                    TableRow { key: "{ack.request_id}",
-                                                        TableCell { class: "font-mono text-xs".to_string(), "{ack.request_id}" }
-                                                        TableCell { class: "font-mono text-xs".to_string(), "{ack.realm_id}" }
-                                                        TableCell { class: "font-mono text-xs".to_string(), "{ack.receiver_id}" }
-                                                        TableCell { class: "font-mono text-xs".to_string(), {timestamp(ack.accepted_at)} }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                        if detail.acks_truncated {
-                                            p { class: "mt-3 text-xs text-muted-foreground", {t("service_routes.truncated")} }
                                         }
                                     }
                                 }

@@ -47,9 +47,8 @@ pub fn ServiceRouteList() -> Element {
                                     TableRow {
                                         TableHead { {t("service_routes.service_id")} }
                                         TableHead { {t("service_routes.kind")} }
-                                        TableHead { {t("service_routes.floor")} }
+                                        TableHead { {t("service_routes.version")} }
                                         TableHead { {t("service_routes.cache_expiry")} }
-                                        TableHead { {t("service_routes.notice_ack")} }
                                         TableHead { {t("service_routes.status")} }
                                     }
                                 }
@@ -67,19 +66,11 @@ pub fn ServiceRouteList() -> Element {
                                             {
                                                 let service_id = route.service_id.to_string();
                                                 let service_kind = route.service_kind.clone();
-                                                let floor = route.last_seen_sequence
-                                                    .map(|seq| seq.to_string())
+                                                let method_version = route.version_id.clone()
                                                     .unwrap_or_else(|| t("service_routes.unknown"));
                                                 let cache_expiry = route.cache_expires_at
                                                     .map(|value| value.to_rfc3339())
                                                     .unwrap_or_else(|| t("service_routes.unknown"));
-                                                let notice_ack = format!(
-                                                    "{}{} / {}{}",
-                                                    route.notice_count,
-                                                    if route.notices_truncated { "+" } else { "" },
-                                                    route.ack_count,
-                                                    if route.acks_truncated { "+" } else { "" },
-                                                );
                                                 rsx! {
                                                     TableRow { key: "{service_id}:{service_kind}",
                                                         TableCell {
@@ -93,9 +84,8 @@ pub fn ServiceRouteList() -> Element {
                                                             }
                                                         }
                                                         TableCell { class: "font-mono text-xs".to_string(), "{service_kind}" }
-                                                        TableCell { class: "font-mono text-xs".to_string(), "{floor}" }
+                                                        TableCell { class: "font-mono text-xs".to_string(), "{method_version}" }
                                                         TableCell { class: "font-mono text-xs".to_string(), "{cache_expiry}" }
-                                                        TableCell { class: "font-mono text-xs".to_string(), "{notice_ack}" }
                                                         TableCell {
                                                             if route.quarantined {
                                                                 Badge { variant: BadgeVariant::Destructive, {t("service_routes.quarantined")} }
