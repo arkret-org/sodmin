@@ -175,7 +175,7 @@ pub fn KeyBackupList() -> Element {
                                     TableHead { "policy_id" }
                                     TableHead { "version" }
                                     TableHead { "trust_domain" }
-                                    TableHead { "allowed_proof_kinds" }
+                                    TableHead { "methods" }
                                     TableHead { "issued_at" }
                                     TableHead { "expires_at" }
                                 }
@@ -226,14 +226,14 @@ fn render_series_row(s: &KeyBackupSummary) -> Element {
 }
 
 fn render_policy_row(p: &RecoveryPolicySummary) -> Element {
-    let proof_kinds = if p.allowed_proof_kinds.is_empty() {
-        // Explicit-revocation policy: an empty proof-kind set means
+    let methods = if p.methods.is_empty() {
+        // Explicit-revocation policy: an empty method set means
         // recovery is disabled under this policy.
         "(revoked)".to_string()
     } else {
-        p.allowed_proof_kinds
+        p.methods
             .iter()
-            .map(|kind| kind.as_wire_str())
+            .map(|method| method.kind().as_wire_str())
             .collect::<Vec<_>>()
             .join(", ")
     };
@@ -253,7 +253,7 @@ fn render_policy_row(p: &RecoveryPolicySummary) -> Element {
                 Badge { variant: BadgeVariant::Secondary, "v{p.version}" }
             }
             TableCell { class: "font-mono text-xs max-w-[160px] truncate".to_string(), "{trust_domain}" }
-            TableCell { class: "text-xs".to_string(), "{proof_kinds}" }
+            TableCell { class: "text-xs".to_string(), "{methods}" }
             TableCell { class: "text-xs".to_string(), "{issued_at}" }
             TableCell { class: "text-xs".to_string(), "{expires_at}" }
         }
