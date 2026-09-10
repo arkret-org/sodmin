@@ -133,7 +133,7 @@ pub fn ServiceRouteShow(service_id: String, service_kind: String) -> Element {
                                             for item in detail.quarantine.iter() {
                                                 div { class: "rounded-md border border-destructive/40 p-4 space-y-2",
                                                     Badge { variant: BadgeVariant::Destructive, {t("service_routes.quarantined")} }
-                                                    p { class: "font-mono text-xs break-all", "{item.artifact_family} / {item.artifact_key}" }
+                                                    p { class: "font-mono text-xs break-all", "{item.version_id}" }
                                                     p { class: "font-mono text-xs break-all text-muted-foreground", "{item.accepted_digest} → {item.conflicting_digest}" }
                                                     pre { class: "overflow-auto rounded bg-muted p-3 text-xs", {serde_json::to_string_pretty(&item.diagnostic).unwrap_or_else(|_| "{}".to_string())} }
                                                 }
