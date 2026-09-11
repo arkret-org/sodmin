@@ -191,11 +191,9 @@ pub fn AuditLog() -> Element {
                                         TableHead { {t("audit.outcome")} }
                                         // AKP-0008 — envelope attribution columns
                                         // (wire keys, surfaced from `payload`):
-                                        // executed_by / authorization_ref /
-                                        // actor_kind (reducer-stamped).
+                                        // executed_by / authorization_ref.
                                         TableHead { "executed_by" }
                                         TableHead { "authz_ref" }
-                                        TableHead { "actor_kind" }
                                         TableHead { {t("audit.timestamp")} }
                                     }
                                 }
@@ -220,7 +218,6 @@ pub fn AuditLog() -> Element {
                                                     .unwrap_or_else(|| "-".to_string());
                                                 let executed_by = entry.executed_by().unwrap_or_else(|| "-".to_string());
                                                 let authorization_ref = entry.authorization_ref().unwrap_or_else(|| "-".to_string());
-                                                let actor_kind = entry.actor_kind().unwrap_or_else(|| "-".to_string());
                                                 let payload = entry.payload.clone();
                                                 let is_expanded = expanded.read().as_ref() == Some(&id);
 
@@ -249,7 +246,6 @@ pub fn AuditLog() -> Element {
                                                         TableCell { class: "text-xs".to_string(), "{outcome}" }
                                                         TableCell { class: "font-mono text-xs max-w-[160px] truncate".to_string(), "{executed_by}" }
                                                         TableCell { class: "font-mono text-xs max-w-[160px] truncate".to_string(), "{authorization_ref}" }
-                                                        TableCell { class: "text-xs".to_string(), "{actor_kind}" }
                                                         TableCell { class: "text-muted-foreground".to_string(), "{timestamp}" }
                                                     }
                                                     if is_expanded {

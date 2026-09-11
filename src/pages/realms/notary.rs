@@ -46,11 +46,6 @@ pub fn NotaryPage(realm_id: String) -> Element {
                                     }
                                 }
                                 {render_value_detail(value)}
-                                if let Some(ms) = value.revocation_freshness_window_ms {
-                                    p { class: "text-muted-foreground",
-                                        {format!("revocation_freshness_window_ms: {}", ms)}
-                                    }
-                                }
                             }
                         }
                     }

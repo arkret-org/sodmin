@@ -3,7 +3,7 @@
 //!
 //! The row is the shared `soland_contracts::admin::AdminAuditEntry` (D14
 //! production projection, mirroring the durable audit record). AKP-0008
-//! attribution (`executed_by` / `authorization_ref` / `actor_kind`) travels
+//! attribution (`executed_by` / `authorization_ref`) travels
 //! inside `payload`; the helpers below surface it for the table columns.
 
 pub use soland_contracts::admin::AdminAuditEntry;
@@ -15,8 +15,6 @@ pub trait AdminAuditEntryExt {
     fn executed_by(&self) -> Option<String>;
     /// AKP-0008 — authorizing grant reference.
     fn authorization_ref(&self) -> Option<String>;
-    /// AKP-0008 — actor classification stamped at admission.
-    fn actor_kind(&self) -> Option<String>;
 }
 
 impl AdminAuditEntryExt for AdminAuditEntry {
@@ -34,9 +32,5 @@ impl AdminAuditEntryExt for AdminAuditEntry {
 
     fn authorization_ref(&self) -> Option<String> {
         self.payload_str("authorization_ref")
-    }
-
-    fn actor_kind(&self) -> Option<String> {
-        self.payload_str("actor_kind")
     }
 }
