@@ -1,11 +1,5 @@
-//! Bottom-state diagnostics page (Stream H', H'3).
-//!
-//! Lists every cell currently in `Bottom` state across visible Realms and
-//! shows candidate heads for diagnosis. Recovery itself must be authored as a
-//! signed, protocol-registered Control Move on the ordinary Event submission
-//! rail; the admin UI does not synthesize or submit a repair wire object.
-
-use std::collections::HashMap;
+//! Read-only diagnostics for ordinary causal-register conflicts.
+//! Candidate values do not grant authority or define a generic recovery operation.
 
 use dioxus::prelude::*;
 
@@ -17,19 +11,12 @@ use crate::components::ui::error_banner::ErrorBanner;
 use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::table::*;
-use crate::types::seal::{BottomCandidateHead, BottomKind, BottomKindExt, bottom_kind_from_wire};
+use crate::types::seal::{BottomKindExt, bottom_kind_from_wire};
 use crate::utils::i18n::t;
 
 #[component]
 pub fn BottomDiagnosticsPage() -> Element {
     let mut data = use_resource(|| async { seal::list_bottom_entries_global().await });
-
-    // Per-row picker selection for multi-head conflict bottoms (continued
-    // H'3): when `candidate_heads.len() > 1` the user picks which head to
-    // promote *before* opening the confirm modal. Keyed by cell_id; absent
-    // = "use default (first head)". This lets the page survive re-fetches
-    // without losing in-flight selections.
-    let mut selected_heads = use_signal::<HashMap<String, usize>>(HashMap::new);
 
     rsx! {
         div { class: "space-y-6",
@@ -42,18 +29,15 @@ pub fn BottomDiagnosticsPage() -> Element {
                     {t("common.refresh")}
                 }
             }
-
             match &*data.read() {
-                Some(Ok(entries)) => if entries.is_empty() {
-                    rsx! {
-                        EmptyState {
-                            icon_name: "shield".to_string(),
-                            title: t("seal_bottom.all_clear"),
-                            description: t("seal_bottom.all_clear_description"),
-                        }
+                Some(Ok(entries)) if entries.is_empty() => rsx! {
+                    EmptyState {
+                        icon_name: "shield".to_string(),
+                        title: t("seal_bottom.all_clear"),
+                        description: t("seal_bottom.all_clear_description"),
                     }
-                } else {
-                    rsx! {
+                },
+                Some(Ok(entries)) => rsx! {
                     div { class: "rounded-md border",
                         Table {
                             TableHeader {
@@ -62,100 +46,28 @@ pub fn BottomDiagnosticsPage() -> Element {
                                     TableHead { {t("seal_bottom.col_realm")} }
                                     TableHead { {t("seal_bottom.col_cell")} }
                                     TableHead { {t("seal_bottom.col_event_ids")} }
-                                    TableHead { {t("seal_bottom.col_detected")} }
                                     TableHead { {t("seal_bottom.col_details")} }
-                                    TableHead { class: "text-right".to_string(), {t("common.actions")} }
                                 }
                             }
                             TableBody {
-                                    for entry in entries.iter() {
-                                        {
-                                            let entry_clone = entry.clone();
-                                            let kind_label = format_kind_label(&entry.kind);
-                                            let kind_variant = bottom_kind_variant(&entry.kind);
-                                            let event_ids = entry.event_ids.join(", ");
-                                            let detected = entry
-                                                .detected_at
-                                                .clone()
-                                                .unwrap_or_else(|| "-".to_string());
-                                            let details = entry
-                                                .details
-                                                .clone()
-                                                .unwrap_or_else(|| "-".to_string());
-                                            let realm_id = entry.realm_id.clone();
-                                            let cell_id = entry.cell_id.clone();
-                                            rsx! {
-                                                TableRow {
-                                                    TableCell {
-                                                        Badge { variant: kind_variant, "{kind_label}" }
-                                                    }
-                                                    TableCell { class: "font-mono text-xs".to_string(), "{realm_id}" }
-                                                    TableCell {
-                                                        class: "font-mono text-xs max-w-[260px] truncate".to_string(),
-                                                        "{cell_id}"
-                                                    }
-                                                    TableCell {
-                                                        class: "font-mono text-xs max-w-[200px] truncate".to_string(),
-                                                        "{event_ids}"
-                                                    }
-                                                    TableCell { class: "text-muted-foreground".to_string(), "{detected}" }
-                                                    TableCell {
-                                                        class: "max-w-[280px] truncate".to_string(),
-                                                        "{details}"
-                                                    }
-                                                    TableCell { class: "text-right".to_string(),
-                                                        {
-                                                            let cell_id_for_select = entry_clone.cell_id.clone();
-                                                            let candidate_count = entry_clone.candidate_heads.len();
-                                                            let current_idx = *selected_heads
-                                                                .read()
-                                                                .get(&cell_id_for_select)
-                                                                .unwrap_or(&0usize);
-                                                            // Inline metadata for the currently-selected
-                                                            // candidate head (issuer / hlc / summary).
-                                                            // soland populates these fields when
-                                                            // available; the helper returns `None` when
-                                                            // none are populated, so the meta block is
-                                                            // skipped entirely on bare candidates.
-                                                            let metadata_text = entry_clone
-                                                                .candidate_heads
-                                                                .get(current_idx)
-                                                                .and_then(format_head_metadata);
-                                                            rsx! {
-                                                                div { class: "flex flex-col gap-1 items-end",
-                                                                    if candidate_count > 1 {
-                                                                        select {
-                                                                            class: "h-8 rounded-md border bg-background px-2 text-xs",
-                                                                            value: current_idx.to_string(),
-                                                                            onchange: move |evt: FormEvent| {
-                                                                                if let Ok(idx) = evt.value().parse::<usize>() {
-                                                                                    let mut map = selected_heads.read().clone();
-                                                                                    map.insert(cell_id_for_select.clone(), idx);
-                                                                                    selected_heads.set(map);
-                                                                                }
-                                                                            },
-                                                                            for (i, head) in entry_clone.candidate_heads.iter().enumerate() {
-                                                                                option {
-                                                                                    value: i.to_string(),
-                                                                                    {format_head_option(i, head)}
-                                                                                }
-                                                                            }
-                                                                        }
-                                                                    }
-                                                                    if let Some(meta) = metadata_text {
-                                                                        div { class: "text-[10px] text-muted-foreground font-mono max-w-[280px] truncate text-right",
-                                                                            "{meta}"
-                                                                        }
-                                                                    }
-                                                                    div {
-                                                                        class: "text-[10px] text-muted-foreground max-w-[240px] text-right",
-                                                                        "Submit a signed recovery Control Move through the Event API"
-                                                                    }
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-                                                }
+                                for entry in entries {
+                                    TableRow {
+                                        TableCell {
+                                            Badge {
+                                                variant: BadgeVariant::Destructive,
+                                                {bottom_kind_from_wire(&entry.kind).map(|kind| kind.label().to_owned()).unwrap_or_else(|| entry.kind.clone())}
+                                            }
+                                        }
+                                        TableCell { class: "font-mono text-xs", "{entry.realm_id}" }
+                                        TableCell { class: "font-mono text-xs break-all", "{entry.cell_id}" }
+                                        TableCell {
+                                            for head in &entry.candidate_heads {
+                                                div { class: "font-mono text-xs break-all", "{head.event_id}" }
+                                            }
+                                        }
+                                        TableCell {
+                                            for head in &entry.candidate_heads {
+                                                pre { class: "text-xs whitespace-pre-wrap break-all", "{head.value}" }
                                             }
                                         }
                                     }
@@ -164,179 +76,14 @@ pub fn BottomDiagnosticsPage() -> Element {
                         }
                     }
                 },
-                Some(Err(e)) => rsx! {
+                Some(Err(error)) => rsx! {
                     ErrorBanner {
-                        message: e.message.clone(),
+                        message: error.message.clone(),
                         on_retry: move |_| data.restart(),
                     }
                 },
                 None => rsx! { PageSkeleton {} },
             }
         }
-    }
-}
-
-/// Render label for a head option in the picker. Truncates the event id
-/// to keep the dropdown narrow but still distinguishable. Pure helper so
-/// we can unit test the formatting independent of Dioxus.
-pub(crate) fn format_head_option(idx: usize, head: &BottomCandidateHead) -> String {
-    let summary = head.summary.as_deref().unwrap_or("");
-    let short = if head.event_id.chars().count() > 16 {
-        format!("{}…", head.event_id.chars().take(16).collect::<String>())
-    } else {
-        head.event_id.clone()
-    };
-    if summary.is_empty() {
-        format!("{}: {}", idx + 1, short)
-    } else {
-        format!("{}: {} ({})", idx + 1, short, summary)
-    }
-}
-
-/// Render the inline metadata block for a selected candidate head — the
-/// issuer ID, HLC timestamp and human summary fields soland may
-/// populate. Returns `None` when none of the optional fields are
-/// populated, so the caller can skip rendering an empty block. Pure
-/// helper so the formatting logic is unit-testable.
-pub(crate) fn format_head_metadata(head: &BottomCandidateHead) -> Option<String> {
-    let mut parts: Vec<String> = Vec::with_capacity(3);
-    if let Some(issuer_id) = head.issuer_id.as_ref() {
-        parts.push(format!("issuer_id={issuer_id}"));
-    }
-    if let Some(hlc) = head.hlc.as_deref().filter(|s| !s.is_empty()) {
-        parts.push(format!("hlc={hlc}"));
-    }
-    if let Some(summary) = head.summary.as_deref().filter(|s| !s.is_empty()) {
-        parts.push(format!("summary={summary}"));
-    }
-    if parts.is_empty() {
-        None
-    } else {
-        Some(parts.join(" · "))
-    }
-}
-
-pub(crate) fn format_kind_label(wire: &str) -> String {
-    bottom_kind_from_wire(wire)
-        .map(|k| k.label().to_string())
-        .unwrap_or_else(|| wire.to_string())
-}
-
-pub(crate) fn bottom_kind_variant(wire: &str) -> BadgeVariant {
-    match bottom_kind_from_wire(wire) {
-        Some(BottomKind::Conflict) | Some(BottomKind::NotarySplit) => BadgeVariant::Destructive,
-        Some(BottomKind::Unauthorized) | Some(BottomKind::SchemaError) => BadgeVariant::Destructive,
-        Some(BottomKind::InvalidTransition) | Some(BottomKind::MissingDependency) => {
-            BadgeVariant::Secondary
-        }
-        None => BadgeVariant::Outline,
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::{bottom_kind_variant, format_head_metadata, format_head_option, format_kind_label};
-    use crate::components::ui::badge::BadgeVariant;
-    use crate::types::seal::BottomCandidateHead;
-
-    #[test]
-    fn format_kind_label_falls_back_to_raw() {
-        assert_eq!(format_kind_label("conflict"), "Conflict");
-        assert_eq!(format_kind_label("notary_split"), "Notary Split");
-        // Unknown wire value falls back to the raw string so admins see
-        // SOMETHING rather than an empty cell.
-        assert_eq!(format_kind_label("never_seen"), "never_seen");
-    }
-
-    #[test]
-    fn bottom_kind_variant_buckets() {
-        assert!(matches!(
-            bottom_kind_variant("conflict"),
-            BadgeVariant::Destructive
-        ));
-        assert!(matches!(
-            bottom_kind_variant("notary_split"),
-            BadgeVariant::Destructive
-        ));
-        assert!(matches!(
-            bottom_kind_variant("missing_dependency"),
-            BadgeVariant::Secondary
-        ));
-        assert!(matches!(
-            bottom_kind_variant("schema_error"),
-            BadgeVariant::Destructive
-        ));
-        assert!(matches!(
-            bottom_kind_variant("garbage"),
-            BadgeVariant::Outline
-        ));
-    }
-
-    #[test]
-    fn format_head_option_truncates_long_event_ids() {
-        // A canonical Event id is a typed prefix plus a 44-char Event
-        // token, so it always exceeds the 16-char display budget.
-        const EVENT_ID: &str = "ak:event:Ac9bKig7-unBOQMz5BcjOs49xMFR2tl5pu-TdGEcjFJC";
-        let head = BottomCandidateHead {
-            event_id: EVENT_ID.into(),
-            ..Default::default()
-        };
-        let label = format_head_option(0, &head);
-        // 1-indexed, truncated with ellipsis at 16 chars of the event id.
-        assert!(label.starts_with("1: "));
-        assert!(label.contains("\u{2026}"));
-        assert!(label.contains(&EVENT_ID[..16]));
-        assert!(!label.contains(EVENT_ID));
-    }
-
-    #[test]
-    fn format_head_option_includes_summary_when_present() {
-        const EVENT_ID: &str = "ak:event:ATcTe_f_cv-nerIieV4h3tbHIMdJdXrRUA8Uq3xjiWL3";
-        let head = BottomCandidateHead {
-            event_id: EVENT_ID.into(),
-            summary: Some("set value=42".into()),
-            ..Default::default()
-        };
-        let label = format_head_option(2, &head);
-        assert!(label.starts_with("3: "));
-        assert!(label.contains(&EVENT_ID[..16]));
-        assert!(label.contains("set value=42"));
-    }
-
-    #[test]
-    fn head_metadata_is_none_when_no_optional_fields_populated() {
-        let head = BottomCandidateHead {
-            event_id: "ak:event:AUfvPX-MgC7_kR8a94E_q3H5u1UOlDnu2sGTxqR3loCf".into(),
-            ..Default::default()
-        };
-        assert!(format_head_metadata(&head).is_none());
-    }
-
-    #[test]
-    fn head_metadata_concatenates_populated_optional_fields() {
-        // All three populated: ordering is issuer_id · hlc · summary so the
-        // operator gets a stable, predictable line.
-        let head = BottomCandidateHead {
-            event_id: "ak:event:Aan7Ux1oCI9l8IvWpnGPzeHRG0hhQwfugg_05hRHt5MP".into(),
-            issuer_id: Some(arkret_wire::DidCoreId::new("ak:did_core:web:alice.example").unwrap()),
-            hlc: Some("01J9-0001-abcd".into()),
-            summary: Some("set value=42".into()),
-        };
-        let meta = format_head_metadata(&head).expect("metadata present");
-        assert!(meta.starts_with("issuer_id=ak:did_core:web:alice.example"));
-        assert!(meta.contains("hlc=01J9-0001-abcd"));
-        assert!(meta.ends_with("summary=set value=42"));
-        // Empty-string optional fields are treated as absent — soland
-        // sometimes serializes "" instead of `null` and we must not show
-        // a bare issuer key.
-        let head = BottomCandidateHead {
-            event_id: "ak:event:Aan7Ux1oCI9l8IvWpnGPzeHRG0hhQwfugg_05hRHt5MP".into(),
-            issuer_id: None,
-            hlc: None,
-            summary: Some("only this".into()),
-        };
-        let meta = format_head_metadata(&head).expect("metadata present");
-        assert!(!meta.contains("issuer_id="));
-        assert!(meta.contains("summary=only this"));
     }
 }

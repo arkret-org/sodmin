@@ -1,6 +1,6 @@
 //! Read-only Notary cell inspection.
 
-use arkret_wire::{NotarySignerDescriptor, NotaryValue};
+use arkret_wire::NotarySignerDescriptor;
 use dioxus::prelude::*;
 
 use crate::api::seal;

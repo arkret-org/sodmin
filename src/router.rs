@@ -279,7 +279,6 @@ fn SealBottom() -> Element {
 }
 
 #[component]
-#[component]
 fn SpaceList() -> Element {
     rsx! { pages::spaces::list::SpaceList {} }
 }

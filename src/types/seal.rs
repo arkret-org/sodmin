@@ -4,12 +4,13 @@
 //! sodmin admin UI use the same type definitions.
 
 pub use soland_contracts::admin::seal::{
-    AdminNotaryValue, BottomCandidateHead, BottomEntry, BottomKind, BottomKindExt,
-    SealChainSnapshot, bottom_kind_from_wire,
+    AdminNotaryValue, BottomEntry, BottomKindExt, SealChainSnapshot, bottom_kind_from_wire,
 };
 
 #[cfg(test)]
 mod tests {
+    use arkret_wire::BottomKind;
+
     use super::*;
 
     fn notary_signer(actor: &str) -> serde_json::Value {
