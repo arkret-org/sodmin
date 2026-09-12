@@ -624,7 +624,7 @@
   "realm_multisig.refresh": "刷新",
   "realm_multisig.title": "多签待办 · {realm_id}",
   "realm_notary.current_value_title": "当前 notary 值",
-  "realm_notary.description": "配置此 Realm 的 notary cell（single_signer / threshold / open_set / mixed）。",
+  "realm_notary.description": "配置此 Realm 的固定 quorum notary（n=3f+1，确认阈值为 2f+1；f=0 为单副本）。",
   "realm_notary.paused": "已暂停",
   "realm_notary.title": "Notary · {realm_id}",
   "realm_organization.col_control_stream": "控制流",
