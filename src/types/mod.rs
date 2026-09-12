@@ -35,8 +35,6 @@ pub use media::*;
 pub mod media_service;
 pub use media_service::*;
 
-pub mod multisig;
-
 pub mod policy;
 
 pub mod realm_links;

@@ -63,46 +63,14 @@ pub fn NotaryPage(realm_id: String) -> Element {
 }
 
 fn render_value_detail(v: &AdminNotaryValue) -> Element {
-    match &v.notary {
-        NotaryValue::SingleSigner { signer, .. } => {
-            let actor_id = signer.actor_id.to_string();
-            rsx! { div { class: "font-mono text-xs", "actor_id: {actor_id}" } }
-        }
-        NotaryValue::Threshold {
-            signers, threshold, ..
-        } => {
-            let k = *threshold;
-            let n = signers.len();
-            let actor_ids = actor_ids(signers);
-            rsx! {
-                div { class: "font-mono text-xs", "k/n: {k}/{n}" }
-                ul { class: "list-disc list-inside text-xs font-mono",
-                    for actor_id in actor_ids.iter() { li { "{actor_id}" } }
-                }
-            }
-        }
-        NotaryValue::OpenSet { signers } => {
-            let actor_ids = actor_ids(signers);
-            rsx! {
-                ul { class: "list-disc list-inside text-xs font-mono",
-                    for actor_id in actor_ids.iter() { li { "{actor_id}" } }
-                }
-            }
-        }
-        NotaryValue::Mixed {
-            signer,
-            recovery_signers,
-            ..
-        } => {
-            let primary = signer.actor_id.to_string();
-            let recovery = actor_ids(recovery_signers);
-            rsx! {
-                div { class: "font-mono text-xs", "primary: {primary}" }
-                div { class: "text-xs text-muted-foreground", "recovery:" }
-                ul { class: "list-disc list-inside text-xs font-mono",
-                    for did in recovery.iter() { li { "{did}" } }
-                }
-            }
+    let n = v.notary.signers.len();
+    let f = v.notary.fault_tolerance;
+    let quorum = v.notary.quorum_size();
+    let actor_ids = actor_ids(&v.notary.signers);
+    rsx! {
+        div { class: "font-mono text-xs", "f/n: {f}/{n}; quorum: {quorum}" }
+        ul { class: "list-disc list-inside text-xs font-mono",
+            for actor_id in actor_ids.iter() { li { "{actor_id}" } }
         }
     }
 }

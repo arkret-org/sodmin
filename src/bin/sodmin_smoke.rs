@@ -260,16 +260,12 @@ fn run() -> ExitCode {
             build_realm_url(base, realm_id, "notary"),
         ),
         (
-            "realms/seal-dag (H'4)",
-            build_realm_url(base, realm_id, "seal-dag"),
+            "realms/seal-chain (H'4)",
+            build_realm_url(base, realm_id, "seal-chain"),
         ),
         (
             "realms/bottom (H'3)",
             build_realm_url(base, realm_id, "bottom"),
-        ),
-        (
-            "realms/multisig/pending (H'9)",
-            build_realm_url(base, realm_id, "multisig/pending"),
         ),
     ];
 
@@ -352,19 +348,6 @@ mod tests {
         assert_eq!(
             url,
             "https://soland.example.com/_soland/admin/realms/ak:realm:AXtI0JHl403DNDFAoBki57-5cESsvwc5LMyLnrl7o-A8/notary"
-        );
-    }
-
-    #[test]
-    fn build_realm_url_handles_compound_read_suffix() {
-        let url = build_realm_url(
-            "https://soland.example.com",
-            "ak:realm:AXtI0JHl403DNDFAoBki57-5cESsvwc5LMyLnrl7o-A8",
-            "multisig/pending",
-        );
-        assert_eq!(
-            url,
-            "https://soland.example.com/_soland/admin/realms/ak:realm:AXtI0JHl403DNDFAoBki57-5cESsvwc5LMyLnrl7o-A8/multisig/pending"
         );
     }
 

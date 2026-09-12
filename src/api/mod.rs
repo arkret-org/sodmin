@@ -16,7 +16,6 @@ pub mod invite_tokens;
 pub mod key_backup;
 pub mod media;
 pub mod media_service;
-pub mod multisig;
 pub mod policy;
 pub mod realm_links;
 /// Realm organization relationships and principal-control projections.

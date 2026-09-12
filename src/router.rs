@@ -34,10 +34,8 @@ pub enum Route {
         RealmShow { realm_id: String },
         #[route("/realms/:realm_id/notary")]
         RealmNotary { realm_id: String },
-        #[route("/realms/:realm_id/seal-dag")]
-        RealmSealDag { realm_id: String },
-        #[route("/realms/:realm_id/multisig")]
-        RealmMultiSig { realm_id: String },
+        #[route("/realms/:realm_id/seal-chain")]
+        RealmSealChain { realm_id: String },
         #[route("/spaces")]
         SpaceList {},
         #[route("/spaces/:space_id")]
@@ -271,8 +269,8 @@ fn RealmNotary(realm_id: String) -> Element {
 }
 
 #[component]
-fn RealmSealDag(realm_id: String) -> Element {
-    rsx! { pages::realms::seal_dag::SealDagPage { realm_id } }
+fn RealmSealChain(realm_id: String) -> Element {
+    rsx! { pages::realms::seal_chain::SealChainPage { realm_id } }
 }
 
 #[component]
@@ -281,10 +279,6 @@ fn SealBottom() -> Element {
 }
 
 #[component]
-fn RealmMultiSig(realm_id: String) -> Element {
-    rsx! { pages::realms::multisig::MultiSigPage { realm_id } }
-}
-
 #[component]
 fn SpaceList() -> Element {
     rsx! { pages::spaces::list::SpaceList {} }

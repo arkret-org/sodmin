@@ -2,7 +2,7 @@
 //! soland.
 
 use crate::api::client::{NO_BODY, api_client, build_url};
-use crate::types::seal::{AdminNotaryValue, BottomEntry, SealDagSnapshot};
+use crate::types::seal::{AdminNotaryValue, BottomEntry, SealChainSnapshot};
 use crate::utils::net::error::HttpError;
 
 pub async fn get_notary_value(realm_id: &str) -> Result<AdminNotaryValue, HttpError> {
@@ -18,9 +18,9 @@ pub async fn list_bottom_entries_global() -> Result<Vec<BottomEntry>, HttpError>
     api_client(&url, "GET", NO_BODY).await
 }
 
-pub async fn get_seal_dag(realm_id: &str) -> Result<SealDagSnapshot, HttpError> {
+pub async fn get_seal_chain(realm_id: &str) -> Result<SealChainSnapshot, HttpError> {
     let url = format!(
-        "/_soland/admin/realms/{}/seal-dag",
+        "/_soland/admin/realms/{}/seal-chain",
         urlencoding::encode(realm_id)
     );
     api_client(&url, "GET", NO_BODY).await
