@@ -554,11 +554,7 @@ fn conformance_section(describe: &ServerDescribeDocument, dev_mode_active: bool)
         .iter()
         .map(|profile| profile.profile_id.clone())
         .collect::<Vec<_>>();
-    let claimed = describe
-        .claimed_profiles
-        .iter()
-        .map(|profile| profile.profile_id.clone())
-        .collect::<Vec<_>>();
+    let claimed = describe.supported_profiles.clone();
     let interop = describe
         .interop_surfaces
         .iter()

@@ -9,7 +9,7 @@
 //! either; service-proprietary top-level extensions are read from the SDK
 //! model's flattened `extensions` map.
 
-// (The `ClaimedProfileEntry` / `VerifiedProfileEntry` /
+// (The `VerifiedProfileEntry` /
 // `InteropSurfaceEntry` element types are reachable through the SDK
 // directly; sodmin views consume them via the `ServiceDescribe`
 // fields and need no local re-export.)
@@ -126,7 +126,6 @@ mod tests {
             },
             "rate_limit_policy": { "policy_version": "1", "entries": [] },
             "plaintext_visibility": { "max_visibility": "private_plaintext", "data_classes": ["message_content"] },
-            "claimed_profiles": [],
             "verified_profiles": [],
             "interop_surfaces": [{
                 "name": "federation.bridge",

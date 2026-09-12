@@ -130,12 +130,7 @@ pub fn Dashboard() -> Element {
         .unwrap_or_default();
     let claimed_profiles = describe_data
         .as_ref()
-        .map(|d| {
-            d.claimed_profiles
-                .iter()
-                .map(|entry| entry.profile_id.clone())
-                .collect::<Vec<_>>()
-        })
+        .map(|d| d.supported_profiles.clone())
         .unwrap_or_default();
     let interop_surfaces = describe_data
         .as_ref()
