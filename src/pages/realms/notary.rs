@@ -1,6 +1,5 @@
 //! Read-only Notary cell inspection.
 
-use arkret_wire::NotarySignerDescriptor;
 use dioxus::prelude::*;
 
 use crate::api::seal;
@@ -39,8 +38,6 @@ pub fn NotaryPage(realm_id: String) -> Element {
                         CardContent {
                             div { class: "space-y-2 text-sm",
                                 div { class: "flex items-center gap-2",
-                                    Badge { variant: BadgeVariant::Secondary, "{value.kind_label()}" }
-                                    span { class: "text-muted-foreground", "{value.summary()}" }
                                     if value.paused {
                                         Badge { variant: BadgeVariant::Destructive, {t("realm_notary.paused")} }
                                     }
@@ -62,22 +59,11 @@ pub fn NotaryPage(realm_id: String) -> Element {
     }
 }
 
-fn render_value_detail(v: &AdminNotaryValue) -> Element {
-    let n = v.notary.signers.len();
-    let f = v.notary.fault_tolerance;
-    let quorum = v.notary.quorum_size();
-    let actor_ids = actor_ids(&v.notary.signers);
+fn render_value_detail(value: &AdminNotaryValue) -> Element {
+    let actor = value.notary.signer.actor_id.to_string();
+    let method = value.notary.signer.verification_method.as_str();
     rsx! {
-        div { class: "font-mono text-xs", "f/n: {f}/{n}; quorum: {quorum}" }
-        ul { class: "list-disc list-inside text-xs font-mono",
-            for actor_id in actor_ids.iter() { li { "{actor_id}" } }
-        }
+        div { class: "font-mono text-xs", "{actor}" }
+        div { class: "font-mono text-xs", "{method}" }
     }
-}
-
-fn actor_ids(members: &[NotarySignerDescriptor]) -> Vec<String> {
-    members
-        .iter()
-        .map(|member| member.actor_id.to_string())
-        .collect()
 }

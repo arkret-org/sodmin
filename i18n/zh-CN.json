@@ -674,7 +674,7 @@
   "realm_seal_chain.empty_description": "本 Realm 尚无已确认 Seal head。",
   "realm_seal_chain.empty_title": "暂无已确认 Seal",
   "realm_seal_chain.seal_id_label": "Seal ID：",
-  "realm_seal_chain.signers_label": "签名者：",
+  "realm_seal_chain.signer_label": "签名者：",
   "realm_seal_chain.state_root_label": "state_root：",
   "realm_seal_chain.title": "Seal 确认链 · {realm_id}",
   "realms.actions": "操作",

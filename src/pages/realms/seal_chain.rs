@@ -46,7 +46,7 @@ pub fn SealChainPage(realm_id: String) -> Element {
                             .or(snapshot.state_root.as_deref())
                             .unwrap_or("-");
                         let created_at = head.created_at.as_deref().unwrap_or("-");
-                        let signers = head.signers.join(", ");
+                        let signer = &head.signer;
                         let covered_events = snapshot.covered_event_digests.join(", ");
                         rsx! {
                             Card {
@@ -57,7 +57,7 @@ pub fn SealChainPage(realm_id: String) -> Element {
                                         div { span { class: "text-muted-foreground mr-2", {t("realm_seal_chain.state_root_label")} } span { class: "font-mono text-xs", "{state_root}" } }
                                         div { span { class: "text-muted-foreground mr-2", {t("realm_seal_chain.control_events_label")} } span { "{head.control_event_count}" } }
                                         div { span { class: "text-muted-foreground mr-2", {t("realm_seal_chain.created_label")} } span { "{created_at}" } }
-                                        div { span { class: "text-muted-foreground mr-2", {t("realm_seal_chain.signers_label")} } span { class: "font-mono text-xs", "{signers}" } }
+                                        div { span { class: "text-muted-foreground mr-2", {t("realm_seal_chain.signer_label")} } span { class: "font-mono text-xs", "{signer}" } }
                                         div { span { class: "text-muted-foreground mr-2", {t("realm_seal_chain.covered_events_label")} } span { class: "font-mono text-xs", "{covered_events}" } }
                                     }
                                 }

@@ -674,7 +674,7 @@
   "realm_seal_chain.empty_description": "This Realm has no confirmed Seal head.",
   "realm_seal_chain.empty_title": "No confirmed Seal",
   "realm_seal_chain.seal_id_label": "Seal ID:",
-  "realm_seal_chain.signers_label": "Signers:",
+  "realm_seal_chain.signer_label": "Signer:",
   "realm_seal_chain.state_root_label": "state_root:",
   "realm_seal_chain.title": "Seal chain · {realm_id}",
   "realms.actions": "Actions",

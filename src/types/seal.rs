@@ -23,29 +23,22 @@ mod tests {
             "key_kind": "ed25519_raw32",
             "jose_algorithm": "Ed25519",
             "frozen_public_key_b64u": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8",
-            "frozen_public_key_digest": "sha256:630dcd2966c4336691125448bbb25b4ff412a49c732db2c8abc1b8581bd710dd",
         })
     }
 
     #[test]
-    fn notary_value_summary_quorum() {
+    fn notary_value_uses_one_authority() {
         let value: AdminNotaryValue = serde_json::from_value(serde_json::json!({
-            "notary": {
-                "kind": "quorum",
-                "signers": [
-                    notary_signer("a"),
-                    notary_signer("b"),
-                    notary_signer("c"),
-                    notary_signer("d"),
-                ],
-                "fault_tolerance": 1,
-                "max_clock_error_ms": 1000
-            }
+            "notary": {"signer": notary_signer("a"), "max_clock_error_ms": 1000}
         }))
-        .expect("quorum notary should deserialize");
-
-        assert_eq!(value.kind_label(), "quorum");
-        assert_eq!(value.summary(), "quorum(f=1, n=4)");
+        .unwrap();
+        assert_eq!(
+            value.notary.signer.verification_method.as_str(),
+            "did:web:a.example#notary-1"
+        );
+        let mut retired = serde_json::to_value(value).unwrap();
+        retired["notary"]["kind"] = serde_json::json!("quorum");
+        assert!(serde_json::from_value::<AdminNotaryValue>(retired).is_err());
     }
 
     #[test]
@@ -55,6 +48,7 @@ mod tests {
             "covered_event_digests": ["ak:event:AVxWLctdfSsE1Zydw00Ka5bXOeyQ9ocw6ZlO7eAhe5i3"],
             "head": {
                 "seal_id": "ak:seal:sha256:c53617efdd06a540dfc23c88a059db52bcb4a8c94fee2428a05ed80674230056",
+                "signer": "did:web:a.example#notary-1",
                 "control_event_count": 1
             }
         }))
