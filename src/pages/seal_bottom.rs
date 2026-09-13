@@ -11,7 +11,7 @@ use crate::components::ui::error_banner::ErrorBanner;
 use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::table::*;
-use crate::types::seal::{BottomKindExt, bottom_kind_from_wire};
+use crate::types::seal::BottomKindExt;
 use crate::utils::i18n::t;
 
 #[component]
@@ -55,7 +55,7 @@ pub fn BottomDiagnosticsPage() -> Element {
                                         TableCell {
                                             Badge {
                                                 variant: BadgeVariant::Destructive,
-                                                {bottom_kind_from_wire(&entry.kind).map(|kind| kind.label().to_owned()).unwrap_or_else(|| entry.kind.clone())}
+                                                {entry.kind.label().to_owned()}
                                             }
                                         }
                                         TableCell { class: "font-mono text-xs", "{entry.realm_id}" }

@@ -4,8 +4,10 @@
 //! sodmin admin UI use the same type definitions.
 
 pub use soland_contracts::admin::seal::{
-    AdminNotaryValue, BottomEntry, BottomKindExt, SealChainSnapshot, bottom_kind_from_wire,
+    AdminNotaryValue, BottomEntry, BottomKindExt, SealChainSnapshot,
 };
+#[cfg(test)]
+use soland_contracts::admin::seal::bottom_kind_from_wire;
 
 #[cfg(test)]
 mod tests {

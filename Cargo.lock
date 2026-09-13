@@ -101,6 +101,7 @@ dependencies = [
  "arkret-identifiers",
  "arkret-models-crypto",
  "arkret-models-identity",
+ "arkret-models-integration",
  "arkret-schema",
  "arkret-wire",
  "chrono",
@@ -159,6 +160,18 @@ dependencies = [
  "serde_json",
  "sha2 0.11.0",
  "url",
+]
+
+[[package]]
+name = "arkret-models-integration"
+version = "0.3.0"
+dependencies = [
+ "arkret-canonical",
+ "arkret-models-identity",
+ "arkret-wire",
+ "chrono",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]
