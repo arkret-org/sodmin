@@ -6,6 +6,7 @@
 //!   2. Recovery policy history (read-only; spec `recovery_policy_summary` rows — policy publish
 //!      requires a principal-signed `auth_data` transcript the admin UI cannot mint).
 
+use arkret_models_crypto::recovery_policy::RecoveryMethod;
 use arkret_models_crypto::{KeyBackupSummary, RecoveryPolicySummary};
 use dioxus::prelude::*;
 
@@ -233,7 +234,7 @@ fn render_policy_row(p: &RecoveryPolicySummary) -> Element {
     } else {
         p.methods
             .iter()
-            .map(|method| method.kind().as_wire_str())
+            .map(RecoveryMethod::kind_str)
             .collect::<Vec<_>>()
             .join(", ")
     };

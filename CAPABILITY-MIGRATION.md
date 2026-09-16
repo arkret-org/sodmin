@@ -46,20 +46,46 @@ routes, APIs and i18n keys.
 directly. sodmin defines no protocol type of its own; `src/types/seal.rs`, which
 re-exported the deleted `soland_contracts::admin::seal` DTOs, is gone.
 
-## External blockers at the time of this change
+## Wording and surface corrections
 
-`cargo check` for this crate stops before sodmin's own code compiles:
+| Change | Why | Verified by |
+| --- | --- | --- |
+| `src/pages/dashboard.rs` no longer renders a `supported_reducer_profiles` card, and `i18n/{en,zh-CN}.json` no longer declare `dashboard.reducer_profile`. | The discovery response no longer publishes that list as a separate profile axis; the dashboard already shows the schema- and event-kind-registry versions that carry the same fact. | `cargo check --all-features`; the en/zh key sets are byte-identical and no `reducer_profile` reference remains under `src/`. |
+| `i18n/{en,zh-CN}.json` say "Event" where they used to say "Control Move" / "control move". | "Control Move" was the pre-migration name for a submitted Event; the protocol has one Event submission path and no Move object. | key-set parity check; no `[Cc]ontrol [Mm]ove` hit remains in the repo. |
 
-- `soland-contracts` fails on `unresolved import arkret_models_collaboration::events_payloads::MediaServiceFocus`. The type is still defined in `arkret-spec`
-  (`event-payload.schema.json#/$defs/realm_media_service_payload`) but is absent
-  from the SDK's generated Rust surface.
-- With `--all-features`, `arkret-models-collaboration` itself fails in
-  `governance/audit.rs` on `ReasonCode::RELAXED_WINDOW_EXCEEDS_CEILING`,
-  `ProfileId::{ATTESTED_AUDIT_E2EE_V1, DISCLOSED_AUDIT_E2EE_V1}` and
-  `SchemaId::{AUDIT_RYW_RECEIPT_V1, AUDIT_RELEASE_ATTESTATION_V1}` — the
-  audited-E2EE removal is landed in the generated constants but not yet in the
-  hand-written module.
+## SDK realignment (second pass)
 
-Both are upstream (arkret-rust-sdk / soland) and neither is caused by this
-change. The Playwright e2e suite needs a running soland + coauth stack and a
-built SPA, so it cannot run while the SPA cannot build.
+The SDK regained the types the first pass reported missing, so the whole crate
+now compiles and every check runs. Three call sites needed to follow the SDK's
+final module and member names:
+
+| Call site | Change | Verified by |
+| --- | --- | --- |
+| `src/api/coauth/viewer.rs` | `AccountView` now lives in `arkret_models_collaboration::account_operations`, not `account_lifecycle`. | `cargo check --all-features` |
+| `src/pages/key_backup.rs` | `RecoveryMethod::kind()` / `as_wire_str()` collapsed into the single SDK accessor `RecoveryMethod::kind_str()`. | `cargo check --all-features`; `render_policy_row` is exercised by the page's own unit tests in the 85-test lib suite |
+| `src/pages/realms/organization.rs` | `RealmOrganizationControlScope::DurabilityPolicy` no longer exists in the SDK enum and is absent from the spec's `control_scope` enum, so the match arm is gone. | `cargo check --all-features` |
+
+## Verification
+
+| Command | Result |
+| --- | --- |
+| `cargo +nightly fmt` | clean |
+| `cargo check --all-features` | 0 errors, 0 warnings |
+| `cargo check --all-features --all-targets` | 0 errors, 0 warnings |
+| `cargo test --all-features --no-fail-fast` | 90 passed, 0 failed (85 lib + 5 `sodmin-smoke`) |
+| `cargo test --bin sodmin-smoke --features smoke` | 5 passed, 0 failed |
+| module reachability self-check | 155 `src/**/*.rs` on disk, 155 reachable from `src/main.rs`, 0 orphans |
+| `npx playwright test -c tests/e2e/playwright.config.ts` | 63 specs, all self-skipped — see "External blockers" |
+
+## External blockers
+
+- The Playwright e2e suite needs a running soland + coauth stack; its specs
+  self-skip when the stack env vars are unset. coauth's `coauth-backend` does
+  not currently compile against the SDK (see that repo's
+  `CAPABILITY-MIGRATION.md`), and soland must start after coauth because it
+  reads its assertion key from coauth's JWKS. No spec was deleted or skipped by
+  this change; all 63 remain and will run once the stack builds.
+- `RealmOrganizationControlScope::NotaryControl` is still the SDK's variant
+  name, while `event-payload.schema.json`'s `control_scope` enum spells the same
+  scope `realm_authority`. sodmin renders the SDK value verbatim and cannot fix
+  the drift locally; it is reported upstream.

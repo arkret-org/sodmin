@@ -95,10 +95,6 @@ pub fn Dashboard() -> Element {
         .as_ref()
         .map(|d| join_or_dash(&d.supported_profiles))
         .unwrap_or_else(|| "-".to_string());
-    let reducer_profile = describe_data
-        .as_ref()
-        .map(|d| join_or_dash(&d.supported_reducer_profiles))
-        .unwrap_or_else(|| "-".to_string());
     let schema_registry = describe_data
         .as_ref()
         .and_then(schema_registry_version)
@@ -225,7 +221,6 @@ pub fn Dashboard() -> Element {
                         {metadata_cell(t("dashboard.coauth_issuer_did"), coauth_issuer_did)}
                         {metadata_cell(t("dashboard.delegated_resolver"), delegated_resolver_endpoint)}
                         {metadata_cell(t("dashboard.supported_profiles"), supported_profiles)}
-                        {metadata_cell(t("dashboard.reducer_profile"), reducer_profile)}
                         {metadata_cell(t("dashboard.schema_registry"), schema_registry)}
                         {metadata_cell(t("dashboard.event_kind_registry"), event_kind_registry)}
                         {metadata_cell(t("dashboard.openapi_version"), openapi_version)}

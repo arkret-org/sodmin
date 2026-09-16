@@ -1,6 +1,6 @@
 //! coauth admin viewer (current operator identity).
 
-use arkret_models_collaboration::account_lifecycle::AccountView;
+use arkret_models_collaboration::account_operations::AccountView;
 
 use crate::api::client::{NO_BODY, api_client};
 use crate::utils::net::error::HttpError;
