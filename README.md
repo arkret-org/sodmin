@@ -29,22 +29,23 @@ adapt to your local toolchain.
 - **Service-attested Event state (trigger + inspect)**: lifecycle operations
   that the protocol explicitly models as Events signed by the authoritative
   service, such as `ak.account.status`.
-- **Principal/notary-key state (read-only)**: Realm membership, invites,
-  policies and lifecycle, device authorization/revocation, capabilities,
-  notary configuration, Seal governance, and multisig signature state.
+- **Principal-key state (read-only)**: Realm membership, invites, policies
+  and lifecycle, device authorization/revocation, capabilities, and the Realm's
+  current governing Station with its authority handoff chain.
 - **Dashboard**: server profile, health, storage and conformance status.
 - **Actors and devices**: search, detail, sessions, DID/handle lifecycle,
   trust state, key status, grants, delegations and effective permission review.
 - **Realms**: read-only protocol projections with membership, invite, policy,
-  lifecycle, Notary and Seal audit context.
+  lifecycle, and authority commit stream context.
 - **Federation**: peers, service DIDs, transactions, replay/fork quarantine and verification status.
 - **Blob/media**: quota, metadata, retention and anti-enumeration diagnostics.
 - **coauth**: accounts, sessions, upstream providers, OAuth2 clients, registration tokens, notification channels and audit logs.
 
 `sodmin` authenticates through coauth OAuth + HttpOnly cookies and holds no
-Arkret device or notary key. It does not implement Arkret reducers,
+Arkret device or service signing key. It does not implement Arkret reducers,
 authorization decisions, or principal-key Event authoring. Those writes belong
-in a key-holding client or notary workflow.
+in a key-holding client, and shared Realm finality belongs to the Realm's
+governing Station.
 
 ## Architecture
 

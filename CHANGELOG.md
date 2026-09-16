@@ -5,6 +5,18 @@ this file. Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0
 this project is pre-1.0 so wire-breaking changes can land in any release until
 the SDK pins down its 1.0 contract.
 
+## Unreleased — authority-commit admin surface
+
+- Replaced the Realm Seal-chain, Notary and Bottom-diagnostics pages with one
+  Realm authority view at `/realms/:realm_id/authority`. It renders the
+  nonce-bound `RealmAuthorityBundle` from the governing Station: current Station
+  and authority generation, the Realm commit stream head, genesis, and the
+  continuous old/new double-signed handoff chain.
+- The admin UI no longer reads Seal, Notary or causal-register conflict
+  surfaces. Shared Realm finality is the authority-signed `RealmCommit` of the
+  Realm's single current governing Station; Realm, Circle and Sidecar streams
+  advance independently with no global position.
+
 ## Unreleased — SessionGrant issuer-ledger sync
 
 - Reclassified SessionGrant create, refresh, revoke, and regeneration as
@@ -14,7 +26,7 @@ the SDK pins down its 1.0 contract.
   coauth; Stations observe that terminal state through fresh
   introspection rather than maintaining a second grant lifecycle truth.
 - Preserved the admin key boundary: sodmin neither drafts grant Events nor
-  obtains principal, device, recovery, or notary signing keys.
+  obtains principal, device, recovery, or service signing keys.
 
 ## Spec sync 2026-05-31 (arkret-spec @ c2848a4)
 

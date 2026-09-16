@@ -19,7 +19,6 @@ pub mod not_authorized;
 pub mod oauth_callback;
 pub mod policy;
 pub mod realms;
-pub mod seal_bottom;
 pub mod server_status;
 pub mod service_routes;
 pub mod spaces;

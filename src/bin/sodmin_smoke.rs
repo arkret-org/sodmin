@@ -246,7 +246,7 @@ fn run() -> ExitCode {
     let base = &args.base_url;
     let realm_id = &args.realm_id;
 
-    // Health probe + Stream H' read-only endpoints. Smoke checks
+    // Health probe + Realm-scoped admin read endpoints. Smoke checks
     // reachability and authentication only.
     let checks = vec![
         (
@@ -255,17 +255,10 @@ fn run() -> ExitCode {
             // the admin namespace (which has no `health` route).
             format!("{base}/health"),
         ),
+        ("realms/links", build_realm_url(base, realm_id, "links")),
         (
-            "realms/notary (H'1/H'2)",
-            build_realm_url(base, realm_id, "notary"),
-        ),
-        (
-            "realms/seal-chain (H'4)",
-            build_realm_url(base, realm_id, "seal-chain"),
-        ),
-        (
-            "realms/bottom (H'3)",
-            build_realm_url(base, realm_id, "bottom"),
+            "realms/organizations",
+            build_realm_url(base, realm_id, "organizations"),
         ),
     ];
 
@@ -343,11 +336,11 @@ mod tests {
         let url = build_realm_url(
             "https://soland.example.com/",
             "ak:realm:AXtI0JHl403DNDFAoBki57-5cESsvwc5LMyLnrl7o-A8",
-            "notary",
+            "links",
         );
         assert_eq!(
             url,
-            "https://soland.example.com/_soland/admin/realms/ak:realm:AXtI0JHl403DNDFAoBki57-5cESsvwc5LMyLnrl7o-A8/notary"
+            "https://soland.example.com/_soland/admin/realms/ak:realm:AXtI0JHl403DNDFAoBki57-5cESsvwc5LMyLnrl7o-A8/links"
         );
     }
 

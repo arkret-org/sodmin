@@ -31,7 +31,7 @@ Per spec, Circle is an intra-Realm cryptographic sub-boundary:
   Object read projections MAY materialize `effective_scope`, which must equal
   the creating Event's `scope_ref` and is never a writable source of truth.
 - An admin surface MUST NOT render Circle-scoped rows to an operator who is
-  not resolved against the Circle membership frontier of the row's scope.
+  not resolved against the committed Circle membership of the row's scope.
 
 Violations of these invariants are treated as security issues.
 

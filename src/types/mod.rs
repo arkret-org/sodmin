@@ -7,8 +7,6 @@ pub use pagination::CursorPage;
 pub mod actors;
 pub use actors::*;
 
-pub mod seal;
-
 pub mod audit;
 pub use audit::*;
 

@@ -32,17 +32,12 @@ pub enum Route {
         RealmList {},
         #[route("/realms/:realm_id")]
         RealmShow { realm_id: String },
-        #[route("/realms/:realm_id/notary")]
-        RealmNotary { realm_id: String },
-        #[route("/realms/:realm_id/seal-chain")]
-        RealmSealChain { realm_id: String },
+        #[route("/realms/:realm_id/authority")]
+        RealmAuthority { realm_id: String },
         #[route("/spaces")]
         SpaceList {},
         #[route("/spaces/:space_id")]
         SpaceShow { space_id: String },
-
-        #[route("/seal/bottom")]
-        SealBottom {},
 
         #[route("/media")]
         MediaList {},
@@ -264,18 +259,8 @@ fn RealmShow(realm_id: String) -> Element {
 }
 
 #[component]
-fn RealmNotary(realm_id: String) -> Element {
-    rsx! { pages::realms::notary::NotaryPage { realm_id } }
-}
-
-#[component]
-fn RealmSealChain(realm_id: String) -> Element {
-    rsx! { pages::realms::seal_chain::SealChainPage { realm_id } }
-}
-
-#[component]
-fn SealBottom() -> Element {
-    rsx! { pages::seal_bottom::BottomDiagnosticsPage {} }
+fn RealmAuthority(realm_id: String) -> Element {
+    rsx! { pages::realms::authority::RealmAuthorityPage { realm_id } }
 }
 
 #[component]

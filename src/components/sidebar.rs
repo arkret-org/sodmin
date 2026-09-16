@@ -139,28 +139,17 @@ fn build_nav_sections() -> Vec<NavSection> {
         ],
     ));
 
-    // Stream H' (Control-plane Seal admin). Realm deep links
-    // keep a placeholder id because admins typically arrive from the
-    // Realm detail page.
+    // Realm authority admin. The deep link keeps a placeholder id because
+    // admins typically arrive from the Realm detail page.
     sections.push(NavSection::new(
-        t("nav.section_seal"),
-        vec![
-            NavItem::new(t("nav.seal_bottom"), Route::SealBottom {}, "alert-triangle"),
-            NavItem::new(
-                t("nav.seal_notary"),
-                Route::RealmNotary {
-                    realm_id: "_".to_string(),
-                },
-                "shield",
-            ),
-            NavItem::new(
-                t("nav.seal_chain"),
-                Route::RealmSealChain {
-                    realm_id: "_".to_string(),
-                },
-                "shield",
-            ),
-        ],
+        t("nav.section_authority"),
+        vec![NavItem::new(
+            t("nav.realm_authority"),
+            Route::RealmAuthority {
+                realm_id: "_".to_string(),
+            },
+            "shield",
+        )],
     ));
 
     sections.push(

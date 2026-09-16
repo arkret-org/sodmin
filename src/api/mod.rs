@@ -1,6 +1,9 @@
 pub mod actors;
 pub mod audit;
 pub mod auth;
+/// Realm authority-commit bundle: current governing Station, Realm commit
+/// stream head and the double-signed handoff chain.
+pub mod authority;
 pub mod capabilities;
 pub mod client;
 pub mod coauth;
@@ -21,7 +24,6 @@ pub mod realm_links;
 /// Realm organization relationships and principal-control projections.
 pub mod realm_organization;
 pub mod realms;
-pub mod seal;
 pub mod server;
 pub mod service_routes;
 pub mod spaces;
