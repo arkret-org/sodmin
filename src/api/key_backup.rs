@@ -22,7 +22,7 @@ struct RecoveryPoliciesEnvelope {
 
 /// `GET /_soland/admin/key-backups?series_id=&backup_kind=` — list backup
 /// envelopes grouped by series. Empty `series_id` returns the per-series
-/// frontier roll-up.
+/// head roll-up.
 pub async fn list_backups(
     series_id: Option<&str>,
     backup_kind: Option<&str>,

@@ -71,7 +71,7 @@ pub fn MediaServicePage(realm_id: String) -> Element {
                     rsx! {
                         Card {
                             CardHeader {
-                                CardTitle { {t("media_service.cell_title")} }
+                                CardTitle { {t("media_service.epoch_title")} }
                                 CardDescription { {t("media_service.subtitle")} }
                             }
                             CardContent {
