@@ -9,9 +9,6 @@ pub mod client;
 pub mod coauth;
 pub mod coauth_devices;
 pub mod devices;
-/// Directory service client
-/// (`ak.find.directory.read.list_handles_for_subject.v1`).
-pub mod directory;
 pub mod federation;
 pub mod handles;
 pub mod invite_tokens;

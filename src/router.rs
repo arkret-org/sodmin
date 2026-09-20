@@ -67,9 +67,6 @@ pub enum Route {
         #[route("/realms/:realm_id/organization")]
         RealmOrganization { realm_id: String },
 
-        #[route("/handles/by-subject?:subject")]
-        HandlesBySubject { subject: Option<String> },
-
         #[route("/key-backup")]
         KeyBackupList {},
 
@@ -337,11 +334,6 @@ fn RealmMediaService(realm_id: String) -> Element {
 #[component]
 fn RealmOrganization(realm_id: String) -> Element {
     rsx! { pages::realms::organization::OrganizationPage { realm_id } }
-}
-
-#[component]
-fn HandlesBySubject(subject: Option<String>) -> Element {
-    rsx! { pages::handles_by_subject::HandlesBySubject { subject } }
 }
 
 #[component]

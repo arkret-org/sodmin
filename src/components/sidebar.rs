@@ -65,11 +65,6 @@ fn build_nav_sections() -> Vec<NavSection> {
             NavItem::new(t("nav.actors"), Route::ActorList {}, "users"),
             NavItem::new(t("nav.devices"), Route::DeviceList {}, "smartphone"),
             NavItem::new(t("nav.handles"), Route::HandleList {}, "fingerprint"),
-            NavItem::new(
-                t("nav.handles_by_subject"),
-                Route::HandlesBySubject { subject: None },
-                "search",
-            ),
             NavItem::new(t("nav.capabilities"), Route::CapabilityList {}, "shield"),
             NavItem::new(
                 t("nav.coauth_capabilities"),
