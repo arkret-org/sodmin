@@ -1,13 +1,11 @@
 use dioxus::prelude::*;
 
 use crate::api::invite_tokens;
-use crate::components::ui::button::{Button, ButtonSize, ButtonVariant};
 use crate::components::ui::error_banner::ErrorBanner;
 use crate::components::ui::loading::PageSkeleton;
 use crate::components::ui::page_header::PageHeader;
 use crate::components::ui::pagination::Pagination;
 use crate::components::ui::table::*;
-use crate::components::ui::toast::{ToastVariant, show_toast};
 use crate::utils::i18n::t;
 
 const PAGE_SIZE: u64 = 25;
@@ -36,7 +34,7 @@ pub fn InviteTokenList() -> Element {
                             TableHeader {
                                 TableRow {
                                     TableHead { {t("invite_tokens.id")} }
-                                    TableHead { {t("invite_tokens.token")} }
+                                    TableHead { {t("invite_tokens.invitee")} }
                                     TableHead { {t("invite_tokens.status")} }
                                     TableHead { {t("invite_tokens.uses_allowed")} }
                                     TableHead { {t("invite_tokens.uses_completed")} }
@@ -57,7 +55,11 @@ pub fn InviteTokenList() -> Element {
                                     for token in resp.data.iter() {
                                         {
                                             let id = token.id.clone();
-                                            let tok = token.token.clone();
+                                            let invitee = token
+                                                .invitee_id
+                                                .as_ref()
+                                                .map(ToString::to_string)
+                                                .unwrap_or_else(|| "-".to_string());
                                             let status = token.status.clone();
                                             let ua = token.uses_allowed.to_string();
                                             let uc = token.uses_completed.to_string();
@@ -66,44 +68,11 @@ pub fn InviteTokenList() -> Element {
                                             let rid = token.realm_id.clone();
                                             let created = token.created_at.to_rfc3339();
 
-                                            let tok_for_copy = tok.clone();
-
                                             rsx! {
                                                 TableRow {
                                                     key: "{id}",
                                                     TableCell { class: "font-medium".to_string(), "{id}" }
-                                                    TableCell {
-                                                        div { class: "flex items-center gap-1 max-w-[200px]",
-                                                            span { class: "font-mono text-xs truncate", "{tok}" }
-                                                            Button {
-                                                                variant: ButtonVariant::Ghost,
-                                                                size: ButtonSize::Sm,
-                                                                onclick: {
-                                                                    let tok = tok_for_copy.clone();
-                                                                    move |_| {
-                                                                        // Use the typed Clipboard API instead of
-                                                                        // string-interpolated `eval` — no injection
-                                                                        // surface, and the toast only fires once the
-                                                                        // write actually resolves.
-                                                                        let tok = tok.clone();
-                                                                        spawn(async move {
-                                                                            let clipboard = web_sys::window().map(|w| w.navigator().clipboard());
-                                                                            match clipboard {
-                                                                                Some(clipboard) => {
-                                                                                    match wasm_bindgen_futures::JsFuture::from(clipboard.write_text(&tok)).await {
-                                                                                        Ok(_) => show_toast(&t("invite_tokens.toast_copied"), ToastVariant::Success),
-                                                                                        Err(_) => show_toast(&t("invite_tokens.toast_copy_failed"), ToastVariant::Error),
-                                                                                    }
-                                                                                }
-                                                                                None => show_toast(&t("invite_tokens.toast_copy_failed"), ToastVariant::Error),
-                                                                            }
-                                                                        });
-                                                                    }
-                                                                },
-                                                                {t("common.copy")}
-                                                            }
-                                                        }
-                                                    }
+                                                    TableCell { class: "max-w-[200px] truncate font-mono text-xs".to_string(), "{invitee}" }
                                                     TableCell { "{status}" }
                                                     TableCell { "{ua}" }
                                                     TableCell { "{uc}" }
