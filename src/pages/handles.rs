@@ -9,8 +9,7 @@
 //!   force-reassign actions.
 //!
 //! Both columns render Soland's canonical `<localpart>:<domain>` value
-//! verbatim. The operator-facing `@<localpart>:<domain>` sigil is derived only
-//! for display via [`utils::security::handle::display_sigil`].
+//! verbatim, without adding a display sigil.
 
 use arkret_identifiers::DidCoreId;
 use dioxus::prelude::*;
@@ -32,7 +31,6 @@ use crate::router::Route;
 use crate::types::AdminHandleReassignBody;
 use crate::utils::destructive_reason::destructive_reason_error;
 use crate::utils::i18n::t;
-use crate::utils::security::handle::display_sigil;
 
 const PAGE_SIZE: u64 = 25;
 
@@ -97,12 +95,6 @@ pub fn HandleList() -> Element {
                                         {
                                             let id = handle.id.clone();
                                             let canonical = handle.canonical_uri.clone();
-                                            // Display sigil rendered
-                                            // alongside the canonical wire bytes
-                                            // so operators can scan the list
-                                            // visually without losing the
-                                            // soland-verifiable form.
-                                            let sigil = display_sigil(&canonical);
                                             let aliases = handle.aliases.join(", ");
                                             let issuer_id = handle.issuer_id.to_string();
                                             let expires = handle.expires_at.clone().unwrap_or_else(|| "-".to_string());
@@ -121,9 +113,6 @@ pub fn HandleList() -> Element {
                                                             Link { to: Route::HandleShow { handle_id: id_for_link.clone() },
                                                                 class: "text-primary hover:underline",
                                                                 "{canonical}"
-                                                            }
-                                                            span { class: "text-muted-foreground/80 text-[10px]",
-                                                                "{sigil}"
                                                             }
                                                         }
                                                     }
