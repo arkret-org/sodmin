@@ -58,6 +58,7 @@ pub async fn create_policy(req: &CreatePolicyRequest) -> Result<AdminPolicy, Htt
     if request_targets_pin_policy(req) {
         return Err(pin_policy_unavailable_error());
     }
+    require_operator_policy_request(req)?;
     let body = upsert_body(None, req)?;
     let resp: AdminPolicyDocument =
         api_client("/_soland/self/policies", "POST", Some(&body)).await?;
@@ -68,6 +69,7 @@ pub async fn update_policy(id: &str, req: &CreatePolicyRequest) -> Result<AdminP
     if request_targets_pin_policy(req) {
         return Err(pin_policy_unavailable_error());
     }
+    require_operator_policy_request(req)?;
     let body = upsert_body(Some(id.to_string()), req)?;
     let resp: AdminPolicyDocument =
         api_client("/_soland/self/policies", "POST", Some(&body)).await?;
@@ -202,7 +204,40 @@ fn pin_policy_unavailable_error() -> HttpError {
     )
 }
 
+fn management_policy_kind(value: &str) -> bool {
+    serde_json::from_value::<arkret_wire::PolicyKind>(Value::String(value.to_owned())).is_ok_and(
+        |kind| {
+            matches!(
+                kind,
+                arkret_wire::PolicyKind::Agent | arkret_wire::PolicyKind::Applet
+            )
+        },
+    )
+}
+
+fn require_operator_policy_request(req: &CreatePolicyRequest) -> Result<(), HttpError> {
+    if req
+        .policy_kind
+        .as_deref()
+        .is_some_and(management_policy_kind)
+    {
+        return Err(HttpError::message(
+            "Realm Agent/Applet management permissions are unavailable in the server operator policy editor",
+        ));
+    }
+    Ok(())
+}
+
 fn policy_safety_from_document(doc: &AdminPolicyDocument) -> PolicySafetySummary {
+    if management_policy_kind(&doc.policy_kind) {
+        return PolicySafetySummary {
+            read_only: true,
+            read_only_reason: Some(
+                "Realm management permissions cannot be edited as server operator policies"
+                    .to_owned(),
+            ),
+        };
+    }
     if !policy_document_targets_pin(doc) {
         return PolicySafetySummary::default();
     }
@@ -347,6 +382,42 @@ mod tests {
         assert!(!displayed.contains("approval_evidence"));
         assert!(!displayed.contains("audit_trail"));
         assert!(!displayed.contains("must-not-surface"));
+    }
+
+    #[test]
+    fn operator_store_cannot_author_realm_management_policies() {
+        for kind in ["agent", "applet"] {
+            let req = CreatePolicyRequest {
+                policy_kind: Some(kind.to_owned()),
+                ..Default::default()
+            };
+            assert!(require_operator_policy_request(&req).is_err());
+        }
+        let ordinary = CreatePolicyRequest {
+            policy_kind: Some("access".to_owned()),
+            ..Default::default()
+        };
+        assert!(require_operator_policy_request(&ordinary).is_ok());
+    }
+
+    #[test]
+    fn management_operator_document_is_read_only() {
+        let doc = AdminPolicyDocument {
+            policy_id: "operator-rule".to_owned(),
+            owner: "operator".to_owned(),
+            scope: "*".to_owned(),
+            subject_ref: "*".to_owned(),
+            policy_kind: "applet".to_owned(),
+            payload: AdminPolicyPayload {
+                effect: PolicyEffect::Allow,
+                actions: Vec::new(),
+                resource: json!({"schema": "ak.schema.policy.v1"}),
+                obligations: Vec::new(),
+            },
+            active: true,
+            updated_at: fixture_timestamp(),
+        };
+        assert!(policy_from_document(doc).safety.read_only);
     }
 
     #[test]
