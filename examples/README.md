@@ -28,6 +28,23 @@ Coauth + sodmin both use an **umbrella build context** (`../..` →
 inside the build sandbox. Soland and Floria use named SDK build contexts;
 Soland additionally receives the Spec and Floria contract contexts.
 
+`up.sh` first snapshots all eight clean Git repositories with `git archive`.
+It logs each exact source SHA and passes the resulting temporary directory
+to every ordinary and named Docker context. Uncommitted source is rejected
+rather than silently building an older revision. Local targets, Git internals
+and ignored credentials cannot enter these archived contexts, including named
+contexts that do not apply their own `.dockerignore`. The snapshot stays in
+the system temporary directory for inspection, outside the source workspace.
+
+For direct Compose builds, prepare the same source closure first:
+
+```bash
+export ARKRET_EXAMPLE_BUILD_CONTEXT="$(./examples/prepare-build-context.sh ..)"
+docker compose -f examples/docker-compose.example-stack.yaml build
+```
+
+The `--no-build` entry point reuses images without creating a source snapshot.
+
 ```
 arkret/
   arkret-rust-sdk/                      <-- required (path-dep target)
@@ -110,6 +127,8 @@ its std-only `floria-healthcheck` executable; its distroless image has no
 shell or curl. Sodmin uses Alpine's wget. Compose waits for every service
 to be healthy, then `smoke.sh` independently requires HTTP 200 from all
 four published health endpoints. Host ports bind only to loopback.
+The explicit Compose project name `arkret-sodmin-example` isolates these
+services and volumes from other repositories' `examples/` stacks.
 
 `up.sh` creates separate Coauth and Soland databases before either service
 runs its migrations. An explicit one-shot setup container calls the official

@@ -1,6 +1,7 @@
 # Real development services for the nightly health and admin SPA smoke gate.
 # Coauth and Soland have separate databases. Account Authority authentication
 # additionally requires the TLS and Station trust-edge deployment configuration.
+name: arkret-sodmin-example
 services:
   postgres:
     image: postgres:16-alpine
@@ -21,7 +22,7 @@ services:
   coauth:
     image: ${COAUTH_IMAGE:-coauth:dev}
     build:
-      context: ../..
+      context: ${ARKRET_EXAMPLE_BUILD_CONTEXT:-../..}
       dockerfile: coauth/Dockerfile
     container_name: arkret-example-coauth
     depends_on:
@@ -62,12 +63,12 @@ services:
   soland:
     image: ${SOLAND_IMAGE:-soland:dev}
     build:
-      context: ../../soland
+      context: ${ARKRET_EXAMPLE_BUILD_CONTEXT:-../..}/soland
       dockerfile: Dockerfile
       additional_contexts:
-        arkret-rust-sdk: ../../arkret-rust-sdk
-        arkret-spec: ../../arkret-spec
-        floria: ../../floria
+        arkret-rust-sdk: ${ARKRET_EXAMPLE_BUILD_CONTEXT:-../..}/arkret-rust-sdk
+        arkret-spec: ${ARKRET_EXAMPLE_BUILD_CONTEXT:-../..}/arkret-spec
+        floria: ${ARKRET_EXAMPLE_BUILD_CONTEXT:-../..}/floria
     container_name: arkret-example-soland
     depends_on:
       postgres:
@@ -101,10 +102,10 @@ services:
   floria:
     image: ${FLORIA_IMAGE:-floria:dev}
     build:
-      context: ../../floria
+      context: ${ARKRET_EXAMPLE_BUILD_CONTEXT:-../..}/floria
       dockerfile: Dockerfile
       additional_contexts:
-        arkret-rust-sdk: ../../arkret-rust-sdk
+        arkret-rust-sdk: ${ARKRET_EXAMPLE_BUILD_CONTEXT:-../..}/arkret-rust-sdk
     container_name: arkret-example-floria
     environment:
       RUST_LOG: info
@@ -121,7 +122,7 @@ services:
   sodmin:
     image: ${SODMIN_IMAGE:-sodmin:dev}
     build:
-      context: ../..
+      context: ${ARKRET_EXAMPLE_BUILD_CONTEXT:-../..}
       dockerfile: sodmin/Dockerfile
     container_name: arkret-example-sodmin
     depends_on:
