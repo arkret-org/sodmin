@@ -60,10 +60,10 @@ if ! command -v python3 >/dev/null 2>&1; then
 fi
 
 UMBRELLA_DIR="$(cd "${EXAMPLES_DIR}/../.." && pwd)"
-for sibling in arkret-rust-sdk coauth soland floria sodmin cotest garth; do
+for sibling in arkret-rust-sdk arkret-spec coauth soland floria sodmin cotest garth; do
     if [[ ! -d "${UMBRELLA_DIR}/${sibling}" ]]; then
         echo "[example-stack/up] missing sibling ${UMBRELLA_DIR}/${sibling}" >&2
-        echo "[example-stack/up] umbrella layout expected: arkret/{arkret-rust-sdk,coauth,soland,floria,sodmin,cotest,garth}/" >&2
+        echo "[example-stack/up] umbrella layout expected: arkret/{arkret-rust-sdk,arkret-spec,coauth,soland,floria,sodmin,cotest,garth}/" >&2
         exit 2
     fi
 done

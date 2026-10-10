@@ -146,6 +146,8 @@ services:
       dockerfile: Dockerfile
       additional_contexts:
         arkret-rust-sdk: ../../arkret-rust-sdk
+        arkret-spec: ../../arkret-spec
+        floria: ../../floria
     container_name: arkret-example-soland
     depends_on:
       postgres:
