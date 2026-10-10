@@ -5,6 +5,7 @@
 *.swp
 *.swo
 .DS_Store
+.lighthouseci
 
 test_data
 node_modules
