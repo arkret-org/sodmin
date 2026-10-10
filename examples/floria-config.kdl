@@ -1,0 +1,17 @@
+// Development startup/health configuration for the real Floria service.
+// Compose explicitly loads this file and overrides the bind address to 0.0.0.0.
+http {
+    bind_addresses "127.0.0.1"
+    port 5000
+}
+
+// Floria requires a registered app before it can start. These public example
+// credentials initialize its real JPush provider; they cannot authenticate to
+// JPush. This stack's health gate does not send or verify external pushes.
+apps {
+    example.stack.jpush {
+        type "jpush"
+        app_key "example-health-only-key"
+        master_secret "example-health-only-secret"
+    }
+}

@@ -119,6 +119,13 @@ four published health endpoints. Host ports bind only to loopback.
 The explicit Compose project name `arkret-sodmin-example` isolates these
 services and volumes from other repositories' `examples/` stacks.
 
+Floria explicitly loads the read-only `floria-config.kdl`, which enables its
+documented `FLORIA_*` environment overrides. The file registers a real JPush
+provider with public development placeholders so the service can start.
+Those placeholders cannot authenticate to JPush. This health gate neither
+sends nor verifies external push notifications; replace them with your
+provider credentials before exercising push delivery.
+
 `up.sh` creates separate Coauth and Soland databases before either service
 runs its migrations. An explicit one-shot setup container calls the official
 `soland-keystore-keygen --if-missing` helper. The encrypted KeyStore and

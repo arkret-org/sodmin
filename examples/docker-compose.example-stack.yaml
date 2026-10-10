@@ -107,6 +107,9 @@ services:
       additional_contexts:
         arkret-rust-sdk: ../../arkret-rust-sdk
     container_name: arkret-example-floria
+    # Explicit --config enables the documented FLORIA_* environment overrides.
+    command: ["/usr/local/bin/floria", "--config", "/app/floria.kdl"]
+    volumes: ["./floria-config.kdl:/app/floria.kdl:ro"]
     environment:
       RUST_LOG: info
       FLORIA_HTTP__BIND_ADDRESSES: '["0.0.0.0"]'
