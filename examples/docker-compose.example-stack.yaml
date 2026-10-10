@@ -146,7 +146,6 @@ services:
 
 networks:
   example-stack:
-    name: arkret-example-stack
     driver: bridge
 
 volumes:
