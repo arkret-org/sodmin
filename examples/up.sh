@@ -97,6 +97,18 @@ import sys
 src = pathlib.Path(sys.argv[1]).read_text(encoding="utf-8")
 out_path = pathlib.Path(sys.argv[2])
 
+src, secret_sections = re.subn(
+    r"(?m)^secrets:\n(?:^[ \t]+.*\n|^\n)*",
+    "secrets:\n"
+    "  backend: encrypted_file\n"
+    "  path: /var/lib/coauth/keystore.v1\n"
+    "  master_key_file: /run/secrets/master-key\n",
+    src,
+    count=1,
+)
+if secret_sections != 1:
+    sys.exit("FATAL: no generated secrets section to configure the durable container KeyStore")
+
 src = re.sub(
     r"^(\s*uri:).*$",
     r"\1 postgresql://arkret:arkret@postgres:5432/coauth",
@@ -180,13 +192,31 @@ fi
 
 python3 "${EXAMPLES_DIR}/prepare-tls.py"
 
-echo "[example-stack/up] initializing durable Soland KeyStore (existing keys are retained)"
+echo "[example-stack/up] initializing separate durable service KeyStores (existing keys are retained)"
 docker compose -f "${COMPOSE_FILE}" run --rm --no-deps soland-keystore-init
 
 echo "[example-stack/up] preparing service databases"
 docker compose -f "${COMPOSE_FILE}" up -d --wait postgres
 docker compose -f "${COMPOSE_FILE}" exec -T postgres \
     psql -v ON_ERROR_STOP=1 -U arkret -d arkret < "${EXAMPLES_DIR}/init-databases.sql"
+
+keystore_state=0
+docker compose -f "${COMPOSE_FILE}" run --rm --no-deps \
+    --entrypoint /bin/sh soland-keystore-init -ec \
+    'if test -e /var/lib/coauth/keystore.v1; then exit 0; else exit 42; fi' || keystore_state=$?
+if (( keystore_state != 0 && keystore_state != 42 )); then
+    echo "[example-stack/up] could not inspect the durable Coauth KeyStore" >&2
+    exit 3
+fi
+if (( keystore_state == 42 )); then
+    echo "[example-stack/up] explicitly provisioning the empty Coauth KeyStore"
+    if ! docker compose -f "${COMPOSE_FILE}" up -d --wait coauth-provision; then
+        docker compose -f "${COMPOSE_FILE}" logs --tail=120 coauth-provision >&2 || true
+        exit 3
+    fi
+    docker compose -f "${COMPOSE_FILE}" stop coauth-provision
+    docker compose -f "${COMPOSE_FILE}" rm --force coauth-provision
+fi
 
 echo "[example-stack/up] docker compose up -d --wait"
 if ! docker compose -f "${COMPOSE_FILE}" up -d --wait; then

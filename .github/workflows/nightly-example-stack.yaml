@@ -127,6 +127,12 @@ jobs:
           SMOKE_ATTEMPT_BUDGET: "60"
         run: ./examples/smoke.sh
 
+      - name: Verify durable Coauth keys across an ordinary restart
+        working-directory: sodmin
+        run: |
+          python3 examples/check-key-persistence.py
+          ./examples/smoke.sh
+
       - name: Set up Node for Playwright
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
@@ -155,7 +161,7 @@ jobs:
         working-directory: sodmin
         run: |
           mkdir -p logs
-          for svc in postgres coauth soland floria sodmin; do
+          for svc in postgres coauth coauth-provision soland floria sodmin; do
             docker compose -f examples/docker-compose.example-stack.yaml \
               logs --no-color --tail=2000 "${svc}" > "logs/${svc}.log" 2>&1 || true
           done

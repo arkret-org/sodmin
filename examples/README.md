@@ -130,9 +130,21 @@ provider credentials before exercising push delivery.
 
 `up.sh` creates separate Coauth and Soland databases before either service
 runs its migrations. An explicit one-shot setup container calls the official
-`soland-keystore-keygen --if-missing` helper. The encrypted KeyStore and
-identity bundle have a durable data volume; the master key has a separate
-volume, mounted read-only by Soland. Restarts retain and validate the key.
+`soland-keystore-keygen --if-missing` helper to create separate, validated
+base64-encoded 32-byte wrapping keys for both services. Each encrypted KeyStore
+has its own data volume and a separate master-key volume, mounted read-only by
+its service. Soland also persists its identity bundle. The setup assigns
+ownership to the images' actual users (Soland 10001, Coauth 65532).
+Coauth's generated configuration explicitly selects `encrypted_file`, rather
+than desktop Secret Service. Only an empty Coauth KeyStore triggers the separate
+`coauth-provision` setup service with `--first-provisioning`; it is stopped after
+its real healthcheck succeeds. The ordinary Coauth service omits that flag and
+loads the same durable key bundle. Existing stores and wrapping keys are retained.
+Nightly also runs `check-key-persistence.py`, which restarts the ordinary Coauth
+service, waits for its native healthcheck, and requires its actual published
+signing keys to match the keys before restart. The four health probes run again.
+When upgrading an older example config, use `up.sh --regen-config` to select
+the current durable backend.
 Development mode permits initial local Station provisioning. The Station's
 advertised service identity uses HTTPS, including on this development network.
 `prepare-tls.py` generates a private development CA and a 30-day leaf certificate
@@ -178,9 +190,10 @@ SODMIN_IMAGE=sodmin:dev \
 
 `up.sh` generates `examples/coauth-config.yaml` on first run by exec'ing
 `coauth config generate` inside an ephemeral coauth container. This
-gives you a valid config with fresh signing keys and an encryption
-secret without committing keys to the repo. Use `--regen-config` to
-refresh it.
+gives you a valid config pointing at the durable encrypted KeyStore,
+without embedding private keys. Initial provisioning creates the signing and
+encryption keys inside that store. Use `--regen-config` to refresh the config;
+this retains the stored keys and separate master key.
 
 ### Nightly CI
 

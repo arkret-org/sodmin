@@ -29,13 +29,40 @@ services:
       postgres:
         condition: service_healthy
     command: ["server", "--config", "/etc/coauth/config.yaml"]
-    volumes: ["./coauth-config.yaml:/etc/coauth/config.yaml:ro"]
+    volumes:
+      - ./coauth-config.yaml:/etc/coauth/config.yaml:ro
+      - example_coauth_data:/var/lib/coauth
+      - example_coauth_master_key:/run/secrets:ro
     environment:
       COAUTH_DATABASE__URI: postgresql://arkret:arkret@postgres:5432/coauth
       COAUTH_CONFIG: /etc/coauth/config.yaml
       RUST_LOG: info
       RUST_BACKTRACE: "1"
     ports: ["127.0.0.1:57080:7080"]
+    healthcheck:
+      test: ["CMD", "/usr/local/bin/coauth", "healthcheck", "--config", "/etc/coauth/config.yaml"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
+    networks: [example-stack]
+
+  # Initial key provisioning runs separately; ordinary servers only reload.
+  coauth-provision:
+    image: ${COAUTH_IMAGE:-coauth:dev}
+    profiles: [setup]
+    container_name: arkret-example-coauth-provision
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: ["server", "--config", "/etc/coauth/config.yaml", "--first-provisioning", "--no-worker"]
+    volumes:
+      - ./coauth-config.yaml:/etc/coauth/config.yaml:ro
+      - example_coauth_data:/var/lib/coauth
+      - example_coauth_master_key:/run/secrets:ro
+    environment:
+      RUST_LOG: info
+      RUST_BACKTRACE: "1"
     healthcheck:
       test: ["CMD", "/usr/local/bin/coauth", "healthcheck", "--config", "/etc/coauth/config.yaml"]
       interval: 5s
@@ -56,9 +83,15 @@ services:
         /usr/local/bin/soland-keystore-keygen --output /secrets/master-key --if-missing
         chown 10001:10001 /secrets/master-key
         chmod 0400 /secrets/master-key
+        install -d -m 0700 -o 65532 -g 65532 /coauth-secrets /var/lib/coauth /var/lib/coauth/data /var/lib/coauth/data/media
+        /usr/local/bin/soland-keystore-keygen --output /coauth-secrets/master-key --if-missing
+        chown 65532:65532 /coauth-secrets/master-key
+        chmod 0400 /coauth-secrets/master-key
     volumes:
       - example_soland_master_key:/secrets
       - example_soland_data:/var/lib/soland
+      - example_coauth_master_key:/coauth-secrets
+      - example_coauth_data:/var/lib/coauth
     network_mode: none
 
   soland:
@@ -164,3 +197,5 @@ volumes:
   example_pgdata:
   example_soland_data:
   example_soland_master_key:
+  example_coauth_data:
+  example_coauth_master_key:
