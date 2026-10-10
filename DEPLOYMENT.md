@@ -40,7 +40,7 @@ CSP header and the routing table below.
 | `/authorize`, `/oauth/`, `/.well-known/` | `${COAUTH_URL}` | OAuth2 PKCE strand + discovery. |
 | `*.wasm`, `*.js`, `*.css`, images | sodmin nginx (`Cache-Control: public, immutable`) | Bundle assets. |
 
-When `floria` (E2EE / matrix bridge) or `teabay` (developer
+When `floria` (E2EE / matrix bridge) or `flagon` (developer
 console) are fronted alongside sodmin, the recommended pattern is a
 separate nginx in front of all three, with sodmin keeping its own
 SPA-only fall-through. Inline proxy entries in `docker-entrypoint.sh`
@@ -132,11 +132,11 @@ peers per deployment.
 ## Database migration
 
 sodmin itself is stateless — it ships no database. Operator-facing data
-lives in the upstream services (`soland`, `coauth`, `teabay`). Migration
+lives in the upstream services (`soland`, `coauth`, `flagon`). Migration
 during a sodmin upgrade is therefore a coordination concern, not a
 sodmin concern:
 
-1. Run upstream migrations first (`soland`, `coauth`, `teabay`) and
+1. Run upstream migrations first (`soland`, `coauth`, `flagon`) and
    confirm `/healthz/deep` reports green for each.
 2. Roll sodmin forward only after the upstream schema version is
    compatible with the new SPA bundle. The runtime config endpoint
@@ -155,7 +155,7 @@ sodmin layer. Operator backup procedures should target:
   plus 15-minute WAL archive to the operator-owned object store.
 * `coauth` PostgreSQL — same cadence; coauth additionally requires the
   admin token rotation table to be included (default).
-* `teabay` PostgreSQL — same cadence; directory rebuild from event log
+* `flagon` PostgreSQL — same cadence; directory rebuild from event log
   is possible but slow, so periodic snapshots are preferred.
 
 Restore is upstream-first: bring up the upstream Postgres replica, point
@@ -170,7 +170,7 @@ For region-loss scenarios:
 1. **DNS failover** — repoint `sodmin.example.com` to the DR region's
    ingress. The SPA is served from any region without state migration.
 2. **Upstream failover** — promote the DR-region Postgres replica for
-   `soland` / `coauth` / `teabay`; update the sodmin Deployment's
+   `soland` / `coauth` / `flagon`; update the sodmin Deployment's
    `SOLAND_URL` / `COAUTH_URL` env vars to point at the DR-region
    upstreams and roll the Deployment.
 3. **Capability re-issuance** — coauth admin grants reference an admin
