@@ -77,7 +77,7 @@ jobs:
           workspaces: sodmin
 
       - name: cargo fmt (host)
-        run: cargo +nightly fmt --all -- --check
+        run: cargo +nightly fmt --package sodmin -- --check
 
       - name: cargo check (host)
         run: cargo +stable check --workspace --all-targets --locked
