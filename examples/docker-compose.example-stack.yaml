@@ -22,7 +22,7 @@ services:
   coauth:
     image: ${COAUTH_IMAGE:-coauth:dev}
     build:
-      context: ${ARKRET_EXAMPLE_BUILD_CONTEXT:-../..}
+      context: ../..
       dockerfile: coauth/Dockerfile
     container_name: arkret-example-coauth
     depends_on:
@@ -63,12 +63,12 @@ services:
   soland:
     image: ${SOLAND_IMAGE:-soland:dev}
     build:
-      context: ${ARKRET_EXAMPLE_BUILD_CONTEXT:-../..}/soland
+      context: ../../soland
       dockerfile: Dockerfile
       additional_contexts:
-        arkret-rust-sdk: ${ARKRET_EXAMPLE_BUILD_CONTEXT:-../..}/arkret-rust-sdk
-        arkret-spec: ${ARKRET_EXAMPLE_BUILD_CONTEXT:-../..}/arkret-spec
-        floria: ${ARKRET_EXAMPLE_BUILD_CONTEXT:-../..}/floria
+        arkret-rust-sdk: ../../arkret-rust-sdk
+        arkret-spec: ../../arkret-spec
+        floria: ../../floria
     container_name: arkret-example-soland
     depends_on:
       postgres:
@@ -102,10 +102,10 @@ services:
   floria:
     image: ${FLORIA_IMAGE:-floria:dev}
     build:
-      context: ${ARKRET_EXAMPLE_BUILD_CONTEXT:-../..}/floria
+      context: ../../floria
       dockerfile: Dockerfile
       additional_contexts:
-        arkret-rust-sdk: ${ARKRET_EXAMPLE_BUILD_CONTEXT:-../..}/arkret-rust-sdk
+        arkret-rust-sdk: ../../arkret-rust-sdk
     container_name: arkret-example-floria
     environment:
       RUST_LOG: info
@@ -122,7 +122,7 @@ services:
   sodmin:
     image: ${SODMIN_IMAGE:-sodmin:dev}
     build:
-      context: ${ARKRET_EXAMPLE_BUILD_CONTEXT:-../..}
+      context: ../..
       dockerfile: sodmin/Dockerfile
     container_name: arkret-example-sodmin
     depends_on:

@@ -28,22 +28,9 @@ Coauth + sodmin both use an **umbrella build context** (`../..` →
 inside the build sandbox. Soland and Floria use named SDK build contexts;
 Soland additionally receives the Spec and Floria contract contexts.
 
-`up.sh` first snapshots all eight clean Git repositories with `git archive`.
-It logs each exact source SHA and passes the resulting temporary directory
-to every ordinary and named Docker context. Uncommitted source is rejected
-rather than silently building an older revision. Local targets, Git internals
-and ignored credentials cannot enter these archived contexts, including named
-contexts that do not apply their own `.dockerignore`. The snapshot stays in
-the system temporary directory for inspection, outside the source workspace.
-
-For direct Compose builds, prepare the same source closure first:
-
-```bash
-export ARKRET_EXAMPLE_BUILD_CONTEXT="$(./examples/prepare-build-context.sh ..)"
-docker compose -f examples/docker-compose.example-stack.yaml build
-```
-
-The `--no-build` entry point reuses images without creating a source snapshot.
+The SDK's `.dockerignore` filters its named contexts, and the Coauth and
+Sodmin Dockerfile-specific ignore files filter their umbrella contexts.
+Build caches, Git internals and local credentials stay outside build inputs.
 
 ```
 arkret/
