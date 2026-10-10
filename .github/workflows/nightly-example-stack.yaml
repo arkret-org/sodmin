@@ -30,7 +30,8 @@ jobs:
   example-stack:
     name: Bring up + smoke
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    # Four cold Rust/Dioxus images are built in sequence to bound memory.
+    timeout-minutes: 120
     steps:
       - name: Check out sodmin
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
