@@ -162,11 +162,15 @@ else
 fi
 
 if (( NO_BUILD == 0 )); then
-    echo "[example-stack/up] building remaining images via docker compose build"
-    docker compose -f "${COMPOSE_FILE}" build || {
-        echo "[example-stack/up] image build failed" >&2
-        exit 3
-    }
+    # Each Rust/Dioxus image can use the full compiler budget. Avoid running
+    # several independent release builds at once on a cold CI runner.
+    for service in soland floria sodmin; do
+        echo "[example-stack/up] building ${service} image"
+        docker compose -f "${COMPOSE_FILE}" build "${service}" || {
+            echo "[example-stack/up] ${service} image build failed" >&2
+            exit 3
+        }
+    done
 fi
 
 echo "[example-stack/up] initializing durable Soland KeyStore (existing keys are retained)"

@@ -13,6 +13,7 @@
 **/node_modules
 **/.git
 **/.local
+**/.codex-tmp
 **/.sqlx
 **/.claude
 **/.env
@@ -21,8 +22,10 @@
 **/*.log
 **/playwright-report
 **/test-results
-**/*.pem
-**/*.key
+secrets/
+*/secrets/
+coauth/conformance/test-config.yaml
+coauth/conformance/test-config.yaml.raw
 sodmin/examples
 .codex-tmp
 arkret-work

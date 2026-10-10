@@ -31,6 +31,8 @@ Soland additionally receives the Spec and Floria contract contexts.
 The SDK's `.dockerignore` filters its named contexts, and the Coauth and
 Sodmin Dockerfile-specific ignore files filter their umbrella contexts.
 Build caches, Git internals and local credentials stay outside build inputs.
+The bring-up script builds the remaining service images in sequence so
+independent Rust release builds do not compete for the runner's memory.
 
 ```
 arkret/
