@@ -14,6 +14,10 @@
 **/.git
 **/.local
 **/.codex-tmp
+**/.shared-target
+**/.ssh
+**/.gnupg
+**/.secrets
 **/.sqlx
 **/.claude
 **/.env
@@ -26,6 +30,8 @@ secrets/
 */secrets/
 coauth/conformance/test-config.yaml
 coauth/conformance/test-config.yaml.raw
-sodmin/examples
+sodmin/examples/coauth-config.yaml
+sodmin/examples/coauth-config.yaml.raw
+sodmin/examples/logs/
 .codex-tmp
 arkret-work
