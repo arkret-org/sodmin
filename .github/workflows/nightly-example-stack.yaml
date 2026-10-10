@@ -19,10 +19,7 @@ on:
   workflow_dispatch:
   pull_request:
     paths:
-      - "examples/docker-compose.example-stack.yaml"
-      - "examples/up.sh"
-      - "examples/down.sh"
-      - "examples/smoke.sh"
+      - "examples/**"
       - ".github/workflows/nightly-example-stack.yaml"
 
 concurrency:
@@ -132,7 +129,7 @@ jobs:
       - name: Set up Node for Playwright
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: 20
+          node-version: 24
           cache: npm
           cache-dependency-path: sodmin/package-lock.json
 

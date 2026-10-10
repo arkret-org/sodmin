@@ -10,7 +10,7 @@
 #   COAUTH_IMAGE  SOLAND_IMAGE  FLORIA_IMAGE  SODMIN_IMAGE
 #
 # Exit codes:
-#   0 - every service reported healthy (or started, for soland) within budget
+#   0 - every service reported healthy within budget
 #   2 - invocation / pre-flight error
 #   3 - compose up failed; recent logs are dumped to stderr
 
@@ -94,7 +94,7 @@ out_path = pathlib.Path(sys.argv[2])
 
 src = re.sub(
     r"^(\s*uri:).*$",
-    r"\1 postgresql://arkret:arkret@postgres:5432/arkret",
+    r"\1 postgresql://arkret:arkret@postgres:5432/coauth",
     src,
     count=1,
     flags=re.MULTILINE,
@@ -169,6 +169,14 @@ if (( NO_BUILD == 0 )); then
     }
 fi
 
+echo "[example-stack/up] initializing durable Soland KeyStore (existing keys are retained)"
+docker compose -f "${COMPOSE_FILE}" run --rm --no-deps soland-keystore-init
+
+echo "[example-stack/up] preparing service databases"
+docker compose -f "${COMPOSE_FILE}" up -d --wait postgres
+docker compose -f "${COMPOSE_FILE}" exec -T postgres \
+    psql -v ON_ERROR_STOP=1 -U arkret -d arkret < "${EXAMPLES_DIR}/init-databases.sql"
+
 echo "[example-stack/up] docker compose up -d --wait"
 if ! docker compose -f "${COMPOSE_FILE}" up -d --wait; then
     echo "[example-stack/up] compose up failed; dumping recent logs" >&2
@@ -183,7 +191,7 @@ cat <<'EOF'
   postgres : localhost:55432   (user=arkret pass=arkret db=arkret)
   coauth   : http://localhost:57080/health
   soland   : http://localhost:58787/health
-  floria   : http://localhost:55000/ready  (admin)  +  http://localhost:58000  (data)
+  floria   : http://localhost:55000/ready
   sodmin   : http://localhost:58200/healthz
 
 Run ./examples/smoke.sh to verify each /health returns 200.

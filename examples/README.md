@@ -12,7 +12,7 @@ driven by `docker-compose.example-stack.yaml` + `up.sh` / `down.sh` /
 | postgres | `postgres:16-alpine`                    | `55432`   | `pg_isready`  |
 | coauth   | `gcr.io/distroless/cc-debian12:nonroot` | `57080`   | `/health`     |
 | soland   | `debian:bookworm-slim`                  | `58787`   | `/health`     |
-| floria   | `debian:bookworm-slim` (+ curl)         | `55000`   | `/ready`      |
+| floria   | `gcr.io/distroless/cc-debian13:nonroot` | `55000`   | `/ready`      |
 | sodmin   | `nginx:alpine`                          | `58200`   | `/healthz`    |
 
 Container ports differ from host ports; see
@@ -25,16 +25,18 @@ The compose file references sibling repos via relative build contexts.
 Coauth + sodmin both use an **umbrella build context** (`../..` →
 `arkret/`) so the workspace `Cargo.toml` path-deps
 `../arkret-rust-sdk/...` and `../coauth/crates/admin-types` resolve
-inside the build sandbox. Soland uses a **named additional context**
-(`additional_contexts.arkret-rust-sdk: ../../arkret-rust-sdk`)
-because its Dockerfile copies the SDK via `COPY --from=arkret-rust-sdk`.
+inside the build sandbox. Soland and Floria use named SDK build contexts;
+Soland additionally receives the Spec and Floria contract contexts.
 
 ```
 arkret/
   arkret-rust-sdk/                      <-- required (path-dep target)
+  arkret-spec/
   coauth/                                 <-- required (path-dep + image)
   soland/
   floria/
+  cotest/
+  garth/
   sodmin/
     examples/
       docker-compose.example-stack.yaml   <-- run from here
@@ -54,7 +56,7 @@ The compose stack expects:
   `coauth-config.yaml` deterministically — sed-based YAML edits proved
   brittle against the multi-listener default config in C36.5).
 - `curl` on PATH (`smoke.sh` probes each `/health` endpoint).
-- All four sibling repos checked out at `../{arkret-rust-sdk,coauth,soland,floria}`.
+- All seven sibling repos shown above checked out alongside Sodmin.
 
 Before the first `up.sh` invocation on a new machine, confirm Docker is
 reachable and the sibling repos exist. `up.sh` and `smoke.sh` perform the
@@ -77,7 +79,9 @@ cargo build --release --bin floria
 
 # sodmin — Dioxus WASM SPA; uses dx, not cargo
 cargo install dioxus-cli@0.7.10 --locked
-dx build --release   # output under target/dx/sodmin/release/web/public
+dx build --release
+# Query cargo metadata --format-version 1 --no-deps for target_directory.
+# Web output is under its dx/sodmin/release/web/public directory.
 ```
 
 Smoke binary (Rust-side): `cargo build --bin sodmin-smoke` builds the
@@ -99,24 +103,30 @@ post-deploy probe shipped in the sodmin repo (`src/bin/sodmin_smoke.rs`).
 Open [http://localhost:58200](http://localhost:58200) for the sodmin SPA
 once `up.sh` reports the stack healthy.
 
-### Healthcheck strategy
+### Health and persistent identity
 
-The sodmin team locked this in during C33.6 (coauth) and C35.3 (this
-work):
+Coauth and Soland use their native `healthcheck` subcommands. Floria uses
+its std-only `floria-healthcheck` executable; its distroless image has no
+shell or curl. Sodmin uses Alpine's wget. Compose waits for every service
+to be healthy, then `smoke.sh` independently requires HTTP 200 from all
+four published health endpoints. Host ports bind only to loopback.
 
-- **distroless images** (coauth) get a `CMD`-form healthcheck that
-  calls a `<bin> healthcheck` subcommand baked into the binary.
-  Distroless has no shell, no `wget`, no `curl` — `CMD-SHELL`-form
-  probes silently degrade to "always unhealthy" against them.
-- **debian-slim runtimes** (floria) ship `curl` explicitly and probe
-  HTTP directly.
-- **alpine runtimes** (sodmin via nginx:alpine) probe with `wget
-  --spider` because alpine ships busybox-wget by default.
-- **soland** runs on debian-slim without curl yet; the compose file
-  treats its TCP listener as readiness (no in-container probe), and
-  `smoke.sh` does the actual `/health` HTTP probe externally. Adding
-  curl to the soland Dockerfile or a `soland healthcheck` subcommand
-  is the next step.
+`up.sh` creates separate Coauth and Soland databases before either service
+runs its migrations. An explicit one-shot setup container calls the official
+`soland-keystore-keygen --if-missing` helper. The encrypted KeyStore and
+identity bundle have a durable data volume; the master key has a separate
+volume, mounted read-only by Soland. Restarts retain and validate the key.
+Development mode permits initial local Station provisioning and HTTP on
+the example network; signature and DID verification remain mandatory.
+Use `down.sh --keep-vol` to retain data and keys; ordinary `down.sh` removes
+all example volumes. Do not replace a retained master key or restore the
+encrypted data without its original key.
+
+This nightly gate covers real service startup, health and the admin SPA.
+It does not establish an Account Authority trust edge or prove authenticated
+admin operations. Such a deployment requires the services' documented TLS,
+Station peer, trust-domain and shared-credential configuration. The retired
+`SERVERX_*` settings do not configure any of those inputs.
 
 ### Image overrides
 
