@@ -4,7 +4,7 @@
 //
 // The check is intentionally minimal:
 //   1. Hit the login page (no auth needed, no admin stack required).
-//   2. Wait for the form to mount.
+//   2. Wait for the configured OAuth sign-in control to become ready.
 //   3. Assert the document does not scroll horizontally — i.e. the
 //      mobile / tablet breakpoint actually engaged and nothing
 //      overflowed the viewport.
@@ -40,9 +40,9 @@ test.describe("responsive smoke", () => {
   }) => {
     await page.goto(`${BASE_URL}/login`);
 
-    // The email input is the most reliable "form is mounted" signal —
-    // it's labelled in every locale and it's the first focusable field.
-    await expect(page.getByLabel(/email/i)).toBeVisible({ timeout: 15_000 });
+    const signIn = page.getByRole("button", { name: /sign in/i });
+    await expect(signIn).toBeVisible({ timeout: 15_000 });
+    await expect(signIn).toBeEnabled();
 
     // No horizontal scrollbar — scrollWidth must fit within clientWidth.
     // We compare on documentElement (the <html> root) because that's

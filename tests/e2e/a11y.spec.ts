@@ -58,6 +58,9 @@ test.describe("axe accessibility audit", () => {
         await login(page);
       }
       await gotoReady(page, route);
+      if (!HAS_ADMIN_CREDENTIALS) {
+        await expect(page.getByRole("button", { name: /sign in/i })).toBeEnabled();
+      }
 
       // `color-contrast` is re-enabled as of Phase 5 — the dark-mode
       // `--muted-foreground` token was bumped to ~78% lightness so it

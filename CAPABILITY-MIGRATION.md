@@ -51,7 +51,7 @@ re-exported the deleted `soland_contracts::admin::seal` DTOs, is gone.
 | Change | Why | Verified by |
 | --- | --- | --- |
 | `src/pages/dashboard.rs` no longer renders a `supported_reducer_profiles` card, and `i18n/{en,zh-CN}.json` no longer declare `dashboard.reducer_profile`. | The discovery response no longer publishes that list as a separate profile axis; the dashboard already shows the schema- and event-kind-registry versions that carry the same fact. | `cargo check --all-features`; the en/zh key sets are byte-identical and no `reducer_profile` reference remains under `src/`. |
-| `i18n/{en,zh-CN}.json` say "Event" where they used to say "Control Move" / "control move". | "Control Move" was the pre-migration name for a submitted Event; the protocol has one Event submission path and no Move object. | key-set parity check; no `[Cc]ontrol [Mm]ove` hit remains in the repo. |
+| `i18n/{en,zh-CN}.json` say "Event" where they used to say "Control Move" / "control move". | "Control Move" was the pre-migration name for a submitted Event; the protocol has one Event submission path and no Move object. | key-set parity check; no case-insensitive `control move` hit remains in the repo. |
 
 ## SDK realignment (second pass)
 

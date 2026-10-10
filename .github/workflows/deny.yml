@@ -4,12 +4,43 @@ on:
   push:
   pull_request:
 
+defaults:
+  run:
+    working-directory: sodmin
+
 jobs:
   deny:
     name: cargo deny
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          path: sodmin
+      - name: Check out arkret-rust-sdk
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          repository: ${{ github.repository_owner }}/arkret-rust-sdk
+          path: arkret-rust-sdk
+          ref: main
+          token: ${{ secrets.CI_REPO_TOKEN || github.token }}
+
+      - name: Check out coauth
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          repository: ${{ github.repository_owner }}/coauth
+          path: coauth
+          ref: main
+          token: ${{ secrets.CI_REPO_TOKEN || github.token }}
+
+      - name: Check out soland
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          repository: ${{ github.repository_owner }}/soland
+          path: soland
+          ref: main
+          token: ${{ secrets.CI_REPO_TOKEN || github.token }}
+
       - uses: EmbarkStudios/cargo-deny-action@3c6349835b2b7b196a839186cb8b78e02f7b5f25 # v2
         with:
+          manifest-path: sodmin/Cargo.toml
           command: check

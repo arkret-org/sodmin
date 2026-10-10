@@ -6,7 +6,7 @@ const ADMIN_PASSWORD = process.env.SODMIN_E2E_ADMIN_PASSWORD || "";
 
 async function gotoReady(page: Page, route: string) {
   await page.goto(`${BASE_URL}${route}`, { waitUntil: "domcontentloaded" });
-  await expect(page.locator("main, form").first()).toBeVisible({
+  await expect(page.getByRole("main").first()).toBeVisible({
     timeout: 15_000,
   });
 }
@@ -36,6 +36,7 @@ test.describe("RTL layout smoke", () => {
 
   test("login shell does not overflow in RTL", async ({ page }) => {
     await gotoReady(page, "/login");
+    await expect(page.getByRole("button", { name: /sign in/i })).toBeEnabled();
     await page.evaluate(() => {
       document.documentElement.setAttribute("dir", "rtl");
       document.documentElement.setAttribute("lang", "ar");

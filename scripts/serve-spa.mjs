@@ -6,6 +6,8 @@ import { extname, join, normalize, resolve, sep } from "node:path";
 
 const root = resolve(process.argv[2] || "dist");
 const port = Number(process.argv[3] || "4173");
+// Match the deployment entrypoint without baking a CI origin into the bundle.
+const coauthPublicUrl = process.env.COAUTH_PUBLIC_URL;
 
 const types = new Map([
   [".css", "text/css; charset=utf-8"],
@@ -30,6 +32,11 @@ function fileFor(urlPath) {
 }
 
 const server = createServer((req, res) => {
+  if (req.url?.split("?")[0] === "/config.json" && coauthPublicUrl) {
+    res.writeHead(200, { "Content-Type": "application/json; charset=utf-8" });
+    res.end(JSON.stringify({ coauth_public_url: coauthPublicUrl }));
+    return;
+  }
   const file = fileFor(req.url || "/");
   const contentType = types.get(extname(file)) || "application/octet-stream";
   res.writeHead(200, { "Content-Type": contentType });

@@ -42,7 +42,7 @@ export default defineConfig({
     },
     {
       name: "tablet",
-      use: { ...devices["iPad (gen 7)"] },
+      use: { ...devices["iPad (gen 7)"], browserName: "chromium" },
     },
   ],
 });

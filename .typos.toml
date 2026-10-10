@@ -1,3 +1,13 @@
+[default]
+extend-ignore-re = [
+    # Content-addressed protocol test identifiers.
+    "ak:[a-z_]+:[A-Za-z0-9_-]{43,}",
+]
+
+[default.extend-identifiers]
+# Deliberately unknown key in the configuration rejection test.
+telemetery_endpoint = "telemetery_endpoint"
+
 [default.extend-words]
 consts = "consts"
 # "DELETEs" tokenizes as DELET + Es

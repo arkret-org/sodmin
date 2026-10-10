@@ -14,6 +14,10 @@ on:
 permissions:
   contents: read
 
+defaults:
+  run:
+    working-directory: sodmin
+
 jobs:
   axe:
     name: axe-core SPA scan
@@ -21,12 +25,39 @@ jobs:
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          path: sodmin
+
+      - name: Check out arkret-rust-sdk
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          repository: ${{ github.repository_owner }}/arkret-rust-sdk
+          path: arkret-rust-sdk
+          ref: main
+          token: ${{ secrets.CI_REPO_TOKEN || github.token }}
+
+      - name: Check out coauth
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          repository: ${{ github.repository_owner }}/coauth
+          path: coauth
+          ref: main
+          token: ${{ secrets.CI_REPO_TOKEN || github.token }}
+
+      - name: Check out soland
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          repository: ${{ github.repository_owner }}/soland
+          path: soland
+          ref: main
+          token: ${{ secrets.CI_REPO_TOKEN || github.token }}
 
       - name: Set up Node
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: "20"
           cache: "npm"
+          cache-dependency-path: sodmin/package-lock.json
 
       - name: Install JS deps
         run: npm ci
@@ -38,21 +69,28 @@ jobs:
           targets: wasm32-unknown-unknown
 
       - name: Install dioxus-cli
-        run: cargo install dioxus-cli --locked --version "0.7.*"
+        run: cargo install dioxus-cli --locked --version "0.7.10"
 
       - name: Build SPA
-        run: dx build --release
+        run: |
+          dx build --release
+          target_dir=$(cargo metadata --format-version 1 --no-deps | python -c 'import json,sys; print(json.load(sys.stdin)["target_directory"])')
+          public_dir=$(find "$target_dir/dx" -type d -path '*/release/web/public' | head -n 1)
+          test -f "$public_dir/index.html"
+          cp -a "$public_dir" dist
 
       - name: Install Playwright
         run: npx playwright install --with-deps chromium
 
       - name: Run axe-core scan
+        env:
+          COAUTH_PUBLIC_URL: http://127.0.0.1:4173
         run: |
           # Two-step scan harness:
           # 1. Serve the built SPA on http://127.0.0.1:4173 (any static
           #    server is fine; the local helper falls back to index.html
           #    for client-side routes).
-          # 2. Walk a representative set of admin pages through Playwright
+          # 2. Scan the public OAuth login page through Playwright
           #    + @axe-core/playwright and fail on any "serious" or
           #    "critical" violation.
           node scripts/serve-spa.mjs dist 4173 &

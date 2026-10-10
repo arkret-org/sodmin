@@ -45,6 +45,14 @@ jobs:
           ref: main
           token: ${{ secrets.CI_REPO_TOKEN || github.token }}
 
+      - name: Check out soland
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          repository: ${{ github.repository_owner }}/soland
+          path: soland
+          ref: main
+          token: ${{ secrets.CI_REPO_TOKEN || github.token }}
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3
         with:
@@ -61,10 +69,6 @@ jobs:
           # all resolve against sibling checkouts.
           context: .
           file: ./sodmin/Dockerfile
-          # `yoface` is a private cargo git dependency rather than a sibling
-          # checkout; the build fetches it from GitHub with this secret.
-          secrets: |
-            github_token=${{ secrets.CI_REPO_TOKEN || github.token }}
           platforms: linux/amd64,linux/arm64
           pull: true
           push: false

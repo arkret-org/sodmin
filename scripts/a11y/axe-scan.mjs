@@ -10,16 +10,21 @@ if (!baseUrl) {
   process.exit(2);
 }
 
-const routes = ["/login", "/", "/agents", "/agents/admin", "/agents/personal", "/circles"];
+// This static bundle harness has no authenticated service stack. Protected
+// routes belong to tests/e2e/a11y.spec.ts with configured admin credentials.
+const routes = ["/login"];
 const browser = await chromium.launch();
 const failures = [];
 
 try {
-  const page = await browser.newPage();
+  const context = await browser.newContext();
+  const page = await context.newPage();
   for (const route of routes) {
     const url = new URL(route, baseUrl).toString();
     await page.goto(url, { waitUntil: "domcontentloaded" });
-    await page.locator("main, form, body").first().waitFor({ timeout: 15_000 });
+    // Public CI scans must reach the real OAuth surface, not a config error
+    // or an empty body before the WASM application has mounted.
+    await page.getByRole("button", { name: /sign in/i }).waitFor({ timeout: 15_000 });
     const results = await new AxeBuilder({ page }).analyze();
     const serious = results.violations.filter((violation) =>
       ["critical", "serious"].includes(violation.impact || ""),

@@ -18,6 +18,10 @@ env:
   CARGO_INCREMENTAL: 0
   RUSTFLAGS: "-D warnings"
 
+defaults:
+  run:
+    working-directory: sodmin
+
 jobs:
   rust:
     name: cargo check + test
@@ -27,7 +31,32 @@ jobs:
       - name: Check out source
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
+          path: sodmin
           submodules: recursive
+
+      - name: Check out arkret-rust-sdk
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          repository: ${{ github.repository_owner }}/arkret-rust-sdk
+          path: arkret-rust-sdk
+          ref: main
+          token: ${{ secrets.CI_REPO_TOKEN || github.token }}
+
+      - name: Check out coauth
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          repository: ${{ github.repository_owner }}/coauth
+          path: coauth
+          ref: main
+          token: ${{ secrets.CI_REPO_TOKEN || github.token }}
+
+      - name: Check out soland
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          repository: ${{ github.repository_owner }}/soland
+          path: soland
+          ref: main
+          token: ${{ secrets.CI_REPO_TOKEN || github.token }}
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@fa04a1451ff1842e2626ccb99004d0195b455a88 # master
@@ -44,6 +73,8 @@ jobs:
 
       - name: Cache cargo registry, git, and target
         uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32 # v2
+        with:
+          workspaces: sodmin
 
       - name: cargo fmt (host)
         run: cargo +nightly fmt --all -- --check
@@ -65,7 +96,32 @@ jobs:
       - name: Check out source
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
+          path: sodmin
           submodules: recursive
+
+      - name: Check out arkret-rust-sdk
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          repository: ${{ github.repository_owner }}/arkret-rust-sdk
+          path: arkret-rust-sdk
+          ref: main
+          token: ${{ secrets.CI_REPO_TOKEN || github.token }}
+
+      - name: Check out coauth
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          repository: ${{ github.repository_owner }}/coauth
+          path: coauth
+          ref: main
+          token: ${{ secrets.CI_REPO_TOKEN || github.token }}
+
+      - name: Check out soland
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          repository: ${{ github.repository_owner }}/soland
+          path: soland
+          ref: main
+          token: ${{ secrets.CI_REPO_TOKEN || github.token }}
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@fa04a1451ff1842e2626ccb99004d0195b455a88 # master
@@ -81,10 +137,11 @@ jobs:
       - name: Cache cargo registry, git, and target
         uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32 # v2
         with:
+          workspaces: sodmin
           shared-key: wasm
 
       - name: Install dioxus-cli
-        run: cargo install dioxus-cli@0.7.9 --locked
+        run: cargo install dioxus-cli@0.7.10 --locked
 
       - name: dx build --release
         run: dx build --release
@@ -93,7 +150,7 @@ jobs:
         id: dist
         run: |
           set -euo pipefail
-          dist_dir="$(find target/dx -type d -path '*/release/web/public' | head -n 1)"
+          dist_dir="$(find "$(cargo metadata --format-version 1 --no-deps | python -c 'import json,sys; print(json.load(sys.stdin)["target_directory"])')/dx" -type d -path '*/release/web/public' | head -n 1)"
           test -n "$dist_dir"
           test -f "$dist_dir/index.html"
           echo "build artifact at: $dist_dir"
@@ -113,11 +170,14 @@ jobs:
     steps:
       - name: Check out source
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          path: sodmin
       - name: Set up Node
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 20
           cache: npm
+          cache-dependency-path: sodmin/package-lock.json
       - name: Install npm deps
         run: npm ci
       - name: Install Playwright browsers
@@ -126,8 +186,10 @@ jobs:
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           name: sodmin-web-public
-          path: dist
+          path: sodmin/dist
       - name: Start static SPA
+        env:
+          COAUTH_PUBLIC_URL: http://127.0.0.1:4173
         run: |
           node scripts/serve-spa.mjs dist 4173 > serve.log 2>&1 &
           echo $! > serve.pid
@@ -157,19 +219,24 @@ jobs:
     steps:
       - name: Check out source
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          path: sodmin
       - name: Set up Node
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 20
           cache: npm
+          cache-dependency-path: sodmin/package-lock.json
       - name: Install npm deps
         run: npm ci
       - name: Download web artifact
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           name: sodmin-web-public
-          path: dist
+          path: sodmin/dist
       - name: Start static SPA
+        env:
+          COAUTH_PUBLIC_URL: http://127.0.0.1:4173
         run: |
           node scripts/serve-spa.mjs dist 4173 > serve.log 2>&1 &
           echo $! > serve.pid
