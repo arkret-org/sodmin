@@ -59,6 +59,11 @@ if ! command -v python3 >/dev/null 2>&1; then
     exit 2
 fi
 
+if ! command -v openssl >/dev/null 2>&1; then
+    echo "[example-stack/up] openssl not on PATH; required for verified development TLS" >&2
+    exit 2
+fi
+
 UMBRELLA_DIR="$(cd "${EXAMPLES_DIR}/../.." && pwd)"
 for sibling in arkret-rust-sdk arkret-spec coauth soland floria sodmin cotest garth; do
     if [[ ! -d "${UMBRELLA_DIR}/${sibling}" ]]; then
@@ -173,6 +178,8 @@ if (( NO_BUILD == 0 )); then
     done
 fi
 
+python3 "${EXAMPLES_DIR}/prepare-tls.py"
+
 echo "[example-stack/up] initializing durable Soland KeyStore (existing keys are retained)"
 docker compose -f "${COMPOSE_FILE}" run --rm --no-deps soland-keystore-init
 
@@ -194,7 +201,7 @@ cat <<'EOF'
 
   postgres : localhost:55432   (user=arkret pass=arkret db=arkret)
   coauth   : http://localhost:57080/health
-  soland   : http://localhost:58787/health
+  soland   : https://127.0.0.1:58787/health (CA: examples/.local/tls/ca.crt)
   floria   : http://localhost:55000/ready
   sodmin   : http://localhost:58200/healthz
 

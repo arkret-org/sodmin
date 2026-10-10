@@ -6,6 +6,7 @@ COAUTH_URL="${COAUTH_URL:-}"
 COAUTH_PUBLIC_URL="${COAUTH_PUBLIC_URL:-}"
 SODMIN_TELEMETRY_ENDPOINT="${SODMIN_TELEMETRY_ENDPOINT:-}"
 SODMIN_PORT="${SODMIN_PORT:-80}"
+SODMIN_UPSTREAM_CA_FILE="${SODMIN_UPSTREAM_CA_FILE:-/etc/ssl/certs/ca-certificates.crt}"
 
 RESOLVERS="$(awk '/^nameserver / { print $2 }' /etc/resolv.conf | paste -sd ' ' -)"
 LOOKUP_UNAVAILABLE=0
@@ -106,6 +107,12 @@ server {
     server_name _;
     root /usr/share/nginx/html;
     index index.html;
+
+    # Validate HTTPS upstreams against the system CA bundle or an explicit
+    # deployment CA. SNI and hostname verification remain enabled.
+    proxy_ssl_verify on;
+    proxy_ssl_server_name on;
+    proxy_ssl_trusted_certificate ${SODMIN_UPSTREAM_CA_FILE};
 
     gzip on;
     gzip_min_length 1024;

@@ -62,6 +62,8 @@ The compose stack expects:
   `coauth-config.yaml` deterministically — sed-based YAML edits proved
   brittle against the multi-listener default config in C36.5).
 - `curl` on PATH (`smoke.sh` probes each `/health` endpoint).
+- `openssl` on PATH (`prepare-tls.py` creates and validates a private
+  development CA and the Station's TLS certificate).
 - All seven sibling repos shown above checked out alongside Sodmin.
 
 Before the first `up.sh` invocation on a new machine, confirm Docker is
@@ -131,8 +133,24 @@ runs its migrations. An explicit one-shot setup container calls the official
 `soland-keystore-keygen --if-missing` helper. The encrypted KeyStore and
 identity bundle have a durable data volume; the master key has a separate
 volume, mounted read-only by Soland. Restarts retain and validate the key.
-Development mode permits initial local Station provisioning and HTTP on
-the example network; signature and DID verification remain mandatory.
+Development mode permits initial local Station provisioning. The Station's
+advertised service identity uses HTTPS, including on this development network.
+`prepare-tls.py` generates a private development CA and a 30-day leaf certificate
+for `soland.example` and `127.0.0.1`; `up.sh` validates and reuses existing material.
+The generated files live under the gitignored and Docker-excluded
+`examples/.local/tls/` directory. The CA private key stays on the host. Soland
+mounts only the public CA, leaf certificate and leaf key read-only; its native
+healthcheck trusts that CA through `SSL_CERT_FILE`. Sodmin's HTTPS upstream proxy
+enables certificate and hostname verification against the same CA.
+`smoke.sh` uses `curl --cacert` and still requires HTTP 200. To probe manually:
+
+```bash
+curl --cacert examples/.local/tls/ca.crt https://127.0.0.1:58787/health
+```
+
+Signature and DID verification remain mandatory. Expired or mismatched TLS
+material fails preflight; renew the development certificate before restarting.
+TLS files survive `down.sh` and are independent of the durable identity keys.
 Use `down.sh --keep-vol` to retain data and keys; ordinary `down.sh` removes
 all example volumes. Do not replace a retained master key or restore the
 encrypted data without its original key.

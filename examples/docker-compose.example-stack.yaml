@@ -34,6 +34,7 @@ services:
       COAUTH_DATABASE__URI: postgresql://arkret:arkret@postgres:5432/coauth
       COAUTH_CONFIG: /etc/coauth/config.yaml
       RUST_LOG: info
+      RUST_BACKTRACE: "1"
     ports: ["127.0.0.1:57080:7080"]
     healthcheck:
       test: ["CMD", "/usr/local/bin/coauth", "healthcheck", "--config", "/etc/coauth/config.yaml"]
@@ -75,8 +76,11 @@ services:
         condition: service_healthy
     environment:
       SOLAND_BIND: 0.0.0.0:8787
-      SOLAND_HEALTHCHECK_URL: http://127.0.0.1:8787/health
-      SOLAND_PUBLIC_BASE_URL: http://soland.example:8787
+      SOLAND_HEALTHCHECK_URL: https://127.0.0.1:8787/health
+      SOLAND_PUBLIC_BASE_URL: https://soland.example:8787
+      SOLAND_TLS_CERT_PATH: /run/example-tls/soland.crt
+      SOLAND_TLS_KEY_PATH: /run/example-tls/soland.key
+      SSL_CERT_FILE: /run/example-tls/ca.crt
       DATABASE_URL: postgresql://arkret:arkret@postgres:5432/soland
       SOLAND_TRUST_DOMAIN: ak:trust_domain:soland.example
       SOLAND_DEVELOPMENT_MODE: "true"
@@ -88,6 +92,9 @@ services:
     volumes:
       - example_soland_data:/var/lib/soland
       - example_soland_master_key:/run/secrets:ro
+      - ./.local/tls/ca.crt:/run/example-tls/ca.crt:ro
+      - ./.local/tls/soland.crt:/run/example-tls/soland.crt:ro
+      - ./.local/tls/soland.key:/run/example-tls/soland.key:ro
     ports: ["127.0.0.1:58787:8787"]
     healthcheck:
       test: ["CMD", "/usr/local/bin/soland", "healthcheck"]
@@ -134,10 +141,12 @@ services:
       soland:
         condition: service_healthy
     environment:
-      SOLAND_URL: http://soland.example:8787
+      SOLAND_URL: https://soland.example:8787
+      SODMIN_UPSTREAM_CA_FILE: /run/example-tls/ca.crt
       COAUTH_URL: http://coauth:7080
       COAUTH_PUBLIC_URL: http://localhost:57080
       SODMIN_PORT: "80"
+    volumes: ["./.local/tls/ca.crt:/run/example-tls/ca.crt:ro"]
     ports: ["127.0.0.1:58200:80"]
     healthcheck:
       test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1/healthz"]
